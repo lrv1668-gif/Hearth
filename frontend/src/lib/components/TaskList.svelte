@@ -5,22 +5,22 @@
 
   let { onAdd }: Props = $props();
 
-  let newTitle = $state('');
-  let newDueDate = $state('');
+  let newTitle = $state("");
+  let newDueDate = $state("");
 
   function handleAdd() {
     const title = newTitle.trim();
     if (!title) return;
     onAdd(title, newDueDate || undefined);
-    newTitle = '';
-    newDueDate = '';
+    newTitle = "";
+    newDueDate = "";
   }
 </script>
 
 <div class="flex gap-2">
   <input
     bind:value={newTitle}
-    onkeydown={(e) => e.key === 'Enter' && handleAdd()}
+    onkeydown={(e) => e.key === "Enter" && handleAdd()}
     placeholder="Add a task..."
     class="flex-1 bg-[var(--surface)] text-[var(--text-1)] placeholder-[var(--text-4)]
            rounded-lg px-4 py-2.5 text-sm outline-none

@@ -9,70 +9,90 @@
 :root,
 [data-theme="stone"] {
   /* Stone — dark warm neutrals. Urban loft, concrete & candlelight. */
-  --bg:           #1c1917;
-  --surface:      #292524;
-  --surface-hi:   #3c3836;
-  --border:       #44403c;
-  --text-1:       #e7e5e4;
-  --text-2:       #a8a29e;
-  --text-3:       #78716c;
-  --text-4:       #57534e;
-  --done:         #57534e;
-  --done-bg:      #57534e;
+  --bg: #1c1917;
+  --surface: #292524;
+  --surface-hi: #3c3836;
+  --border: #44403c;
+  --text-1: #e7e5e4;
+  --text-2: #a8a29e;
+  --text-3: #78716c;
+  --text-4: #57534e;
+  --done: #57534e;
+  --done-bg: #57534e;
+
+  input {
+    color-scheme: dark;
+  }
 }
 
 [data-theme="linen"] {
   /* Linen — warm cream. Cotage mornings, handmade pottery, linen curtains. */
-  --bg:           #faf6ef;
-  --surface:      #f0e8da;
-  --surface-hi:   #e8ddd0;
-  --border:       #d4c9b8;
-  --text-1:       #2a2018;
-  --text-2:       #7a6a55;
-  --text-3:       #9e8c75;
-  --text-4:       #b8a890;
-  --done:         #b8a890;
-  --done-bg:      #b8a890;
+  --bg: #faf6ef;
+  --surface: #f0e8da;
+  --surface-hi: #e8ddd0;
+  --border: #d4c9b8;
+  --text-1: #2a2018;
+  --text-2: #7a6a55;
+  --text-3: #9e8c75;
+  --text-4: #b8a890;
+  --done: #b8a890;
+  --done-bg: #b8a890;
+
+  input {
+    color-scheme: light;
+  }
 }
 
 [data-theme="forest"] {
   /* Forest — dark mossy green. Mountain cabin, timber, rain on leaves. */
-  --bg:           #111713;
-  --surface:      #192118;
-  --surface-hi:   #222e20;
-  --border:       #2e3e2a;
-  --text-1:       #ccddc8;
-  --text-2:       #6a9060;
-  --text-3:       #4a6845;
-  --text-4:       #374e32;
-  --done:         #374e32;
-  --done-bg:      #4a6845;
+  --bg: #111713;
+  --surface: #192118;
+  --surface-hi: #222e20;
+  --border: #2e3e2a;
+  --text-1: #ccddc8;
+  --text-2: #6a9060;
+  --text-3: #4a6845;
+  --text-4: #374e32;
+  --done: #374e32;
+  --done-bg: #4a6845;
+
+  input {
+    color-scheme: dark;
+  }
 }
 
 [data-theme="dusk"] {
   /* Dusk — deep indigo. City apartment at night, velvet, candlelight. */
-  --bg:           #0d1019;
-  --surface:      #151b2a;
-  --surface-hi:   #1d263c;
-  --border:       #263050;
-  --text-1:       #d8dcf0;
-  --text-2:       #7278a0;
-  --text-3:       #4e5478;
-  --text-4:       #383d60;
-  --done:         #383d60;
-  --done-bg:      #4e5478;
+  --bg: #0d1019;
+  --surface: #151b2a;
+  --surface-hi: #1d263c;
+  --border: #263050;
+  --text-1: #d8dcf0;
+  --text-2: #7278a0;
+  --text-3: #4e5478;
+  --text-4: #383d60;
+  --done: #383d60;
+  --done-bg: #4e5478;
+
+  input {
+    color-scheme: dark;
+  }
 }
 
 [data-theme="terracotta"] {
   /* Terracotta — sandy earth tones. Mediterranean villa, plaster, clay. */
-  --bg:           #f5ede2;
-  --surface:      #ece0d0;
-  --surface-hi:   #e0d0bc;
-  --border:       #c8b89e;
-  --text-1:       #3a2010;
-  --text-2:       #8a5c38;
-  --text-3:       #ac7850;
-  --text-4:       #c49870;
-  --done:         #c49870;
-  --done-bg:      #c49870;
+  --bg: #f5ede2;
+  --surface: #ece0d0;
+  --surface-hi: #e0d0bc;
+  --border: #c8b89e;
+  --text-1: #3a2010;
+  --text-2: #8a5c38;
+  --text-3: #ac7850;
+  --text-4: #c49870;
+  --done: #c49870;
+  --done-bg: #c49870;
+
+  input {
+    color-scheme: light;
+  }
 }

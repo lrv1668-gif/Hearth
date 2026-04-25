@@ -12,6 +12,7 @@ services/**/obj/
 services/**/*.db
 services/**/*.db-shm
 services/**/*.db-wal
+services/**/*.lscache
 
 # OS / editor
 .DS_Store
