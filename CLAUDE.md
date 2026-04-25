@@ -8,7 +8,7 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 
 ## Tech Stack
 
-- **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v3, built with Vite
+- **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v3 + Lucide Svelte (`@lucide/svelte`), built with Vite
 - **Services:** .NET 10, ASP.NET Core Minimal APIs, SQLite via `Microsoft.Data.Sqlite`
 - **Proxy:** Caddy 2
 - **Infra:** Docker Compose
@@ -24,7 +24,7 @@ docker-compose.yml
 Caddyfile
 ```
 
-## Running Locally (dev)
+## Running Locally (dev, no Docker)
 
 **Tasks service:**
 ```bash
@@ -39,12 +39,19 @@ npm install        # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081`, so no CORS configuration needed during dev.
+Vite proxies `/tasks` → `http://localhost:8081`, so no CORS configuration needed during dev. Open http://localhost:5173.
 
-## Build & Deploy
+## Running in Docker
 
+**Development (live reload via Vite HMR):**
 ```bash
-docker compose up --build
+docker compose watch
+```
+`docker-compose.override.yml` is auto-merged and swaps the frontend for the Vite dev server (`Dockerfile.dev`). Changes to `frontend/src/` and `frontend/static/` sync instantly; changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a rebuild.
+
+**Production:**
+```bash
+docker compose -f docker-compose.yml up --build
 ```
 
 ## Conventions
