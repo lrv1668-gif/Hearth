@@ -68,6 +68,14 @@
       const key = dateKey(new Date(t.due_date));
       (map[key] ??= []).push(t);
     }
+    for (const key in map) {
+      map[key].sort((a, b) => {
+        if (!a.due_time && !b.due_time) return 0;
+        if (!a.due_time) return 1;
+        if (!b.due_time) return -1;
+        return a.due_time.localeCompare(b.due_time);
+      });
+    }
     return map;
   });
 
@@ -195,13 +203,11 @@
                       : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
                     aria-label="Toggle {task.title}"
                   ></button>
-                  <span
-                    class="text-xs truncate
-                               {task.done
-                      ? 'line-through text-[var(--done)]'
-                      : 'text-[var(--text-2)]'}"
-                  >
-                    {task.title}
+                  <span class="text-xs truncate min-w-0
+                               {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-2)]'}">
+                    {#if task.due_time}
+                      <span class="text-[var(--text-4)] mr-0.5">{task.due_time}</span>
+                    {/if}{task.title}
                   </span>
                 </li>
               {/each}

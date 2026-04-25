@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import TaskList from "$lib/components/TaskList.svelte";
+  import TaskModal from "$lib/components/TaskModal.svelte";
   import Calendar from "$lib/components/Calendar.svelte";
   import ThemeSwitcher from "$lib/components/ThemeSwitcher.svelte";
   import {
@@ -12,6 +12,7 @@
   } from "$lib/api";
 
   let tasks = $state<Task[]>([]);
+  let modalOpen = $state(false);
   let theme = $state(
     browser ? (localStorage.getItem("hearth-theme") ?? "stone") : "stone",
   );
@@ -25,8 +26,8 @@
     fetchTasks().then((t) => (tasks = t));
   });
 
-  async function handleAdd(title: string, dueDate?: string) {
-    const task = await createTask(title, dueDate);
+  async function handleAdd(title: string, dueDate?: string, dueTime?: string) {
+    const task = await createTask(title, dueDate, dueTime);
     tasks = [task, ...tasks];
   }
 
@@ -58,12 +59,28 @@
       <ThemeSwitcher {theme} onChange={(id) => (theme = id)} />
     </header>
 
-    <section>
-      <TaskList onAdd={handleAdd} />
-    </section>
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xs font-medium tracking-widest text-[var(--text-4)] uppercase">
+          Tasks
+        </h2>
+        <button
+          onclick={() => (modalOpen = true)}
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs
+                 text-[var(--text-3)] hover:text-[var(--text-1)]
+                 bg-[var(--surface)] hover:bg-[var(--surface-hi)]
+                 transition-colors"
+        >
+          <svg class="w-3 h-3" viewBox="0 0 12 12" fill="none">
+            <path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          New Task
+        </button>
+      </div>
 
-    <section>
       <Calendar {tasks} onToggle={handleToggle} onDelete={handleDelete} />
     </section>
   </div>
 </main>
+
+<TaskModal bind:open={modalOpen} onAdd={handleAdd} />

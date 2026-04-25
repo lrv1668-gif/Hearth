@@ -3,6 +3,7 @@ export interface Task {
     title: string;
     done: boolean;
     due_date: string | null;
+    due_time: string | null;
     created_at: string;
 }
 
@@ -11,11 +12,11 @@ export async function fetchTasks(): Promise<Task[]> {
     return res.json();
 }
 
-export async function createTask(title: string, due_date?: string): Promise<Task> {
+export async function createTask(title: string, due_date?: string, due_time?: string): Promise<Task> {
     const res = await fetch('/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, due_date: due_date ?? null }),
+        body: JSON.stringify({ title, due_date: due_date ?? null, due_time: due_time ?? null }),
     });
     return res.json();
 }

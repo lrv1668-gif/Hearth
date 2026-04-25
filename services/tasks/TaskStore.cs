@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 
-public record TaskItem(long Id, string Title, bool Done, DateTime? DueDate, DateTime CreatedAt);
+public record TaskItem(long Id, string Title, bool Done, DateTime? DueDate, string? DueTime, DateTime CreatedAt);
 
 public sealed class TaskStore
 {
@@ -17,12 +17,14 @@ public sealed class TaskStore
                 title      TEXT     NOT NULL,
                 done       INTEGER  NOT NULL DEFAULT 0,
                 due_date   DATETIME NULL,
+                due_time   TEXT     NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
         );
-        // add column to existing databases that predate this field
+        // add columns to existing databases that predate these fields
         try { Exec(conn, "ALTER TABLE lu_tasks ADD COLUMN due_date DATETIME NULL"); } catch { }
+        try { Exec(conn, "ALTER TABLE lu_tasks ADD COLUMN due_time TEXT NULL"); } catch { }
     }
 
     public IEnumerable<TaskItem> List()
@@ -30,7 +32,7 @@ public sealed class TaskStore
         using var conn = Open();
         using var cmd = conn.CreateCommand();
 
-        cmd.CommandText = "SELECT id, title, done, due_date, created_at FROM lu_tasks ORDER BY created_at DESC";
+        cmd.CommandText = "SELECT id, title, done, due_date, due_time, created_at FROM lu_tasks ORDER BY created_at DESC";
 
         using var r = cmd.ExecuteReader();
         var tasks = new List<TaskItem>();
@@ -39,19 +41,20 @@ public sealed class TaskStore
         return tasks;
     }
 
-    public TaskItem Create(string title, DateTime? dueDate)
+    public TaskItem Create(string title, DateTime? dueDate, string? dueTime)
     {
         using var conn = Open();
         using var cmd = conn.CreateCommand();
 
         cmd.CommandText = """
-            INSERT INTO lu_tasks (title, due_date)
-            VALUES ($title, $due_date)
-            RETURNING id, title, done, due_date, created_at
+            INSERT INTO lu_tasks (title, due_date, due_time)
+            VALUES ($title, $due_date, $due_time)
+            RETURNING id, title, done, due_date, due_time, created_at
         """;
 
         cmd.Parameters.AddWithValue("$title", title);
         cmd.Parameters.AddWithValue("$due_date", dueDate.HasValue ? dueDate.Value.ToString("o") : DBNull.Value);
+        cmd.Parameters.AddWithValue("$due_time", (object?)dueTime ?? DBNull.Value);
 
         using var r = cmd.ExecuteReader();
         r.Read();
@@ -68,7 +71,7 @@ public sealed class TaskStore
             UPDATE lu_tasks
             SET done = $done
             WHERE id = $id
-            RETURNING id, title, done, due_date, created_at
+            RETURNING id, title, done, due_date, due_time, created_at
         """;
 
         cmd.Parameters.AddWithValue("$done", done ? 1 : 0);
@@ -107,5 +110,6 @@ public sealed class TaskStore
     private static TaskItem Map(SqliteDataReader r) =>
         new(r.GetInt64(0), r.GetString(1), r.GetBoolean(2),
             r.IsDBNull(3) ? null : r.GetDateTime(3),
-            r.GetDateTime(4));
+            r.IsDBNull(4) ? null : r.GetString(4),
+            r.GetDateTime(5));
 }

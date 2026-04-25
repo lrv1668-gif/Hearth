@@ -21,7 +21,7 @@ app.MapPost("/tasks", (CreateTaskRequest req, TaskStore store) =>
     {
         return Results.BadRequest("title required");
     }
-    var task = store.Create(req.Title, req.DueDate);
+    var task = store.Create(req.Title, req.DueDate, req.DueTime);
     return Results.Created($"/tasks/{task.Id}", task);
 });
 
@@ -39,5 +39,5 @@ app.MapDelete("/tasks/{id:long}", (long id, TaskStore store) =>
 
 app.Run();
 
-record CreateTaskRequest(string Title, DateTime? DueDate);
+record CreateTaskRequest(string Title, DateTime? DueDate, string? DueTime);
 record UpdateTaskRequest(bool Done);
