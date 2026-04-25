@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Tasks": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:8081"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+services:
+  tasks:
+    build: ./services/tasks
+    environment:
+      - DB_PATH=/data/tasks.db
+      - ASPNETCORE_HTTP_PORTS=8081
+    volumes:
+      - tasks-data:/data
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - tasks
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+    depends_on:
+      - frontend
+      - tasks
+
+volumes:
+  tasks-data:
+  caddy-data:

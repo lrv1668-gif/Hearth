@@ -1,0 +1,22 @@
+# Frontend (Node / SvelteKit)
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Backend (.NET)
+services/**/bin/
+services/**/obj/
+services/**/*.db
+services/**/*.db-shm
+services/**/*.db-wal
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.user
