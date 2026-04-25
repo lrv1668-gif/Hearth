@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/services/">
+    <Project Path="services/tasks/tasks.csproj" />
+  </Folder>
+</Solution>
