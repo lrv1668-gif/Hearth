@@ -1,9 +1,17 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
   import TaskList from '$lib/components/TaskList.svelte';
   import Calendar from '$lib/components/Calendar.svelte';
+  import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
   import { fetchTasks, createTask, updateTask, deleteTask, type Task } from '$lib/api';
 
   let tasks = $state<Task[]>([]);
+  let theme = $state(browser ? (localStorage.getItem('hearth-theme') ?? 'stone') : 'stone');
+
+  $effect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('hearth-theme', theme);
+  });
 
   $effect(() => {
     fetchTasks().then((t) => (tasks = t));
@@ -29,10 +37,12 @@
   <title>Hearth</title>
 </svelte:head>
 
-<main class="min-h-screen bg-stone-900 text-stone-100 p-8">
+<main class="min-h-screen bg-[var(--bg)] text-[var(--text-1)] p-8 transition-colors duration-300">
   <div class="max-w-4xl mx-auto space-y-10">
-    <header>
-      <h1 class="text-xl font-light tracking-[0.3em] text-stone-500 uppercase">Hearth</h1>
+
+    <header class="flex items-center justify-between">
+      <h1 class="text-xl font-light tracking-[0.3em] text-[var(--text-3)] uppercase">Hearth</h1>
+      <ThemeSwitcher {theme} onChange={(id) => (theme = id)} />
     </header>
 
     <section>
@@ -42,5 +52,6 @@
     <section>
       <Calendar {tasks} onToggle={handleToggle} onDelete={handleDelete} />
     </section>
+
   </div>
 </main>
