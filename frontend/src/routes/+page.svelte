@@ -10,6 +10,7 @@
     deleteTask,
     type Task,
   } from "$lib/api";
+  import { Plus, HouseHeart } from '@lucide/svelte'
 
   let tasks = $state<Task[]>([]);
   let modalOpen = $state(false);
@@ -51,11 +52,15 @@
 >
   <div class="max-w-4xl mx-auto space-y-10">
     <header class="flex items-center justify-between">
-      <h1
-        class="text-xl font-light tracking-[0.3em] text-[var(--text-3)] uppercase"
-      >
-        Hearth
-      </h1>
+    
+      <div class="flex flex-row gap-2 items-center text-[var(--text-3)]">
+        <HouseHeart />
+        <h1
+          class="text-xl font-light tracking-[0.3em] text-[var(--text-3)] uppercase"
+        >
+          Hearth
+        </h1>
+      </div>
       <ThemeSwitcher {theme} onChange={(id) => (theme = id)} />
     </header>
 
@@ -71,9 +76,7 @@
                  bg-[var(--surface)] hover:bg-[var(--surface-hi)]
                  transition-colors"
         >
-          <svg class="w-3 h-3" viewBox="0 0 12 12" fill="none">
-            <path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
+          <Plus size="16" />
           New Task
         </button>
       </div>

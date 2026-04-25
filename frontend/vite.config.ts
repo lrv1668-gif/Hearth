@@ -5,7 +5,10 @@ export default defineConfig({
     plugins: [sveltekit()],
     server: {
         proxy: {
-            '/tasks': 'http://localhost:8081'
-        }
+            '/tasks': process.env.TASKS_URL ?? 'http://localhost:8081'
+        },
+        hmr: process.env.HMR_CLIENT_PORT
+            ? { clientPort: parseInt(process.env.HMR_CLIENT_PORT) }
+            : undefined,
     }
 });

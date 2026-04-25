@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Tasks;
+using Tasks.Records;
 
 var builder = WebApplication.CreateBuilder(args);
 var dbPath = Environment.GetEnvironmentVariable("DB_PATH") ?? "tasks.db";
@@ -38,6 +40,3 @@ app.MapDelete("/tasks/{id:long}", (long id, TaskStore store) =>
 });
 
 app.Run();
-
-record CreateTaskRequest(string Title, DateTime? DueDate, string? DueTime);
-record UpdateTaskRequest(bool Done);

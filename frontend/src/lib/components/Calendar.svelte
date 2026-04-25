@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Task } from "$lib/api";
+  import { Check, ChevronLeft, ChevronRight, X } from "@lucide/svelte";
 
   interface Props {
     tasks: Task[];
@@ -106,30 +107,14 @@
         class="p-1.5 text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
         aria-label="Previous month"
       >
-        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
-          <path
-            d="M10 12L6 8l4-4"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <ChevronLeft size="16" />
       </button>
       <button
         onclick={nextMonth}
         class="p-1.5 text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
         aria-label="Next month"
       >
-        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
-          <path
-            d="M6 4l4 4-4 4"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <ChevronRight size="16" />
       </button>
     </div>
 
@@ -245,19 +230,7 @@
               aria-label="Toggle {task.title}"
             >
               {#if task.done}
-                <svg
-                  class="w-2.5 h-2.5 text-[var(--bg)]"
-                  viewBox="0 0 10 10"
-                  fill="none"
-                >
-                  <path
-                    d="M1.5 5l2.5 2.5 4.5-4.5"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <Check class="text-[var(--bg)]"/>
               {/if}
             </button>
 
@@ -276,7 +249,7 @@
                      text-lg leading-none transition"
               aria-label="Delete {task.title}"
             >
-              x
+              <X />
             </button>
           </li>
         {/each}

@@ -40,7 +40,7 @@
   <div class="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-6 space-y-5 mx-4">
     <div class="flex items-center justify-between">
       <h2 class="text-sm font-medium tracking-widest text-[var(--text-3)] uppercase">
-        New Task
+        Add a New Task
       </h2>
       <button
         onclick={close}
