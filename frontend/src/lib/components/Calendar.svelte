@@ -1,14 +1,15 @@
 <script lang="ts">
   import type { Task } from "$lib/api";
-  import { Check, ChevronLeft, ChevronRight, X } from "@lucide/svelte";
+  import { Check, ChevronLeft, ChevronRight, Plus, X } from "@lucide/svelte";
 
   interface Props {
     tasks: Task[];
     onToggle: (task: Task) => void;
     onDelete: (id: number) => void;
+    onNewTask: () => void;
   }
 
-  let { tasks, onToggle, onDelete }: Props = $props();
+  let { tasks, onToggle, onDelete, onNewTask }: Props = $props();
 
   const MONTH_NAMES = [
     "January",
@@ -96,46 +97,56 @@
 
 <div class="space-y-6">
   <!-- Month navigation -->
-  <div
-    class="grid items-center gap-3"
-    style="grid-template-columns: auto 1fr auto"
-  >
-    <!-- Left: prev + next arrows -->
+  <div class="flex flex-row items-center gap-4">
+    <!-- Left: today -->
+    <button
+      onclick={goToToday}
+      disabled={isCurrentMonth}
+      class="text-xs tracking-wide transition-colors px-2.5 py-1 rounded border
+             {isCurrentMonth
+        ? 'border-[var(--border)] text-[var(--text-4)] cursor-default opacity-50'
+        : 'border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] hover:border-[var(--text-3)]'}"
+    >
+      Today
+    </button>
+    
+    <!-- Center: prev + next arrows -->
     <div class="flex items-center gap-1">
       <button
         onclick={prevMonth}
-        class="p-1.5 text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+        class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
         aria-label="Previous month"
       >
         <ChevronLeft size="16" />
       </button>
       <button
         onclick={nextMonth}
-        class="p-1.5 text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+        class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
         aria-label="Next month"
       >
         <ChevronRight size="16" />
       </button>
     </div>
 
-    <!-- Center: month + year -->
+    <!-- Month + year -->
     <h2
-      class="text-center text-xs font-medium tracking-widest text-[var(--text-3)] uppercase select-none"
+      class="text-xs font-semibold tracking-widest text-[var(--text-1)] uppercase select-none"
     >
       {MONTH_NAMES[viewMonth]}
       {viewYear}
     </h2>
 
-    <!-- Right: today -->
+    <div class="flex-1"></div>
+
+    <!-- Far right: new task -->
     <button
-      onclick={goToToday}
-      disabled={isCurrentMonth}
-      class="text-xs tracking-wide transition-colors px-2 py-1 rounded
-             {isCurrentMonth
-        ? 'text-[var(--text-4)] cursor-default'
-        : 'text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface)]'}"
+      onclick={onNewTask}
+      class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium
+             bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--accent-fg)]
+             transition-colors"
     >
-      Today
+      <Plus size="13" />
+      New Task
     </button>
   </div>
 
@@ -146,7 +157,7 @@
     <!-- Day-of-week headers -->
     {#each DAY_NAMES as day}
       <div
-        class="bg-[var(--bg)] text-center text-xs text-[var(--text-4)] font-medium tracking-wider py-2"
+        class="bg-[var(--bg)] text-center text-xs text-[var(--text-3)] font-medium tracking-wider py-2"
       >
         {day}
       </div>
@@ -171,7 +182,7 @@
             class="block text-xs leading-none mb-1.5
                        {isToday
               ? 'text-[var(--text-1)] font-semibold'
-              : 'text-[var(--text-4)]'}"
+              : 'text-[var(--text-3)]'}"
           >
             {day}
           </span>
@@ -189,15 +200,15 @@
                     aria-label="Toggle {task.title}"
                   ></button>
                   <span class="text-xs truncate min-w-0
-                               {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-2)]'}">
+                               {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}">
                     {#if task.due_time}
-                      <span class="text-[var(--text-4)] mr-0.5">{task.due_time}</span>
+                      <span class="text-[var(--text-3)] mr-0.5">{task.due_time}</span>
                     {/if}{task.title}
                   </span>
                 </li>
               {/each}
               {#if dayTasks.length > 3}
-                <li class="text-xs text-[var(--text-4)]">
+                <li class="text-xs text-[var(--text-3)]">
                   +{dayTasks.length - 3} more
                 </li>
               {/if}
@@ -212,7 +223,7 @@
   {#if undatedTasks.length > 0}
     <div class="space-y-3">
       <h3
-        class="text-xs font-medium tracking-widest text-[var(--text-4)] uppercase"
+        class="text-xs font-medium tracking-widest text-[var(--text-3)] uppercase"
       >
         No due date
       </h3>
@@ -226,7 +237,7 @@
               class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors
                      {task.done
                 ? 'bg-[var(--done-bg)] border-[var(--done-bg)]'
-                : 'border-[var(--text-4)] hover:border-[var(--text-2)]'}"
+                : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
               aria-label="Toggle {task.title}"
             >
               {#if task.done}
@@ -238,7 +249,7 @@
               class="flex-1 text-sm transition-colors
                          {task.done
                 ? 'line-through text-[var(--done)]'
-                : 'text-[var(--text-3)]'}"
+                : 'text-[var(--text-1)]'}"
             >
               {task.title}
             </span>

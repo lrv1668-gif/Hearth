@@ -41,9 +41,9 @@
       bind:value={newTitle}
       onkeydown={(e) => e.key === "Enter" && handleAdd()}
       placeholder="Enter description..."
-      class="flex-1 bg-[var(--surface)] placeholder-[var(--text-4)]
+      class="flex-1 bg-[var(--surface)] text-[var(--text-1)] placeholder-[var(--text-4)]
              rounded-lg px-4 py-2.5 text-sm outline-none
-             focus:ring-1 focus:ring-[var(--border)] transition text-[var(--text-3)]"
+             focus:ring-1 focus:ring-[var(--border)] transition"
     />
     <input
       type="date"
@@ -55,10 +55,9 @@
     <button
       onclick={handleAdd}
       disabled={!!newDueDate && !allDay && !newDueTime}
-      class="px-4 py-2.5 bg-[var(--surface)] hover:bg-[var(--surface-hi)]
-             text-[var(--text-3)] hover:text-[var(--text-1)]
-             rounded-lg text-sm transition-colors
-             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text-3)]"
+      class="px-4 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--accent-fg)]
+             rounded-lg text-sm font-medium transition-colors
+             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--accent)]"
     >
       Add
     </button>
@@ -67,12 +66,12 @@
   {#if newDueDate}
     <div class="flex items-center gap-3">
       <div class="flex-1"></div>
-      <label class="flex items-center gap-2 text-sm text-[var(--text-3)] cursor-pointer select-none">
+      <label class="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer select-none">
         <input
           type="checkbox"
           checked={allDay}
           onchange={handleAllDayChange}
-          class="rounded accent-[var(--text-3)] cursor-pointer"
+          class="rounded accent-[var(--accent)] cursor-pointer"
         />
         All day
       </label>

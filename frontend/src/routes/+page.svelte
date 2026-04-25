@@ -10,7 +10,7 @@
     deleteTask,
     type Task,
   } from "$lib/api";
-  import { Plus, HouseHeart } from '@lucide/svelte'
+  import { HouseHeart } from '@lucide/svelte'
 
   let tasks = $state<Task[]>([]);
   let modalOpen = $state(false);
@@ -53,10 +53,10 @@
   <div class="max-w-4xl mx-auto space-y-10">
     <header class="flex items-center justify-between">
     
-      <div class="flex flex-row gap-2 items-center text-[var(--text-3)]">
+      <div class="flex flex-row gap-2 items-center text-[var(--text-2)]">
         <HouseHeart />
         <h1
-          class="text-xl font-light tracking-[0.3em] text-[var(--text-3)] uppercase"
+          class="text-xl font-light tracking-[0.3em] text-[var(--text-2)] uppercase"
         >
           Hearth
         </h1>
@@ -64,24 +64,8 @@
       <ThemeSwitcher {theme} onChange={(id) => (theme = id)} />
     </header>
 
-    <section class="space-y-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs font-medium tracking-widest text-[var(--text-4)] uppercase">
-          Tasks
-        </h2>
-        <button
-          onclick={() => (modalOpen = true)}
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs
-                 text-[var(--text-3)] hover:text-[var(--text-1)]
-                 bg-[var(--surface)] hover:bg-[var(--surface-hi)]
-                 transition-colors"
-        >
-          <Plus size="16" />
-          New Task
-        </button>
-      </div>
-
-      <Calendar {tasks} onToggle={handleToggle} onDelete={handleDelete} />
+    <section>
+      <Calendar {tasks} onToggle={handleToggle} onDelete={handleDelete} onNewTask={() => (modalOpen = true)} />
     </section>
   </div>
 </main>

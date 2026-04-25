@@ -19,6 +19,9 @@
   --text-4: #57534e;
   --done: #57534e;
   --done-bg: #57534e;
+  --accent: #e7e5e4;
+  --accent-hi: #d4d0ce;
+  --accent-fg: #1c1917;
 
   input {
     color-scheme: dark;
@@ -37,6 +40,9 @@
   --text-4: #b8a890;
   --done: #b8a890;
   --done-bg: #b8a890;
+  --accent: #2a2018;
+  --accent-hi: #3d2e20;
+  --accent-fg: #faf6ef;
 
   input {
     color-scheme: light;
@@ -55,6 +61,9 @@
   --text-4: #374e32;
   --done: #374e32;
   --done-bg: #4a6845;
+  --accent: #ccddc8;
+  --accent-hi: #b8ccb4;
+  --accent-fg: #111713;
 
   input {
     color-scheme: dark;
@@ -73,6 +82,9 @@
   --text-4: #383d60;
   --done: #383d60;
   --done-bg: #4e5478;
+  --accent: #d8dcf0;
+  --accent-hi: #c4c8e0;
+  --accent-fg: #0d1019;
 
   input {
     color-scheme: dark;
@@ -91,6 +103,9 @@
   --text-4: #c49870;
   --done: #c49870;
   --done-bg: #c49870;
+  --accent: #3a2010;
+  --accent-hi: #4e2e18;
+  --accent-fg: #f5ede2;
 
   input {
     color-scheme: light;

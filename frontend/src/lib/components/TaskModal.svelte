@@ -40,12 +40,12 @@
 >
   <div class="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-6 space-y-5 mx-4">
     <div class="flex items-center justify-between">
-      <h2 class="text-sm font-medium tracking-widest text-[var(--text-3)] uppercase">
+      <h2 class="text-sm font-semibold tracking-widest text-[var(--text-1)] uppercase">
         Add a New Task
       </h2>
       <button
         onclick={close}
-        class="text-[var(--text-4)] hover:text-[var(--text-2)] transition-colors leading-none text-xl w-6 h-6 flex items-center justify-center"
+        class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors w-6 h-6 flex items-center justify-center"
         aria-label="Close"
       >
         <X />
