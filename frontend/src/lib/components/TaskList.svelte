@@ -40,10 +40,10 @@
     <input
       bind:value={newTitle}
       onkeydown={(e) => e.key === "Enter" && handleAdd()}
-      placeholder="Add a task..."
-      class="flex-1 bg-[var(--surface)] text-[var(--text-1)] placeholder-[var(--text-4)]
+      placeholder="Enter description..."
+      class="flex-1 bg-[var(--surface)] placeholder-[var(--text-4)]
              rounded-lg px-4 py-2.5 text-sm outline-none
-             focus:ring-1 focus:ring-[var(--border)] transition"
+             focus:ring-1 focus:ring-[var(--border)] transition text-[var(--text-3)]"
     />
     <input
       type="date"

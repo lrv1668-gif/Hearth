@@ -182,7 +182,7 @@
                 <li class="flex items-center gap-1 min-w-0">
                   <button
                     onclick={() => onToggle(task)}
-                    class="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors
+                    class="w-2 h-2 rounded-full flex-shrink-0 transition-colors
                            {task.done
                       ? 'bg-[var(--done-bg)]'
                       : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
@@ -238,7 +238,7 @@
               class="flex-1 text-sm transition-colors
                          {task.done
                 ? 'line-through text-[var(--done)]'
-                : 'text-[var(--text-1)]'}"
+                : 'text-[var(--text-3)]'}"
             >
               {task.title}
             </span>

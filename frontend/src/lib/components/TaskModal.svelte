@@ -1,5 +1,6 @@
 <script lang="ts">
   import TaskList from "./TaskList.svelte";
+  import { X } from "@lucide/svelte";
 
   interface Props {
     open?: boolean;
@@ -47,7 +48,7 @@
         class="text-[var(--text-4)] hover:text-[var(--text-2)] transition-colors leading-none text-xl w-6 h-6 flex items-center justify-center"
         aria-label="Close"
       >
-        ×
+        <X />
       </button>
     </div>
 
