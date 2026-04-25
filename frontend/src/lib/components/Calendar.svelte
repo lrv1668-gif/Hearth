@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Task } from "$lib/api";
+  import { formatTime } from "$lib/utils";
   import { Check, ChevronLeft, ChevronRight, Plus, X } from "@lucide/svelte";
 
   interface Props {
@@ -202,8 +203,9 @@
                   <span class="text-xs truncate min-w-0
                                {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}">
                     {#if task.due_time}
-                      <span class="text-[var(--text-3)] mr-0.5">{task.due_time}</span>
-                    {/if}{task.title}
+                      <span class="text-[var(--text-3)] mr-0.5">{formatTime(task.due_time)}</span>
+                    {/if}
+                    {task.title}
                   </span>
                 </li>
               {/each}
