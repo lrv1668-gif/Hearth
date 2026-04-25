@@ -1,9 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /app
-COPY *.csproj ./
-RUN dotnet restore
-COPY . .
-RUN dotnet publish -c Release -o /out
+COPY Data/Data.csproj data/
+COPY Tasks/Tasks.csproj tasks/
+RUN dotnet restore tasks/Tasks.csproj
+COPY Data/ data/
+COPY Tasks/ tasks/
+RUN dotnet publish tasks/Tasks.csproj -c Release -o /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app

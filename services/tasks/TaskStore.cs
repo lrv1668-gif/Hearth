@@ -1,17 +1,12 @@
+using Data;
 using Microsoft.Data.Sqlite;
+using Tasks.Records;
 
 namespace Tasks
 {
-    public record TaskItem(long Id, string Title, bool Done, DateTime? DueDate, string? DueTime, DateTime CreatedAt);
-
-    public sealed class TaskStore(string dbPath)
+    public sealed class TaskStore([FromKeyedServices("tasks")] Database db)
     {
-        private readonly string _cs = $"Data Source={dbPath}";
-
-        public void Migrate()
-        {
-            using var conn = Open();
-            Exec(conn, """
+        public void Migrate() => db.NonQuery("""
             CREATE TABLE IF NOT EXISTS lu_tasks (
                 id         INTEGER  PRIMARY KEY AUTOINCREMENT,
                 title      TEXT     NOT NULL,
@@ -21,91 +16,41 @@ namespace Tasks
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """);
-        }
 
-        public IEnumerable<TaskItem> List()
-        {
-            using var conn = Open();
-            using var cmd = conn.CreateCommand();
-
-            cmd.CommandText = """
+        public IEnumerable<TaskItem> List() =>
+            db.Query("""
                 SELECT id, title, done, due_date, due_time, created_at
                 FROM lu_tasks
                 ORDER BY created_at DESC
-            """;
+                """, Map);
 
-            using var r = cmd.ExecuteReader();
-            var tasks = new List<TaskItem>();
-            while (r.Read()) tasks.Add(Map(r));
-
-            return tasks;
-        }
-
-        public TaskItem Create(string title, DateTime? dueDate, string? dueTime)
-        {
-            using var conn = Open();
-            using var cmd = conn.CreateCommand();
-
-            cmd.CommandText = """
+        public TaskItem Create(string title, DateTime? dueDate, string? dueTime) =>
+            db.QueryOne("""
                 INSERT INTO lu_tasks (title, due_date, due_time)
                 VALUES ($title, $due_date, $due_time)
                 RETURNING id, title, done, due_date, due_time, created_at
-            """;
+                """, Map, cmd =>
+            {
+                cmd.Parameters.AddWithValue("$title", title);
+                cmd.Parameters.AddWithValue("$due_date", dueDate.HasValue ? dueDate.Value.ToString("o") : DBNull.Value);
+                cmd.Parameters.AddWithValue("$due_time", (object?)dueTime ?? DBNull.Value);
+            })!;
 
-            cmd.Parameters.AddWithValue("$title", title);
-            cmd.Parameters.AddWithValue("$due_date", dueDate.HasValue ? dueDate.Value.ToString("o") : DBNull.Value);
-            cmd.Parameters.AddWithValue("$due_time", (object?)dueTime ?? DBNull.Value);
-
-            using var r = cmd.ExecuteReader();
-            r.Read();
-
-            return Map(r);
-        }
-
-        public TaskItem? Update(long id, bool done)
-        {
-            using var conn = Open();
-            using var cmd = conn.CreateCommand();
-
-            cmd.CommandText = """
+        public TaskItem? Update(long id, bool done) =>
+            db.QueryOne("""
                 UPDATE lu_tasks
                 SET done = $done
                 WHERE id = $id
                 RETURNING id, title, done, due_date, due_time, created_at
-            """;
+                """, Map, cmd =>
+            {
+                cmd.Parameters.AddWithValue("$done", done ? 1 : 0);
+                cmd.Parameters.AddWithValue("$id", id);
+            });
 
-            cmd.Parameters.AddWithValue("$done", done ? 1 : 0);
-            cmd.Parameters.AddWithValue("$id", id);
-
-            using var r = cmd.ExecuteReader();
-
-            return r.Read() ? Map(r) : null;
-        }
-
-        public void Delete(long id)
-        {
-            using var conn = Open();
-            using var cmd = conn.CreateCommand();
-
-            cmd.CommandText = "DELETE FROM lu_tasks WHERE id = $id";
-            cmd.Parameters.AddWithValue("$id", id);
-
-            cmd.ExecuteNonQuery();
-        }
-
-        private SqliteConnection Open()
-        {
-            var conn = new SqliteConnection(_cs);
-            conn.Open();
-            return conn;
-        }
-
-        private static void Exec(SqliteConnection conn, string sql)
-        {
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = sql;
-            cmd.ExecuteNonQuery();
-        }
+        public void Delete(long id) =>
+            db.NonQuery("DELETE FROM lu_tasks WHERE id = $id",
+                cmd => cmd.Parameters.AddWithValue("$id", id));
 
         private static TaskItem Map(SqliteDataReader r) =>
             new(r.GetInt64(0), r.GetString(1), r.GetBoolean(2),

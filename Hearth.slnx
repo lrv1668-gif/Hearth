@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/services/">
     <Project Path="services/tasks/tasks.csproj" />
+    <Project Path="services/data/Data.csproj" />
   </Folder>
 </Solution>

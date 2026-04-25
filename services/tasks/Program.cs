@@ -1,11 +1,13 @@
 using System.Text.Json;
 using Tasks;
 using Tasks.Records;
+using Data;
 
 var builder = WebApplication.CreateBuilder(args);
 var dbPath = Environment.GetEnvironmentVariable("DB_PATH") ?? "tasks.db";
 
-builder.Services.AddSingleton(_ => new TaskStore(dbPath));
+builder.Services.AddKeyedSingleton("tasks", (_, _) => new Database(dbPath));
+builder.Services.AddSingleton<TaskStore>();
 builder.Services.AddCors(opts =>
     opts.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 builder.Services.ConfigureHttpJsonOptions(opts =>

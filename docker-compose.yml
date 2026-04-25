@@ -1,6 +1,8 @@
 services:
   tasks:
-    build: ./services/tasks
+    build:
+      context: ./services
+      dockerfile: Tasks/Dockerfile
     environment:
       - DB_PATH=/data/tasks.db
       - ASPNETCORE_HTTP_PORTS=8081

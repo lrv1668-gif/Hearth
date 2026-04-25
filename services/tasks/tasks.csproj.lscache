@@ -60,9 +60,14 @@ obj/Debug/net10.0/
  tasks.AssemblyInfo.cs
  tasks.GlobalUsings.g.cs
 Program.cs
+Records/
+ CreateTaskRequest.cs
+ TaskItem.cs
+ UpdateTaskRequest.cs
 TaskStore.cs
 
 [metadataReferences]
+../data/obj/Debug/net10.0/ref/Data.dll
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/10.0.7/ref/net10.0/
  Microsoft.AspNetCore.Antiforgery.dll
  Microsoft.AspNetCore.Authentication.Abstractions.dll
