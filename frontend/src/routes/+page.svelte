@@ -2,6 +2,7 @@
   import { tasks, toggleTask, removeTask } from '$lib/TaskStore';
   import Schedule from '$lib/components/Schedule.svelte';
   import NowPlaying from '$lib/components/NowPlaying.svelte';
+  import { MoveRight } from '@lucide/svelte';
 </script>
 
 <svelte:head>
@@ -33,9 +34,9 @@
       <div>
         <a
           href="/calendar"
-          class="block text-xs tracking-widest uppercase text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+          class="flex text-xs tracking-widest gap-1 uppercase text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors items-center"
         >
-          View Calendar →
+          View Calendar <MoveRight size="14" />
         </a>
       </div>
     </div>
