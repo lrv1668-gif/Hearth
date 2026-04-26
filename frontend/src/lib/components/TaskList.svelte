@@ -144,13 +144,13 @@
         rows={2}
         class="w-full bg-[var(--surface)] text-[var(--text-1)] placeholder-[var(--text-4)]
                rounded-lg px-4 py-2.5 text-sm outline-none resize-none
-               focus:ring-1 focus:ring-[var(--border)] transition"
+               focus:ring-1 focus:ring-[var(--border)] transition mt-1"
       ></textarea>
 
       <!-- Assignee -->
       <input
         bind:value={assignee}
-        placeholder="Assign to..."
+        placeholder="Assign to"
         class="w-full bg-[var(--surface)] text-[var(--text-1)] placeholder-[var(--text-4)]
                rounded-lg px-4 py-2.5 text-sm outline-none
                focus:ring-1 focus:ring-[var(--border)] transition"
