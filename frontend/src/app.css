@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+.font-serif { font-family: 'Playfair Display', Georgia, serif; }
+
 /* ── Themes ──────────────────────────────────────────────────────────────── */
 /* Each theme exposes the same set of semantic tokens so every component
    can reference var(--token) without knowing which palette is active.      */
