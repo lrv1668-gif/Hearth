@@ -64,3 +64,31 @@ export async function fetchNowPlaying(): Promise<NowPlaying | null | undefined> 
     if (res.status === 204) return null;
     return res.json();
 }
+
+export interface CurrentWeather {
+    temperature_f: number;
+    weather_code: number;
+    description: string;
+    wind_mph: number;
+    fetched_at: string;
+}
+
+export interface ForecastDay {
+    date: string;
+    weather_code: number;
+    description: string;
+    temp_max_f: number;
+    temp_min_f: number;
+}
+
+export async function fetchCurrentWeather(): Promise<CurrentWeather | null> {
+    const res = await fetch('/weather/current');
+    if (!res.ok) return null;
+    return res.json();
+}
+
+export async function fetchWeatherForecast(): Promise<ForecastDay[]> {
+    const res = await fetch('/weather/forecast');
+    if (!res.ok) return [];
+    return res.json();
+}
