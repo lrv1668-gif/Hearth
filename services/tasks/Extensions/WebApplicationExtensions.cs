@@ -23,16 +23,16 @@ public static class WebApplicationExtensions
         app.MapPost("/tasks", (CreateTaskRequest req, TaskStore store) =>
         {
             if (string.IsNullOrWhiteSpace(req.Title))
-            {
                 return Results.BadRequest("title required");
-            }
-            var task = store.Create(req.Title, req.DueDate, req.DueTime);
+            var task = store.Create(req.Title, req.DueDate, req.DueTime,
+                req.Description, req.Assignee,
+                req.RecurrenceUnit, req.RecurrenceInterval, req.RecurrenceDays);
             return Results.Created($"/tasks/{task.Id}", task);
         });
 
         app.MapPut("/tasks/{id:long}", (long id, UpdateTaskRequest req, TaskStore store) =>
         {
-            var task = store.Update(id, req.Done);
+            var task = store.Update(id, req.Done, req.Description, req.Assignee);
             return task is null ? Results.NotFound() : Results.Ok(task);
         });
 

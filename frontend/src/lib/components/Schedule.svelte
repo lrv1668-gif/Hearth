@@ -132,11 +132,13 @@
   <div class="space-y-8">
     {#each groups as group (group.key)}
       <div class="space-y-2">
-        <div class="flex items-center gap-3">
-          <h2 class="text-xs font-medium tracking-widest uppercase whitespace-nowrap {group.labelClass}">
-            {group.label}
-          </h2>
-          <div class="flex-1 h-px bg-[var(--border)]"></div>
+        <div class="">
+          <div class="flex items-center gap-3 pt-1">
+            <h2 class="font-serif text-sm font-semibold italic whitespace-nowrap {group.labelClass}">
+              {group.label}
+            </h2>
+            <div class="border-dotted border-t-2 border-[var(--text-2)] w-full"></div>
+          </div>
         </div>
         <ul class="space-y-1.5">
           {#each group.tasks as task (task.id)}
