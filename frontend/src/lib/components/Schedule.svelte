@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Task } from '$lib/api';
   import { formatTime } from '$lib/utils';
-  import { Check, X } from '@lucide/svelte';
+  import { Check, RefreshCw, X } from '@lucide/svelte';
 
   interface Props {
     tasks: Task[];
@@ -115,6 +115,15 @@
 
     return result;
   });
+
+  function recurrenceLabel(task: Task): string {
+    if (!task.recurrence_unit) return '';
+    const n = task.recurrence_interval ?? 1;
+    if (task.recurrence_unit === 'day') return n === 1 ? 'Daily' : `Every ${n}d`;
+    if (task.recurrence_unit === 'week') return task.recurrence_days ?? 'Weekly';
+    if (task.recurrence_unit === 'month') return n === 1 ? 'Monthly' : `Every ${n}mo`;
+    return '';
+  }
 </script>
 
 {#if groups.length === 0}
@@ -153,16 +162,34 @@
                 <span class="w-14 flex-shrink-0"></span>
               {/if}
 
-              <span
-                class="flex-1 text-sm transition-colors
-                       {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
-              >
-                {task.title}
-              </span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span
+                    class="text-sm transition-colors truncate
+                           {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
+                  >
+                    {task.title}
+                  </span>
+                  {#if task.assignee}
+                    <span class="flex-shrink-0 text-xs px-1.5 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-3)]">
+                      {task.assignee}
+                    </span>
+                  {/if}
+                  {#if task.recurrence_unit}
+                    <span class="flex-shrink-0 flex items-center gap-0.5 text-xs text-[var(--text-4)]">
+                      <RefreshCw size={10} />
+                      {recurrenceLabel(task)}
+                    </span>
+                  {/if}
+                </div>
+                {#if task.description}
+                  <p class="text-xs text-[var(--text-3)] truncate mt-0.5">{task.description}</p>
+                {/if}
+              </div>
 
               <button
                 onclick={() => onDelete(task.id)}
-                class="opacity-0 group-hover/row:opacity-100 text-[var(--text-3)] hover:text-[var(--text-1)] transition"
+                class="opacity-0 group-hover/row:opacity-100 text-[var(--text-3)] hover:text-[var(--text-1)] transition flex-shrink-0"
                 aria-label="Delete {task.title}"
               >
                 <X size="14" />

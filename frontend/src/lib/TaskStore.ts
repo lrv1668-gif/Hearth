@@ -7,8 +7,17 @@ export async function loadTasks() {
     tasks.set(await fetchTasks());
 }
 
-export async function addTask(title: string, dueDate?: string, dueTime?: string) {
-    const task = await createTask(title, dueDate, dueTime);
+export async function addTask(
+    title: string,
+    dueDate?: string,
+    dueTime?: string,
+    description?: string,
+    assignee?: string,
+    recurrenceUnit?: string,
+    recurrenceInterval?: number,
+    recurrenceDays?: string,
+) {
+    const task = await createTask(title, dueDate, dueTime, description, assignee, recurrenceUnit, recurrenceInterval, recurrenceDays);
     tasks.update(ts => [task, ...ts]);
 }
 

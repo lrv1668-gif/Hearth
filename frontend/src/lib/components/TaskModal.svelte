@@ -4,7 +4,16 @@
 
   interface Props {
     open?: boolean;
-    onAdd: (title: string, dueDate?: string, dueTime?: string) => void;
+    onAdd: (
+      title: string,
+      dueDate?: string,
+      dueTime?: string,
+      description?: string,
+      assignee?: string,
+      recurrenceUnit?: string,
+      recurrenceInterval?: number,
+      recurrenceDays?: string,
+    ) => void;
   }
 
   let { open = $bindable(false), onAdd }: Props = $props();
@@ -25,8 +34,17 @@
     if (e.target === dialog) close();
   }
 
-  function handleAdd(title: string, dueDate?: string, dueTime?: string) {
-    onAdd(title, dueDate, dueTime);
+  function handleAdd(
+    title: string,
+    dueDate?: string,
+    dueTime?: string,
+    description?: string,
+    assignee?: string,
+    recurrenceUnit?: string,
+    recurrenceInterval?: number,
+    recurrenceDays?: string,
+  ) {
+    onAdd(title, dueDate, dueTime, description, assignee, recurrenceUnit, recurrenceInterval, recurrenceDays);
     close();
   }
 </script>
