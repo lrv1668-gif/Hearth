@@ -203,7 +203,7 @@ These need to be decided before or early in development:
 
 - **E-paper hardware module:** Which specific display and driver board? This determines the SPI interface, color palette (4-color vs. 7-color ACeP), resolution, and which C# library or native bindings to use.
 - **Physical input:** Does the frame have any physical controls (button, tap sensor, PIR motion sensor)? The "frame tap" concept mentioned in Phase 2 tasks requires this to be defined.
-- **Spotify OAuth on a local device:** Spotify's auth flow requires a redirect URI. How does this work when the device has no public URL? Options: local loopback auth flow, or a companion setup page that captures the token.
+- ~~**Spotify OAuth on a local device:** Spotify's auth flow requires a redirect URI. How does this work when the device has no public URL?~~ **Resolved:** The `spotify` service uses a loopback redirect URI (e.g. `http://127.0.0.1:8083/spotify/callback`) registered in the Spotify app dashboard. After the OAuth callback, the service redirects the browser to `FRONTEND_URL` (the Caddy entry point). Tokens are stored in SQLite and reused across restarts. Users can disconnect from the UI at any time.
 - **Unsplash attribution:** Unsplash's API requires attribution. How is this displayed on an e-paper frame without cluttering the art? Small text in a corner? Only shown in Daily mode?
 - **Art in Daily Mode:** Current spec says no art in Daily Mode — the layout is full-frame structured content. Is this correct, or should there be a small art pane?
 

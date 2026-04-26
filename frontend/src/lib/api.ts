@@ -33,3 +33,34 @@ export async function updateTask(id: number, done: boolean): Promise<Task> {
 export async function deleteTask(id: number): Promise<void> {
     await fetch(`/tasks/${id}`, { method: 'DELETE' });
 }
+
+export interface NowPlaying {
+    title: string;
+    artist: string;
+    album_name: string;
+    album_art_url: string | null;
+    progress_ms: number;
+    duration_ms: number;
+    is_playing: boolean;
+}
+
+export interface SpotifyStatus {
+    authenticated: boolean;
+}
+
+export async function fetchSpotifyStatus(): Promise<SpotifyStatus> {
+    const res = await fetch('/spotify/status');
+    return res.json();
+}
+
+// undefined = not authenticated, null = authenticated but nothing playing, NowPlaying = track data
+export async function disconnectSpotify(): Promise<void> {
+    await fetch('/spotify/auth', { method: 'DELETE' });
+}
+
+export async function fetchNowPlaying(): Promise<NowPlaying | null | undefined> {
+    const res = await fetch('/spotify/now-playing');
+    if (res.status === 401) return undefined;
+    if (res.status === 204) return null;
+    return res.json();
+}

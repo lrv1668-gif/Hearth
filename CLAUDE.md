@@ -23,6 +23,7 @@ services/
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
   Data/                      # SQLite implementation of IDatabase
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
+  spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
 docker-compose.yml
 Caddyfile
 ```
