@@ -22,11 +22,24 @@ services:
     volumes:
       - spotify-data:/data
 
+  weather:
+    build:
+      context: ./services
+      dockerfile: weather/Dockerfile
+    environment:
+      - DB_PATH=/data/weather.db
+      - ASPNETCORE_HTTP_PORTS=8082
+      - LATITUDE=${LATITUDE:-}
+      - LONGITUDE=${LONGITUDE:-}
+    volumes:
+      - weather-data:/data
+
   frontend:
     build: ./frontend
     depends_on:
       - tasks
       - spotify
+      - weather
 
   caddy:
     image: caddy:2
@@ -40,8 +53,10 @@ services:
       - frontend
       - tasks
       - spotify
+      - weather
 
 volumes:
   tasks-data:
   spotify-data:
+  weather-data:
   caddy-data:
