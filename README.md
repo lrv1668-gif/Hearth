@@ -36,7 +36,7 @@ Run each piece in its own terminal:
 
 ```bash
 # Backend — tasks service
-cd services/tasks
+cd services/Tasks
 dotnet run
 ```
 

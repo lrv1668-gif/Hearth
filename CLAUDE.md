@@ -9,7 +9,7 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 ## Tech Stack
 
 - **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v3 + Lucide Svelte (`@lucide/svelte`), built with Vite
-- **Services:** .NET 10, ASP.NET Core Minimal APIs, SQLite via `Microsoft.Data.Sqlite`
+- **Services:** .NET 10, ASP.NET Core Minimal APIs, SQLite (isolated to `services/Data` — service projects do not reference `Microsoft.Data.Sqlite` directly)
 - **Proxy:** Caddy 2
 - **Infra:** Docker Compose
 
@@ -18,8 +18,11 @@ See `SOFTWARE-DESIGN.md` for full architecture decisions.
 ## Directory Structure
 
 ```
-frontend/          # SvelteKit app
-services/tasks/    # ASP.NET Core 10 Minimal API, port 8081
+frontend/                    # SvelteKit app
+services/
+  Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
+  Data/                      # SQLite implementation of IDatabase
+  Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
 docker-compose.yml
 Caddyfile
 ```
@@ -28,7 +31,7 @@ Caddyfile
 
 **Tasks service:**
 ```bash
-cd services/tasks
+cd services/Tasks
 dotnet run
 ```
 
@@ -60,3 +63,6 @@ docker compose -f docker-compose.yml up --build
 - API calls live in `frontend/src/lib/api.ts` — all paths are relative (e.g. `/tasks`)
 - Each service owns its SQLite file at `DB_PATH` (env var, defaults to `tasks.db`)
 - JSON uses snake_case naming (`JsonNamingPolicy.SnakeCaseLower`) — keep record property names PascalCase in C#
+- Service stores (e.g. `TaskStore`) take `IDatabase` from `Data.Abstractions` via `[FromKeyedServices("key")]` — never a concrete `Database` or SQLite types directly
+- `Program.cs` in each service registers the concrete `Database` as `IDatabase` keyed by service name: `AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath))`
+- New database-backed services: reference `Data.Abstractions` for `IDatabase`, reference `Data` only in `Program.cs` for the concrete registration; never add `Microsoft.Data.Sqlite` as a direct dependency

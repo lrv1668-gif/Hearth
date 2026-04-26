@@ -33,7 +33,21 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
-**Why SQLite via `Microsoft.Data.Sqlite`:** Zero external dependencies, single-file persistence, more than sufficient at this scale. One database file per service at `$DB_PATH` (defaults to `tasks.db`).
+**Why SQLite:** Zero external dependencies, single-file persistence, more than sufficient at this scale. One database file per service at `$DB_PATH` (defaults to `tasks.db`). The SQLite dependency (`Microsoft.Data.Sqlite`) is isolated to the `Data` shared library — individual service projects depend only on the `Data.Abstractions` interface, keeping them portable and testable.
+
+## Shared Libraries
+
+Two shared projects live under `services/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
+
+| Project            | Responsibility |
+|--------------------|----------------|
+| `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
+| `Data`              | `Database` — the concrete SQLite implementation of `IDatabase`; the only project that references `Microsoft.Data.Sqlite` |
+
+Service projects follow this pattern:
+- Reference `Data.Abstractions` for the `IDatabase` type used in stores and handlers
+- Reference `Data` in `Program.cs` only, to register the concrete implementation: `AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath))`
+- Never reference `Microsoft.Data.Sqlite` directly
 
 JSON responses use `JsonNamingPolicy.SnakeCaseLower` so property names match frontend conventions (e.g. `created_at`, `due_date`).
 
@@ -102,14 +116,23 @@ Hearth/
 │   ├── Dockerfile.dev          # development (vite dev server)
 │   └── vite.config.ts
 ├── services/
-│   └── tasks/                  # ASP.NET Core 10 Minimal API
+│   ├── Data.Abstractions/      # IDatabase interface + DbCommandExtensions (no SQLite dep)
+│   │   ├── IDatabase.cs
+│   │   ├── DbCommandExtensions.cs
+│   │   └── Data.Abstractions.csproj
+│   ├── Data/                   # Concrete SQLite implementation of IDatabase
+│   │   ├── Database.cs
+│   │   └── Data.csproj
+│   └── Tasks/                  # ASP.NET Core 10 Minimal API
 │       ├── Program.cs
 │       ├── TaskStore.cs
+│       ├── Records/
 │       └── Dockerfile
 ├── docker-compose.yml          # production
 ├── docker-compose.override.yml # development (auto-merged)
 ├── Caddyfile
 ├── README.md
-├── PRODUCT.md
-└── SOFTWARE-DESIGN.md
+├── docs/
+│   ├── PRODUCT.md
+│   └── SOFTWARE-DESIGN.md
 ```
