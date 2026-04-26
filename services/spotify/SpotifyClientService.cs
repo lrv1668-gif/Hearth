@@ -12,13 +12,15 @@ public sealed class SpotifyClientService(SpotifyStore store, IConfiguration conf
         var token = store.Load();
         if (token is null) return null;
 
+        // Use actual remaining seconds; negative value ensures IsExpired = true for stale tokens
         var secondsRemaining = (int)(token.ExpiresAt - DateTime.UtcNow).TotalSeconds;
 
         var initialResponse = new AuthorizationCodeTokenResponse
         {
             AccessToken  = token.AccessToken,
             RefreshToken = token.RefreshToken,
-            ExpiresIn    = Math.Max(0, secondsRemaining),
+            ExpiresIn    = secondsRemaining,
+            TokenType    = "Bearer",
         };
 
         var authenticator = new AuthorizationCodeAuthenticator(_clientId, _clientSecret, initialResponse);
