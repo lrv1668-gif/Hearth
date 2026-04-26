@@ -9,10 +9,24 @@ services:
     volumes:
       - tasks-data:/data
 
+  spotify:
+    build:
+      context: ./services
+      dockerfile: spotify/Dockerfile
+    env_file:
+      - ./services/spotify/.env
+    environment:
+      - DB_PATH=/data/spotify.db
+      - ASPNETCORE_HTTP_PORTS=8083
+      - FRONTEND_URL=http://localhost
+    volumes:
+      - spotify-data:/data
+
   frontend:
     build: ./frontend
     depends_on:
       - tasks
+      - spotify
 
   caddy:
     image: caddy:2
@@ -25,7 +39,9 @@ services:
     depends_on:
       - frontend
       - tasks
+      - spotify
 
 volumes:
   tasks-data:
+  spotify-data:
   caddy-data:

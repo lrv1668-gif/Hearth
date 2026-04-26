@@ -2,6 +2,9 @@
     handle /tasks* {
         reverse_proxy tasks:8081
     }
+    handle /spotify* {
+        reverse_proxy spotify:8083
+    }
     handle {
         reverse_proxy frontend:3000
     }

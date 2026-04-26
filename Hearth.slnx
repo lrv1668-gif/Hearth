@@ -2,5 +2,6 @@
   <Folder Name="/services/">
     <Project Path="services/tasks/tasks.csproj" />
     <Project Path="services/data/Data.csproj" />
+    <Project Path="services/spotify/spotify.csproj" />
   </Folder>
 </Solution>

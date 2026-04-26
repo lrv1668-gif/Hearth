@@ -13,7 +13,7 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 - Tailwind v3 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
 - API calls are centralised in `frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
-- In development, Vite proxies `/tasks` → `$TASKS_URL` (defaults to `http://localhost:8081`); in production, Caddy handles the same routing
+- In development, Vite proxies `/tasks` → `$TASKS_URL` and `/spotify` → `$SPOTIFY_URL`; in production, Caddy handles the same routing
 
 ### Themes
 
@@ -27,7 +27,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 |-----------|------|-------------|-------------------------|
 | `tasks`   | 8081 | Implemented | Task CRUD with due dates |
 | `weather` | 8082 | Planned     | Polls weather API, caches results |
-| `music`   | 8083 | Planned     | Wraps Spotify / Last.fm |
+| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing |
 | `plants`  | 8084 | Planned     | Watering schedules and reminders |
 | `art`     | 8085 | Planned     | Rotates artwork from local files or APIs |
 
@@ -51,13 +51,47 @@ Service projects follow this pattern:
 
 JSON responses use `JsonNamingPolicy.SnakeCaseLower` so property names match frontend conventions (e.g. `created_at`, `due_date`).
 
+## Spotify Service
+
+The `spotify` service handles OAuth 2.0 authorization with Spotify and exposes now-playing data. It stores a single token row in SQLite — only one Spotify account is linked at a time.
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/spotify/auth` | Begins OAuth flow — redirects the browser to Spotify's authorization page |
+| `GET` | `/spotify/callback` | OAuth callback — exchanges the code for tokens, saves them, redirects to `FRONTEND_URL` |
+| `GET` | `/spotify/now-playing` | Returns the current track, or 204 if nothing is playing, or 401 if unauthenticated |
+| `GET` | `/spotify/status` | Returns `{ authenticated: bool }` |
+| `DELETE` | `/spotify/auth` | Clears the stored tokens, effectively disconnecting Spotify |
+
+### Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SPOTIFY_CLIENT_ID` | Yes | Spotify app client ID |
+| `SPOTIFY_CLIENT_SECRET` | Yes | Spotify app client secret |
+| `SPOTIFY_REDIRECT_URI` | Yes | Must match a URI registered in the Spotify app dashboard (e.g. `http://127.0.0.1:8083/spotify/callback`) |
+| `FRONTEND_URL` | No | URL to redirect to after OAuth completes; defaults to `/` on the service itself — set this to the Caddy entry point (e.g. `http://localhost`) in Docker |
+
+### Frontend integration
+
+`NowPlaying.svelte` polls `/spotify/now-playing` every 5 seconds via `SpotifyStore.ts`. The store value drives three UI states:
+
+- `undefined` — 401 response → shows "Connect Spotify" link pointing to `/spotify/auth`
+- `null` — 204 response → shows "Nothing playing · Disconnect" button
+- `NowPlaying` — 200 response → shows track card with album art, progress bar, and a hover-revealed disconnect button
+
+Clicking disconnect calls `DELETE /spotify/auth` then immediately re-polls, which returns 401 and flips the store back to `undefined`.
+
 ## Routing
 
 **Caddy** acts as the reverse proxy and TLS terminator. URL-prefix routing maps paths to services:
 
 ```text
-/tasks/*  →  tasks:8081
-/         →  frontend:3000
+/tasks/*    →  tasks:8081
+/spotify/*  →  spotify:8083
+/           →  frontend:3000
 ```
 
 The Caddy config is the same in development and production — the only difference is that `frontend:3000` points to the Vite dev server in dev and the Node production server in prod.
@@ -109,6 +143,7 @@ Hearth/
 │   │       ├── api.ts
 │   │       └── components/
 │   │           ├── Calendar.svelte
+│   │           ├── NowPlaying.svelte
 │   │           ├── TaskList.svelte
 │   │           ├── TaskModal.svelte
 │   │           └── ThemeSwitcher.svelte
@@ -123,10 +158,17 @@ Hearth/
 │   ├── Data/                   # Concrete SQLite implementation of IDatabase
 │   │   ├── Database.cs
 │   │   └── Data.csproj
-│   └── Tasks/                  # ASP.NET Core 10 Minimal API
+│   ├── Tasks/                  # ASP.NET Core 10 Minimal API
+│   │   ├── Program.cs
+│   │   ├── TaskStore.cs
+│   │   ├── Records/
+│   │   └── Dockerfile
+│   └── spotify/                # Spotify OAuth + now-playing API
 │       ├── Program.cs
-│       ├── TaskStore.cs
+│       ├── SpotifyStore.cs
+│       ├── SpotifyClientService.cs
 │       ├── Records/
+│       ├── Extensions/
 │       └── Dockerfile
 ├── docker-compose.yml          # production
 ├── docker-compose.override.yml # development (auto-merged)
