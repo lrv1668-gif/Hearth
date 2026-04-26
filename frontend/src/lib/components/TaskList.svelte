@@ -27,7 +27,11 @@
     const title = newTitle.trim();
     if (!title) return;
     if (newDueDate && !allDay && !newDueTime) return;
-    onAdd(title, newDueDate || undefined, (!allDay && newDueTime) ? newDueTime : undefined);
+    onAdd(
+      title,
+      newDueDate || undefined,
+      !allDay && newDueTime ? newDueTime : undefined,
+    );
     newTitle = "";
     newDueDate = "";
     newDueTime = "";
@@ -66,7 +70,9 @@
   {#if newDueDate}
     <div class="flex items-center gap-3">
       <div class="flex-1"></div>
-      <label class="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer select-none">
+      <label
+        class="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer select-none"
+      >
         <input
           type="checkbox"
           checked={allDay}
@@ -79,6 +85,7 @@
         <input
           type="time"
           bind:value={newDueTime}
+          step="900"
           class="bg-[var(--surface)] text-[var(--text-3)] rounded-lg px-3 py-2 text-sm
                  outline-none focus:ring-1 focus:ring-[var(--border)] transition
                  {!newDueTime ? 'ring-1 ring-[var(--border)]' : ''}"

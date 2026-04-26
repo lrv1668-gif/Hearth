@@ -1,10 +1,10 @@
-using Data;
-using Microsoft.Data.Sqlite;
+using System.Data.Common;
+using Data.Abstractions;
 using Tasks.Records;
 
 namespace Tasks
 {
-    public sealed class TaskStore([FromKeyedServices("tasks")] Database db)
+    public sealed class TaskStore([FromKeyedServices("tasks")] IDatabase db)
     {
         public void Migrate() => db.NonQuery("""
             CREATE TABLE IF NOT EXISTS lu_tasks (
@@ -31,9 +31,9 @@ namespace Tasks
                 RETURNING id, title, done, due_date, due_time, created_at
                 """, Map, cmd =>
             {
-                cmd.Parameters.AddWithValue("$title", title);
-                cmd.Parameters.AddWithValue("$due_date", dueDate.HasValue ? dueDate.Value.ToString("o") : DBNull.Value);
-                cmd.Parameters.AddWithValue("$due_time", (object?)dueTime ?? DBNull.Value);
+                cmd.AddParam("$title", title);
+                cmd.AddParam("$due_date", dueDate.HasValue ? dueDate.Value.ToString("o") : null);
+                cmd.AddParam("$due_time", dueTime);
             })!;
 
         public TaskItem? Update(long id, bool done) =>
@@ -44,15 +44,15 @@ namespace Tasks
                 RETURNING id, title, done, due_date, due_time, created_at
                 """, Map, cmd =>
             {
-                cmd.Parameters.AddWithValue("$done", done ? 1 : 0);
-                cmd.Parameters.AddWithValue("$id", id);
+                cmd.AddParam("$done", done ? 1 : 0);
+                cmd.AddParam("$id", id);
             });
 
         public void Delete(long id) =>
             db.NonQuery("DELETE FROM lu_tasks WHERE id = $id",
-                cmd => cmd.Parameters.AddWithValue("$id", id));
+                cmd => cmd.AddParam("$id", id));
 
-        private static TaskItem Map(SqliteDataReader r) =>
+        private static TaskItem Map(DbDataReader r) =>
             new(r.GetInt64(0), r.GetString(1), r.GetBoolean(2),
                 r.IsDBNull(3) ? null : r.GetDateTime(3),
                 r.IsDBNull(4) ? null : r.GetString(4),

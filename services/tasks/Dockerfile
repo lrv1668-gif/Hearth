@@ -1,8 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /app
+COPY Data.Abstractions/Data.Abstractions.csproj Data.Abstractions/
 COPY Data/Data.csproj data/
 COPY Tasks/Tasks.csproj tasks/
 RUN dotnet restore tasks/Tasks.csproj
+COPY Data.Abstractions/ Data.Abstractions/
 COPY Data/ data/
 COPY Tasks/ tasks/
 RUN dotnet publish tasks/Tasks.csproj -c Release -o /out
