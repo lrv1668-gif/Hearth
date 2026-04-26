@@ -30,15 +30,6 @@
           {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
         </p>
       </div>
-
-      <div>
-        <a
-          href="/calendar"
-          class="flex text-xs tracking-widest gap-1 uppercase text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors items-center"
-        >
-          View Calendar <MoveRight size="14" />
-        </a>
-      </div>
     </div>
   </div>
 </main>
