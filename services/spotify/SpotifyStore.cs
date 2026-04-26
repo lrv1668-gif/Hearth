@@ -30,6 +30,9 @@ public sealed class SpotifyStore([FromKeyedServices("spotify")] IDatabase db)
             cmd.AddParam("$expires_at", expiresAt.ToString("o"));
         });
 
+    public void Clear() =>
+        db.NonQuery("DELETE FROM spotify_tokens WHERE id = 1");
+
     private static SpotifyToken Map(DbDataReader r) =>
         new(r.GetString(0), r.GetString(1), r.GetDateTime(2));
 }

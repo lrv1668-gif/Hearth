@@ -54,8 +54,15 @@ public static class WebApplicationExtensions
             var client = clientService.TryGetClient();
             if (client is null) return Results.Unauthorized();
 
-            var playing = await client.Player.GetCurrentlyPlaying(
-                new PlayerCurrentlyPlayingRequest());
+            CurrentlyPlaying? playing;
+            try
+            {
+                playing = await client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+            }
+            catch (APIException)
+            {
+                return Results.Unauthorized();
+            }
 
             if (playing?.Item is not FullTrack track) return Results.NoContent();
 
@@ -74,5 +81,11 @@ public static class WebApplicationExtensions
 
         app.MapGet("/spotify/status", (SpotifyClientService clientService) =>
             Results.Ok(new StatusResponse(clientService.TryGetClient() is not null)));
+
+        app.MapDelete("/spotify/auth", (SpotifyStore store) =>
+        {
+            store.Clear();
+            return Results.NoContent();
+        });
     }
 }
