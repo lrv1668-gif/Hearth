@@ -5,6 +5,11 @@ export interface Task {
     due_date: string | null;
     due_time: string | null;
     created_at: string;
+    description: string | null;
+    assignee: string | null;
+    recurrence_unit: string | null;
+    recurrence_interval: number | null;
+    recurrence_days: string | null;
 }
 
 export async function fetchTasks(): Promise<Task[]> {
@@ -12,20 +17,38 @@ export async function fetchTasks(): Promise<Task[]> {
     return res.json();
 }
 
-export async function createTask(title: string, due_date?: string, due_time?: string): Promise<Task> {
+export async function createTask(
+    title: string,
+    due_date?: string,
+    due_time?: string,
+    description?: string,
+    assignee?: string,
+    recurrence_unit?: string,
+    recurrence_interval?: number,
+    recurrence_days?: string,
+): Promise<Task> {
     const res = await fetch('/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, due_date: due_date ?? null, due_time: due_time ?? null }),
+        body: JSON.stringify({
+            title,
+            due_date: due_date ?? null,
+            due_time: due_time ?? null,
+            description: description ?? null,
+            assignee: assignee ?? null,
+            recurrence_unit: recurrence_unit ?? null,
+            recurrence_interval: recurrence_interval ?? null,
+            recurrence_days: recurrence_days ?? null,
+        }),
     });
     return res.json();
 }
 
-export async function updateTask(id: number, done: boolean): Promise<Task> {
+export async function updateTask(id: number, done: boolean, description?: string, assignee?: string): Promise<Task> {
     const res = await fetch(`/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ done }),
+        body: JSON.stringify({ done, description: description ?? null, assignee: assignee ?? null }),
     });
     return res.json();
 }
