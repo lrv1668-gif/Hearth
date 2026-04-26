@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Spotify": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:8083"
+    }
+  }
+}
