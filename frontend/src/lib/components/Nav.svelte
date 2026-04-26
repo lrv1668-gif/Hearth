@@ -28,7 +28,6 @@
   </div>
 
   <div class="mx-8 border-t-2 border-[var(--text-1)]"></div>
-  <div class="mx-8 border-t border-[var(--border)] mt-px"></div>
 
   <nav class="flex justify-center gap-8 py-2">
     <a

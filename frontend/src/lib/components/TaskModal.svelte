@@ -40,7 +40,7 @@
 >
   <div class="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-6 space-y-5 mx-4">
     <div class="flex items-center justify-between">
-      <h2 class="font-serif text-base font-bold italic text-[var(--text-1)]">
+      <h2 class="text-[var(--text-1)]">
         Add a New Task
       </h2>
       <button
