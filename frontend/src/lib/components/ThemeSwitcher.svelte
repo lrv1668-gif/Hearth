@@ -7,6 +7,7 @@
   }
 
   const themes: Theme[] = [
+    { id: 'ash',        label: 'Ash',        fill: '#1d1d1d', stroke: '#6a6a6a' },
     { id: 'stone',      label: 'Stone',      fill: '#292524', stroke: '#78716c' },
     { id: 'linen',      label: 'Linen',      fill: '#f0e8da', stroke: '#9e8c75' },
     { id: 'forest',     label: 'Forest',     fill: '#192118', stroke: '#4a6845' },
