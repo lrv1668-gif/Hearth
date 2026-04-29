@@ -1,11 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /app
 COPY Data.Abstractions/Data.Abstractions.csproj Data.Abstractions/
-COPY Data/Data.csproj data/
+COPY Data/Data.csproj Data/
 COPY spotify/spotify.csproj spotify/
 RUN dotnet restore spotify/spotify.csproj
 COPY Data.Abstractions/ Data.Abstractions/
-COPY Data/ data/
+COPY Data/ Data/
 COPY spotify/ spotify/
 RUN dotnet publish spotify/spotify.csproj -c Release -o /out
 
