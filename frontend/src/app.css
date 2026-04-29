@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+.font-serif { font-family: 'Spectral', Georgia, serif; }
+
 /* ── Themes ──────────────────────────────────────────────────────────────── */
 /* Each theme exposes the same set of semantic tokens so every component
    can reference var(--token) without knowing which palette is active.      */
@@ -85,6 +87,27 @@
   --accent: #d8dcf0;
   --accent-hi: #c4c8e0;
   --accent-fg: #0d1019;
+
+  input {
+    color-scheme: dark;
+  }
+}
+
+[data-theme="ash"] {
+  /* Ash — pure monochrome dark. Hearthside embers, old film, quiet nights. */
+  --bg: #131313;
+  --surface: #1d1d1d;
+  --surface-hi: #282828;
+  --border: #383838;
+  --text-1: #f2f2f2;
+  --text-2: #9a9a9a;
+  --text-3: #6a6a6a;
+  --text-4: #4a4a4a;
+  --done: #4a4a4a;
+  --done-bg: #4a4a4a;
+  --accent: #f2f2f2;
+  --accent-hi: #e2e2e2;
+  --accent-fg: #131313;
 
   input {
     color-scheme: dark;

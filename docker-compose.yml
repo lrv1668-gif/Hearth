@@ -12,9 +12,9 @@ services:
   spotify:
     build:
       context: ./services
-      dockerfile: spotify/Dockerfile
+      dockerfile: Spotify/Dockerfile
     env_file:
-      - ./services/spotify/.env
+      - ./services/Spotify/.env
     environment:
       - DB_PATH=/data/spotify.db
       - ASPNETCORE_HTTP_PORTS=8083
