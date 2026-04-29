@@ -131,7 +131,7 @@
 
     <!-- Month + year -->
     <h2
-      class="text-xs font-semibold tracking-widest text-[var(--text-1)] uppercase select-none"
+      class="font-serif text-sm font-bold tracking-widest text-[var(--text-1)] uppercase select-none"
     >
       {MONTH_NAMES[viewMonth]}
       {viewYear}
@@ -174,7 +174,7 @@
         class="min-h-20 p-2
                   {day
           ? isToday
-            ? 'bg-[var(--surface)]'
+            ? 'bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)]'
             : 'bg-[var(--bg)]'
           : 'bg-[var(--bg)] pointer-events-none'}"
       >
