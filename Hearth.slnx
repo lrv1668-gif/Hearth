@@ -1,9 +1,9 @@
 <Solution>
   <Folder Name="/services/">
-    <Project Path="services/tasks/tasks.csproj" />
+    <Project Path="services/tasks/Tasks.csproj" />
     <Project Path="services/Data.Abstractions/Data.Abstractions.csproj" />
     <Project Path="services/data/Data.csproj" />
-    <Project Path="services/spotify/spotify.csproj" />
+    <Project Path="services/spotify/Spotify.csproj" />
     <Project Path="services/Weather/Weather.csproj" />
   </Folder>
   <Folder Name="/services/data/" />
