@@ -17,16 +17,25 @@ export async function addTask(
     recurrenceInterval?: number,
     recurrenceDays?: string,
 ) {
-    const task = await createTask(title, dueDate, dueTime, description, assignee, recurrenceUnit, recurrenceInterval, recurrenceDays);
-    tasks.update(ts => [task, ...ts]);
+    const task = await createTask(
+        title,
+        dueDate,
+        dueTime,
+        description,
+        assignee,
+        recurrenceUnit,
+        recurrenceInterval,
+        recurrenceDays,
+    );
+    tasks.update((ts) => [task, ...ts]);
 }
 
 export async function toggleTask(task: Task) {
     const updated = await updateTask(task.id, !task.done);
-    tasks.update(ts => ts.map(t => (t.id === task.id ? updated : t)));
+    tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));
 }
 
 export async function removeTask(id: number) {
     await deleteTask(id);
-    tasks.update(ts => ts.filter(t => t.id !== id));
+    tasks.update((ts) => ts.filter((t) => t.id !== id));
 }
