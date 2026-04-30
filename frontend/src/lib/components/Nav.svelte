@@ -1,31 +1,41 @@
 <script lang="ts">
-  import { CalendarDays, LayoutList } from '@lucide/svelte';
-  import ThemeSwitcher from './ThemeSwitcher.svelte';
+  import { CalendarDays, LayoutList, Palette } from '@lucide/svelte';
+  import ThemeModal from './ThemeModal.svelte';
+  import { type ThemeId } from '$lib/themes';
 
   interface Props {
-    theme: string;
-    onChangeTheme: (id: string) => void;
+    theme: ThemeId;
+    onChangeTheme: (id: ThemeId) => void;
   }
 
   let { theme, onChangeTheme }: Props = $props();
+
+  let themeModalOpen = $state(false);
 
 </script>
 
 <!-- Desktop masthead -->
 <header class="border-b border-[var(--border)] bg-[var(--bg)] hidden md:block">
-  <div class="grid grid-cols-3 items-center px-8 pt-4 pb-2">
-    <span></span>
-    <a href="/" class="text-center">
+  <div class="max-w-5xl mx-auto flex items-center px-8 pt-4 pb-2">
+    <div class="flex-1"></div>
+    <a href="/">
       <span class="font-serif text-2xl font-bold tracking-[0.25em] uppercase text-[var(--text-1)] hover:text-[var(--text-2)] transition-colors">
         Hearth
       </span>
     </a>
-    <div class="flex justify-end">
-      <ThemeSwitcher {theme} onChange={onChangeTheme} />
+    <div class="flex-1 flex justify-end">
+      <button
+        onclick={() => themeModalOpen = true}
+        class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+        aria-label="Choose theme"
+      >
+        <Palette size={18} />
+      </button>
     </div>
   </div>
 
-  <div class="mx-8 border-t-2 border-[var(--text-1)]"></div>
+
+  <div class="border-t-2 border-[var(--text-1)]"></div>
 
   <nav class="flex justify-center gap-8 py-2">
     <a
@@ -50,8 +60,18 @@
 <!-- Mobile: compact top bar -->
 <header class="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--bg)] md:hidden">
   <a href="/" class="font-serif text-lg font-bold tracking-widest uppercase text-[var(--text-1)]">Hearth</a>
-  <ThemeSwitcher {theme} onChange={onChangeTheme} />
+  <button
+    onclick={() => themeModalOpen = true}
+    class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+    aria-label="Choose theme"
+  >
+    <Palette size={18} />
+  </button>
 </header>
+
+{#if themeModalOpen}
+  <ThemeModal {theme} onChange={onChangeTheme} onClose={() => themeModalOpen = false} />
+{/if}
 
 <!-- Mobile bottom nav -->
 <nav class="fixed bottom-0 left-0 right-0 flex justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 z-50 md:hidden">

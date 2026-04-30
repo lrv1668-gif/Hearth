@@ -1,24 +1,9 @@
 <script lang="ts">
-  interface Theme {
-    id: string;
-    label: string;
-    fill: string;
-    stroke: string;
-  }
-
-  const themes: Theme[] = [
-    { id: 'ash',        label: 'Ash',        fill: '#1d1d1d', stroke: '#6a6a6a' },
-    { id: 'chalk',      label: 'Chalk',      fill: '#ebebeb', stroke: '#909090' },
-    { id: 'stone',      label: 'Stone',      fill: '#26201a', stroke: '#806050' },
-    { id: 'linen',      label: 'Linen',      fill: '#f0e8da', stroke: '#9e8c75' },
-    { id: 'forest',     label: 'Forest',     fill: '#192118', stroke: '#4a6845' },
-    { id: 'dusk',       label: 'Dusk',       fill: '#151b2a', stroke: '#4e5478' },
-    { id: 'terracotta', label: 'Terracotta', fill: '#ece0d0', stroke: '#ac7850' },
-  ];
+  import { themes, type ThemeId } from '$lib/themes';
 
   interface Props {
-    theme: string;
-    onChange: (id: string) => void;
+    theme: ThemeId;
+    onChange: (id: ThemeId) => void;
   }
 
   let { theme, onChange }: Props = $props();
