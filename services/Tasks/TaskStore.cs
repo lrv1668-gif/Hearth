@@ -90,7 +90,7 @@ namespace Tasks
             return first;
         }
 
-        public TaskItem? Update(long id, bool done, string? description, string? assignee)
+        public TaskItem? Update(long id, bool done, string? title, DateTime? dueDate, string? dueTime, string? description, string? assignee)
         {
             var task = db.QueryOne("""
                 SELECT id, title, done, due_date, due_time, created_at,
@@ -100,18 +100,25 @@ namespace Tasks
 
             if (task is null) return null;
 
+            var newTitle       = title       ?? task.Title;
+            var newDueDate     = dueDate     ?? task.DueDate;
+            var newDueTime     = dueTime     ?? task.DueTime;
             var newDescription = description ?? task.Description;
             var newAssignee    = assignee    ?? task.Assignee;
 
             return db.QueryOne("""
                 UPDATE lu_tasks
-                SET done = $done, description = $description, assignee = $assignee
+                SET done = $done, title = $title, due_date = $due_date, due_time = $due_time,
+                    description = $description, assignee = $assignee
                 WHERE id = $id
                 RETURNING id, title, done, due_date, due_time, created_at,
                           description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date
                 """, Map, cmd =>
             {
                 cmd.AddParam("$done", done ? 1 : 0);
+                cmd.AddParam("$title", newTitle);
+                cmd.AddParam("$due_date", newDueDate.HasValue ? newDueDate.Value.ToString("o") : null);
+                cmd.AddParam("$due_time", newDueTime);
                 cmd.AddParam("$description", newDescription);
                 cmd.AddParam("$assignee", newAssignee);
                 cmd.AddParam("$id", id);

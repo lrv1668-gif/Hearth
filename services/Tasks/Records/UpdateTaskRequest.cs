@@ -1,3 +1,3 @@
 namespace Tasks.Records;
 
-record UpdateTaskRequest(bool Done, string? Description, string? Assignee);
+record UpdateTaskRequest(bool Done, string? Title, DateTime? DueDate, string? DueTime, string? Description, string? Assignee);

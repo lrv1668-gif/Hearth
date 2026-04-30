@@ -33,7 +33,23 @@ export async function addTask(
 }
 
 export async function toggleTask(task: Task) {
-    const updated = await updateTask(task.id, !task.done);
+    const updated = await updateTask(
+        task.id, !task.done, task.title,
+        task.due_date ?? undefined, task.due_time ?? undefined,
+        task.description ?? undefined, task.assignee ?? undefined,
+    );
+    tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));
+}
+
+export async function editTask(
+    task: Task,
+    title: string,
+    dueDate?: string,
+    dueTime?: string,
+    description?: string,
+    assignee?: string,
+) {
+    const updated = await updateTask(task.id, task.done, title, dueDate, dueTime, description, assignee);
     tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));
 }
 

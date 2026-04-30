@@ -1,9 +1,32 @@
 <script lang="ts">
-    import { tasks, addTask, toggleTask, removeTask } from '$lib/TaskStore';
+    import type { Task } from '$lib/api';
+    import { tasks, addTask, toggleTask, removeTask, editTask } from '$lib/TaskStore';
     import Calendar from '$lib/components/Calendar.svelte';
     import TaskModal from '$lib/components/TaskModal.svelte';
 
     let modalOpen = $state(false);
+    let editingTask = $state<Task | null>(null);
+
+    function openNewTask() {
+        editingTask = null;
+        modalOpen = true;
+    }
+
+    function openEditTask(task: Task) {
+        editingTask = task;
+        modalOpen = true;
+    }
+
+    function handleSave(title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) {
+        if (editingTask) {
+            editTask(editingTask, title, dueDate, dueTime, description, assignee);
+            editingTask = null;
+        }
+    }
+
+    function handleModalClose() {
+        editingTask = null;
+    }
 </script>
 
 <svelte:head>
@@ -15,8 +38,15 @@
         tasks={$tasks}
         onToggle={toggleTask}
         onDelete={removeTask}
-        onNewTask={() => (modalOpen = true)}
+        onNewTask={openNewTask}
+        onEdit={openEditTask}
     />
 </main>
 
-<TaskModal bind:open={modalOpen} onAdd={addTask} />
+<TaskModal
+    bind:open={modalOpen}
+    task={editingTask}
+    onAdd={addTask}
+    onSave={handleSave}
+    onDelete={(id, series) => { removeTask(id, series); editingTask = null; }}
+/>

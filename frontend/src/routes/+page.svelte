@@ -1,8 +1,25 @@
 <script lang="ts">
-    import { tasks, toggleTask, removeTask } from '$lib/TaskStore';
+    import type { Task } from '$lib/api';
+    import { tasks, toggleTask, removeTask, editTask } from '$lib/TaskStore';
     import Schedule from '$lib/components/Schedule.svelte';
+    import TaskModal from '$lib/components/TaskModal.svelte';
     import NowPlaying from '$lib/components/NowPlaying.svelte';
     import WeatherWidget from '$lib/components/WeatherWidget.svelte';
+
+    let modalOpen = $state(false);
+    let editingTask = $state<Task | null>(null);
+
+    function openEditTask(task: Task) {
+        editingTask = task;
+        modalOpen = true;
+    }
+
+    function handleSave(title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) {
+        if (editingTask) {
+            editTask(editingTask, title, dueDate, dueTime, description, assignee);
+            editingTask = null;
+        }
+    }
 </script>
 
 <svelte:head>
@@ -18,7 +35,7 @@
             >
                 Upcoming Tasks
             </h2>
-            <Schedule tasks={$tasks} onToggle={toggleTask} onDelete={removeTask} />
+            <Schedule tasks={$tasks} onToggle={toggleTask} onDelete={removeTask} onEdit={openEditTask} />
         </div>
 
         <!-- Right column: date display + music + weather + calendar teaser -->
@@ -62,3 +79,10 @@
         </div>
     </div>
 </main>
+
+<TaskModal
+    bind:open={modalOpen}
+    task={editingTask}
+    onSave={handleSave}
+    onDelete={(id, series) => { removeTask(id, series); editingTask = null; }}
+/>

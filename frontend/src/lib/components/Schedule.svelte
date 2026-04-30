@@ -7,9 +7,10 @@
         tasks: Task[];
         onToggle: (task: Task) => void;
         onDelete: (id: number, series?: boolean) => void;
+        onEdit: (task: Task) => void;
     }
 
-    let { tasks, onToggle, onDelete }: Props = $props();
+    let { tasks, onToggle, onDelete, onEdit }: Props = $props();
 
     let confirmDeleteId = $state<number | null>(null);
 
@@ -171,7 +172,10 @@
                                 <span class="w-14 flex-shrink-0"></span>
                             {/if}
 
-                            <div class="flex-1 min-w-0">
+                            <button
+                                onclick={() => onEdit(task)}
+                                class="flex-1 min-w-0 text-left transition-colors hover:opacity-80"
+                            >
                                 <div class="flex items-center gap-2 min-w-0">
                                     <span
                                         class="text-sm transition-colors truncate
@@ -200,7 +204,7 @@
                                         {task.description}
                                     </p>
                                 {/if}
-                            </div>
+                            </button>
 
                             {#if confirmDeleteId === task.id}
                                 <div class="flex items-center gap-1 flex-shrink-0">
