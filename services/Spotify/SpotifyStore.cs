@@ -34,7 +34,7 @@ public sealed class SpotifyStore([FromKeyedServices("spotify")] IDatabase db)
         db.NonQuery("DELETE FROM spotify_tokens WHERE id = 1");
 
     private static SpotifyToken Map(DbDataReader r) =>
-        new(r.GetString(0), r.GetString(1), r.GetDateTime(2));
+        new(r.Field<string>("access_token")!, r.Field<string>("refresh_token")!, r.Field<DateTime>("expires_at"));
 }
 
 public record SpotifyToken(string AccessToken, string RefreshToken, DateTime ExpiresAt);
