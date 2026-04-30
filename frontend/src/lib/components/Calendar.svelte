@@ -8,9 +8,10 @@
         onToggle: (task: Task) => void;
         onDelete: (id: number) => void;
         onNewTask: () => void;
+        onEdit: (task: Task) => void;
     }
 
-    let { tasks, onToggle, onDelete, onNewTask }: Props = $props();
+    let { tasks, onToggle, onDelete, onNewTask, onEdit }: Props = $props();
 
     const MONTH_NAMES = [
         'January',
@@ -198,8 +199,9 @@
                                             : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
                                         aria-label="Toggle {task.title}"
                                     ></button>
-                                    <span
-                                        class="text-xs truncate min-w-0
+                                    <button
+                                        onclick={() => onEdit(task)}
+                                        class="text-xs truncate min-w-0 text-left transition-colors hover:underline
                                {task.done
                                             ? 'line-through text-[var(--done)]'
                                             : 'text-[var(--text-1)]'}"
@@ -210,7 +212,7 @@
                                             >
                                         {/if}
                                         {task.title}
-                                    </span>
+                                    </button>
                                 </li>
                             {/each}
                             {#if dayTasks.length > 3}
@@ -249,12 +251,13 @@
                             {/if}
                         </button>
 
-                        <span
-                            class="flex-1 text-sm transition-colors
+                        <button
+                            onclick={() => onEdit(task)}
+                            class="flex-1 text-sm text-left transition-colors hover:underline
                          {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
                         >
                             {task.title}
-                        </span>
+                        </button>
 
                         <button
                             onclick={() => onDelete(task.id)}

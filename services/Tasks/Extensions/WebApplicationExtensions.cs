@@ -32,7 +32,7 @@ public static class WebApplicationExtensions
 
         app.MapPut("/tasks/{id:long}", (long id, UpdateTaskRequest req, TaskStore store) =>
         {
-            var task = store.Update(id, req.Done, req.Description, req.Assignee);
+            var task = store.Update(id, req.Done, req.Title, req.DueDate, req.DueTime, req.Description, req.Assignee);
             return task is null ? Results.NotFound() : Results.Ok(task);
         });
 
