@@ -17,7 +17,7 @@
     </div>
 
     <!-- Right column: date display + music + calendar teaser -->
-    <div class="hidden md:flex flex-col gap-8">
+    <div class="md:flex flex-col gap-8">
       <div>
         <h2 class="font-serif text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">Today's Date</h2>
         <div class="text-right">
