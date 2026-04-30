@@ -2,7 +2,7 @@ using System.Text.Json;
 using Weather;
 using Weather.Records;
 
-namespace weather.Extensions;
+namespace Weather.Extensions;
 
 public static class WebApplicationExtensions
 {
@@ -19,7 +19,10 @@ public static class WebApplicationExtensions
             var lat = config["LATITUDE"];
             var lon = config["LONGITUDE"];
             if (string.IsNullOrEmpty(lat) || string.IsNullOrEmpty(lon))
+            {
+                app.Logger.LogError("LATITUDE and LONGITUDE must be set. Update the .env file to add your coordinates.");
                 return Results.Json(new { error = "location not configured" }, statusCode: 503);
+            }
 
             var cache = store.Load();
             if (cache is not null && !WeatherStore.IsStale(cache))
@@ -53,7 +56,10 @@ public static class WebApplicationExtensions
             var lat = config["LATITUDE"];
             var lon = config["LONGITUDE"];
             if (string.IsNullOrEmpty(lat) || string.IsNullOrEmpty(lon))
+            {
+                app.Logger.LogError("LATITUDE and LONGITUDE must be set. Update the .env file to add your coordinates.");
                 return Results.Json(new { error = "location not configured" }, statusCode: 503);
+            }
 
             var cache = store.Load();
             if (cache is not null && !WeatherStore.IsStale(cache))

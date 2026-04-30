@@ -25,12 +25,12 @@ services:
   weather:
     build:
       context: ./services
-      dockerfile: weather/Dockerfile
+      dockerfile: Weather/Dockerfile
+    env_file:
+      - ./services/Weather/.env
     environment:
       - DB_PATH=/data/weather.db
       - ASPNETCORE_HTTP_PORTS=8082
-      - LATITUDE=${LATITUDE:-}
-      - LONGITUDE=${LONGITUDE:-}
     volumes:
       - weather-data:/data
 

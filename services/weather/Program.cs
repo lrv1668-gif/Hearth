@@ -1,4 +1,7 @@
-using weather.Extensions;
+using Weather.Extensions;
+using DotNetEnv;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
