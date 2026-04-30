@@ -26,7 +26,7 @@ public static class WebApplicationExtensions
                 return Results.BadRequest("title required");
             var task = store.Create(req.Title, req.DueDate, req.DueTime,
                 req.Description, req.Assignee,
-                req.RecurrenceUnit, req.RecurrenceInterval, req.RecurrenceDays);
+                req.RecurrenceUnit, req.RecurrenceInterval, req.RecurrenceDays, req.RecurrenceEndDate);
             return Results.Created($"/tasks/{task.Id}", task);
         });
 
@@ -36,9 +36,9 @@ public static class WebApplicationExtensions
             return task is null ? Results.NotFound() : Results.Ok(task);
         });
 
-        app.MapDelete("/tasks/{id:long}", (long id, TaskStore store) =>
+        app.MapDelete("/tasks/{id:long}", (long id, bool? series, TaskStore store) =>
         {
-            store.Delete(id);
+            store.Delete(id, series == true);
             return Results.NoContent();
         });
     }

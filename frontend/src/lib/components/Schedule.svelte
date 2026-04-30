@@ -6,10 +6,12 @@
     interface Props {
         tasks: Task[];
         onToggle: (task: Task) => void;
-        onDelete: (id: number) => void;
+        onDelete: (id: number, series?: boolean) => void;
     }
 
     let { tasks, onToggle, onDelete }: Props = $props();
+
+    let confirmDeleteId = $state<number | null>(null);
 
     function dateKey(d: Date): string {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -200,13 +202,43 @@
                                 {/if}
                             </div>
 
-                            <button
-                                onclick={() => onDelete(task.id)}
-                                class="opacity-0 group-hover/row:opacity-100 text-[var(--text-3)] hover:text-[var(--text-1)] transition flex-shrink-0"
-                                aria-label="Delete {task.title}"
-                            >
-                                <X size="14" />
-                            </button>
+                            {#if confirmDeleteId === task.id}
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button
+                                        onclick={() => { onDelete(task.id); confirmDeleteId = null; }}
+                                        class="text-xs px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                    >
+                                        Just this
+                                    </button>
+                                    <button
+                                        onclick={() => { onDelete(task.id, true); confirmDeleteId = null; }}
+                                        class="text-xs px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                    >
+                                        All future
+                                    </button>
+                                    <button
+                                        onclick={() => (confirmDeleteId = null)}
+                                        class="text-[var(--text-4)] hover:text-[var(--text-2)] transition"
+                                        aria-label="Cancel"
+                                    >
+                                        <X size="12" />
+                                    </button>
+                                </div>
+                            {:else}
+                                <button
+                                    onclick={() => {
+                                        if (task.series_id !== null) {
+                                            confirmDeleteId = task.id;
+                                        } else {
+                                            onDelete(task.id);
+                                        }
+                                    }}
+                                    class="opacity-0 group-hover/row:opacity-100 text-[var(--text-3)] hover:text-[var(--text-1)] transition flex-shrink-0"
+                                    aria-label="Delete {task.title}"
+                                >
+                                    <X size="14" />
+                                </button>
+                            {/if}
                         </li>
                     {/each}
                 </ul>

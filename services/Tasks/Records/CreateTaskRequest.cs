@@ -8,5 +8,6 @@ record CreateTaskRequest(
     string? Assignee,
     string? RecurrenceUnit,
     int? RecurrenceInterval,
-    string? RecurrenceDays
+    string? RecurrenceDays,
+    DateTime? RecurrenceEndDate
 );

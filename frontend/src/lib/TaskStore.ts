@@ -16,6 +16,7 @@ export async function addTask(
     recurrenceUnit?: string,
     recurrenceInterval?: number,
     recurrenceDays?: string,
+    recurrenceEndDate?: string,
 ) {
     const task = await createTask(
         title,
@@ -26,6 +27,7 @@ export async function addTask(
         recurrenceUnit,
         recurrenceInterval,
         recurrenceDays,
+        recurrenceEndDate,
     );
     tasks.update((ts) => [task, ...ts]);
 }
@@ -35,7 +37,11 @@ export async function toggleTask(task: Task) {
     tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));
 }
 
-export async function removeTask(id: number) {
-    await deleteTask(id);
-    tasks.update((ts) => ts.filter((t) => t.id !== id));
+export async function removeTask(id: number, series = false) {
+    await deleteTask(id, series);
+    if (series) {
+        await loadTasks();
+    } else {
+        tasks.update((ts) => ts.filter((t) => t.id !== id));
+    }
 }
