@@ -128,7 +128,6 @@
             <h2 class="font-serif text-sm font-semibold italic whitespace-nowrap {group.labelClass}">
               {group.label}
             </h2>
-            <div class="border-dotted border-t-2 border-[var(--text-2)] w-full"></div>
           </div>
         </div>
         <ul class="space-y-1.5">
