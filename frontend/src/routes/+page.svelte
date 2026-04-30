@@ -37,15 +37,6 @@
         <h2 class="font-serif text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">Now Playing</h2>
         <NowPlaying />
       </div>
-
-      <div>
-        <a
-          href="/calendar"
-          class="block text-xs tracking-widest uppercase text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
-        >
-          View Calendar →
-        </a>
-      </div>
     </div>
   </div>
 </main>
