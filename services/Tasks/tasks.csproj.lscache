@@ -13,7 +13,7 @@ primary
 lastDtbSucceeded
 
 [properties]
-AssemblyName=tasks
+AssemblyName=Tasks
 CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE
 CompilerGeneratedFilesOutputPath=
 MaxSupportedLangVersion=14.0
@@ -23,8 +23,8 @@ RunAnalyzers=
 RunAnalyzersDuringLiveAnalysis=
 SolutionPath=<PATH>../../Hearth.slnx
 TargetFrameworkIdentifier=.NETCoreApp
-TargetPath=<PATH>bin/Debug/net10.0/tasks.dll
-TargetRefPath=<PATH>obj/Debug/net10.0/ref/tasks.dll
+TargetPath=<PATH>bin/Debug/net10.0/Tasks.dll
+TargetRefPath=<PATH>obj/Debug/net10.0/ref/Tasks.dll
 TemporaryDependencyNodeTargetIdentifier=net10.0
 
 [commandLineArguments]
@@ -44,8 +44,8 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net10.0\tasks.dll
-/refout:obj\Debug\net10.0\refint\tasks.dll
+/out:obj\Debug\net10.0\Tasks.dll
+/refout:obj\Debug\net10.0\refint\Tasks.dll
 /target:exe
 /warnaserror-
 /utf8output
