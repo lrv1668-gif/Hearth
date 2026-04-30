@@ -8,7 +8,8 @@
 
   const themes: Theme[] = [
     { id: 'ash',        label: 'Ash',        fill: '#1d1d1d', stroke: '#6a6a6a' },
-    { id: 'stone',      label: 'Stone',      fill: '#292524', stroke: '#78716c' },
+    { id: 'chalk',      label: 'Chalk',      fill: '#ebebeb', stroke: '#909090' },
+    { id: 'stone',      label: 'Stone',      fill: '#26201a', stroke: '#806050' },
     { id: 'linen',      label: 'Linen',      fill: '#f0e8da', stroke: '#9e8c75' },
     { id: 'forest',     label: 'Forest',     fill: '#192118', stroke: '#4a6845' },
     { id: 'dusk',       label: 'Dusk',       fill: '#151b2a', stroke: '#4e5478' },

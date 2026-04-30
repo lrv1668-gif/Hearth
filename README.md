@@ -10,6 +10,25 @@ The primary target is an always-on e-paper frame (Raspberry Pi), but it is also 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) *(for running the backend locally without Docker)*
 - [Node.js 20+](https://nodejs.org/) *(for running the frontend locally without Docker)*
 
+## Configuration
+
+Services that need secrets or location data use a per-service `.env` file. Create these before starting:
+
+**Weather** (`services/Weather/.env`):
+```
+LATITUDE=40.7128
+LONGITUDE=-74.0060
+```
+
+**Spotify** (`services/Spotify/.env`):
+```
+SPOTIFY_CLIENT_ID=...
+SPOTIFY_CLIENT_SECRET=...
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8083/spotify/callback
+```
+
+See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for full details on each service's variables.
+
 ## Running in Docker
 
 ### Development (with live reload)
@@ -41,13 +60,19 @@ dotnet run
 ```
 
 ```bash
+# Backend — weather service (requires services/Weather/.env with LATITUDE and LONGITUDE)
+cd services/Weather
+dotnet run
+```
+
+```bash
 # Frontend
 cd frontend
 npm install   # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
+Vite proxies `/tasks` → `http://localhost:8081` and `/weather` → `http://localhost:8082`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
 ## Tech Stack
 
@@ -58,4 +83,4 @@ Vite proxies `/tasks` → `http://localhost:8081`, so no CORS configuration is n
 | Proxy     | Caddy 2                                                 |
 | Infra     | Docker Compose                                          |
 
-See [`SOFTWARE-DESIGN.md`](SOFTWARE-DESIGN.md) for architecture decisions and [`PRODUCT.md`](PRODUCT.md) for the product vision.
+See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for architecture decisions and [`docs/PRODUCT.md`](docs/PRODUCT.md) for the product vision.
