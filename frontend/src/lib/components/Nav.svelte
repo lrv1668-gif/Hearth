@@ -9,14 +9,12 @@
 
   let { theme, onChangeTheme }: Props = $props();
 
-  const now = new Date();
-  const dateLabel = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 </script>
 
 <!-- Desktop masthead -->
 <header class="border-b border-[var(--border)] bg-[var(--bg)] hidden md:block">
   <div class="grid grid-cols-3 items-center px-8 pt-4 pb-2">
-    <span class="text-xs text-[var(--text-3)] tracking-wide">{dateLabel}</span>
+    <span></span>
     <a href="/" class="text-center">
       <span class="font-serif text-2xl font-bold tracking-[0.25em] uppercase text-[var(--text-1)] hover:text-[var(--text-2)] transition-colors">
         Hearth
