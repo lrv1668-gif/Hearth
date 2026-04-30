@@ -12,7 +12,11 @@ export async function fetchTasks(): Promise<Task[]> {
     return res.json();
 }
 
-export async function createTask(title: string, due_date?: string, due_time?: string): Promise<Task> {
+export async function createTask(
+    title: string,
+    due_date?: string,
+    due_time?: string
+): Promise<Task> {
     const res = await fetch('/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
