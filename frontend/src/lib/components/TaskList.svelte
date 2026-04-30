@@ -11,6 +11,7 @@
             recurrenceUnit?: string,
             recurrenceInterval?: number,
             recurrenceDays?: string,
+            recurrenceEndDate?: string,
         ) => void;
     }
 
@@ -27,6 +28,7 @@
     let recurrenceUnit = $state(''); // '' | 'day' | 'week' | 'month'
     let recurrenceInterval = $state(1);
     let recurrenceDays = $state<string[]>([]);
+    let recurrenceEndDate = $state('');
 
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -60,6 +62,7 @@
             recurrenceUnit === 'week' && recurrenceDays.length > 0
                 ? recurrenceDays.join(',')
                 : undefined,
+            recurrenceUnit && recurrenceEndDate ? recurrenceEndDate : undefined,
         );
 
         newTitle = '';
@@ -71,6 +74,7 @@
         recurrenceUnit = '';
         recurrenceInterval = 1;
         recurrenceDays = [];
+        recurrenceEndDate = '';
         showMore = false;
     }
 </script>
@@ -221,6 +225,27 @@
                         >
                     </div>
                 {/if}
+
+                <div class="flex items-center gap-2 text-sm text-[var(--text-2)]">
+                    <span>Ends on</span>
+                    <input
+                        type="date"
+                        bind:value={recurrenceEndDate}
+                        min={newDueDate || undefined}
+                        class="bg-[var(--surface)] text-[var(--text-3)] rounded-lg px-3 py-1.5 text-sm
+                               outline-none focus:ring-1 focus:ring-[var(--border)] transition"
+                    />
+                    {#if recurrenceEndDate}
+                        <button
+                            onclick={() => (recurrenceEndDate = '')}
+                            class="text-xs text-[var(--text-4)] hover:text-[var(--text-2)] transition"
+                        >
+                            Clear
+                        </button>
+                    {:else}
+                        <span class="text-xs text-[var(--text-4)]">optional</span>
+                    {/if}
+                </div>
             </div>
         </div>
     {/if}

@@ -73,10 +73,28 @@ The `tasks` service handles full CRUD for household tasks with optional due date
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/tasks` | List all tasks |
-| `POST` | `/tasks` | Create a task |
-| `PUT` | `/tasks/{id}` | Update done status (recurrence auto-advances due date) |
-| `DELETE` | `/tasks/{id}` | Delete a task |
+| `GET` | `/tasks` | List tasks: all done tasks + undone tasks due within 60 days + undone tasks with no due date |
+| `POST` | `/tasks` | Create a task; pre-generates all recurring instances up to 1 year ahead |
+| `PUT` | `/tasks/{id}` | Update done status, description, or assignee |
+| `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series |
+
+### Recurrence Model
+
+Recurring tasks use a **pre-generation** approach: when a task with a recurrence rule is created, all instances up to one year ahead are inserted as individual rows at creation time. Each instance row stores the full recurrence definition and shares a `series_id` (equal to the `id` of the first instance in the series).
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `recurrence_unit` | `"day"` \| `"week"` \| `"month"` | Interval unit |
+| `recurrence_interval` | integer | Number of units between occurrences |
+| `recurrence_days` | comma-separated string | Weekday names for weekly rules (e.g. `"Mon,Wed,Fri"`) |
+| `recurrence_end_date` | datetime | Optional last date for the series; no instances are generated beyond this date |
+| `series_id` | integer | Groups instances; equals the `id` of the first instance; `NULL` for non-recurring tasks |
+
+**Rolling horizon:** `GET /tasks` lazily extends any series whose last undone instance falls within 30 days, generating new rows up to `recurrence_end_date` (or 1 year if no end date is set). No background job is required.
+
+**Marking done:** Marking an instance done simply sets `done = 1` on that row. Future instances already exist and remain unaffected.
+
+**Deleting a series:** `DELETE /tasks/{id}?series=true` looks up the `series_id` of the given task and deletes all rows sharing that `series_id`.
 
 ### Environment variables
 

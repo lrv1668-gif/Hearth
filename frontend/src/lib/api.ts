@@ -10,6 +10,8 @@ export interface Task {
     recurrence_unit: string | null;
     recurrence_interval: number | null;
     recurrence_days: string | null;
+    recurrence_end_date: string | null;
+    series_id: number | null;
 }
 
 export async function fetchTasks(): Promise<Task[]> {
@@ -26,6 +28,7 @@ export async function createTask(
     recurrence_unit?: string,
     recurrence_interval?: number,
     recurrence_days?: string,
+    recurrence_end_date?: string,
 ): Promise<Task> {
     const res = await fetch('/tasks', {
         method: 'POST',
@@ -39,6 +42,7 @@ export async function createTask(
             recurrence_unit: recurrence_unit ?? null,
             recurrence_interval: recurrence_interval ?? null,
             recurrence_days: recurrence_days ?? null,
+            recurrence_end_date: recurrence_end_date ?? null,
         }),
     });
     return res.json();
@@ -53,8 +57,8 @@ export async function updateTask(id: number, done: boolean, description?: string
     return res.json();
 }
 
-export async function deleteTask(id: number): Promise<void> {
-    await fetch(`/tasks/${id}`, { method: 'DELETE' });
+export async function deleteTask(id: number, series = false): Promise<void> {
+    await fetch(`/tasks/${id}${series ? '?series=true' : ''}`, { method: 'DELETE' });
 }
 
 export interface NowPlaying {

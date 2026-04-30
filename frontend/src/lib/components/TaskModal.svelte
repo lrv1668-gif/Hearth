@@ -13,6 +13,7 @@
             recurrenceUnit?: string,
             recurrenceInterval?: number,
             recurrenceDays?: string,
+            recurrenceEndDate?: string,
         ) => void;
     }
 
@@ -43,6 +44,7 @@
         recurrenceUnit?: string,
         recurrenceInterval?: number,
         recurrenceDays?: string,
+        recurrenceEndDate?: string,
     ) {
         onAdd(
             title,
@@ -53,6 +55,7 @@
             recurrenceUnit,
             recurrenceInterval,
             recurrenceDays,
+            recurrenceEndDate,
         );
         close();
     }

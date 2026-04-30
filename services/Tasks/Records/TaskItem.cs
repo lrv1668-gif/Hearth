@@ -11,5 +11,7 @@ public record TaskItem(
     string? Assignee,
     string? RecurrenceUnit,
     int? RecurrenceInterval,
-    string? RecurrenceDays
+    string? RecurrenceDays,
+    long? SeriesId,
+    DateTime? RecurrenceEndDate
 );
