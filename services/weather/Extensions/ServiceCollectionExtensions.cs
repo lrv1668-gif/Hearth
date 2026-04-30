@@ -3,7 +3,7 @@ using Data;
 using Data.Abstractions;
 using Weather;
 
-namespace weather.Extensions;
+namespace Weather.Extensions;
 
 public static class ServiceCollectionExtensions
 {

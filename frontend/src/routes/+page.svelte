@@ -2,6 +2,7 @@
   import { tasks, toggleTask, removeTask } from '$lib/TaskStore';
   import Schedule from '$lib/components/Schedule.svelte';
   import NowPlaying from '$lib/components/NowPlaying.svelte';
+  import WeatherWidget from '$lib/components/WeatherWidget.svelte';
 </script>
 
 <svelte:head>
@@ -16,7 +17,7 @@
       <Schedule tasks={$tasks} onToggle={toggleTask} onDelete={removeTask} />
     </div>
 
-    <!-- Right column: date display + calendar teaser -->
+    <!-- Right column: date display + weather + calendar teaser -->
     <div class="hidden md:flex flex-col gap-6">
       <div class="text-right border-b border-[var(--border)] pb-4">
         <p class="font-serif text-5xl font-bold text-[var(--text-1)] leading-tight">
@@ -29,6 +30,8 @@
           {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
         </p>
       </div>
+
+      <WeatherWidget />
 
       <div>
         <a
