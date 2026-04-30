@@ -149,16 +149,16 @@ Each capability is a self-contained microservice running on the Pi. Services exp
 
 ### Service Decomposition
 
-| Service | Responsibility |
-|---|---|
-| Display Service | Renders layouts to bitmap, drives e-paper hardware, manages refresh schedule |
-| Art Service | Fetches, caches, and dithers images for e-paper output |
-| Weather Service | Polls weather API on a schedule, caches current + forecast |
-| Tasks Service | CRUD for household to-do and grocery lists |
-| Plants Service | Tracks plant watering schedules and due dates |
-| Music Service | Polls Spotify API for now-playing |
-| Calendar Service | Syncs with Google/Apple Calendar |
-| Web/API Gateway | Serves the phone UI, routes requests to services, handles first-run setup |
+| Service | Responsibility | Status |
+|---|---|---|
+| Display Service | Renders layouts to bitmap, drives e-paper hardware, manages refresh schedule | Planned |
+| Art Service | Fetches, caches, and dithers images for e-paper output | Planned |
+| Weather Service | Polls Open-Meteo on a schedule, caches current + 7-day forecast | Implemented |
+| Tasks Service | CRUD for household to-do and grocery lists, with recurrence | Implemented |
+| Plants Service | Tracks plant watering schedules and due dates | Planned |
+| Music Service | Polls Spotify API for now-playing | Implemented |
+| Calendar Service | Syncs with Google/Apple Calendar | Planned |
+| Web/API Gateway | Serves the phone UI, routes requests to services, handles first-run setup | Caddy (partial) |
 
 ### Design Principles
 
