@@ -10,20 +10,20 @@
 
 :root,
 [data-theme="stone"] {
-  /* Stone — dark warm neutrals. Urban loft, concrete & candlelight. */
-  --bg: #1c1917;
-  --surface: #292524;
-  --surface-hi: #3c3836;
-  --border: #44403c;
-  --text-1: #e7e5e4;
-  --text-2: #a8a29e;
-  --text-3: #78716c;
-  --text-4: #57534e;
-  --done: #57534e;
-  --done-bg: #57534e;
-  --accent: #e7e5e4;
-  --accent-hi: #d4d0ce;
-  --accent-fg: #1c1917;
+  /* Stone — warm brown dark. Worn leather, aged timber, candlelit study. */
+  --bg: #1a1410;
+  --surface: #26201a;
+  --surface-hi: #332b23;
+  --border: #4a3d34;
+  --text-1: #ede4d6;
+  --text-2: #b09878;
+  --text-3: #806050;
+  --text-4: #5e4438;
+  --done: #5e4438;
+  --done-bg: #5e4438;
+  --accent: #ede4d6;
+  --accent-hi: #d8cfc0;
+  --accent-fg: #1a1410;
 
   input {
     color-scheme: dark;
@@ -111,6 +111,27 @@
 
   input {
     color-scheme: dark;
+  }
+}
+
+[data-theme="chalk"] {
+  /* Chalk — pure monochrome light. Bright paper, morning light, clean slate. */
+  --bg: #f5f5f5;
+  --surface: #ebebeb;
+  --surface-hi: #e0e0e0;
+  --border: #cccccc;
+  --text-1: #131313;
+  --text-2: #606060;
+  --text-3: #909090;
+  --text-4: #b0b0b0;
+  --done: #b0b0b0;
+  --done-bg: #b0b0b0;
+  --accent: #131313;
+  --accent-hi: #282828;
+  --accent-fg: #f5f5f5;
+
+  input {
+    color-scheme: light;
   }
 }
 
