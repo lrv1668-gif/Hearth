@@ -37,7 +37,7 @@ public sealed class WeatherStore([FromKeyedServices("weather")] IDatabase db)
     }
 
     private static WeatherCache Map(DbDataReader r) =>
-        new(r.GetString(0), r.GetString(1), r.GetString(2));
+        new(r.Field<string>("current_json")!, r.Field<string>("forecast_json")!, r.Field<string>("fetched_at")!);
 }
 
 public record WeatherCache(string CurrentJson, string ForecastJson, string FetchedAt);
