@@ -3,10 +3,12 @@
   import { browser } from '$app/environment';
   import Nav from '$lib/components/Nav.svelte';
   import { loadTasks } from '$lib/TaskStore';
+  import { isValidThemeId, DEFAULT_THEME, type ThemeId } from '$lib/themes';
 
   let { children } = $props();
 
-  let theme = $state(browser ? (localStorage.getItem('hearth-theme') ?? 'stone') : 'stone');
+  const stored = browser ? localStorage.getItem('hearth-theme') : null;
+  let theme = $state<ThemeId>(isValidThemeId(stored) ? stored : DEFAULT_THEME);
 
   $effect(() => {
     document.documentElement.dataset.theme = theme;
