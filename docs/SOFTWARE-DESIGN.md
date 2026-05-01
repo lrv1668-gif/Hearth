@@ -19,14 +19,14 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 Seven built-in themes are applied via CSS custom properties on `[data-theme]`. The active theme is persisted in `localStorage`.
 
-| Theme | Style |
-|-------|-------|
-| `stone` | Dark warm neutrals |
-| `linen` | Warm cream light mode |
-| `forest` | Dark mossy green |
-| `dusk` | Deep indigo dark mode |
-| `ash` | Pure monochrome dark |
-| `chalk` | Pure monochrome light |
+| Theme        | Style                        |
+| ------------ | ---------------------------- |
+| `stone`      | Dark warm neutrals           |
+| `linen`      | Warm cream light mode        |
+| `forest`     | Dark mossy green             |
+| `dusk`       | Deep indigo dark mode        |
+| `ash`        | Pure monochrome dark         |
+| `chalk`      | Pure monochrome light        |
 | `terracotta` | Sandy earth tones light mode |
 
 Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`. Components reference tokens only — never hardcoded colors.
@@ -37,13 +37,13 @@ Themes are defined in two places that must be kept in sync: `frontend/src/app.cs
 
 Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service backed by **SQLite**.
 
-| Service   | Port | Status      | Responsibility          |
-|-----------|------|-------------|-------------------------|
-| `tasks`   | 8081 | Implemented | Task CRUD with due dates and recurrence |
+| Service   | Port | Status      | Responsibility                              |
+| --------- | ---- | ----------- | ------------------------------------------- |
+| `tasks`   | 8081 | Implemented | Task CRUD with due dates and recurrence     |
 | `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast |
-| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing |
-| `plants`  | 8084 | Planned     | Watering schedules and reminders |
-| `art`     | 8085 | Planned     | Rotates artwork from local files or APIs |
+| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                 |
+| `plants`  | 8084 | Planned     | Watering schedules and reminders            |
+| `art`     | 8085 | Planned     | Rotates artwork from local files or APIs    |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
@@ -53,12 +53,13 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 
 Two shared projects live under `services/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
 
-| Project            | Responsibility |
-|--------------------|----------------|
+| Project             | Responsibility                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
-| `Data`              | `Database` — the concrete SQLite implementation of `IDatabase`; the only project that references `Microsoft.Data.Sqlite` |
+| `Data`              | `Database` — the concrete SQLite implementation of `IDatabase`; the only project that references `Microsoft.Data.Sqlite`        |
 
 Service projects follow this pattern:
+
 - Reference `Data.Abstractions` for the `IDatabase` type used in stores and handlers
 - Reference `Data` in `Program.cs` only, to register the concrete implementation: `AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath))`
 - Never reference `Microsoft.Data.Sqlite` directly
@@ -71,24 +72,24 @@ The `tasks` service handles full CRUD for household tasks with optional due date
 
 ### Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/tasks` | List tasks: all done tasks + undone tasks due within 60 days + undone tasks with no due date |
-| `POST` | `/tasks` | Create a task; pre-generates all recurring instances up to 1 year ahead |
-| `PUT` | `/tasks/{id}` | Update done status, title, due date, due time, description, or assignee |
-| `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series |
+| Method   | Path          | Description                                                                                  |
+| -------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `GET`    | `/tasks`      | List tasks: all done tasks + undone tasks due within 60 days + undone tasks with no due date |
+| `POST`   | `/tasks`      | Create a task; pre-generates all recurring instances up to 1 year ahead                      |
+| `PUT`    | `/tasks/{id}` | Update done status, title, due date, due time, description, or assignee                      |
+| `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series                  |
 
 ### Recurrence Model
 
 Recurring tasks use a **pre-generation** approach: when a task with a recurrence rule is created, all instances up to one year ahead are inserted as individual rows at creation time. Each instance row stores the full recurrence definition and shares a `series_id` (equal to the `id` of the first instance in the series).
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `recurrence_unit` | `"day"` \| `"week"` \| `"month"` | Interval unit |
-| `recurrence_interval` | integer | Number of units between occurrences |
-| `recurrence_days` | comma-separated string | Weekday names for weekly rules (e.g. `"Mon,Wed,Fri"`) |
-| `recurrence_end_date` | datetime | Optional last date for the series; no instances are generated beyond this date |
-| `series_id` | integer | Groups instances; equals the `id` of the first instance; `NULL` for non-recurring tasks |
+| Field                 | Type                             | Description                                                                             |
+| --------------------- | -------------------------------- | --------------------------------------------------------------------------------------- |
+| `recurrence_unit`     | `"day"` \| `"week"` \| `"month"` | Interval unit                                                                           |
+| `recurrence_interval` | integer                          | Number of units between occurrences                                                     |
+| `recurrence_days`     | comma-separated string           | Weekday names for weekly rules (e.g. `"Mon,Wed,Fri"`)                                   |
+| `recurrence_end_date` | datetime                         | Optional last date for the series; no instances are generated beyond this date          |
+| `series_id`           | integer                          | Groups instances; equals the `id` of the first instance; `NULL` for non-recurring tasks |
 
 **Rolling horizon:** `GET /tasks` lazily extends any series whose last undone instance falls within 30 days, generating new rows up to `recurrence_end_date` (or 1 year if no end date is set). No background job is required.
 
@@ -98,10 +99,10 @@ Recurring tasks use a **pre-generation** approach: when a task with a recurrence
 
 ### Environment variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DB_PATH` | `tasks.db` | Path to the SQLite database file |
-| `ASPNETCORE_HTTP_PORTS` | — | Set to `8081` in Docker |
+| Variable                | Default    | Description                      |
+| ----------------------- | ---------- | -------------------------------- |
+| `DB_PATH`               | `tasks.db` | Path to the SQLite database file |
+| `ASPNETCORE_HTTP_PORTS` | —          | Set to `8081` in Docker          |
 
 ## Weather Service
 
@@ -109,21 +110,21 @@ The `weather` service fetches current conditions and a 7-day forecast from [Open
 
 ### Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/weather/current` | Returns current conditions; uses cache if fresh |
-| `GET` | `/weather/forecast` | Returns 7-day forecast; uses cache if fresh |
+| Method | Path                | Description                                     |
+| ------ | ------------------- | ----------------------------------------------- |
+| `GET`  | `/weather/current`  | Returns current conditions; uses cache if fresh |
+| `GET`  | `/weather/forecast` | Returns 7-day forecast; uses cache if fresh     |
 
 Both endpoints return `503` with `{ "error": "location not configured" }` if `LATITUDE` or `LONGITUDE` are missing, and log a `LogError` pointing to `.env.example`.
 
 ### Environment variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `LATITUDE` | Yes | Decimal latitude (e.g. `40.7128`) |
-| `LONGITUDE` | Yes | Decimal longitude (e.g. `-74.0060`) |
-| `DB_PATH` | No | Path to SQLite cache file (default: `weather.db`) |
-| `ASPNETCORE_HTTP_PORTS` | — | Set to `8082` in Docker |
+| Variable                | Required | Description                                       |
+| ----------------------- | -------- | ------------------------------------------------- |
+| `LATITUDE`              | Yes      | Decimal latitude (e.g. `40.7128`)                 |
+| `LONGITUDE`             | Yes      | Decimal longitude (e.g. `-74.0060`)               |
+| `DB_PATH`               | No       | Path to SQLite cache file (default: `weather.db`) |
+| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8082` in Docker                           |
 
 Place these in `services/Weather/.env`. Docker Compose loads the file via `env_file`; for local `dotnet run`, `DotNetEnv` loads the same file before `CreateBuilder`.
 
@@ -133,24 +134,24 @@ The `spotify` service handles OAuth 2.0 authorization with Spotify and exposes n
 
 ### Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/spotify/auth` | Begins OAuth flow — redirects the browser to Spotify's authorization page |
-| `GET` | `/spotify/callback` | OAuth callback — exchanges the code for tokens, saves them, redirects to `FRONTEND_URL` |
-| `GET` | `/spotify/now-playing` | Returns the current track, or 204 if nothing is playing, or 401 if unauthenticated |
-| `GET` | `/spotify/status` | Returns `{ authenticated: bool }` |
-| `DELETE` | `/spotify/auth` | Clears the stored tokens, effectively disconnecting Spotify |
+| Method   | Path                   | Description                                                                             |
+| -------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| `GET`    | `/spotify/auth`        | Begins OAuth flow — redirects the browser to Spotify's authorization page               |
+| `GET`    | `/spotify/callback`    | OAuth callback — exchanges the code for tokens, saves them, redirects to `FRONTEND_URL` |
+| `GET`    | `/spotify/now-playing` | Returns the current track, or 204 if nothing is playing, or 401 if unauthenticated      |
+| `GET`    | `/spotify/status`      | Returns `{ authenticated: bool }`                                                       |
+| `DELETE` | `/spotify/auth`        | Clears the stored tokens, effectively disconnecting Spotify                             |
 
 ### Environment variables
 
 Stored in `services/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_file` in `docker-compose.yml`):
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SPOTIFY_CLIENT_ID` | Yes | Spotify app client ID |
-| `SPOTIFY_CLIENT_SECRET` | Yes | Spotify app client secret |
-| `SPOTIFY_REDIRECT_URI` | Yes | Must match a URI registered in the Spotify app dashboard (e.g. `http://127.0.0.1:8083/spotify/callback`) |
-| `FRONTEND_URL` | No | URL to redirect to after OAuth completes; defaults to `/` on the service itself — set to the Caddy entry point (e.g. `http://localhost`) in Docker |
+| Variable                | Required | Description                                                                                                                                        |
+| ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | Yes      | Spotify app client ID                                                                                                                              |
+| `SPOTIFY_CLIENT_SECRET` | Yes      | Spotify app client secret                                                                                                                          |
+| `SPOTIFY_REDIRECT_URI`  | Yes      | Must match a URI registered in the Spotify app dashboard (e.g. `http://127.0.0.1:8083/spotify/callback`)                                           |
+| `FRONTEND_URL`          | No       | URL to redirect to after OAuth completes; defaults to `/` on the service itself — set to the Caddy entry point (e.g. `http://localhost`) in Docker |
 
 ### Frontend integration
 
@@ -179,9 +180,9 @@ The Caddy config is the same in development and production — the only differen
 
 **Docker Compose** orchestrates all services. The compose setup is split into two files:
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.yml` | Production: multi-stage builds, static frontend bundle |
+| File                          | Purpose                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `docker-compose.yml`          | Production: multi-stage builds, static frontend bundle                                                       |
 | `docker-compose.override.yml` | Development: auto-merged by Compose; swaps the frontend for the Vite dev server and configures file watching |
 
 ### Development workflow
