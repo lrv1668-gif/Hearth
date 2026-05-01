@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Typography & icon scale ─────────────────────────────────────────────── */
+/* clamp(min, preferred-vw, max) — scales smoothly from mobile (~375px)
+   to the 13.3" e-paper target (1200px wide, ~150 PPI).                      */
+:root {
+    --font-display: clamp(2rem, 3vw, 4.5rem); /* date number, temperature  */
+    --font-title: clamp(1.125rem, 1.5vw, 1.875rem); /* headings, logo            */
+    --font-subtitle: clamp(1rem, 1.25vw, 1.5rem); /* subtitles, section labels */
+    --font-body: clamp(0.875rem, 1vw, 1.25rem); /* task text, form inputs    */
+    --font-label: clamp(0.6875rem, 0.8vw, 1rem); /* nav links, tags, caps     */
+    --font-caption: clamp(0.5625rem, 0.65vw, 0.875rem); /* mobile nav, tiny labels */
+
+    --icon-lg: clamp(20px, 2vw, 28px); /* nav icons, main weather icon  */
+    --icon-md: clamp(14px, 1.5vw, 22px); /* forecast, music, chevrons     */
+    --icon-sm: clamp(12px, 1.2vw, 18px); /* close buttons, sun/wind row   */
+    --icon-xs: clamp(10px, 0.9vw, 14px); /* recurrence, tiny inline icons */
+}
+
 /* ── Themes ──────────────────────────────────────────────────────────────── */
 /* Each theme exposes the same set of semantic tokens so every component
    can reference var(--token) without knowing which palette is active.      */
@@ -151,5 +168,44 @@
 
     input {
         color-scheme: light;
+    }
+}
+
+/* ── Semantic type utilities ─────────────────────────────────────────────── */
+@layer utilities {
+    .type-display {
+        font-size: var(--font-display);
+    }
+    .type-title {
+        font-size: var(--font-title);
+    }
+    .type-subtitle {
+        font-size: var(--font-subtitle);
+    }
+    .type-body {
+        font-size: var(--font-body);
+    }
+    .type-label {
+        font-size: var(--font-label);
+    }
+    .type-caption {
+        font-size: var(--font-caption);
+    }
+
+    .icon-lg {
+        width: var(--icon-lg);
+        height: var(--icon-lg);
+    }
+    .icon-md {
+        width: var(--icon-md);
+        height: var(--icon-md);
+    }
+    .icon-sm {
+        width: var(--icon-sm);
+        height: var(--icon-sm);
+    }
+    .icon-xs {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
     }
 }

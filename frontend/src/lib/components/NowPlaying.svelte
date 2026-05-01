@@ -41,9 +41,9 @@
 {#if track === undefined}
     <a
         href="/spotify/auth"
-        class="flex items-center gap-1.5 text-xs text-[var(--text-4)] hover:text-[var(--text-3)] transition-colors"
+        class="flex items-center gap-1.5 type-label text-[var(--text-4)] hover:text-[var(--text-3)] transition-colors"
     >
-        <Music size={14} />
+        <Music size={14} class="icon-md" />
         <span>Connect Spotify</span>
     </a>
 {:else if track !== null}
@@ -58,16 +58,16 @@
             />
         {:else}
             <div class="w-12 h-12 rounded-lg bg-[var(--border)] flex items-center justify-center flex-shrink-0">
-                <Music size={20} class="text-[var(--text-4)]" />
+                <Music size={20} class="icon-lg text-[var(--text-4)]" />
             </div>
         {/if}
 
         <div class="flex flex-col min-w-0 gap-1 flex-1">
             <div class="min-w-0">
-                <p class="text-sm font-medium text-[var(--text-1)] truncate leading-tight">
+                <p class="type-body font-medium text-[var(--text-1)] truncate leading-tight">
                     {track.title}
                 </p>
-                <p class="text-xs text-[var(--text-3)] truncate leading-tight">{track.artist}</p>
+                <p class="type-label text-[var(--text-3)] truncate leading-tight">{track.artist}</p>
             </div>
             <div class="w-full h-1 bg-[var(--border)] rounded-full overflow-hidden">
                 <div
@@ -85,10 +85,10 @@
 {:else}
     <button
         onclick={handleDisconnect}
-        class="flex items-center gap-1.5 text-xs text-[var(--text-4)] hover:text-[var(--text-3)] transition-colors"
+        class="flex items-center gap-1.5 type-label text-[var(--text-4)] hover:text-[var(--text-3)] transition-colors"
         title="Disconnect Spotify"
     >
-        <Music size={14} />
+        <Music size={14} class="icon-md" />
         <span>Nothing playing · Disconnect</span>
     </button>
 {/if}
