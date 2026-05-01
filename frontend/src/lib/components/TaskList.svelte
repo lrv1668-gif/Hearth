@@ -140,12 +140,11 @@
     }
 </script>
 
-<div class="space-y-2">
+<form class="space-y-2" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
     <!-- Main row -->
     <div class="flex gap-2">
         <input
             bind:value={newTitle}
-            onkeydown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="Enter description..."
             class="flex-1 bg-[var(--surface)] text-[var(--text-1)] placeholder-[var(--text-4)]
              rounded-lg px-4 py-2.5 text-sm outline-none
@@ -159,7 +158,7 @@
              outline-none focus:ring-1 focus:ring-[var(--border)] transition"
         />
         <button
-            onclick={handleSubmit}
+            type="submit"
             disabled={!!newDueDate && !allDay && !newDueTime}
             class="px-4 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--accent-fg)]
              rounded-lg text-sm font-medium transition-colors
@@ -201,6 +200,7 @@
 
     <!-- More options toggle -->
     <button
+        type="button"
         onclick={() => (showMore = !showMore)}
         class="flex items-center gap-1 text-xs text-[var(--text-4)] hover:text-[var(--text-2)] transition-colors"
     >
@@ -242,6 +242,7 @@
                     <div class="flex gap-2 flex-wrap">
                         {#each repeatOptions as opt}
                             <button
+                                type="button"
                                 onclick={() => {
                                     recurrenceUnit = opt.unit;
                                     recurrenceInterval = opt.interval;
@@ -261,6 +262,7 @@
                         <div class="flex gap-1 flex-wrap">
                             {#each weekdays as day}
                                 <button
+                                    type="button"
                                     onclick={() => toggleDay(day)}
                                     class="px-2 py-1 rounded text-xs transition-colors
                                            {recurrenceDays.includes(day)
@@ -305,6 +307,7 @@
                         />
                         {#if recurrenceEndDate}
                             <button
+                                type="button"
                                 onclick={() => (recurrenceEndDate = '')}
                                 class="text-xs text-[var(--text-4)] hover:text-[var(--text-2)] transition"
                             >
@@ -318,4 +321,4 @@
             {/if}
         </div>
     {/if}
-</div>
+</form>

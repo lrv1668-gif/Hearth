@@ -74,6 +74,13 @@ cd services/Weather
 dotnet run
 ```
 
+**Spotify service** (optional; requires `services/Spotify/.env` with `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`):
+
+```bash
+cd services/Spotify
+dotnet run
+```
+
 **Frontend:**
 
 ```bash
@@ -82,7 +89,7 @@ npm install        # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081` and `/weather` → `http://localhost:8082`. Open http://localhost:5173.
+Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, and `/spotify` → `http://localhost:8083`. Open http://localhost:5173.
 
 ## Running in Docker
 
@@ -121,7 +128,7 @@ docker compose -f docker-compose.yml up --build
 
 Themes are defined in two places — both must be updated together:
 1. `frontend/src/app.css` — CSS custom property block `[data-theme="id"] { ... }`
-2. `frontend/src/lib/components/ThemeSwitcher.svelte` — entry in the `themes` array
+2. `frontend/src/lib/themes.ts` — entry in the `themes` array
 
 Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`
 
