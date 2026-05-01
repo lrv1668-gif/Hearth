@@ -31,10 +31,10 @@ public sealed class WeatherFetcher(HttpClient http)
         var url = $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
                   $"&current=temperature_2m,weather_code,wind_speed_10m" +
-                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code" +
+                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset" +
                   $"&temperature_unit=fahrenheit&wind_speed_unit=mph" +
                   $"&timezone=auto&forecast_days=7";
-
+        
         using var response = await http.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
@@ -54,6 +54,8 @@ public sealed class WeatherFetcher(HttpClient http)
         var codes       = daily.GetProperty("weather_code");
         var maxTemps    = daily.GetProperty("temperature_2m_max");
         var minTemps    = daily.GetProperty("temperature_2m_min");
+        var sunrises    = daily.GetProperty("sunrise");
+        var sunsets     = daily.GetProperty("sunset");
 
         var forecast = new List<ForecastDayResponse>();
         for (int i = 0; i < dates.GetArrayLength(); i++)
@@ -64,7 +66,9 @@ public sealed class WeatherFetcher(HttpClient http)
                 code,
                 Describe(code),
                 maxTemps[i].GetDouble(),
-                minTemps[i].GetDouble()));
+                minTemps[i].GetDouble(),
+                sunrises[i].GetString()!,
+                sunsets[i].GetString()!));
         }
 
         return (currentResponse, forecast);

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Cloud, CloudRain, CloudSnow, Sun, Wind, Zap } from '@lucide/svelte';
+    import { Cloud, CloudRain, CloudSnow, Sun, Sunrise, Sunset, Wind, Zap } from '@lucide/svelte';
     import {
         fetchCurrentWeather,
         fetchWeatherForecast,
@@ -19,6 +19,12 @@
         if (code <= 82) return CloudRain;
         if (code <= 86) return CloudSnow;
         return Zap;
+    }
+
+    function formatSunTime(iso: string): string {
+        return new Date(iso).toLocaleTimeString('en-US', {
+            hour: 'numeric', minute: '2-digit', hour12: true,
+        });
     }
 
     function formatDate(dateStr: string): string {
@@ -45,10 +51,6 @@
                     >{Math.round(current.temperature_f)}°F</span
                 >
                 <span class="text-sm text-[var(--text-3)] ml-2">{current.description}</span>
-            </div>
-            <div class="ml-auto flex items-center gap-1 text-xs text-[var(--text-4)]">
-                <Wind size={12} />
-                {Math.round(current.wind_mph)} mph
             </div>
         </div>
 
@@ -79,5 +81,20 @@
                 {/each}
             </div>
         {/if}
+
+        <!-- Detail stats: sunrise, sunset, wind -->
+        <div class="flex items-center gap-4 text-xs text-[var(--text-4)]">
+            {#if forecast[0]?.sunrise}
+                <span class="flex items-center gap-1">
+                    <Sunrise size={12} />{formatSunTime(forecast[0].sunrise)}
+                </span>
+                <span class="flex items-center gap-1">
+                    <Sunset size={12} />{formatSunTime(forecast[0].sunset)}
+                </span>
+            {/if}
+            <span class="flex items-center gap-1">
+                <Wind size={12} />{Math.round(current.wind_mph)} mph
+            </span>
+        </div>
     </div>
 {/if}
