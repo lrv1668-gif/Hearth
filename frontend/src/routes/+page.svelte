@@ -5,6 +5,7 @@
     import TaskModal from '$lib/components/TaskModal.svelte';
     import NowPlaying from '$lib/components/NowPlaying.svelte';
     import WeatherWidget from '$lib/components/WeatherWidget.svelte';
+    import MoonPhase from '$lib/components/MoonPhase.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -34,6 +35,13 @@
                 Upcoming Tasks
             </h2>
             <Schedule tasks={$tasks} onToggle={toggleTask} onDelete={removeTask} onEdit={openEditTask} />
+            
+            <div>
+                <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
+                    Now Playing
+                </h2>
+                <NowPlaying />
+            </div>
         </div>
 
         <!-- Right column: date display + music + weather + calendar teaser -->
@@ -61,9 +69,9 @@
 
             <div>
                 <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
-                    Now Playing
+                    Moon Phase
                 </h2>
-                <NowPlaying />
+                <MoonPhase />
             </div>
         </div>
     </div>
