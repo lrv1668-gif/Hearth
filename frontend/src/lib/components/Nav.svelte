@@ -58,12 +58,8 @@
 </header>
 
 <!-- Mobile: compact top bar -->
-<header
-    class="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--bg)] md:hidden"
->
-    <a href="/" class="text-lg font-bold tracking-widest uppercase text-[var(--text-1)]"
-        >Hearth</a
-    >
+<header class="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--bg)] md:hidden">
+    <a href="/" class="text-lg font-bold tracking-widest uppercase text-[var(--text-1)]">Hearth</a>
     <button
         onclick={() => (themeModalOpen = true)}
         class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"

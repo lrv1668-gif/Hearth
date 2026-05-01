@@ -16,7 +16,7 @@ export async function addTask(
     recurrenceUnit?: string,
     recurrenceInterval?: number,
     recurrenceDays?: string,
-    recurrenceEndDate?: string,
+    recurrenceEndDate?: string
 ) {
     const task = await createTask(
         title,
@@ -27,16 +27,20 @@ export async function addTask(
         recurrenceUnit,
         recurrenceInterval,
         recurrenceDays,
-        recurrenceEndDate,
+        recurrenceEndDate
     );
     tasks.update((ts) => [task, ...ts]);
 }
 
 export async function toggleTask(task: Task) {
     const updated = await updateTask(
-        task.id, !task.done, task.title,
-        task.due_date ?? undefined, task.due_time ?? undefined,
-        task.description ?? undefined, task.assignee ?? undefined,
+        task.id,
+        !task.done,
+        task.title,
+        task.due_date ?? undefined,
+        task.due_time ?? undefined,
+        task.description ?? undefined,
+        task.assignee ?? undefined
     );
     tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));
 }
@@ -47,7 +51,7 @@ export async function editTask(
     dueDate?: string,
     dueTime?: string,
     description?: string,
-    assignee?: string,
+    assignee?: string
 ) {
     const updated = await updateTask(task.id, task.done, title, dueDate, dueTime, description, assignee);
     tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));

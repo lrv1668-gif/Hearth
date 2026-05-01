@@ -22,9 +22,7 @@
 
 <svelte:head></svelte:head>
 
-<div
-    class="min-h-screen bg-[var(--bg)] text-[var(--text-1)] transition-colors duration-300 pb-16 md:pb-0"
->
+<div class="min-h-screen bg-[var(--bg)] text-[var(--text-1)] transition-colors duration-300 pb-16 md:pb-0">
     <Nav {theme} onChangeTheme={(id) => (theme = id)} />
     {@render children()}
 </div>

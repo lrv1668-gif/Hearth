@@ -17,25 +17,12 @@
             recurrenceDays?: string,
             recurrenceEndDate?: string
         ) => void;
-        onSave?: (
-            title: string,
-            dueDate?: string,
-            dueTime?: string,
-            description?: string,
-            assignee?: string
-        ) => void;
+        onSave?: (title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) => void;
         onDelete?: (id: number, series?: boolean) => void;
         initialDate?: string;
     }
 
-    let {
-        open = $bindable(false),
-        task = null,
-        initialDate,
-        onAdd,
-        onSave,
-        onDelete,
-    }: Props = $props();
+    let { open = $bindable(false), task = null, initialDate, onAdd, onSave, onDelete }: Props = $props();
 
     const isEdit = $derived(!!task);
 
@@ -86,13 +73,7 @@
         close();
     }
 
-    function handleSave(
-        title: string,
-        dueDate?: string,
-        dueTime?: string,
-        description?: string,
-        assignee?: string
-    ) {
+    function handleSave(title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) {
         onSave?.(title, dueDate, dueTime, description, assignee);
         close();
     }
@@ -111,9 +92,7 @@
     onclick={handleBackdropClick}
     class="bg-transparent p-0 max-w-lg w-full backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
-    <div
-        class="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-6 space-y-5 mx-4"
-    >
+    <div class="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-6 space-y-5 mx-4">
         <div class="flex items-center justify-between">
             <h2 class="text-[var(--text-1)]">{isEdit ? 'Edit Task' : 'Add a New Task'}</h2>
             <button

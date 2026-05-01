@@ -28,7 +28,7 @@ export async function createTask(
     recurrence_unit?: string,
     recurrence_interval?: number,
     recurrence_days?: string,
-    recurrence_end_date?: string,
+    recurrence_end_date?: string
 ): Promise<Task> {
     const res = await fetch('/tasks', {
         method: 'POST',
@@ -48,7 +48,15 @@ export async function createTask(
     return res.json();
 }
 
-export async function updateTask(id: number, done: boolean, title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string): Promise<Task> {
+export async function updateTask(
+    id: number,
+    done: boolean,
+    title: string,
+    dueDate?: string,
+    dueTime?: string,
+    description?: string,
+    assignee?: string
+): Promise<Task> {
     const res = await fetch(`/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
