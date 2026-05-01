@@ -233,16 +233,18 @@ namespace Tasks
         }
 
         private static TaskItem Map(DbDataReader r) =>
-            new(r.GetInt64(0), r.GetString(1), r.GetBoolean(2),
-                r.IsDBNull(3)  ? null : r.GetDateTime(3),
-                r.IsDBNull(4)  ? null : r.GetString(4),
-                r.GetDateTime(5),
-                r.IsDBNull(6)  ? null : r.GetString(6),
-                r.IsDBNull(7)  ? null : r.GetString(7),
-                r.IsDBNull(8)  ? null : r.GetString(8),
-                r.IsDBNull(9)  ? null : r.GetInt32(9),
-                r.IsDBNull(10) ? null : r.GetString(10),
-                r.IsDBNull(11) ? null : r.GetInt64(11),
-                r.IsDBNull(12) ? null : r.GetDateTime(12));
+            new(r.Field<long>("id"),
+                r.Field<string>("title")!,
+                r.Field<bool>("done"),
+                r.Field<DateTime?>("due_date"),
+                r.Field<string?>("due_time"),
+                r.Field<DateTime>("created_at"),
+                r.Field<string?>("description"),
+                r.Field<string?>("assignee"),
+                r.Field<string?>("recurrence_unit"),
+                r.Field<int?>("recurrence_interval"),
+                r.Field<string?>("recurrence_days"),
+                r.Field<long?>("series_id"),
+                r.Field<DateTime?>("recurrence_end_date"));
     }
 }
