@@ -4,6 +4,7 @@
 
     interface Props {
         task?: Task;
+        initialDate?: string;
         onAdd?: (
             title: string,
             dueDate?: string,
@@ -24,12 +25,12 @@
         ) => void;
     }
 
-    let { task, onAdd, onSave }: Props = $props();
+    let { task, initialDate, onAdd, onSave }: Props = $props();
 
     const isEdit = $derived(!!task);
 
     let newTitle = $state('');
-    let newDueDate = $state('');
+    let newDueDate = $state(initialDate ?? '');
     let newDueTime = $state('');
     let allDay = $state(true);
     let showMore = $state(false);

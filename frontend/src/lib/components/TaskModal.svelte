@@ -25,9 +25,10 @@
             assignee?: string,
         ) => void;
         onDelete?: (id: number, series?: boolean) => void;
+        initialDate?: string;
     }
 
-    let { open = $bindable(false), task = null, onAdd, onSave, onDelete }: Props = $props();
+    let { open = $bindable(false), task = null, initialDate, onAdd, onSave, onDelete }: Props = $props();
 
     const isEdit = $derived(!!task);
 
@@ -110,7 +111,7 @@
         {#if isEdit}
             <TaskList task={task!} onSave={handleSave} />
         {:else}
-            <TaskList onAdd={handleAdd} />
+            <TaskList onAdd={handleAdd} initialDate={initialDate} />
         {/if}
 
         {#if isEdit}
