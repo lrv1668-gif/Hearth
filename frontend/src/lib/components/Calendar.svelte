@@ -9,9 +9,10 @@
         onDelete: (id: number) => void;
         onNewTask: () => void;
         onEdit: (task: Task) => void;
+        onDateClick: (date: string) => void;
     }
 
-    let { tasks, onToggle, onDelete, onNewTask, onEdit }: Props = $props();
+    let { tasks, onToggle, onDelete, onNewTask, onEdit, onDateClick }: Props = $props();
 
     const MONTH_NAMES = [
         'January',
@@ -171,13 +172,17 @@
             {@const isToday = key === todayKey}
             {@const dayTasks = day ? (tasksByDate[key] ?? []) : []}
 
-            <div
-                class="min-h-20 p-2
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <button
+                onclick={() => day && onDateClick(key)}
+                class="min-h-20 p-2 w-full text-left
                   {day
                     ? isToday
-                        ? 'bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)]'
-                        : 'bg-[var(--bg)]'
+                        ? 'bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)] hover:bg-[var(--surface-hi)] transition-colors'
+                        : 'bg-[var(--bg)] hover:bg-[var(--surface)] transition-colors'
                     : 'bg-[var(--bg)] pointer-events-none'}"
+                aria-label={day ? `Add task on ${key}` : undefined}
+                tabindex={day ? 0 : -1}
             >
                 {#if day}
                     <span
@@ -192,7 +197,7 @@
                             {#each dayTasks.slice(0, 3) as task (task.id)}
                                 <li class="flex items-center gap-1 min-w-0">
                                     <button
-                                        onclick={() => onToggle(task)}
+                                        onclick={(e) => { e.stopPropagation(); onToggle(task); }}
                                         class="w-2 h-2 rounded-full flex-shrink-0 transition-colors
                            {task.done
                                             ? 'bg-[var(--done-bg)]'
@@ -200,7 +205,7 @@
                                         aria-label="Toggle {task.title}"
                                     ></button>
                                     <button
-                                        onclick={() => onEdit(task)}
+                                        onclick={(e) => { e.stopPropagation(); onEdit(task); }}
                                         class="text-xs truncate min-w-0 text-left transition-colors hover:underline
                                {task.done
                                             ? 'line-through text-[var(--done)]'
@@ -223,7 +228,7 @@
                         </ul>
                     {/if}
                 {/if}
-            </div>
+            </button>
         {/each}
     </div>
 

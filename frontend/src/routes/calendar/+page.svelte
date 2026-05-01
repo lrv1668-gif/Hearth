@@ -6,14 +6,23 @@
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
+    let initialDate = $state<string | undefined>(undefined);
 
     function openNewTask() {
         editingTask = null;
+        initialDate = undefined;
         modalOpen = true;
     }
 
     function openEditTask(task: Task) {
         editingTask = task;
+        initialDate = undefined;
+        modalOpen = true;
+    }
+
+    function openDateTask(date: string) {
+        editingTask = null;
+        initialDate = date;
         modalOpen = true;
     }
 
@@ -40,12 +49,14 @@
         onDelete={removeTask}
         onNewTask={openNewTask}
         onEdit={openEditTask}
+        onDateClick={openDateTask}
     />
 </main>
 
 <TaskModal
     bind:open={modalOpen}
     task={editingTask}
+    initialDate={initialDate}
     onAdd={addTask}
     onSave={handleSave}
     onDelete={(id, series) => { removeTask(id, series); editingTask = null; }}
