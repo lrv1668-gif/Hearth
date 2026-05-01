@@ -35,7 +35,7 @@
         class="relative z-10 bg-[var(--surface)] border border-[var(--border)] rounded-lg px-8 py-6 shadow-xl flex flex-col gap-6 min-w-[340px]"
     >
         <div class="flex items-center justify-between">
-            <h2 class="font-serif text-lg font-semibold text-[var(--text-1)]">Choose Theme</h2>
+            <h2 class="text-lg font-semibold text-[var(--text-1)]">Choose Theme</h2>
             <button
                 onclick={onClose}
                 class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors text-xl leading-none"
