@@ -27,14 +27,14 @@
 <div class="max-w-2xl mx-auto px-8 py-10 space-y-12">
     <!-- Appearance -->
     <section class="space-y-5">
-        <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-3)] border-b border-[var(--border)] pb-2">
+        <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-1)] border-b border-[var(--border)] pb-2">
             Appearance
         </h2>
 
         <div class="flex flex-col gap-5">
             {#each themeGroups as group}
                 <div class="flex flex-col gap-3">
-                    <p class="type-label tracking-widest uppercase text-[var(--text-4)]">{group}</p>
+                    <p class="type-label tracking-widest uppercase text-[var(--text-2)]">{group}</p>
                     <div class="flex gap-4 flex-wrap">
                         {#each themes.filter((t) => t.group === group) as t}
                             <button
@@ -46,7 +46,7 @@
                                     style="background: {t.fill}; border: 2px solid {t.stroke};"
                                     class="block w-10 h-10 rounded-full transition-all
                                         {$theme === t.id
-                                        ? 'ring-2 ring-offset-2 ring-[var(--text-2)] ring-offset-[var(--bg)]'
+                                        ? 'ring-2 ring-offset-2 ring-[var(--text-3)] ring-offset-[var(--bg)]'
                                         : 'opacity-60 group-hover:opacity-100'}"
                                 ></span>
                                 <span
@@ -66,13 +66,13 @@
 
     <!-- Ambient Mode -->
     <section class="space-y-6">
-        <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-3)] border-b border-[var(--border)] pb-2">
+        <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-1)] border-b border-[var(--border)] pb-2">
             Ambient Mode
         </h2>
 
         <!-- Cadence -->
         <div class="space-y-3">
-            <p class="type-body text-[var(--text-2)]">Photo cadence</p>
+            <p class="type-label tracking-widest uppercase text-[var(--text-1)]">Photo cadence</p>
             <div class="flex gap-2">
                 {#each cadenceOptions as opt}
                     <button
@@ -90,7 +90,7 @@
 
         <!-- Categories -->
         <div class="space-y-3">
-            <p class="type-body text-[var(--text-2)]">Photo categories</p>
+            <p class="type-label tracking-widest uppercase text-[var(--text-1)]">Photo categories</p>
             <div class="flex flex-col gap-2">
                 {#each categoryOptions as cat}
                     <label class="flex items-center gap-3 cursor-pointer group">
@@ -100,7 +100,7 @@
                             onchange={() => toggleCategory(cat.id)}
                             class="w-4 h-4 accent-[var(--accent)]"
                         />
-                        <span class="type-body text-[var(--text-2)] group-hover:text-[var(--text-1)] transition-colors">
+                        <span class="type-body text-[var(--text-2)] group-hover:text-[var(--text-2)] transition-colors">
                             {cat.label}
                         </span>
                     </label>
@@ -110,7 +110,7 @@
 
         <!-- Attribution -->
         <div class="space-y-3">
-            <p class="type-body text-[var(--text-2)]">Photographer info</p>
+            <p class="type-label tracking-widest uppercase text-[var(--text-1)]">Photographer info</p>
             <label class="flex items-center gap-3 cursor-pointer group">
                 <input
                     type="checkbox"
@@ -118,7 +118,7 @@
                     onchange={toggleAttribution}
                     class="w-4 h-4 accent-[var(--accent)]"
                 />
-                <span class="type-body text-[var(--text-2)] group-hover:text-[var(--text-1)] transition-colors">
+                <span class="type-body text-[var(--text-2)] group-hover:text-[var(--text-2)] transition-colors">
                     Show photographer name in ambient mode
                 </span>
             </label>
