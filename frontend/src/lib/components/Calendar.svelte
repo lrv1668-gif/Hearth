@@ -133,7 +133,7 @@
 
         <!-- Month + year -->
         <h2
-            class="font-serif text-sm font-bold tracking-widest text-[var(--text-1)] uppercase select-none"
+            class="text-sm font-bold tracking-widest text-[var(--text-1)] uppercase select-none"
         >
             {MONTH_NAMES[viewMonth]}
             {viewYear}

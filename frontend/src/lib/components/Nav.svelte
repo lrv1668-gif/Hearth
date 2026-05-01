@@ -19,7 +19,7 @@
         <div class="flex-1"></div>
         <a href="/">
             <span
-                class="font-serif text-2xl font-bold tracking-[0.25em] uppercase text-[var(--text-1)] hover:text-[var(--text-2)] transition-colors"
+                class="text-2xl font-bold tracking-[0.25em] uppercase text-[var(--text-1)] hover:text-[var(--text-2)] transition-colors"
             >
                 Hearth
             </span>
@@ -61,7 +61,7 @@
 <header
     class="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--bg)] md:hidden"
 >
-    <a href="/" class="font-serif text-lg font-bold tracking-widest uppercase text-[var(--text-1)]"
+    <a href="/" class="text-lg font-bold tracking-widest uppercase text-[var(--text-1)]"
         >Hearth</a
     >
     <button

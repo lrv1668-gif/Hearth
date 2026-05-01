@@ -45,6 +45,10 @@
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     $effect(() => {
+        if (!task) newDueDate = initialDate ?? '';
+    });
+
+    $effect(() => {
         if (!task) return;
         newTitle = task.title;
         newDueDate = task.due_date ? task.due_date.slice(0, 10) : '';

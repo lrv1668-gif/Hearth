@@ -31,7 +31,7 @@
         <!-- Left column: schedule -->
         <div class="flex flex-col gap-4">
             <h2
-                class="font-serif text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3"
+                class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3"
             >
                 Upcoming Tasks
             </h2>
@@ -42,15 +42,15 @@
         <div class="hidden md:flex flex-col gap-8">
             <div>
                 <h2
-                    class="font-serif text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
+                    class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
                 >
                     Today's Date
                 </h2>
                 <div class="text-right">
-                    <p class="font-serif text-5xl font-bold text-[var(--text-1)] leading-tight">
+                    <p class="text-5xl font-bold text-[var(--text-1)] leading-tight">
                         {new Date().toLocaleDateString('en-US', { day: 'numeric' })}
                     </p>
-                    <p class="font-serif text-xl text-[var(--text-2)] mt-1">
+                    <p class="text-xl text-[var(--text-2)] mt-1">
                         {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </p>
                     <p class="text-xs tracking-widest uppercase text-[var(--text-3)] mt-2">
@@ -61,7 +61,7 @@
 
             <div>
                 <h2
-                    class="font-serif text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
+                    class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
                 >
                     Weather Forecast
                 </h2>
@@ -70,7 +70,7 @@
 
             <div>
                 <h2
-                    class="font-serif text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
+                    class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
                 >
                     Now Playing
                 </h2>

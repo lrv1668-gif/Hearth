@@ -27,7 +27,6 @@
     interface Group {
         key: string;
         label: string;
-        labelClass: string;
         tasks: Task[];
     }
 
@@ -44,8 +43,10 @@
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
         const tomorrowKey = dateKey(tomorrow);
+        const cutoff = new Date(today);
+        cutoff.setDate(today.getDate() + 3);
+        const cutoffKey = dateKey(cutoff);
 
-        const overdue: Task[] = [];
         const todayTasks: Task[] = [];
         const tomorrowTasks: Task[] = [];
         const futureMap: Map<string, Task[]> = new Map();
@@ -55,9 +56,9 @@
             if (!t.due_date) {
                 undated.push(t);
             } else {
-                const key = dateKey(new Date(t.due_date));
-                if (key < todayKey) {
-                    overdue.push(t);
+                const key = t.due_date.slice(0, 10);
+                if (key < todayKey || key >= cutoffKey) {
+                    // outside 3-day window — skip
                 } else if (key === todayKey) {
                     todayTasks.push(t);
                 } else if (key === tomorrowKey) {
@@ -72,19 +73,10 @@
 
         const result: Group[] = [];
 
-        if (overdue.length > 0) {
-            result.push({
-                key: 'overdue',
-                label: 'Overdue',
-                labelClass: 'text-[var(--text-2)]',
-                tasks: overdue.sort(timeComparator),
-            });
-        }
         if (todayTasks.length > 0) {
             result.push({
                 key: 'today',
                 label: 'Today',
-                labelClass: 'text-[var(--text-3)]',
                 tasks: todayTasks.sort(timeComparator),
             });
         }
@@ -92,7 +84,6 @@
             result.push({
                 key: 'tomorrow',
                 label: 'Tomorrow',
-                labelClass: 'text-[var(--text-3)]',
                 tasks: tomorrowTasks.sort(timeComparator),
             });
         }
@@ -102,7 +93,6 @@
             result.push({
                 key,
                 label: formatGroupLabel(key),
-                labelClass: 'text-[var(--text-3)]',
                 tasks: futureMap.get(key)!.sort(timeComparator),
             });
         }
@@ -111,7 +101,6 @@
             result.push({
                 key: 'undated',
                 label: 'No due date',
-                labelClass: 'text-[var(--text-3)]',
                 tasks: undated,
             });
         }
@@ -138,7 +127,7 @@
                 <div class="">
                     <div class="flex items-center gap-3 pt-1">
                         <h2
-                            class="font-serif text-sm font-semibold italic whitespace-nowrap {group.labelClass}"
+                            class="text-sm font-semibold whitespace-nowrap text-[var(--text-1)]"
                         >
                             {group.label}
                         </h2>
