@@ -41,9 +41,7 @@
     let viewYear = $state(today.getFullYear());
     let viewMonth = $state(today.getMonth());
 
-    let isCurrentMonth = $derived(
-        viewYear === today.getFullYear() && viewMonth === today.getMonth()
-    );
+    let isCurrentMonth = $derived(viewYear === today.getFullYear() && viewMonth === today.getMonth());
 
     function prevMonth() {
         if (viewMonth === 0) {
@@ -132,9 +130,7 @@
         </div>
 
         <!-- Month + year -->
-        <h2
-            class="text-sm font-bold tracking-widest text-[var(--text-1)] uppercase select-none"
-        >
+        <h2 class="text-sm font-bold tracking-widest text-[var(--text-1)] uppercase select-none">
             {MONTH_NAMES[viewMonth]}
             {viewYear}
         </h2>
@@ -154,14 +150,10 @@
     </div>
 
     <!-- Calendar grid — gap-px + bg-[var(--border)] creates hairline grid lines -->
-    <div
-        class="grid grid-cols-7 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden"
-    >
+    <div class="grid grid-cols-7 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
         <!-- Day-of-week headers -->
         {#each DAY_NAMES as day}
-            <div
-                class="bg-[var(--bg)] text-center text-xs text-[var(--text-3)] font-medium tracking-wider py-2"
-            >
+            <div class="bg-[var(--bg)] text-center text-xs text-[var(--text-3)] font-medium tracking-wider py-2">
                 {day}
             </div>
         {/each}
@@ -197,24 +189,24 @@
                             {#each dayTasks.slice(0, 3) as task (task.id)}
                                 <li class="flex items-center gap-1 min-w-0">
                                     <button
-                                        onclick={(e) => { e.stopPropagation(); onToggle(task); }}
+                                        onclick={(e) => {
+                                            e.stopPropagation();
+                                            onToggle(task);
+                                        }}
                                         class="w-2 h-2 rounded-full flex-shrink-0 transition-colors
-                           {task.done
-                                            ? 'bg-[var(--done-bg)]'
-                                            : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
+                           {task.done ? 'bg-[var(--done-bg)]' : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
                                         aria-label="Toggle {task.title}"
                                     ></button>
                                     <button
-                                        onclick={(e) => { e.stopPropagation(); onEdit(task); }}
+                                        onclick={(e) => {
+                                            e.stopPropagation();
+                                            onEdit(task);
+                                        }}
                                         class="text-xs truncate min-w-0 text-left transition-colors hover:underline
-                               {task.done
-                                            ? 'line-through text-[var(--done)]'
-                                            : 'text-[var(--text-1)]'}"
+                               {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
                                     >
                                         {#if task.due_time}
-                                            <span class="text-[var(--text-3)] mr-0.5"
-                                                >{formatTime(task.due_time)}</span
-                                            >
+                                            <span class="text-[var(--text-3)] mr-0.5">{formatTime(task.due_time)}</span>
                                         {/if}
                                         {task.title}
                                     </button>
@@ -235,14 +227,10 @@
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}
         <div class="space-y-3">
-            <h3 class="text-xs font-medium tracking-widest text-[var(--text-3)] uppercase">
-                No due date
-            </h3>
+            <h3 class="text-xs font-medium tracking-widest text-[var(--text-3)] uppercase">No due date</h3>
             <ul class="space-y-1.5">
                 {#each undatedTasks as task (task.id)}
-                    <li
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group"
-                    >
+                    <li class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group">
                         <button
                             onclick={() => onToggle(task)}
                             class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors

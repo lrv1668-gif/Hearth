@@ -1,12 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Cloud, CloudRain, CloudSnow, Sun, Wind, Zap } from '@lucide/svelte';
-    import {
-        fetchCurrentWeather,
-        fetchWeatherForecast,
-        type CurrentWeather,
-        type ForecastDay,
-    } from '$lib/api';
+    import { fetchCurrentWeather, fetchWeatherForecast, type CurrentWeather, type ForecastDay } from '$lib/api';
 
     let current = $state<CurrentWeather | null>(null);
     let forecast = $state<ForecastDay[]>([]);
@@ -41,9 +36,7 @@
                 class="text-[var(--text-2)] flex-shrink-0"
             />
             <div>
-                <span class="text-2xl font-semibold text-[var(--text-1)]"
-                    >{Math.round(current.temperature_f)}°F</span
-                >
+                <span class="text-2xl font-semibold text-[var(--text-1)]">{Math.round(current.temperature_f)}°F</span>
                 <span class="text-sm text-[var(--text-3)] ml-2">{current.description}</span>
             </div>
             <div class="ml-auto flex items-center gap-1 text-xs text-[var(--text-4)]">
@@ -64,17 +57,9 @@
                                 weekday: 'short',
                             })}
                         </span>
-                        <svelte:component
-                            this={weatherIcon(day.weather_code)}
-                            size={14}
-                            class="text-[var(--text-3)]"
-                        />
-                        <span class="text-xs text-[var(--text-2)]"
-                            >{Math.round(day.temp_max_f)}°</span
-                        >
-                        <span class="text-[10px] text-[var(--text-4)]"
-                            >{Math.round(day.temp_min_f)}°</span
-                        >
+                        <svelte:component this={weatherIcon(day.weather_code)} size={14} class="text-[var(--text-3)]" />
+                        <span class="text-xs text-[var(--text-2)]">{Math.round(day.temp_max_f)}°</span>
+                        <span class="text-[10px] text-[var(--text-4)]">{Math.round(day.temp_min_f)}°</span>
                     </div>
                 {/each}
             </div>

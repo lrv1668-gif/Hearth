@@ -14,15 +14,9 @@
             recurrenceUnit?: string,
             recurrenceInterval?: number,
             recurrenceDays?: string,
-            recurrenceEndDate?: string,
+            recurrenceEndDate?: string
         ) => void;
-        onSave?: (
-            title: string,
-            dueDate?: string,
-            dueTime?: string,
-            description?: string,
-            assignee?: string,
-        ) => void;
+        onSave?: (title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) => void;
     }
 
     let { task, initialDate, onAdd, onSave }: Props = $props();
@@ -108,7 +102,7 @@
                 newDueDate || undefined,
                 !allDay && newDueTime ? newDueTime : undefined,
                 description.trim() || undefined,
-                assignee.trim() || undefined,
+                assignee.trim() || undefined
             );
         } else {
             onAdd?.(
@@ -119,10 +113,8 @@
                 assignee.trim() || undefined,
                 recurrenceUnit || undefined,
                 recurrenceUnit ? recurrenceInterval : undefined,
-                recurrenceUnit === 'week' && recurrenceDays.length > 0
-                    ? recurrenceDays.join(',')
-                    : undefined,
-                recurrenceUnit && recurrenceEndDate ? recurrenceEndDate : undefined,
+                recurrenceUnit === 'week' && recurrenceDays.length > 0 ? recurrenceDays.join(',') : undefined,
+                recurrenceUnit && recurrenceEndDate ? recurrenceEndDate : undefined
             );
 
             newTitle = '';
@@ -140,7 +132,13 @@
     }
 </script>
 
-<form class="space-y-2" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+<form
+    class="space-y-2"
+    onsubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+    }}
+>
     <!-- Main row -->
     <div class="flex gap-2">
         <input
@@ -173,9 +171,7 @@
     {#if newDueDate}
         <div class="flex items-center gap-3">
             <div class="flex-1"></div>
-            <label
-                class="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer select-none"
-            >
+            <label class="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer select-none">
                 <input
                     type="checkbox"
                     checked={allDay}

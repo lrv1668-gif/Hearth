@@ -34,12 +34,7 @@
     const track = $derived($nowPlaying);
 
     const progressPct = $derived(
-        track
-            ? Math.min(
-                  100,
-                  ((track.progress_ms + (track.is_playing ? tickMs : 0)) / track.duration_ms) * 100
-              )
-            : 0
+        track ? Math.min(100, ((track.progress_ms + (track.is_playing ? tickMs : 0)) / track.duration_ms) * 100) : 0
     );
 </script>
 
@@ -62,9 +57,7 @@
                 class="w-12 h-12 rounded-lg object-cover flex-shrink-0"
             />
         {:else}
-            <div
-                class="w-12 h-12 rounded-lg bg-[var(--border)] flex items-center justify-center flex-shrink-0"
-            >
+            <div class="w-12 h-12 rounded-lg bg-[var(--border)] flex items-center justify-center flex-shrink-0">
                 <Music size={20} class="text-[var(--text-4)]" />
             </div>
         {/if}

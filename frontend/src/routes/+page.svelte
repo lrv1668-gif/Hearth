@@ -30,9 +30,7 @@
     <div class="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
         <!-- Left column: schedule -->
         <div class="flex flex-col gap-4">
-            <h2
-                class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3"
-            >
+            <h2 class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3">
                 Upcoming Tasks
             </h2>
             <Schedule tasks={$tasks} onToggle={toggleTask} onDelete={removeTask} onEdit={openEditTask} />
@@ -41,9 +39,7 @@
         <!-- Right column: date display + music + weather + calendar teaser -->
         <div class="hidden md:flex flex-col gap-8">
             <div>
-                <h2
-                    class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
-                >
+                <h2 class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                     Today's Date
                 </h2>
                 <div class="text-right">
@@ -60,18 +56,14 @@
             </div>
 
             <div>
-                <h2
-                    class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
-                >
+                <h2 class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                     Weather Forecast
                 </h2>
                 <WeatherWidget />
             </div>
 
             <div>
-                <h2
-                    class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4"
-                >
+                <h2 class="text-xl font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                     Now Playing
                 </h2>
                 <NowPlaying />
@@ -84,5 +76,8 @@
     bind:open={modalOpen}
     task={editingTask}
     onSave={handleSave}
-    onDelete={(id, series) => { removeTask(id, series); editingTask = null; }}
+    onDelete={(id, series) => {
+        removeTask(id, series);
+        editingTask = null;
+    }}
 />

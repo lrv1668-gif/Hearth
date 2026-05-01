@@ -129,18 +129,14 @@
             <div class="space-y-2">
                 <div class="">
                     <div class="flex items-center gap-3 pt-1">
-                        <h2
-                            class="text-sm font-semibold whitespace-nowrap text-[var(--text-1)]"
-                        >
+                        <h2 class="text-sm font-semibold whitespace-nowrap text-[var(--text-1)]">
                             {group.label}
                         </h2>
                     </div>
                 </div>
                 <ul class="space-y-1.5">
                     {#each group.tasks as task (task.id)}
-                        <li
-                            class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group/row"
-                        >
+                        <li class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group/row">
                             <button
                                 onclick={() => onToggle(task)}
                                 class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors
@@ -155,9 +151,7 @@
                             </button>
 
                             {#if task.due_time}
-                                <span
-                                    class="text-xs text-[var(--text-3)] w-14 flex-shrink-0 tabular-nums"
-                                >
+                                <span class="text-xs text-[var(--text-3)] w-14 flex-shrink-0 tabular-nums">
                                     {formatTime(task.due_time)}
                                 </span>
                             {:else}
@@ -201,13 +195,19 @@
                             {#if confirmDeleteId === task.id}
                                 <div class="flex items-center gap-1 flex-shrink-0">
                                     <button
-                                        onclick={() => { onDelete(task.id); confirmDeleteId = null; }}
+                                        onclick={() => {
+                                            onDelete(task.id);
+                                            confirmDeleteId = null;
+                                        }}
                                         class="text-xs px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
                                     >
                                         Just this
                                     </button>
                                     <button
-                                        onclick={() => { onDelete(task.id, true); confirmDeleteId = null; }}
+                                        onclick={() => {
+                                            onDelete(task.id, true);
+                                            confirmDeleteId = null;
+                                        }}
                                         class="text-xs px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
                                     >
                                         All future

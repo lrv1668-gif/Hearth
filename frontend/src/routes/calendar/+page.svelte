@@ -56,8 +56,11 @@
 <TaskModal
     bind:open={modalOpen}
     task={editingTask}
-    initialDate={initialDate}
+    {initialDate}
     onAdd={addTask}
     onSave={handleSave}
-    onDelete={(id, series) => { removeTask(id, series); editingTask = null; }}
+    onDelete={(id, series) => {
+        removeTask(id, series);
+        editingTask = null;
+    }}
 />
