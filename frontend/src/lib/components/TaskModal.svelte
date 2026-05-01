@@ -15,20 +15,27 @@
             recurrenceUnit?: string,
             recurrenceInterval?: number,
             recurrenceDays?: string,
-            recurrenceEndDate?: string,
+            recurrenceEndDate?: string
         ) => void;
         onSave?: (
             title: string,
             dueDate?: string,
             dueTime?: string,
             description?: string,
-            assignee?: string,
+            assignee?: string
         ) => void;
         onDelete?: (id: number, series?: boolean) => void;
         initialDate?: string;
     }
 
-    let { open = $bindable(false), task = null, initialDate, onAdd, onSave, onDelete }: Props = $props();
+    let {
+        open = $bindable(false),
+        task = null,
+        initialDate,
+        onAdd,
+        onSave,
+        onDelete,
+    }: Props = $props();
 
     const isEdit = $derived(!!task);
 
@@ -63,9 +70,19 @@
         recurrenceUnit?: string,
         recurrenceInterval?: number,
         recurrenceDays?: string,
-        recurrenceEndDate?: string,
+        recurrenceEndDate?: string
     ) {
-        onAdd?.(title, dueDate, dueTime, description, assignee, recurrenceUnit, recurrenceInterval, recurrenceDays, recurrenceEndDate);
+        onAdd?.(
+            title,
+            dueDate,
+            dueTime,
+            description,
+            assignee,
+            recurrenceUnit,
+            recurrenceInterval,
+            recurrenceDays,
+            recurrenceEndDate
+        );
         close();
     }
 
@@ -74,7 +91,7 @@
         dueDate?: string,
         dueTime?: string,
         description?: string,
-        assignee?: string,
+        assignee?: string
     ) {
         onSave?.(title, dueDate, dueTime, description, assignee);
         close();
@@ -111,7 +128,7 @@
         {#if isEdit}
             <TaskList task={task!} onSave={handleSave} />
         {:else}
-            <TaskList onAdd={handleAdd} initialDate={initialDate} />
+            <TaskList onAdd={handleAdd} {initialDate} />
         {/if}
 
         {#if isEdit}
@@ -153,7 +170,7 @@
                         class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
                         aria-label="Delete task"
                     >
-                        <Trash2 size={14} />
+                        <Trash2 size={18} />
                     </button>
                 {/if}
             </div>

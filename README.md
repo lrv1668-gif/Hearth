@@ -66,13 +66,19 @@ dotnet run
 ```
 
 ```bash
+# Backend — Spotify service (optional; requires services/Spotify/.env)
+cd services/Spotify
+dotnet run
+```
+
+```bash
 # Frontend
 cd frontend
 npm install   # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081` and `/weather` → `http://localhost:8082`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
+Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, and `/spotify` → `http://localhost:8083`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
 ## Tech Stack
 

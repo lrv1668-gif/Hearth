@@ -31,7 +31,7 @@ Seven built-in themes are applied via CSS custom properties on `[data-theme]`. T
 
 Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`. Components reference tokens only — never hardcoded colors.
 
-Themes are defined in two places that must be kept in sync: `frontend/src/app.css` (CSS variables) and `frontend/src/lib/components/ThemeSwitcher.svelte` (switcher metadata).
+Themes are defined in two places that must be kept in sync: `frontend/src/app.css` (CSS variables) and `frontend/src/lib/themes.ts` (switcher metadata).
 
 ## Backend Services
 
@@ -75,7 +75,7 @@ The `tasks` service handles full CRUD for household tasks with optional due date
 |--------|------|-------------|
 | `GET` | `/tasks` | List tasks: all done tasks + undone tasks due within 60 days + undone tasks with no due date |
 | `POST` | `/tasks` | Create a task; pre-generates all recurring instances up to 1 year ahead |
-| `PUT` | `/tasks/{id}` | Update done status, description, or assignee |
+| `PUT` | `/tasks/{id}` | Update done status, title, due date, due time, description, or assignee |
 | `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series |
 
 ### Recurrence Model
@@ -223,14 +223,19 @@ Hearth/
 │   │   │       └── +page.svelte        # calendar view
 │   │   ├── lib/
 │   │   │   ├── api.ts                  # centralised API calls
+│   │   │   ├── themes.ts               # theme metadata array + ThemeId type
+│   │   │   ├── utils.ts                # shared utilities
 │   │   │   ├── TaskStore.ts            # tasks writable store
 │   │   │   ├── SpotifyStore.ts         # now-playing writable store
 │   │   │   └── components/
 │   │   │       ├── Nav.svelte
 │   │   │       ├── ThemeSwitcher.svelte
+│   │   │       ├── ThemeModal.svelte
 │   │   │       ├── Schedule.svelte
 │   │   │       ├── NowPlaying.svelte
+│   │   │       ├── WeatherWidget.svelte
 │   │   │       ├── TaskList.svelte
+│   │   │       ├── TaskModal.svelte
 │   │   │       └── Calendar.svelte
 │   │   └── app.css                     # Tailwind base + 7 theme definitions
 │   ├── Dockerfile                      # production (multi-stage, node adapter)
@@ -240,6 +245,7 @@ Hearth/
 │   ├── Data.Abstractions/              # IDatabase interface + DbCommandExtensions (no SQLite dep)
 │   │   ├── IDatabase.cs
 │   │   ├── DbCommandExtensions.cs
+│   │   ├── DbReaderExtensions.cs
 │   │   └── Data.Abstractions.csproj
 │   ├── Data/                           # concrete SQLite implementation of IDatabase
 │   │   ├── Database.cs
