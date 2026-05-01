@@ -122,14 +122,14 @@
 </script>
 
 {#if groups.length === 0}
-    <p class="text-center text-sm text-[var(--text-4)] py-16">Nothing scheduled.</p>
+    <p class="text-center type-body text-[var(--text-4)] py-16">Nothing scheduled.</p>
 {:else}
     <div class="space-y-8">
         {#each groups as group (group.key)}
             <div class="space-y-2">
                 <div class="">
                     <div class="flex items-center gap-3 pt-1">
-                        <h2 class="text-sm font-semibold whitespace-nowrap text-[var(--text-1)]">
+                        <h2 class="type-body font-semibold whitespace-nowrap text-[var(--text-1)]">
                             {group.label}
                         </h2>
                     </div>
@@ -146,12 +146,12 @@
                                 aria-label="Toggle {task.title}"
                             >
                                 {#if task.done}
-                                    <Check size="10" class="text-[var(--bg)]" />
+                                    <Check size="10" class="icon-xs text-[var(--bg)]" />
                                 {/if}
                             </button>
 
                             {#if task.due_time}
-                                <span class="text-xs text-[var(--text-3)] w-14 flex-shrink-0 tabular-nums">
+                                <span class="type-label text-[var(--text-3)] w-14 flex-shrink-0 tabular-nums">
                                     {formatTime(task.due_time)}
                                 </span>
                             {:else}
@@ -164,29 +164,29 @@
                             >
                                 <div class="flex items-center gap-2 min-w-0">
                                     <span
-                                        class="text-sm transition-colors truncate
+                                        class="type-body transition-colors truncate
                                                {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
                                     >
                                         {task.title}
                                     </span>
                                     {#if task.assignee}
                                         <span
-                                            class="flex-shrink-0 text-xs px-1.5 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-3)]"
+                                            class="flex-shrink-0 type-label px-1.5 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-3)]"
                                         >
                                             {task.assignee}
                                         </span>
                                     {/if}
                                     {#if task.recurrence_unit}
                                         <span
-                                            class="flex-shrink-0 flex items-center gap-0.5 text-xs text-[var(--text-4)]"
+                                            class="flex-shrink-0 flex items-center gap-0.5 type-label text-[var(--text-4)]"
                                         >
-                                            <RefreshCw size={10} />
+                                            <RefreshCw size={10} class="icon-xs" />
                                             {recurrenceLabel(task)}
                                         </span>
                                     {/if}
                                 </div>
                                 {#if task.description}
-                                    <p class="text-xs text-[var(--text-3)] truncate mt-0.5">
+                                    <p class="type-label text-[var(--text-3)] truncate mt-0.5">
                                         {task.description}
                                     </p>
                                 {/if}
@@ -199,7 +199,7 @@
                                             onDelete(task.id);
                                             confirmDeleteId = null;
                                         }}
-                                        class="text-xs px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                        class="type-label px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
                                     >
                                         Just this
                                     </button>
@@ -208,7 +208,7 @@
                                             onDelete(task.id, true);
                                             confirmDeleteId = null;
                                         }}
-                                        class="text-xs px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                        class="type-label px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
                                     >
                                         All future
                                     </button>
@@ -217,7 +217,7 @@
                                         class="text-[var(--text-4)] hover:text-[var(--text-2)] transition"
                                         aria-label="Cancel"
                                     >
-                                        <X size="12" />
+                                        <X size="12" class="icon-sm" />
                                     </button>
                                 </div>
                             {:else}
@@ -232,7 +232,7 @@
                                     class="opacity-0 group-hover/row:opacity-100 text-[var(--text-3)] hover:text-[var(--text-1)] transition flex-shrink-0"
                                     aria-label="Delete {task.title}"
                                 >
-                                    <X size="14" />
+                                    <X size="14" class="icon-md" />
                                 </button>
                             {/if}
                         </li>

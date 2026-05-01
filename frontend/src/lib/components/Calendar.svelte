@@ -103,7 +103,7 @@
         <button
             onclick={goToToday}
             disabled={isCurrentMonth}
-            class="text-xs tracking-wide transition-colors px-2.5 py-1 rounded border
+            class="type-label tracking-wide transition-colors px-2.5 py-1 rounded border
              {isCurrentMonth
                 ? 'border-[var(--border)] text-[var(--text-4)] cursor-default opacity-50'
                 : 'border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] hover:border-[var(--text-3)]'}"
@@ -118,19 +118,19 @@
                 class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
                 aria-label="Previous month"
             >
-                <ChevronLeft size="16" />
+                <ChevronLeft size="16" class="icon-md" />
             </button>
             <button
                 onclick={nextMonth}
                 class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
                 aria-label="Next month"
             >
-                <ChevronRight size="16" />
+                <ChevronRight size="16" class="icon-md" />
             </button>
         </div>
 
         <!-- Month + year -->
-        <h2 class="text-sm font-bold tracking-widest text-[var(--text-1)] uppercase select-none">
+        <h2 class="type-body font-bold tracking-widest text-[var(--text-1)] uppercase select-none">
             {MONTH_NAMES[viewMonth]}
             {viewYear}
         </h2>
@@ -142,9 +142,9 @@
             onclick={onNewTask}
             class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium
              bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--accent-fg)]
-             transition-colors"
+             transition-colors type-label"
         >
-            <Plus size="13" />
+            <Plus size="13" class="icon-md" />
             New Task
         </button>
     </div>
@@ -153,7 +153,7 @@
     <div class="grid grid-cols-7 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
         <!-- Day-of-week headers -->
         {#each DAY_NAMES as day}
-            <div class="bg-[var(--bg)] text-center text-xs text-[var(--text-3)] font-medium tracking-wider py-2">
+            <div class="bg-[var(--bg)] text-center type-label text-[var(--text-3)] font-medium tracking-wider py-2">
                 {day}
             </div>
         {/each}
@@ -178,7 +178,7 @@
             >
                 {#if day}
                     <span
-                        class="block text-xs leading-none mb-1.5
+                        class="block type-label leading-none mb-1.5
                        {isToday ? 'text-[var(--text-1)] font-semibold' : 'text-[var(--text-3)]'}"
                     >
                         {day}
@@ -202,7 +202,7 @@
                                             e.stopPropagation();
                                             onEdit(task);
                                         }}
-                                        class="text-xs truncate min-w-0 text-left transition-colors hover:underline
+                                        class="type-label truncate min-w-0 text-left transition-colors hover:underline
                                {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
                                     >
                                         {#if task.due_time}
@@ -213,7 +213,7 @@
                                 </li>
                             {/each}
                             {#if dayTasks.length > 3}
-                                <li class="text-xs text-[var(--text-3)]">
+                                <li class="type-label text-[var(--text-3)]">
                                     +{dayTasks.length - 3} more
                                 </li>
                             {/if}
@@ -227,7 +227,7 @@
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}
         <div class="space-y-3">
-            <h3 class="text-xs font-medium tracking-widest text-[var(--text-3)] uppercase">No due date</h3>
+            <h3 class="type-label font-medium tracking-widest text-[var(--text-3)] uppercase">No due date</h3>
             <ul class="space-y-1.5">
                 {#each undatedTasks as task (task.id)}
                     <li class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group">
@@ -246,7 +246,7 @@
 
                         <button
                             onclick={() => onEdit(task)}
-                            class="flex-1 text-sm text-left transition-colors hover:underline
+                            class="flex-1 type-body text-left transition-colors hover:underline
                          {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
                         >
                             {task.title}
@@ -255,7 +255,7 @@
                         <button
                             onclick={() => onDelete(task.id)}
                             class="opacity-0 group-hover:opacity-100 text-[var(--text-4)] hover:text-[var(--text-2)]
-                     text-lg leading-none transition"
+                     type-title leading-none transition"
                             aria-label="Delete {task.title}"
                         >
                             <X />

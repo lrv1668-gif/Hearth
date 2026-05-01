@@ -17,21 +17,21 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ### Routes
 
-| Route        | Description                                                          |
-| ------------ | -------------------------------------------------------------------- |
-| `/`          | Schedule — task list and sidebar (weather, date, now playing)        |
-| `/calendar`  | Calendar view                                                        |
-| `/ambient`   | Fullscreen photo slideshow; click or any keypress returns to `/`     |
-| `/settings`  | Theme picker, ambient photo cadence, categories, attribution toggle  |
+| Route       | Description                                                         |
+| ----------- | ------------------------------------------------------------------- |
+| `/`         | Schedule — task list and sidebar (weather, date, now playing)       |
+| `/calendar` | Calendar view                                                       |
+| `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`    |
+| `/settings` | Theme picker, ambient photo cadence, categories, attribution toggle |
 
 ### State Management
 
-| Store             | File                        | Persisted to    | Responsibility                                      |
-| ----------------- | --------------------------- | --------------- | --------------------------------------------------- |
-| `theme`           | `ThemeStore.ts`             | `localStorage`  | Active theme ID; writes `dataset.theme` on change  |
-| `settings`        | `SettingsStore.ts`          | `localStorage`  | Ambient cadence, photo categories, attribution flag |
-| `tasks`           | `TaskStore.ts`              | Server (SQLite) | Task list, CRUD operations                          |
-| `nowPlaying`      | `SpotifyStore.ts`           | Server (SQLite) | Spotify now-playing state                           |
+| Store        | File               | Persisted to    | Responsibility                                      |
+| ------------ | ------------------ | --------------- | --------------------------------------------------- |
+| `theme`      | `ThemeStore.ts`    | `localStorage`  | Active theme ID; writes `dataset.theme` on change   |
+| `settings`   | `SettingsStore.ts` | `localStorage`  | Ambient cadence, photo categories, attribution flag |
+| `tasks`      | `TaskStore.ts`     | Server (SQLite) | Task list, CRUD operations                          |
+| `nowPlaying` | `SpotifyStore.ts`  | Server (SQLite) | Spotify now-playing state                           |
 
 ### Themes
 
@@ -55,13 +55,13 @@ Themes are defined in two places that must be kept in sync: `frontend/src/app.cs
 
 Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service backed by **SQLite**.
 
-| Service   | Port | Status      | Responsibility                                      |
-| --------- | ---- | ----------- | --------------------------------------------------- |
-| `tasks`   | 8081 | Implemented | Task CRUD with due dates and recurrence             |
-| `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast         |
-| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                         |
-| `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours  |
-| `plants`  | 8085 | Planned     | Watering schedules and reminders                    |
+| Service   | Port | Status      | Responsibility                                     |
+| --------- | ---- | ----------- | -------------------------------------------------- |
+| `tasks`   | 8081 | Implemented | Task CRUD with due dates and recurrence            |
+| `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast        |
+| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                        |
+| `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours |
+| `plants`  | 8085 | Planned     | Watering schedules and reminders                   |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
@@ -187,9 +187,9 @@ The `photos` service fetches landscape photos from the [Unsplash API](https://un
 
 ### Endpoints
 
-| Method | Path             | Description                                                                                    |
-| ------ | ---------------- | ---------------------------------------------------------------------------------------------- |
-| `GET`  | `/photos/random` | Returns one random `PhotoResponse` from cache; refetches if cache is stale or query changed    |
+| Method | Path             | Description                                                                                 |
+| ------ | ---------------- | ------------------------------------------------------------------------------------------- |
+| `GET`  | `/photos/random` | Returns one random `PhotoResponse` from cache; refetches if cache is stale or query changed |
 
 Query param `query` (default: `nature`) is forwarded to the Unsplash random photo endpoint. The cache is keyed by query — changing categories busts the cache.
 
@@ -197,32 +197,32 @@ Query param `query` (default: `nature`) is forwarded to the Unsplash random phot
 
 ```json
 {
-  "id": "abc123",
-  "url": "https://images.unsplash.com/...",
-  "description": "A misty forest at dawn",
-  "photographer_name": "Jane Smith",
-  "unsplash_link": "https://unsplash.com/photos/abc123"
+    "id": "abc123",
+    "url": "https://images.unsplash.com/...",
+    "description": "A misty forest at dawn",
+    "photographer_name": "Jane Smith",
+    "unsplash_link": "https://unsplash.com/photos/abc123"
 }
 ```
 
 ### Caching
 
-| Field        | Value                                                               |
-| ------------ | ------------------------------------------------------------------- |
-| Batch size   | 20 photos per fetch                                                 |
-| TTL          | 24 hours                                                            |
-| Cache bust   | Query string changes (i.e. user changes photo categories)          |
-| Fallback     | Returns 502 if Unsplash is unreachable and no valid cache exists    |
+| Field      | Value                                                            |
+| ---------- | ---------------------------------------------------------------- |
+| Batch size | 20 photos per fetch                                              |
+| TTL        | 24 hours                                                         |
+| Cache bust | Query string changes (i.e. user changes photo categories)        |
+| Fallback   | Returns 502 if Unsplash is unreachable and no valid cache exists |
 
 ### Environment variables
 
 Stored in `services/Photos/.env`:
 
-| Variable                | Required | Description                                               |
-| ----------------------- | -------- | --------------------------------------------------------- |
-| `UNSPLASH_ACCESS_KEY`   | Yes      | Unsplash API access key (free tier: 50 req/hr)            |
-| `DB_PATH`               | No       | Path to SQLite cache file (default: `photos.db`)          |
-| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8084` in Docker                                   |
+| Variable                | Required | Description                                      |
+| ----------------------- | -------- | ------------------------------------------------ |
+| `UNSPLASH_ACCESS_KEY`   | Yes      | Unsplash API access key (free tier: 50 req/hr)   |
+| `DB_PATH`               | No       | Path to SQLite cache file (default: `photos.db`) |
+| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8084` in Docker                          |
 
 ### Frontend integration
 

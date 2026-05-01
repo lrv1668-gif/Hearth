@@ -44,7 +44,7 @@
     class="fixed inset-0 z-[100] bg-black flex items-center justify-center cursor-pointer"
 >
     {#if loading}
-        <p class="text-white/40 text-sm tracking-widest uppercase">Loading…</p>
+        <p class="text-white/40 type-body tracking-widest uppercase">Loading…</p>
     {:else if photo}
         {#key photo.id}
             <img
@@ -61,7 +61,7 @@
             <div
                 class="absolute bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between"
             >
-                <p class="text-white/70 text-xs">
+                <p class="text-white/70 type-label">
                     Photo by
                     <a
                         href={photo.unsplash_link}
@@ -74,10 +74,10 @@
                     </a>
                     on Unsplash
                 </p>
-                <p class="text-white/40 text-xs">Click or press any key to exit</p>
+                <p class="text-white/40 type-label">Click or press any key to exit</p>
             </div>
         {/if}
     {:else}
-        <p class="text-white/40 text-sm tracking-widest uppercase">No photos available</p>
+        <p class="text-white/40 type-body tracking-widest uppercase">No photos available</p>
     {/if}
 </div>

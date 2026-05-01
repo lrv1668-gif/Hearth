@@ -114,17 +114,17 @@
             <div class="pt-2 border-t border-[var(--border)]">
                 {#if confirmDelete}
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-[var(--text-3)] mr-1">Delete:</span>
+                        <span class="type-label text-[var(--text-3)] mr-1">Delete:</span>
                         <button
                             onclick={() => handleDelete(false)}
-                            class="text-xs px-2.5 py-1 rounded bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                            class="type-label px-2.5 py-1 rounded bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
                         >
                             Just this
                         </button>
                         {#if task?.series_id !== null}
                             <button
                                 onclick={() => handleDelete(true)}
-                                class="text-xs px-2.5 py-1 rounded bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                class="type-label px-2.5 py-1 rounded bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
                             >
                                 All future
                             </button>
@@ -134,7 +134,7 @@
                             class="text-[var(--text-4)] hover:text-[var(--text-2)] transition ml-1"
                             aria-label="Cancel delete"
                         >
-                            <X size={12} />
+                            <X size={12} class="icon-sm" />
                         </button>
                     </div>
                 {:else}
@@ -149,7 +149,7 @@
                         class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
                         aria-label="Delete task"
                     >
-                        <Trash2 size={18} />
+                        <Trash2 size={18} class="icon-lg" />
                     </button>
                 {/if}
             </div>
