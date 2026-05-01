@@ -10,8 +10,8 @@
     let interval: ReturnType<typeof setInterval>;
 
     function buildQuery(): string {
-        const cats = $settings.photoCategories;
-        return cats.length > 0 ? cats.join(',') : 'nature';
+        const categories = $settings.photoCategories;
+        return categories.length > 0 ? categories.join(',') : 'nature';
     }
 
     async function advance() {

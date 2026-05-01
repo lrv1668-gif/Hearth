@@ -7,7 +7,7 @@
    to the 13.3" e-paper target (1200px wide, ~150 PPI).                      */
 :root {
     --font-display: clamp(2rem, 3vw, 4.5rem); /* date number, temperature  */
-    --font-title: clamp(1.125rem, 1.5vw, 1.875rem); /* headings, logo            */
+    --font-title: clamp(1.125rem, 1.65vw, 1.875rem); /* headings, logo            */
     --font-subtitle: clamp(1rem, 1.25vw, 1.5rem); /* subtitles, section labels */
     --font-body: clamp(0.875rem, 1vw, 1.25rem); /* task text, form inputs    */
     --font-label: clamp(0.6875rem, 0.8vw, 1rem); /* nav links, tags, caps     */
