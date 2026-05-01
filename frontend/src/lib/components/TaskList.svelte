@@ -145,6 +145,7 @@
     <div class="flex gap-2">
         <input
             bind:value={newTitle}
+            onkeydown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="Enter description..."
             class="flex-1 bg-[var(--surface)] text-[var(--text-1)] placeholder-[var(--text-4)]
              rounded-lg px-4 py-2.5 text-sm outline-none
