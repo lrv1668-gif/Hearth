@@ -30,7 +30,7 @@
                 class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
                 aria-label="Choose theme"
             >
-                <Palette size={18} />
+                <Palette size={24} />
             </button>
         </div>
     </div>
