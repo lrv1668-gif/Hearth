@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Agent Instructions
 
 Keep documentation in sync with code at all times:
+
 - When a new service is added or changed, update `SOFTWARE-DESIGN.md` and the directory structure below.
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
 - When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and this file.
@@ -28,7 +29,7 @@ See `docs/SOFTWARE-DESIGN.md` for full architecture decisions.
 
 ## Directory Structure
 
-```
+```text
 frontend/                    # SvelteKit app
 services/
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
@@ -45,10 +46,10 @@ Caddyfile
 
 Services that need secrets or location config use a per-service `.env` file loaded via `env_file` in `docker-compose.yml`. The `DotNetEnv` package in each service also loads the same file for local `dotnet run`.
 
-| Service | File | Key variables |
-|---------|------|---------------|
+| Service | File                    | Key variables                                                        |
+| ------- | ----------------------- | -------------------------------------------------------------------- |
 | Spotify | `services/Spotify/.env` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` |
-| Weather | `services/Weather/.env` | `LATITUDE`, `LONGITUDE` |
+| Weather | `services/Weather/.env` | `LATITUDE`, `LONGITUDE`                                              |
 
 Create the file before running the service. Example for Weather:
 
@@ -127,6 +128,7 @@ docker compose -f docker-compose.yml up --build
 ### Themes
 
 Themes are defined in two places — both must be updated together:
+
 1. `frontend/src/app.css` — CSS custom property block `[data-theme="id"] { ... }`
 2. `frontend/src/lib/themes.ts` — entry in the `themes` array
 

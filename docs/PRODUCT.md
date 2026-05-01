@@ -2,7 +2,7 @@
 
 ## The Core Idea
 
-Most home dashboards are designed like control panels — dense, utilitarian, always demanding attention. Hearth is the opposite. It's designed to *recede*. Like a fireplace, it's always on, always present, but it earns its place in the room by being beautiful and calm rather than noisy and cluttered.
+Most home dashboards are designed like control panels — dense, utilitarian, always demanding attention. Hearth is the opposite. It's designed to _recede_. Like a fireplace, it's always on, always present, but it earns its place in the room by being beautiful and calm rather than noisy and cluttered.
 
 **The pitch:** A living picture frame that knows your home.
 
@@ -23,6 +23,7 @@ Most home dashboards are designed like control panels — dense, utilitarian, al
 The target user is comfortable with a Raspberry Pi but doesn't want to spend a weekend in config files. They care deeply about their home looking good. They've probably tried MagicMirror or a Home Assistant dashboard, been impressed by the capability, but frustrated that it looks like a developer made it for themselves.
 
 Specifically:
+
 - People who want a wall-mounted home display that looks like art, not a gadget
 - Remote workers who want ambient awareness of their day without opening a laptop
 - Families who want a shared "household brain" — one place to see everyone's schedules, chores, grocery list
@@ -99,6 +100,7 @@ All screens are usable one-handed on a phone. No dense forms.
 ### Display Mode Transitions
 
 When a mode change is triggered (by schedule or phone):
+
 1. The Display Service fetches fresh data from all relevant services
 2. It renders the new layout to a bitmap
 3. It pushes the frame to the e-paper hardware (full refresh — flicker is expected and acceptable)
@@ -117,6 +119,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 ## Feature Set
 
 ### Phase 1 — The Frame
+
 - Art display: Unsplash integration, your own photos, or a local image folder — dithered and optimized for e-paper rendering
 - Weather: current conditions + today's forecast + 5-day (Open-Meteo or similar free API, no key required)
 - Clock and date, always present in both modes
@@ -126,16 +129,19 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 - Local-network web UI with Home, Tasks, Plants, Settings screens
 
 ### Phase 2 — The Home
+
 - Plant tracker: name your plants, set watering intervals, visual wilt indicator in Ambient overlay, full list in Daily mode
 - Daily tasks: shared household to-do list, completable from the web UI
 - Grocery list: add from phone, shown in Daily mode alongside tasks
 
 ### Phase 3 — The Pulse
+
 - Music: show what's playing on Spotify (track, artist) in Daily mode
 - Household calendar: pull from Google/Apple Calendar, show next 2–3 events
 - Gentle notifications: surface urgent items (weather alert, plant critically overdue) as a temporary overlay before reverting to Ambient
 
 ### Phase 4 — The Soul
+
 - Per-room profiles: different frames in different rooms with different mode schedules and widget sets
 - Plugin/widget system: community-extensible; each widget maps to a microservice that implements a standard interface
 
@@ -144,21 +150,22 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 ## Architecture Overview
 
 Each capability is a self-contained microservice running on the Pi. Services expose REST APIs consumed by:
+
 1. The **Display Service** — which owns the render pipeline and writes frames to the e-paper hardware
 2. The **Web/API Gateway** — which serves the phone UI and routes requests to services
 
 ### Service Decomposition
 
-| Service | Responsibility | Status |
-|---|---|---|
-| Display Service | Renders layouts to bitmap, drives e-paper hardware, manages refresh schedule | Planned |
-| Art Service | Fetches, caches, and dithers images for e-paper output | Planned |
-| Weather Service | Polls Open-Meteo on a schedule, caches current + 7-day forecast | Implemented |
-| Tasks Service | CRUD for household to-do and grocery lists, with recurrence | Implemented |
-| Plants Service | Tracks plant watering schedules and due dates | Planned |
-| Music Service | Polls Spotify API for now-playing | Implemented |
-| Calendar Service | Syncs with Google/Apple Calendar | Planned |
-| Web/API Gateway | Serves the phone UI, routes requests to services, handles first-run setup | Caddy (partial) |
+| Service          | Responsibility                                                               | Status          |
+| ---------------- | ---------------------------------------------------------------------------- | --------------- |
+| Display Service  | Renders layouts to bitmap, drives e-paper hardware, manages refresh schedule | Planned         |
+| Art Service      | Fetches, caches, and dithers images for e-paper output                       | Planned         |
+| Weather Service  | Polls Open-Meteo on a schedule, caches current + 7-day forecast              | Implemented     |
+| Tasks Service    | CRUD for household to-do and grocery lists, with recurrence                  | Implemented     |
+| Plants Service   | Tracks plant watering schedules and due dates                                | Planned         |
+| Music Service    | Polls Spotify API for now-playing                                            | Implemented     |
+| Calendar Service | Syncs with Google/Apple Calendar                                             | Planned         |
+| Web/API Gateway  | Serves the phone UI, routes requests to services, handles first-run setup    | Caddy (partial) |
 
 ### Design Principles
 
@@ -182,16 +189,16 @@ Each capability is a self-contained microservice running on the Pi. Services exp
 
 ## Competitive Landscape
 
-|                        | Hearth | MagicMirror | Home Assistant | DAKboard |
-|------------------------|--------|-------------|----------------|----------|
-| Beautiful by default   | Yes    | No          | No             | Partially|
-| E-paper native         | Yes    | No          | No             | No       |
-| Color + B&W modes      | Yes    | No          | No             | No       |
-| Self-hosted            | Yes    | Yes         | Yes            | No       |
-| Ambient/art-first      | Yes    | No          | No             | No       |
-| Pi 5 optimized         | Yes    | Partial     | Yes            | No       |
-| Non-technical setup    | Goal   | No          | No             | Yes      |
-| Free                   | Yes    | Yes         | Yes            | Freemium |
+|                      | Hearth | MagicMirror | Home Assistant | DAKboard  |
+| -------------------- | ------ | ----------- | -------------- | --------- |
+| Beautiful by default | Yes    | No          | No             | Partially |
+| E-paper native       | Yes    | No          | No             | No        |
+| Color + B&W modes    | Yes    | No          | No             | No        |
+| Self-hosted          | Yes    | Yes         | Yes            | No        |
+| Ambient/art-first    | Yes    | No          | No             | No        |
+| Pi 5 optimized       | Yes    | Partial     | Yes            | No        |
+| Non-technical setup  | Goal   | No          | No             | Yes       |
+| Free                 | Yes    | Yes         | Yes            | Freemium  |
 
 Hearth's gap: **self-hosted + e-paper-native + beautiful + accessible to non-developers**.
 
@@ -211,4 +218,4 @@ These need to be decided before or early in development:
 
 ## The Name
 
-*Hearth* is right. A hearth is the center of a home — warm, always present, functional but also symbolic. It doesn't demand attention. It rewards it.
+_Hearth_ is right. A hearth is the center of a home — warm, always present, functional but also symbolic. It doesn't demand attention. It rewards it.
