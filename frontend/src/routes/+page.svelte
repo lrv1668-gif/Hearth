@@ -5,6 +5,7 @@
     import TaskModal from '$lib/components/TaskModal.svelte';
     import NowPlaying from '$lib/components/NowPlaying.svelte';
     import WeatherWidget from '$lib/components/WeatherWidget.svelte';
+    import MoonPhase from '$lib/components/MoonPhase.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -26,7 +27,7 @@
     <title>Hearth — Schedule</title>
 </svelte:head>
 
-<main class="max-w-5xl mx-auto px-6 md:px-8 py-6 md:py-8">
+<main class="max-w-5xl mx-auto px-6 md:px-8 py-6 md:py-4">
     <div class="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
         <!-- Left column: schedule -->
         <div class="flex flex-col gap-4">
@@ -34,6 +35,13 @@
                 Upcoming Tasks
             </h2>
             <Schedule tasks={$tasks} onToggle={toggleTask} onDelete={removeTask} onEdit={openEditTask} />
+            
+            <div>
+                <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
+                    Now Playing
+                </h2>
+                <NowPlaying />
+            </div>
         </div>
 
         <!-- Right column: date display + music + weather + calendar teaser -->
@@ -43,13 +51,10 @@
                     Today's Date
                 </h2>
                 <div class="text-right">
-                    <p class="type-display font-bold text-[var(--text-1)] leading-tight">
-                        {new Date().toLocaleDateString('en-US', { day: 'numeric' })}
+                    <p class="type-title font-bold text-[var(--text-1)] leading-tight">
+                        {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long'})}
                     </p>
-                    <p class="type-title text-[var(--text-2)] mt-1">
-                        {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </p>
-                    <p class="type-label tracking-widest uppercase text-[var(--text-3)] mt-2">
+                    <p class="type-subtitle tracking-widest uppercase text-[var(--text-2)] mt-2">
                         {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
                     </p>
                 </div>
@@ -64,9 +69,9 @@
 
             <div>
                 <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
-                    Now Playing
+                    Moon Phase
                 </h2>
-                <NowPlaying />
+                <MoonPhase />
             </div>
         </div>
     </div>
