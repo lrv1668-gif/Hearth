@@ -13,11 +13,29 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 - Tailwind v3 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
 - API calls are centralised in `frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
-- In development, Vite proxies `/tasks` → `$TASKS_URL`, `/spotify` → `$SPOTIFY_URL`, and `/weather` → `$WEATHER_URL`; in production, Caddy handles the same routing
+- In development, Vite proxies `/tasks` → `$TASKS_URL`, `/spotify` → `$SPOTIFY_URL`, `/weather` → `$WEATHER_URL`, and `/photos` → `$PHOTOS_URL`; in production, Caddy handles the same routing
+
+### Routes
+
+| Route        | Description                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| `/`          | Schedule — task list and sidebar (weather, date, now playing)        |
+| `/calendar`  | Calendar view                                                        |
+| `/ambient`   | Fullscreen photo slideshow; click or any keypress returns to `/`     |
+| `/settings`  | Theme picker, ambient photo cadence, categories, attribution toggle  |
+
+### State Management
+
+| Store             | File                        | Persisted to    | Responsibility                                      |
+| ----------------- | --------------------------- | --------------- | --------------------------------------------------- |
+| `theme`           | `ThemeStore.ts`             | `localStorage`  | Active theme ID; writes `dataset.theme` on change  |
+| `settings`        | `SettingsStore.ts`          | `localStorage`  | Ambient cadence, photo categories, attribution flag |
+| `tasks`           | `TaskStore.ts`              | Server (SQLite) | Task list, CRUD operations                          |
+| `nowPlaying`      | `SpotifyStore.ts`           | Server (SQLite) | Spotify now-playing state                           |
 
 ### Themes
 
-Seven built-in themes are applied via CSS custom properties on `[data-theme]`. The active theme is persisted in `localStorage`.
+Seven built-in themes are applied via CSS custom properties on `[data-theme]`. The active theme is persisted in `localStorage` via `ThemeStore.ts` and selected from the `/settings` page.
 
 | Theme        | Style                        |
 | ------------ | ---------------------------- |
@@ -37,13 +55,13 @@ Themes are defined in two places that must be kept in sync: `frontend/src/app.cs
 
 Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service backed by **SQLite**.
 
-| Service   | Port | Status      | Responsibility                              |
-| --------- | ---- | ----------- | ------------------------------------------- |
-| `tasks`   | 8081 | Implemented | Task CRUD with due dates and recurrence     |
-| `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast |
-| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                 |
-| `plants`  | 8084 | Planned     | Watering schedules and reminders            |
-| `art`     | 8085 | Planned     | Rotates artwork from local files or APIs    |
+| Service   | Port | Status      | Responsibility                                      |
+| --------- | ---- | ----------- | --------------------------------------------------- |
+| `tasks`   | 8081 | Implemented | Task CRUD with due dates and recurrence             |
+| `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast         |
+| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                         |
+| `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours  |
+| `plants`  | 8085 | Planned     | Watering schedules and reminders                    |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
@@ -163,6 +181,59 @@ Stored in `services/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `e
 
 Clicking disconnect calls `DELETE /spotify/auth` then immediately re-polls, which returns 401 and flips the store back to `undefined`.
 
+## Photos Service
+
+The `photos` service fetches landscape photos from the [Unsplash API](https://unsplash.com/developers) and caches a batch of 20 in SQLite for 24 hours. The frontend `/ambient` route rotates through these photos at a user-configured cadence.
+
+### Endpoints
+
+| Method | Path             | Description                                                                                    |
+| ------ | ---------------- | ---------------------------------------------------------------------------------------------- |
+| `GET`  | `/photos/random` | Returns one random `PhotoResponse` from cache; refetches if cache is stale or query changed    |
+
+Query param `query` (default: `nature`) is forwarded to the Unsplash random photo endpoint. The cache is keyed by query — changing categories busts the cache.
+
+### Response shape
+
+```json
+{
+  "id": "abc123",
+  "url": "https://images.unsplash.com/...",
+  "description": "A misty forest at dawn",
+  "photographer_name": "Jane Smith",
+  "unsplash_link": "https://unsplash.com/photos/abc123"
+}
+```
+
+### Caching
+
+| Field        | Value                                                               |
+| ------------ | ------------------------------------------------------------------- |
+| Batch size   | 20 photos per fetch                                                 |
+| TTL          | 24 hours                                                            |
+| Cache bust   | Query string changes (i.e. user changes photo categories)          |
+| Fallback     | Returns 502 if Unsplash is unreachable and no valid cache exists    |
+
+### Environment variables
+
+Stored in `services/Photos/.env`:
+
+| Variable                | Required | Description                                               |
+| ----------------------- | -------- | --------------------------------------------------------- |
+| `UNSPLASH_ACCESS_KEY`   | Yes      | Unsplash API access key (free tier: 50 req/hr)            |
+| `DB_PATH`               | No       | Path to SQLite cache file (default: `photos.db`)          |
+| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8084` in Docker                                   |
+
+### Frontend integration
+
+`/ambient` (`routes/ambient/+page.svelte`) fetches a new photo from `/photos/random` on mount and then on each cadence interval. Settings are read from `SettingsStore`:
+
+- **`cadenceSeconds`** — interval between photo advances (2m / 5m / 10m / 30m / 1hr / 2hr)
+- **`photoCategories`** — array of topics joined as a comma-separated `query` param
+- **`showAttribution`** — toggles the photographer credit bar at the bottom of the display
+
+Photos transition with a 1.5-second crossfade. Clicking anywhere or pressing any key exits back to `/`.
+
 ## Routing
 
 **Caddy** acts as the reverse proxy and TLS terminator. URL-prefix routing maps paths to services:
@@ -171,6 +242,7 @@ Clicking disconnect calls `DELETE /spotify/auth` then immediately re-polls, whic
 /tasks/*    →  tasks:8081
 /weather/*  →  weather:8082
 /spotify/*  →  spotify:8083
+/photos/*   →  photos:8084
 /           →  frontend:3000
 ```
 
@@ -218,20 +290,24 @@ Hearth/
 ├── frontend/
 │   ├── src/
 │   │   ├── routes/
-│   │   │   ├── +layout.svelte          # root layout, theme init, task loading
-│   │   │   ├── +page.svelte            # schedule page (tasks + music)
-│   │   │   └── calendar/
-│   │   │       └── +page.svelte        # calendar view
+│   │   │   ├── +layout.svelte          # root layout, task loading, ThemeStore init
+│   │   │   ├── +page.svelte            # schedule page (tasks + weather + music)
+│   │   │   ├── calendar/
+│   │   │   │   └── +page.svelte        # calendar view
+│   │   │   ├── ambient/
+│   │   │   │   └── +page.svelte        # fullscreen photo slideshow
+│   │   │   └── settings/
+│   │   │       └── +page.svelte        # theme picker + ambient mode settings
 │   │   ├── lib/
 │   │   │   ├── api.ts                  # centralised API calls
 │   │   │   ├── themes.ts               # theme metadata array + ThemeId type
 │   │   │   ├── utils.ts                # shared utilities
 │   │   │   ├── TaskStore.ts            # tasks writable store
 │   │   │   ├── SpotifyStore.ts         # now-playing writable store
+│   │   │   ├── ThemeStore.ts           # active theme; persists to localStorage + sets dataset.theme
+│   │   │   ├── SettingsStore.ts        # ambient cadence, categories, attribution; persists to localStorage
 │   │   │   └── components/
 │   │   │       ├── Nav.svelte
-│   │   │       ├── ThemeSwitcher.svelte
-│   │   │       ├── ThemeModal.svelte
 │   │   │       ├── Schedule.svelte
 │   │   │       ├── NowPlaying.svelte
 │   │   │       ├── WeatherWidget.svelte
@@ -264,13 +340,21 @@ Hearth/
 │   │   ├── Extensions/
 │   │   ├── Records/
 │   │   └── Dockerfile
-│   └── Spotify/                        # ASP.NET Core 10 Minimal API, port 8083
+│   ├── Spotify/                        # ASP.NET Core 10 Minimal API, port 8083
+│   │   ├── Program.cs
+│   │   ├── SpotifyStore.cs
+│   │   ├── SpotifyClientService.cs
+│   │   ├── Extensions/
+│   │   ├── Records/
+│   │   ├── .env                        # SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
+│   │   └── Dockerfile
+│   └── Photos/                         # ASP.NET Core 10 Minimal API, port 8084
 │       ├── Program.cs
-│       ├── SpotifyStore.cs
-│       ├── SpotifyClientService.cs
+│       ├── PhotoStore.cs
+│       ├── PhotoFetcher.cs
 │       ├── Extensions/
 │       ├── Records/
-│       ├── .env                        # SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
+│       ├── .env                        # UNSPLASH_ACCESS_KEY
 │       └── Dockerfile
 ├── docker-compose.yml                  # production
 ├── docker-compose.override.yml         # development (auto-merged)

@@ -136,3 +136,17 @@ export async function fetchWeatherForecast(): Promise<ForecastDay[]> {
     if (!res.ok) return [];
     return res.json();
 }
+
+export interface Photo {
+    id: string;
+    url: string;
+    description: string | null;
+    photographer_name: string;
+    unsplash_link: string;
+}
+
+export async function fetchRandomPhoto(query: string): Promise<Photo | null> {
+    const res = await fetch(`/photos/random?query=${encodeURIComponent(query)}`);
+    if (!res.ok) return null;
+    return res.json();
+}

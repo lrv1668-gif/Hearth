@@ -8,6 +8,9 @@
     handle /weather* {
         reverse_proxy weather:8082
     }
+    handle /photos* {
+        reverse_proxy photos:8084
+    }
     handle {
         reverse_proxy frontend:3000
     }

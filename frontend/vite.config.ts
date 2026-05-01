@@ -8,6 +8,7 @@ export default defineConfig({
             '/tasks': process.env.TASKS_URL ?? 'http://localhost:8081',
             '/spotify': process.env.SPOTIFY_URL ?? 'http://localhost:8083',
             '/weather': process.env.WEATHER_URL ?? 'http://localhost:8082',
+            '/photos': process.env.PHOTOS_URL ?? 'http://localhost:8084',
         },
         hmr: process.env.HMR_CLIENT_PORT ? { clientPort: parseInt(process.env.HMR_CLIENT_PORT) } : undefined,
     },
