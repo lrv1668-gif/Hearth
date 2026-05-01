@@ -121,6 +121,8 @@ export interface ForecastDay {
     description: string;
     temp_max_f: number;
     temp_min_f: number;
+    sunrise: string;
+    sunset: string;
 }
 
 export async function fetchCurrentWeather(): Promise<CurrentWeather | null> {

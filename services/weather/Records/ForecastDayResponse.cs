@@ -5,5 +5,7 @@ public record ForecastDayResponse(
     int WeatherCode,
     string Description,
     double TempMaxF,
-    double TempMinF
+    double TempMinF,
+    string Sunrise,
+    string Sunset
 );
