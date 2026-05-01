@@ -112,7 +112,10 @@
         if (!task.recurrence_unit) return '';
         const n = task.recurrence_interval ?? 1;
         if (task.recurrence_unit === 'day') return n === 1 ? 'Daily' : `Every ${n}d`;
-        if (task.recurrence_unit === 'week') return task.recurrence_days ?? 'Weekly';
+        if (task.recurrence_unit === 'week') {
+            if (task.recurrence_days) return task.recurrence_days;
+            return (task.recurrence_interval ?? 1) === 2 ? 'Bi-weekly' : 'Weekly';
+        }
         if (task.recurrence_unit === 'month') return n === 1 ? 'Monthly' : `Every ${n}mo`;
         return '';
     }

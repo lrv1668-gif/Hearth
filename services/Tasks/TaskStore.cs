@@ -41,13 +41,14 @@ namespace Tasks
         {
             ExtendNearingSeriesHorizon();
 
-            var through = DateTime.UtcNow.Date.AddDays(2).ToString("o");
+            var through = DateTime.UtcNow.Date.AddDays(365).ToString("o");
             return db.Query("""
                 SELECT id, title, done, due_date, due_time, created_at,
                        description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date
                 FROM lu_tasks
-                WHERE due_date IS NULL
-                   OR (date(due_date) >= date('now') AND date(due_date) <= date($through))
+                WHERE done = 1
+                   OR due_date IS NULL
+                   OR date(due_date) <= date($through)
                 ORDER BY due_date ASC, created_at DESC
                 """, Map, cmd => cmd.AddParam("$through", through));
         }

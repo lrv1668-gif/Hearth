@@ -67,10 +67,21 @@
         if (!t.recurrence_unit) return '';
         const n = t.recurrence_interval ?? 1;
         if (t.recurrence_unit === 'day') return n === 1 ? 'Daily' : `Every ${n} days`;
-        if (t.recurrence_unit === 'week') return t.recurrence_days ? `Weekly · ${t.recurrence_days}` : 'Weekly';
+        if (t.recurrence_unit === 'week') {
+            if (t.recurrence_days) return `Weekly · ${t.recurrence_days}`;
+            return n === 2 ? 'Bi-weekly' : 'Weekly';
+        }
         if (t.recurrence_unit === 'month') return n === 1 ? 'Monthly' : `Every ${n} months`;
         return '';
     }
+
+    const repeatOptions = [
+        { unit: '', interval: 1, label: 'None' },
+        { unit: 'day', interval: 1, label: 'Daily' },
+        { unit: 'week', interval: 1, label: 'Weekly' },
+        { unit: 'week', interval: 2, label: 'Bi-weekly' },
+        { unit: 'month', interval: 1, label: 'Monthly' },
+    ];
 
     function handleDateChange(e: Event) {
         newDueDate = (e.target as HTMLInputElement).value;
@@ -229,24 +240,24 @@
                 <div class="space-y-2">
                     <label class="text-xs text-[var(--text-3)] uppercase tracking-wide">Repeat</label>
                     <div class="flex gap-2 flex-wrap">
-                        {#each [['', 'None'], ['day', 'Daily'], ['week', 'Weekly'], ['month', 'Monthly']] as [val, label]}
+                        {#each repeatOptions as opt}
                             <button
                                 onclick={() => {
-                                    recurrenceUnit = val;
-                                    recurrenceInterval = 1;
+                                    recurrenceUnit = opt.unit;
+                                    recurrenceInterval = opt.interval;
                                     recurrenceDays = [];
                                 }}
                                 class="px-3 py-1 rounded-full text-xs transition-colors
-                                       {recurrenceUnit === val
+                                       {recurrenceUnit === opt.unit && recurrenceInterval === opt.interval
                                     ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                                     : 'bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text-1)]'}"
                             >
-                                {label}
+                                {opt.label}
                             </button>
                         {/each}
                     </div>
 
-                    {#if recurrenceUnit === 'week'}
+                    {#if recurrenceUnit === 'week' && recurrenceInterval === 1}
                         <div class="flex gap-1 flex-wrap">
                             {#each weekdays as day}
                                 <button

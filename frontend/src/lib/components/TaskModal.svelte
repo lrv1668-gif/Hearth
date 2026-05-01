@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
     import TaskList from './TaskList.svelte';
-    import { X } from '@lucide/svelte';
+    import { Trash2, X } from '@lucide/svelte';
 
     interface Props {
         open?: boolean;
@@ -150,9 +150,10 @@
                                 handleDelete(false);
                             }
                         }}
-                        class="text-xs text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                        class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                        aria-label="Delete task"
                     >
-                        Delete task
+                        <Trash2 size={14} />
                     </button>
                 {/if}
             </div>
