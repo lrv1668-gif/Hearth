@@ -37,6 +37,7 @@ services/
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
   Spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
+  Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 Caddyfile
@@ -50,6 +51,7 @@ Services that need secrets or location config use a per-service `.env` file load
 | ------- | ----------------------- | -------------------------------------------------------------------- |
 | Spotify | `services/Spotify/.env` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` |
 | Weather | `services/Weather/.env` | `LATITUDE`, `LONGITUDE`                                              |
+| Photos  | `services/Photos/.env`  | `UNSPLASH_ACCESS_KEY`                                                |
 
 Create the file before running the service. Example for Weather:
 
@@ -79,6 +81,13 @@ dotnet run
 
 ```bash
 cd services/Spotify
+dotnet run
+```
+
+**Photos service** (optional; requires `services/Photos/.env` with `UNSPLASH_ACCESS_KEY`):
+
+```bash
+cd services/Photos
 dotnet run
 ```
 

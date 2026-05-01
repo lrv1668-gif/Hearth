@@ -1,16 +1,5 @@
 <script lang="ts">
-    import { CalendarDays, LayoutList, Palette } from '@lucide/svelte';
-    import ThemeModal from './ThemeModal.svelte';
-    import { type ThemeId } from '$lib/themes';
-
-    interface Props {
-        theme: ThemeId;
-        onChangeTheme: (id: ThemeId) => void;
-    }
-
-    let { theme, onChangeTheme }: Props = $props();
-
-    let themeModalOpen = $state(false);
+    import { CalendarDays, Image, LayoutList, Settings } from '@lucide/svelte';
 </script>
 
 <!-- Desktop masthead -->
@@ -24,54 +13,54 @@
                 Hearth
             </span>
         </a>
-        <div class="flex-1 flex justify-end">
-            <button
-                onclick={() => (themeModalOpen = true)}
-                class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
-                aria-label="Choose theme"
-            >
-                <Palette size={24} />
-            </button>
-        </div>
+        <div class="flex-1"></div>
     </div>
 
     <div class="border-t-2 border-[var(--text-1)]"></div>
 
-    <nav class="flex justify-center gap-8 py-2">
+    <nav class="flex justify-center items-center py-3">
         <a
             href="/"
-            class="text-xs tracking-widest uppercase transition-colors
+            class="px-6 text-xs tracking-widest uppercase transition-colors
              text-[var(--text-3)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
         >
             Schedule
         </a>
+        <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
         <a
             href="/calendar"
-            class="text-xs tracking-widest uppercase transition-colors
+            class="px-6 text-xs tracking-widest uppercase transition-colors
              text-[var(--text-3)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
         >
             Calendar
         </a>
+        <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
+        <a
+            href="/ambient"
+            class="px-6 text-xs tracking-widest uppercase transition-colors
+             text-[var(--text-3)] hover:text-[var(--text-1)]
+             aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
+        >
+            Ambient
+        </a>
+        <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
+        <a
+            href="/settings"
+            class="px-6 text-xs tracking-widest uppercase transition-colors
+             text-[var(--text-3)] hover:text-[var(--text-1)]
+             aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
+        >
+            Settings
+        </a>
     </nav>
 </header>
 
 <!-- Mobile: compact top bar -->
-<header class="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--bg)] md:hidden">
+<header class="flex items-center justify-center px-4 py-3 border-b border-[var(--border)] bg-[var(--bg)] md:hidden">
     <a href="/" class="text-lg font-bold tracking-widest uppercase text-[var(--text-1)]">Hearth</a>
-    <button
-        onclick={() => (themeModalOpen = true)}
-        class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
-        aria-label="Choose theme"
-    >
-        <Palette size={18} />
-    </button>
 </header>
-
-{#if themeModalOpen}
-    <ThemeModal {theme} onChange={onChangeTheme} onClose={() => (themeModalOpen = false)} />
-{/if}
 
 <!-- Mobile bottom nav -->
 <nav
@@ -79,7 +68,7 @@
 >
     <a
         href="/"
-        class="flex flex-col items-center gap-0.5 px-6 py-1 text-[var(--text-3)]
+        class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
         <LayoutList size={20} />
@@ -87,10 +76,26 @@
     </a>
     <a
         href="/calendar"
-        class="flex flex-col items-center gap-0.5 px-6 py-1 text-[var(--text-3)]
+        class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
         <CalendarDays size={20} />
         <span class="text-[10px] tracking-wide uppercase">Calendar</span>
+    </a>
+    <a
+        href="/ambient"
+        class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
+           hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
+    >
+        <Image size={20} />
+        <span class="text-[10px] tracking-wide uppercase">Ambient</span>
+    </a>
+    <a
+        href="/settings"
+        class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
+           hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
+    >
+        <Settings size={20} />
+        <span class="text-[10px] tracking-wide uppercase">Settings</span>
     </a>
 </nav>

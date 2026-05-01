@@ -95,6 +95,8 @@ The web UI (phone browser, no app install) has four screens:
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
+The `/settings` route is implemented and currently houses the theme picker and ambient mode configuration (photo cadence, categories, attribution toggle). Additional settings will move here as features are built out.
+
 All screens are usable one-handed on a phone. No dense forms.
 
 ### Display Mode Transitions
@@ -159,7 +161,7 @@ Each capability is a self-contained microservice running on the Pi. Services exp
 | Service          | Responsibility                                                               | Status          |
 | ---------------- | ---------------------------------------------------------------------------- | --------------- |
 | Display Service  | Renders layouts to bitmap, drives e-paper hardware, manages refresh schedule | Planned         |
-| Art Service      | Fetches, caches, and dithers images for e-paper output                       | Planned         |
+| Photos Service   | Fetches Unsplash photos, caches batches, serves `/ambient` slideshow         | Implemented     |
 | Weather Service  | Polls Open-Meteo on a schedule, caches current + 7-day forecast              | Implemented     |
 | Tasks Service    | CRUD for household to-do and grocery lists, with recurrence                  | Implemented     |
 | Plants Service   | Tracks plant watering schedules and due dates                                | Planned         |
@@ -211,7 +213,7 @@ These need to be decided before or early in development:
 - **E-paper hardware module:** Which specific display and driver board? This determines the SPI interface, color palette (4-color vs. 7-color ACeP), resolution, and which C# library or native bindings to use.
 - **Physical input:** Does the frame have any physical controls (button, tap sensor, PIR motion sensor)? The "frame tap" concept mentioned in Phase 2 tasks requires this to be defined.
 - ~~**Spotify OAuth on a local device:** Spotify's auth flow requires a redirect URI. How does this work when the device has no public URL?~~ **Resolved:** The `spotify` service uses a loopback redirect URI (e.g. `http://127.0.0.1:8083/spotify/callback`) registered in the Spotify app dashboard. After the OAuth callback, the service redirects the browser to `FRONTEND_URL` (the Caddy entry point). Tokens are stored in SQLite and reused across restarts. Users can disconnect from the UI at any time.
-- **Unsplash attribution:** Unsplash's API requires attribution. How is this displayed on an e-paper frame without cluttering the art? Small text in a corner? Only shown in Daily mode?
+- ~~**Unsplash attribution:** Unsplash's API requires attribution. How is this displayed on an e-paper frame without cluttering the art?~~ **Resolved:** Attribution is shown as a subtle gradient bar at the bottom of the `/ambient` display ("Photo by X on Unsplash"). It is user-toggleable in Settings — on by default, but can be hidden for a fully clean display.
 - **Art in Daily Mode:** Current spec says no art in Daily Mode — the layout is full-frame structured content. Is this correct, or should there be a small art pane?
 
 ---
