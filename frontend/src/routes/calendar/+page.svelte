@@ -2,7 +2,7 @@
     import type { Task } from '$lib/api';
     import { tasks, addTask, toggleTask, removeTask, editTask } from '$lib/TaskStore';
     import Calendar from '$lib/components/Calendar.svelte';
-    import TaskModal from '$lib/components/TaskModal.svelte';
+    import TaskModal from '$lib/components/modals/TaskModal.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
