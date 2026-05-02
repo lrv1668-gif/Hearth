@@ -24,23 +24,31 @@
     ];
 </script>
 
+{#snippet sectionTitle(title: string)}
+    <section class="space-y-5">
+        <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-1)] border-b border-[var(--border)] pb-2">
+            {title}
+        </h2>
+    </section>
+{/snippet}
+
 <div class="max-w-2xl mx-auto px-8 py-10 space-y-12">
     <!-- Appearance -->
     <section class="space-y-5">
-        <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-1)] border-b border-[var(--border)] pb-2">
-            Appearance
-        </h2>
+        {@render sectionTitle('Appearance')}
 
         <div class="flex flex-col gap-5">
             {#each themeGroups as group}
                 <div class="flex flex-col gap-3">
-                    <p class="type-label tracking-widest uppercase text-[var(--text-2)]">{group}</p>
+                    <p class="type-label tracking-widest uppercase text-[var(--text-1)]">{group}</p>
                     <div class="flex gap-4 flex-wrap">
                         {#each themes.filter((t) => t.group === group) as t}
                             <button
                                 onclick={() => setTheme(t.id)}
                                 aria-pressed={$theme === t.id}
-                                class="flex flex-col items-center gap-2 group"
+                                class="flex flex-col items-center gap-2 group {$theme === t.id
+                                    ? 'pointer-events-none'
+                                    : ''}"
                             >
                                 <span
                                     style="background: {t.fill}; border: 2px solid {t.stroke};"
@@ -66,9 +74,7 @@
 
     <!-- Ambient Mode -->
     <section class="space-y-6">
-        <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-1)] border-b border-[var(--border)] pb-2">
-            Ambient Mode
-        </h2>
+        {@render sectionTitle('Ambient Mode')}
 
         <!-- Cadence -->
         <div class="space-y-3">
@@ -79,8 +85,8 @@
                         onclick={() => updateCadence(opt.value)}
                         class="px-4 py-1.5 rounded-full text-xs tracking-wide border transition-colors
                             {$settings.cadenceSeconds === opt.value
-                            ? 'bg-[var(--text-1)] text-[var(--bg)] border-[var(--text-1)]'
-                            : 'border-[var(--border)] text-[var(--text-3)] hover:text-[var(--text-1)] hover:border-[var(--text-2)]'} type-label"
+                            ? 'bg-[var(--text-1)] text-[var(--bg)] border-[var(--text-1)] pointer-events-none'
+                            : 'border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:border-[var(--text-2)]'} type-label"
                     >
                         {opt.label}
                     </button>
