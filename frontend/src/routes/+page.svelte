@@ -1,12 +1,12 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
     import { tasks, toggleTask, removeTask, editTask, addTask } from '$lib/TaskStore';
-    import Schedule from '$lib/components/Schedule.svelte';
-    import TaskModal from '$lib/components/TaskModal.svelte';
-    import NowPlaying from '$lib/components/NowPlaying.svelte';
-    import WeatherWidget from '$lib/components/WeatherWidget.svelte';
-    import MoonPhase from '$lib/components/MoonPhase.svelte';
-    import Countdowns from '$lib/components/Countdowns.svelte';
+    import UpcomingTasksWidget from '$lib/components/widgets/UpcomingTasksWidget.svelte';
+    import TaskModal from '$lib/components/modals/TaskModal.svelte';
+    import NowPlayingWidget from '$lib/components/widgets/NowPlayingWidget.svelte';
+    import WeatherWidget from '$lib/components/widgets/WeatherWidget.svelte';
+    import MoonPhaseWidget from '$lib/components/widgets/MoonPhaseWidget.svelte';
+    import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -35,21 +35,25 @@
             <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3">
                 Upcoming Tasks
             </h2>
-            <Schedule tasks={$tasks.filter(t => !t.is_countdown)} onToggle={toggleTask} onDelete={removeTask} onEdit={openEditTask} />
-            
-                
+            <UpcomingTasksWidget
+                tasks={$tasks.filter((t) => !t.is_countdown)}
+                onToggle={toggleTask}
+                onDelete={removeTask}
+                onEdit={openEditTask}
+            />
+
             <div>
                 <div class="flex items-baseline justify-between border-b border-[var(--border)] pb-3 mb-4">
                     <h2 class="type-title font-semibold text-[var(--text-1)]">Countdowns</h2>
                 </div>
-                <Countdowns tasks={$tasks} onEdit={openEditTask} />
+                <CountdownWidget tasks={$tasks} onEdit={openEditTask} />
             </div>
 
             <div>
                 <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                     Now Playing
                 </h2>
-                <NowPlaying />
+                <NowPlayingWidget />
             </div>
         </div>
 
@@ -61,7 +65,7 @@
                 </h2>
                 <div class="text-right">
                     <p class="type-title font-bold text-[var(--text-1)] leading-tight">
-                        {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long'})}
+                        {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}
                     </p>
                     <p class="type-subtitle tracking-widest uppercase text-[var(--text-2)] mt-2">
                         {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
@@ -80,7 +84,7 @@
                 <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                     Moon Phase
                 </h2>
-                <MoonPhase />
+                <MoonPhaseWidget />
             </div>
         </div>
     </div>

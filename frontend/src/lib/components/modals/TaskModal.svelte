@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
-    import TaskList from './TaskList.svelte';
+    import TaskList from '../TaskList.svelte';
     import { Trash2, X } from '@lucide/svelte';
 
     interface Props {
