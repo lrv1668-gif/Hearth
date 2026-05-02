@@ -1,5 +1,6 @@
 <script lang="ts">
     import { CalendarDays, Image, LayoutList, Settings } from '@lucide/svelte';
+    import { page } from '$app/state';
 </script>
 
 <!-- Desktop masthead -->
@@ -21,6 +22,7 @@
     <nav class="flex justify-center items-center py-3">
         <a
             href="/"
+            aria-current={page.url.pathname === '/' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
              text-[var(--text-3)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
@@ -30,6 +32,7 @@
         <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
         <a
             href="/calendar"
+            aria-current={page.url.pathname === '/calendar' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
              text-[var(--text-3)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
@@ -39,6 +42,7 @@
         <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
         <a
             href="/ambient"
+            aria-current={page.url.pathname === '/ambient' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
              text-[var(--text-3)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
@@ -48,6 +52,7 @@
         <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
         <a
             href="/settings"
+            aria-current={page.url.pathname === '/settings' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
              text-[var(--text-3)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
@@ -68,6 +73,7 @@
 >
     <a
         href="/"
+        aria-current={page.url.pathname === '/' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
@@ -76,6 +82,7 @@
     </a>
     <a
         href="/calendar"
+        aria-current={page.url.pathname === '/calendar' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
@@ -84,6 +91,7 @@
     </a>
     <a
         href="/ambient"
+        aria-current={page.url.pathname === '/ambient' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
@@ -92,6 +100,7 @@
     </a>
     <a
         href="/settings"
+        aria-current={page.url.pathname === '/settings' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
