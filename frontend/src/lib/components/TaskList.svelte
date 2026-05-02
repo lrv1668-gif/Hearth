@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
-    import { ChevronDown, ChevronUp, RefreshCw } from '@lucide/svelte';
+    import { ChevronDown, ChevronUp, RefreshCw, Timer } from '@lucide/svelte';
 
     interface Props {
         task?: Task;
@@ -14,7 +14,8 @@
             recurrenceUnit?: string,
             recurrenceInterval?: number,
             recurrenceDays?: string,
-            recurrenceEndDate?: string
+            recurrenceEndDate?: string,
+            isCountdown?: boolean
         ) => void;
         onSave?: (title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) => void;
     }
@@ -31,6 +32,7 @@
 
     let description = $state('');
     let assignee = $state('');
+    let isCountdown = $state(false);
     let recurrenceUnit = $state(''); // '' | 'day' | 'week' | 'month'
     let recurrenceInterval = $state(1);
     let recurrenceDays = $state<string[]>([]);
@@ -54,7 +56,7 @@
         recurrenceInterval = task.recurrence_interval ?? 1;
         recurrenceDays = task.recurrence_days ? task.recurrence_days.split(',') : [];
         recurrenceEndDate = task.recurrence_end_date ? task.recurrence_end_date.slice(0, 10) : '';
-        showMore = !!(task.description || task.assignee || task.recurrence_unit);
+        showMore = !!(task.description || task.assignee || task.recurrence_unit || task.is_countdown);
     });
 
     function recurrenceLabel(t: Task): string {
@@ -114,7 +116,8 @@
                 recurrenceUnit || undefined,
                 recurrenceUnit ? recurrenceInterval : undefined,
                 recurrenceUnit === 'week' && recurrenceDays.length > 0 ? recurrenceDays.join(',') : undefined,
-                recurrenceUnit && recurrenceEndDate ? recurrenceEndDate : undefined
+                recurrenceUnit && recurrenceEndDate ? recurrenceEndDate : undefined,
+                isCountdown
             );
 
             newTitle = '';
@@ -127,6 +130,7 @@
             recurrenceInterval = 1;
             recurrenceDays = [];
             recurrenceEndDate = '';
+            isCountdown = false;
             showMore = false;
         }
     }
@@ -226,6 +230,25 @@
                        focus:ring-1 focus:ring-[var(--border)] transition"
             />
 
+            <!-- Countdown toggle (add mode) / indicator (edit mode) -->
+            {#if isEdit && task?.is_countdown}
+                <div class="flex items-center gap-2 type-body text-[var(--text-3)]">
+                    <Timer size={12} class="icon-sm" />
+                    <span>Event countdown</span>
+                </div>
+            {:else if !isEdit}
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input
+                        type="checkbox"
+                        bind:checked={isCountdown}
+                        class="w-4 h-4 accent-[var(--accent)]"
+                    />
+                    <span class="type-body text-[var(--text-2)] group-hover:text-[var(--text-1)] transition-colors select-none">
+                        Event countdown
+                    </span>
+                </label>
+            {/if}
+
             <!-- Recurrence -->
             {#if isEdit && task?.recurrence_unit}
                 <div class="flex items-center gap-2 type-body text-[var(--text-3)]">
@@ -233,7 +256,7 @@
                     <span>{recurrenceLabel(task)}</span>
                     <span class="type-label text-[var(--text-4)]">(recurrence cannot be changed)</span>
                 </div>
-            {:else if !isEdit}
+            {:else if !isEdit && !isCountdown}
                 <div class="space-y-2">
                     <label class="type-label text-[var(--text-3)] uppercase tracking-wide">Repeat</label>
                     <div class="flex gap-2 flex-wrap">

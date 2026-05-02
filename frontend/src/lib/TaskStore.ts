@@ -16,7 +16,8 @@ export async function addTask(
     recurrenceUnit?: string,
     recurrenceInterval?: number,
     recurrenceDays?: string,
-    recurrenceEndDate?: string
+    recurrenceEndDate?: string,
+    isCountdown = false
 ) {
     const task = await createTask(
         title,
@@ -27,7 +28,8 @@ export async function addTask(
         recurrenceUnit,
         recurrenceInterval,
         recurrenceDays,
-        recurrenceEndDate
+        recurrenceEndDate,
+        isCountdown
     );
     tasks.update((ts) => [task, ...ts]);
 }

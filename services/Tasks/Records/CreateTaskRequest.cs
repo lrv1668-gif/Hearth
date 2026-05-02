@@ -9,5 +9,6 @@ record CreateTaskRequest(
     string? RecurrenceUnit,
     int? RecurrenceInterval,
     string? RecurrenceDays,
-    DateTime? RecurrenceEndDate
+    DateTime? RecurrenceEndDate,
+    bool IsCountdown = false
 );

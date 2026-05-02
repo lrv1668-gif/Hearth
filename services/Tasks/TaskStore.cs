@@ -28,6 +28,7 @@ namespace Tasks
                 "ALTER TABLE lu_tasks ADD COLUMN recurrence_days TEXT NULL",
                 "ALTER TABLE lu_tasks ADD COLUMN series_id INTEGER NULL",
                 "ALTER TABLE lu_tasks ADD COLUMN recurrence_end_date DATETIME NULL",
+                "ALTER TABLE lu_tasks ADD COLUMN is_countdown BIT NOT NULL DEFAULT 0",
             })
             {
                 try { db.NonQuery(col); } catch { /* column already exists */ }
@@ -44,7 +45,7 @@ namespace Tasks
             var through = DateTime.UtcNow.Date.AddDays(365).ToString("o");
             return db.Query("""
                 SELECT id, title, done, due_date, due_time, created_at,
-                       description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date
+                       description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date, is_countdown
                 FROM lu_tasks
                 WHERE done = 1
                    OR due_date IS NULL
@@ -57,15 +58,15 @@ namespace Tasks
             string title, DateTime? dueDate, string? dueTime,
             string? description, string? assignee,
             string? recurrenceUnit, int? recurrenceInterval, string? recurrenceDays,
-            DateTime? recurrenceEndDate)
+            DateTime? recurrenceEndDate, bool isCountdown = false)
         {
             var first = db.QueryOne("""
                 INSERT INTO lu_tasks (title, due_date, due_time, description, assignee,
-                                      recurrence_unit, recurrence_interval, recurrence_days, recurrence_end_date)
+                                      recurrence_unit, recurrence_interval, recurrence_days, recurrence_end_date, is_countdown)
                 VALUES ($title, $due_date, $due_time, $description, $assignee,
-                        $recurrence_unit, $recurrence_interval, $recurrence_days, $recurrence_end_date)
+                        $recurrence_unit, $recurrence_interval, $recurrence_days, $recurrence_end_date, $is_countdown)
                 RETURNING id, title, done, due_date, due_time, created_at,
-                          description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date
+                          description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date, is_countdown
                 """, Map, cmd =>
             {
                 cmd.AddParam("$title", title);
@@ -77,6 +78,7 @@ namespace Tasks
                 cmd.AddParam("$recurrence_interval", (object?)recurrenceInterval ?? DBNull.Value);
                 cmd.AddParam("$recurrence_days", recurrenceDays);
                 cmd.AddParam("$recurrence_end_date", recurrenceEndDate.HasValue ? recurrenceEndDate.Value.ToString("o") : null);
+                cmd.AddParam("$is_countdown", isCountdown ? 1 : 0);
             })!;
 
             if (recurrenceUnit is not null && dueDate.HasValue)
@@ -94,7 +96,7 @@ namespace Tasks
         {
             var task = db.QueryOne("""
                 SELECT id, title, done, due_date, due_time, created_at,
-                       description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date
+                       description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date, is_countdown
                 FROM lu_tasks WHERE id = $id
                 """, Map, cmd => cmd.AddParam("$id", id));
 
@@ -112,7 +114,7 @@ namespace Tasks
                     description = $description, assignee = $assignee
                 WHERE id = $id
                 RETURNING id, title, done, due_date, due_time, created_at,
-                          description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date
+                          description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date, is_countdown
                 """, Map, cmd =>
             {
                 cmd.AddParam("$done", done ? 1 : 0);
@@ -245,6 +247,7 @@ namespace Tasks
                 r.Field<int?>("recurrence_interval"),
                 r.Field<string?>("recurrence_days"),
                 r.Field<long?>("series_id"),
-                r.Field<DateTime?>("recurrence_end_date"));
+                r.Field<DateTime?>("recurrence_end_date"),
+                r.Field<bool>("is_countdown"));
     }
 }

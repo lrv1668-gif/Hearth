@@ -12,6 +12,7 @@ export interface Task {
     recurrence_days: string | null;
     recurrence_end_date: string | null;
     series_id: number | null;
+    is_countdown: boolean;
 }
 
 export async function fetchTasks(): Promise<Task[]> {
@@ -28,7 +29,8 @@ export async function createTask(
     recurrence_unit?: string,
     recurrence_interval?: number,
     recurrence_days?: string,
-    recurrence_end_date?: string
+    recurrence_end_date?: string,
+    is_countdown = false
 ): Promise<Task> {
     const res = await fetch('/tasks', {
         method: 'POST',
@@ -43,6 +45,7 @@ export async function createTask(
             recurrence_interval: recurrence_interval ?? null,
             recurrence_days: recurrence_days ?? null,
             recurrence_end_date: recurrence_end_date ?? null,
+            is_countdown,
         }),
     });
     return res.json();
