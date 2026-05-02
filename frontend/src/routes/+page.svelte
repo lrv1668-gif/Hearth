@@ -1,11 +1,12 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
-    import { tasks, toggleTask, removeTask, editTask } from '$lib/TaskStore';
+    import { tasks, toggleTask, removeTask, editTask, addTask } from '$lib/TaskStore';
     import Schedule from '$lib/components/Schedule.svelte';
     import TaskModal from '$lib/components/TaskModal.svelte';
     import NowPlaying from '$lib/components/NowPlaying.svelte';
     import WeatherWidget from '$lib/components/WeatherWidget.svelte';
     import MoonPhase from '$lib/components/MoonPhase.svelte';
+    import Countdowns from '$lib/components/Countdowns.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -34,8 +35,16 @@
             <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3">
                 Upcoming Tasks
             </h2>
-            <Schedule tasks={$tasks} onToggle={toggleTask} onDelete={removeTask} onEdit={openEditTask} />
+            <Schedule tasks={$tasks.filter(t => !t.is_countdown)} onToggle={toggleTask} onDelete={removeTask} onEdit={openEditTask} />
             
+                
+            <div>
+                <div class="flex items-baseline justify-between border-b border-[var(--border)] pb-3 mb-4">
+                    <h2 class="type-title font-semibold text-[var(--text-1)]">Countdowns</h2>
+                </div>
+                <Countdowns tasks={$tasks} onEdit={openEditTask} />
+            </div>
+
             <div>
                 <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                     Now Playing

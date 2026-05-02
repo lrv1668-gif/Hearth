@@ -13,5 +13,6 @@ public record TaskItem(
     int? RecurrenceInterval,
     string? RecurrenceDays,
     long? SeriesId,
-    DateTime? RecurrenceEndDate
+    DateTime? RecurrenceEndDate,
+    bool IsCountdown
 );

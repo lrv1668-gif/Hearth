@@ -15,7 +15,8 @@
             recurrenceUnit?: string,
             recurrenceInterval?: number,
             recurrenceDays?: string,
-            recurrenceEndDate?: string
+            recurrenceEndDate?: string,
+            isCountdown?: boolean
         ) => void;
         onSave?: (title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) => void;
         onDelete?: (id: number, series?: boolean) => void;
@@ -57,7 +58,8 @@
         recurrenceUnit?: string,
         recurrenceInterval?: number,
         recurrenceDays?: string,
-        recurrenceEndDate?: string
+        recurrenceEndDate?: string,
+        isCountdown?: boolean
     ) {
         onAdd?.(
             title,
@@ -68,7 +70,8 @@
             recurrenceUnit,
             recurrenceInterval,
             recurrenceDays,
-            recurrenceEndDate
+            recurrenceEndDate,
+            isCountdown
         );
         close();
     }

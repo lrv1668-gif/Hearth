@@ -26,7 +26,8 @@ public static class WebApplicationExtensions
                 return Results.BadRequest("title required");
             var task = store.Create(req.Title, req.DueDate, req.DueTime,
                 req.Description, req.Assignee,
-                req.RecurrenceUnit, req.RecurrenceInterval, req.RecurrenceDays, req.RecurrenceEndDate);
+                req.RecurrenceUnit, req.RecurrenceInterval, req.RecurrenceDays, req.RecurrenceEndDate,
+                req.IsCountdown);
             return Results.Created($"/tasks/{task.Id}", task);
         });
 
