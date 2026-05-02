@@ -25,7 +25,7 @@
     const isEdit = $derived(!!task);
 
     let newTitle = $state('');
-    let newDueDate = $state(initialDate ?? '');
+    let newDueDate = $state('');
     let newDueTime = $state('');
     let allDay = $state(true);
     let showMore = $state(false);
@@ -258,7 +258,7 @@
                 </div>
             {:else if !isEdit && !isCountdown}
                 <div class="space-y-2">
-                    <label class="type-label text-[var(--text-3)] uppercase tracking-wide">Repeat</label>
+                    <p class="type-label text-[var(--text-3)] uppercase tracking-wide">Repeat</p>
                     <div class="flex gap-2 flex-wrap">
                         {#each repeatOptions as opt}
                             <button
