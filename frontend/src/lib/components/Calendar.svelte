@@ -184,17 +184,19 @@
             {@const isToday = key === todayKey}
             {@const dayTasks = day ? (tasksByDate[key] ?? []) : []}
 
-            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-            <button
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+            <div
+                role={day ? 'button' : undefined}
+                tabindex={day ? 0 : undefined}
                 onclick={() => day && onDateClick(key)}
+                onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && day && onDateClick(key)}
                 class="min-h-20 p-2 w-full text-left flex flex-col items-start
                   {day
                     ? isToday
-                        ? 'bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)] hover:bg-[var(--surface-hi)] transition-colors'
-                        : 'bg-[var(--bg)] hover:bg-[var(--surface)] transition-colors'
-                    : 'bg-[var(--bg)] pointer-events-none'}"
+                        ? 'bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)] hover:bg-[var(--surface-hi)] transition-colors cursor-default'
+                        : 'bg-[var(--bg)] hover:bg-[var(--surface)] transition-colors cursor-default'
+                    : 'bg-[var(--bg)]'}"
                 aria-label={day ? `Add task on ${key}` : undefined}
-                tabindex={day ? 0 : -1}
             >
                 {#if day}
                     <span
@@ -248,7 +250,7 @@
                         </ul>
                     {/if}
                 {/if}
-            </button>
+            </div>
         {/each}
     </div>
 

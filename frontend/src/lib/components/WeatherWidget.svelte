@@ -35,14 +35,11 @@
 </script>
 
 {#if current}
+    {@const WeatherIcon = weatherIcon(current.weather_code)}
     <div class="space-y-3">
         <!-- Current conditions -->
         <div class="flex items-center gap-3">
-            <svelte:component
-                this={weatherIcon(current.weather_code)}
-                size={20}
-                class="icon-lg text-[var(--text-2)] flex-shrink-0"
-            />
+            <WeatherIcon size={20} class="icon-lg text-[var(--text-2)] flex-shrink-0" />
             <div>
                 <span class="type-display font-semibold text-[var(--text-1)]"
                     >{Math.round(current.temperature_f)}°F</span
@@ -55,6 +52,7 @@
         {#if forecast.length > 0}
             <div class="flex gap-1 overflow-x-auto">
                 {#each forecast.slice(0, 5) as day (day.date)}
+                    {@const ForecastIcon = weatherIcon(day.weather_code)}
                     <div
                         class="flex flex-col items-center gap-1 flex-1 min-w-0 px-1 py-2 rounded-lg bg-[var(--surface)]"
                     >
@@ -63,11 +61,7 @@
                                 weekday: 'short',
                             })}
                         </span>
-                        <svelte:component
-                            this={weatherIcon(day.weather_code)}
-                            size={14}
-                            class="icon-md text-[var(--text-3)]"
-                        />
+                        <ForecastIcon size={14} class="icon-md text-[var(--text-3)]" />
                         <span class="type-label text-[var(--text-2)]">{Math.round(day.temp_max_f)}°</span>
                         <span class="type-caption text-[var(--text-4)]">{Math.round(day.temp_min_f)}°</span>
                     </div>
