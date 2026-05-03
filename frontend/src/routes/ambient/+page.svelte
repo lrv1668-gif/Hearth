@@ -3,7 +3,7 @@
     import { fade } from 'svelte/transition';
     import { goto } from '$app/navigation';
     import { fetchRandomPhoto, type Photo } from '$lib/api';
-    import { settings } from '$lib/SettingsStore';
+    import { settings } from '$lib/stores/SettingsStore';
 
     let photo = $state<Photo | null>(null);
     let loading = $state(true);

@@ -2,6 +2,7 @@
     import SettingsSection from '$lib/components/settings/SettingsSection.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import AmbientSettings from '$lib/components/settings/AmbientSettings.svelte';
+    import WidgetSettings from '$lib/components/settings/WidgetSettings.svelte';
 </script>
 
 <svelte:head>
@@ -15,5 +16,9 @@
 
     <SettingsSection title="Ambient Mode">
         <AmbientSettings />
+    </SettingsSection>
+
+    <SettingsSection title="Widgets">
+        <WidgetSettings />
     </SettingsSection>
 </div>

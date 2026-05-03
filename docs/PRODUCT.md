@@ -133,7 +133,8 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 ### Phase 2 — The Home
 
 - Plant tracker: name your plants, set watering intervals, visual wilt indicator in Ambient overlay, full list in Daily mode
-- Daily tasks: shared household to-do list, completable from the web UI
+- Daily tasks: shared household to-do list, completable from the web UI; recurring tasks (daily through yearly) and one-off countdown events
+- Moon phase widget: pure-math SVG display with phase name, illumination %, and countdown to next major phase
 - Grocery list: add from phone, shown in Daily mode alongside tasks
 
 ### Phase 3 — The Pulse
@@ -163,7 +164,7 @@ Each capability is a self-contained microservice running on the Pi. Services exp
 | Display Service  | Renders layouts to bitmap, drives e-paper hardware, manages refresh schedule | Planned         |
 | Photos Service   | Fetches Unsplash photos, caches batches, serves `/ambient` slideshow         | Implemented     |
 | Weather Service  | Polls Open-Meteo on a schedule, caches current + 7-day forecast              | Implemented     |
-| Tasks Service    | CRUD for household to-do and grocery lists, with recurrence                  | Implemented     |
+| Tasks Service    | CRUD for household to-do lists with recurrence and countdown events          | Implemented     |
 | Plants Service   | Tracks plant watering schedules and due dates                                | Planned         |
 | Music Service    | Polls Spotify API for now-playing                                            | Implemented     |
 | Calendar Service | Syncs with Google/Apple Calendar                                             | Planned         |

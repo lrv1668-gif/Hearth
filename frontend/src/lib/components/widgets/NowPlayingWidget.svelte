@@ -1,13 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Music } from '@lucide/svelte';
-    import { nowPlaying, refreshNowPlaying } from '$lib/SpotifyStore';
-    import { disconnectSpotify } from '$lib/api';
-
-    async function handleDisconnect() {
-        await disconnectSpotify();
-        await refreshNowPlaying();
-    }
+    import { nowPlaying, refreshNowPlaying } from '$lib/stores/SpotifyStore';
 
     let fetchedAt = $state(Date.now());
     let tickMs = $state(0);
@@ -39,17 +33,9 @@
 </script>
 
 {#if track === undefined}
-    <a
-        href="/spotify/auth"
-        class="flex items-center gap-1.5 type-label text-[var(--text-4)] hover:text-[var(--text-3)] transition-colors"
-    >
-        <Music size={14} class="icon-md" />
-        <span>Connect Spotify</span>
-    </a>
+    <p class="type-label text-[var(--text-4)]">Spotify not connected — add it in Settings.</p>
 {:else if track !== null}
-    <div
-        class="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] min-w-0 group relative"
-    >
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] min-w-0">
         {#if track.album_art_url}
             <img
                 src={track.album_art_url}
@@ -76,19 +62,7 @@
                 ></div>
             </div>
         </div>
-        <button
-            onclick={handleDisconnect}
-            class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-4)] hover:text-[var(--text-2)] p-0.5"
-            title="Disconnect Spotify">×</button
-        >
     </div>
 {:else}
-    <button
-        onclick={handleDisconnect}
-        class="flex items-center gap-1.5 type-label text-[var(--text-4)] hover:text-[var(--text-3)] transition-colors"
-        title="Disconnect Spotify"
-    >
-        <Music size={14} class="icon-md" />
-        <span>Nothing playing · Disconnect</span>
-    </button>
+    <p class="type-label text-[var(--text-4)]">Nothing playing.</p>
 {/if}

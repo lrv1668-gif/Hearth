@@ -2,8 +2,7 @@
     import '../app.css';
     import { browser } from '$app/environment';
     import Nav from '$lib/components/Nav.svelte';
-    import { loadTasks } from '$lib/TaskStore';
-    import '$lib/ThemeStore';
+    import { loadTasks } from '$lib/stores/TaskStore';
 
     let { children } = $props();
 
