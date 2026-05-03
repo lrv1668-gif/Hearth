@@ -7,6 +7,7 @@
     import WeatherWidget from '$lib/components/widgets/WeatherWidget.svelte';
     import MoonPhaseWidget from '$lib/components/widgets/MoonPhaseWidget.svelte';
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
+    import TodaysDateWidget from '$lib/components/widgets/TodaysDateWidget.svelte';
     import { settings } from '$lib/stores/SettingsStore';
 
     let modalOpen = $state(false);
@@ -68,14 +69,7 @@
                 <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                     Today's Date
                 </h2>
-                <div class="text-right">
-                    <p class="type-title font-bold text-[var(--text-1)] leading-tight">
-                        {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}
-                    </p>
-                    <p class="type-subtitle tracking-widest uppercase text-[var(--text-2)] mt-2">
-                        {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
-                    </p>
-                </div>
+                <TodaysDateWidget />
             </div>
 
             {#if $settings.enabledWidgets.includes('weather')}
