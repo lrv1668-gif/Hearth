@@ -6,11 +6,12 @@
 
     interface Props {
         title: string;
+        description?: string;
         children: Snippet;
         defaultOpen?: boolean;
     }
 
-    let { title, children, defaultOpen = false }: Props = $props();
+    let { title, children, description = '', defaultOpen = false }: Props = $props();
     let open = $state(untrack(() => defaultOpen));
 </script>
 
@@ -34,8 +35,10 @@
     </button>
 
     {#if open}
-        <div transition:slide={{ duration: 200 }}>
-            {@render children()}
-        </div>
+        {#if description}
+            <p class="type-body text-[var(--text-1)]">{description}</p>
+        {/if}
+
+        {@render children()}
     {/if}
 </section>

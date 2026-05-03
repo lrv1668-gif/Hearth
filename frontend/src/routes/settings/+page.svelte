@@ -10,7 +10,7 @@
 </svelte:head>
 
 <div class="max-w-2xl mx-auto px-8 py-10 space-y-6">
-    <SettingsSection title="Appearance">
+    <SettingsSection title="Appearance" description="Select a theme below to change how the site looks.">
         <ThemePicker />
     </SettingsSection>
 
@@ -18,7 +18,10 @@
         <AmbientSettings />
     </SettingsSection>
 
-    <SettingsSection title="Widgets">
+    <SettingsSection
+        title="Widgets"
+        description="Control the visibility of widgets below. If turned off, they won't appear on the Schedule page."
+    >
         <WidgetSettings />
     </SettingsSection>
 </div>
