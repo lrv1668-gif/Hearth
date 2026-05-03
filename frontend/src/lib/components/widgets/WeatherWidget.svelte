@@ -39,12 +39,12 @@
     <div class="space-y-3">
         <!-- Current conditions -->
         <div class="flex items-center gap-3">
-            <WeatherIcon size={20} class="icon-lg text-[var(--text-2)] flex-shrink-0" />
+            <WeatherIcon class="icon-lg text-[var(--text-1)] flex-shrink-0" />
             <div>
                 <span class="type-display font-semibold text-[var(--text-1)]"
                     >{Math.round(current.temperature_f)}°F</span
                 >
-                <span class="type-body text-[var(--text-3)] ml-2">{current.description}</span>
+                <span class="type-body text-[var(--text-2)] ml-2">{current.description}</span>
             </div>
         </div>
 
@@ -56,31 +56,31 @@
                     <div
                         class="flex flex-col items-center gap-1 flex-1 min-w-0 px-1 py-2 rounded-lg bg-[var(--surface)]"
                     >
-                        <span class="type-caption text-[var(--text-3)] truncate w-full text-center">
+                        <span class="type-caption text-[var(--text-1)] truncate w-full text-center">
                             {new Date(`${day.date}T00:00`).toLocaleDateString('en-US', {
                                 weekday: 'short',
                             })}
                         </span>
-                        <ForecastIcon size={14} class="icon-md text-[var(--text-3)]" />
-                        <span class="type-label text-[var(--text-2)]">{Math.round(day.temp_max_f)}°</span>
-                        <span class="type-caption text-[var(--text-4)]">{Math.round(day.temp_min_f)}°</span>
+                        <ForecastIcon class="icon-md text-[var(--text-1)]" />
+                        <span class="type-label text-[var(--text-1)]">{Math.round(day.temp_max_f)}°</span>
+                        <span class="type-caption text-[var(--text-2)]">{Math.round(day.temp_min_f)}°</span>
                     </div>
                 {/each}
             </div>
         {/if}
 
         <!-- Detail stats: sunrise, sunset, wind -->
-        <div class="flex items-center gap-4 type-label text-[var(--text-4)]">
+        <div class="flex items-center gap-4 type-label text-[var(--text-2)]">
             {#if forecast[0]?.sunrise}
                 <span class="flex items-center gap-1">
-                    <Sunrise size={12} class="icon-sm" />{formatSunTime(forecast[0].sunrise)}
+                    <Sunrise class="icon-sm" />{formatSunTime(forecast[0].sunrise)}
                 </span>
                 <span class="flex items-center gap-1">
-                    <Sunset size={12} class="icon-sm" />{formatSunTime(forecast[0].sunset)}
+                    <Sunset class="icon-sm" />{formatSunTime(forecast[0].sunset)}
                 </span>
             {/if}
             <span class="flex items-center gap-1">
-                <Wind size={12} class="icon-sm" />{Math.round(current.wind_mph)} mph
+                <Wind class="icon-sm" />{Math.round(current.wind_mph)} mph
             </span>
         </div>
     </div>

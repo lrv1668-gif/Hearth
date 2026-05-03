@@ -18,7 +18,7 @@
             [0.9375, 'Waning Crescent'],
             [1.0001, 'New Moon'],
         ];
-        const name = (phaseNames.find(([t]) => phase < t)![1]);
+        const name = phaseNames.find(([t]) => phase < t)![1];
 
         // Next major phase (0 = new, 0.25 = first quarter, 0.5 = full, 0.75 = last quarter)
         const majors: [number, string][] = [
@@ -56,20 +56,15 @@
 </script>
 
 <div class="flex items-center gap-4">
-    <svg
-        viewBox="-50 -50 100 100"
-        class="w-16 h-16 flex-shrink-0"
-        aria-label="Moon phase: {name}"
-        role="img"
-    >
+    <svg viewBox="-50 -50 100 100" class="w-16 h-16 flex-shrink-0" aria-label="Moon phase: {name}" role="img">
         <circle r="40" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
         <path d={litPath} fill="var(--text-2)" />
     </svg>
 
     <div class="flex flex-col gap-0.5 min-w-0">
         <p class="type-body font-medium text-[var(--text-1)]">{name}</p>
-        <p class="type-label text-[var(--text-3)]">{illumination}% illuminated</p>
-        <p class="type-label text-[var(--text-4)]">
+        <p class="type-label text-[var(--text-2)]">{illumination}% illuminated</p>
+        <p class="type-label text-[var(--text-3)]">
             {nextName} in {nextDays} day{nextDays === 1 ? '' : 's'}
         </p>
     </div>

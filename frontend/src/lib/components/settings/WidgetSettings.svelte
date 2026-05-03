@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Link } from '@lucide/svelte';
+    import { Settings } from '@lucide/svelte';
     import { widgets } from '$lib/constants/widgets';
     import { settings, toggleWidget } from '$lib/stores/SettingsStore';
     import Toggle from '$lib/components/Toggle.svelte';
@@ -36,6 +36,7 @@
             {#if widget.id === 'now-playing'}
                 <div class="ml-12 mt-1.5">
                     <div class="flex flex-row gap-2">
+                        <Settings class="icon-sm" />
                         {#if spotifyConnected}
                             <p class="type-label text-[var(--text-1)] border-r pr-2">Spotify connected</p>
                             <button

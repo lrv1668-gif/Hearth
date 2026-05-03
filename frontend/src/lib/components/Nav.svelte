@@ -24,7 +24,7 @@
             href="/"
             aria-current={page.url.pathname === '/' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-3)] hover:text-[var(--text-1)]
+             text-[var(--text-2)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
         >
             Schedule
@@ -34,7 +34,7 @@
             href="/calendar"
             aria-current={page.url.pathname === '/calendar' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-3)] hover:text-[var(--text-1)]
+             text-[var(--text-2)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
         >
             Calendar
@@ -44,7 +44,7 @@
             href="/ambient"
             aria-current={page.url.pathname === '/ambient' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-3)] hover:text-[var(--text-1)]
+             text-[var(--text-2)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
         >
             Ambient
@@ -54,7 +54,7 @@
             href="/settings"
             aria-current={page.url.pathname === '/settings' ? 'page' : undefined}
             class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-3)] hover:text-[var(--text-1)]
+             text-[var(--text-2)] hover:text-[var(--text-1)]
              aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
         >
             Settings
