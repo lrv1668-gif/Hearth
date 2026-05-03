@@ -34,7 +34,7 @@
                     class="px-4 py-1.5 rounded-full text-xs tracking-wide border transition-colors
                         {$settings.cadenceSeconds === opt.value
                         ? 'bg-[var(--text-1)] text-[var(--bg)] border-[var(--text-1)] pointer-events-none'
-                        : 'border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:border-[var(--text-2)]'} type-label"
+                        : 'border-[var(--border)] hover:bg-[var(--text-4)] text-[var(--text-1)] hover:text-[var(--text-1)] hover:border-[var(--text-2)]'} type-label"
                 >
                     {opt.label}
                 </button>
@@ -56,7 +56,7 @@
                         checked={$settings.photoCategories.includes(cat.id)}
                         onchange={() => toggleCategory(cat.id)}
                     />
-                    <span class="type-label text-[var(--text-2)]">{cat.label}</span>
+                    <span class="type-body text-[var(--text-1)]">{cat.label}</span>
                 </label>
             {/each}
         </div>
@@ -67,7 +67,7 @@
         <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photographer info</p>
         <label class="flex items-center gap-3 cursor-pointer">
             <Toggle checked={$settings.showAttribution} onchange={toggleAttribution} />
-            <span class="type-label text-[var(--text-2)]">Show photographer name in ambient mode</span>
+            <span class="type-body text-[var(--text-1)]">Show photographer name in ambient mode</span>
         </label>
     </div>
 </div>

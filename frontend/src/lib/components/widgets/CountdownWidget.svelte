@@ -33,7 +33,7 @@
 </script>
 
 {#if upcoming.length === 0}
-    <p class="type-label text-[var(--text-4)]">No countdowns added yet.</p>
+    <p class="type-label text-[var(--text-2)]">No countdowns added yet.</p>
 {:else}
     <ul class="space-y-3">
         {#each upcoming as item (item.id)}
@@ -49,7 +49,7 @@
                             <span class="type-title font-bold text-[var(--text-1)] leading-none tabular-nums">
                                 {item.days}
                             </span>
-                            <span class="type-caption leading-none text-[var(--text-4)]">
+                            <span class="type-caption leading-none text-[var(--text-2)]">
                                 {item.days === 1 ? 'day' : 'days'}
                             </span>
                         {/if}
@@ -63,7 +63,7 @@
                         <p class="type-body text-[var(--text-1)] truncate leading-tight">{item.title}</p>
 
                         {#if item.days !== 0}
-                            <p class="type-label text-[var(--text-4)]">{formatDate(item.due_date!)}</p>
+                            <p class="type-label text-[var(--text-2)]">{formatDate(item.due_date!)}</p>
                         {/if}
                     </div>
                 </button>

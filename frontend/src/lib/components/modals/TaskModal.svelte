@@ -103,7 +103,7 @@
                 class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors w-6 h-6 flex items-center justify-center"
                 aria-label="Close"
             >
-                <X />
+                <X class="icon-md" />
             </button>
         </div>
 
@@ -137,7 +137,7 @@
                             class="text-[var(--text-4)] hover:text-[var(--text-2)] transition ml-1"
                             aria-label="Cancel delete"
                         >
-                            <X size={12} class="icon-sm" />
+                            <X class="icon-sm" />
                         </button>
                     </div>
                 {:else}
@@ -152,7 +152,7 @@
                         class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
                         aria-label="Delete task"
                     >
-                        <Trash2 size={18} class="icon-lg" />
+                        <Trash2 class="icon-md" />
                     </button>
                 {/if}
             </div>

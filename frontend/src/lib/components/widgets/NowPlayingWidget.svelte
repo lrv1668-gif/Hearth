@@ -53,7 +53,7 @@
                 <p class="type-body font-medium text-[var(--text-1)] truncate leading-tight">
                     {track.title}
                 </p>
-                <p class="type-label text-[var(--text-3)] truncate leading-tight">{track.artist}</p>
+                <p class="type-label text-[var(--text-2)] truncate leading-tight">{track.artist}</p>
             </div>
             <div class="w-full h-1 bg-[var(--border)] rounded-full overflow-hidden">
                 <div

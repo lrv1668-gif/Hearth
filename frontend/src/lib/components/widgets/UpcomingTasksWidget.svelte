@@ -122,7 +122,7 @@
 </script>
 
 {#if groups.length === 0}
-    <p class="text-center type-body text-[var(--text-4)] py-16">Nothing scheduled.</p>
+    <p class="text-center type-body text-[var(--text-2)] py-16">Nothing scheduled.</p>
 {:else}
     <div class="space-y-8">
         {#each groups as group (group.key)}
@@ -171,14 +171,14 @@
                                     </span>
                                     {#if task.assignee}
                                         <span
-                                            class="flex-shrink-0 type-label px-1.5 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-3)]"
+                                            class="flex-shrink-0 type-label px-1.5 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)]"
                                         >
                                             {task.assignee}
                                         </span>
                                     {/if}
                                     {#if task.recurrence_unit}
                                         <span
-                                            class="flex-shrink-0 flex items-center gap-0.5 type-label text-[var(--text-4)]"
+                                            class="flex-shrink-0 flex items-center gap-0.5 type-label text-[var(--text-2)]"
                                         >
                                             <RefreshCw size={10} class="icon-xs" />
                                             {recurrenceLabel(task)}
@@ -186,7 +186,7 @@
                                     {/if}
                                 </div>
                                 {#if task.description}
-                                    <p class="type-label text-[var(--text-3)] truncate mt-0.5">
+                                    <p class="type-label text-[var(--text-2)] truncate mt-0.5">
                                         {task.description}
                                     </p>
                                 {/if}
