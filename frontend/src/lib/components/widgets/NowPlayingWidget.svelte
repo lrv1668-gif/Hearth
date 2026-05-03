@@ -64,5 +64,5 @@
         </div>
     </div>
 {:else}
-    <p class="type-label text-[var(--text-4)]">Nothing playing.</p>
+    <p class="type-label text-[var(--text-2)]">Nothing playing.</p>
 {/if}
