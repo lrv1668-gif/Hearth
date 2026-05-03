@@ -67,7 +67,10 @@
             if (t.recurrence_days) return `Weekly · ${t.recurrence_days}`;
             return n === 2 ? 'Bi-weekly' : 'Weekly';
         }
-        if (t.recurrence_unit === 'month') return n === 1 ? 'Monthly' : `Every ${n} months`;
+        if (t.recurrence_unit === 'month') {
+            if (n === 12) return 'Yearly';
+            return n === 1 ? 'Monthly' : `Every ${n} months`;
+        }
         return '';
     }
 
@@ -77,6 +80,7 @@
         { unit: 'week', interval: 1, label: 'Weekly' },
         { unit: 'week', interval: 2, label: 'Bi-weekly' },
         { unit: 'month', interval: 1, label: 'Monthly' },
+        { unit: 'month', interval: 12, label: 'Yearly' },
     ];
 
     function handleDateChange(e: Event) {
