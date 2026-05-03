@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
-import { DEFAULT_THEME, isValidThemeId, type ThemeId } from './themes';
+import { DEFAULT_THEME, isValidThemeId, type ThemeId } from '../constants/themes';
 
 function getInitialTheme(): ThemeId {
     if (!browser) return DEFAULT_THEME;

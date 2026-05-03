@@ -17,12 +17,12 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ### Routes
 
-| Route       | Description                                                         |
-| ----------- | ------------------------------------------------------------------- |
-| `/`         | Schedule — task list and sidebar (weather, date, now playing)       |
-| `/calendar` | Calendar view                                                       |
-| `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`    |
-| `/settings` | Theme picker, ambient photo cadence, categories, attribution toggle |
+| Route       | Description                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| `/`         | Schedule — upcoming tasks, countdown events, moon phase, weather, date, now playing      |
+| `/calendar` | Calendar view with month grid and per-day task overflow modal                            |
+| `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                         |
+| `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, attribution toggle |
 
 ### State Management
 
@@ -51,13 +51,35 @@ Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-
 
 Themes are defined in two places that must be kept in sync: `frontend/src/app.css` (CSS variables) and `frontend/src/lib/themes.ts` (switcher metadata).
 
+### Typography Scale
+
+A fluid type scale is defined in `app.css` using `clamp()` so text grows smoothly from mobile (~375 px) to the 13.3" e-paper target (~1200 px). The scale is exposed as utility classes via `@layer utilities` — components use these instead of raw Tailwind `text-*` classes so tuning a single `clamp()` value adjusts every component simultaneously.
+
+| Class           | CSS variable        | Range (min → max)         | Usage                           |
+| --------------- | ------------------- | ------------------------- | ------------------------------- |
+| `type-display`  | `--font-display`    | `2rem` → `4.5rem`         | Date number, temperature        |
+| `type-title`    | `--font-title`      | `1.125rem` → `1.875rem`   | Section headings, logo          |
+| `type-subtitle` | `--font-subtitle`   | `1rem` → `1.5rem`         | Sub-headings, settings labels   |
+| `type-body`     | `--font-body`       | `0.875rem` → `1.25rem`    | Task text, form inputs          |
+| `type-label`    | `--font-label`      | `0.6875rem` → `1rem`      | Nav links, tags, badges         |
+| `type-caption`  | `--font-caption`    | `0.5625rem` → `0.875rem`  | Mobile nav labels, small hints  |
+
+Icon sizes follow the same approach:
+
+| Class     | CSS variable | Range       | Usage                               |
+| --------- | ------------ | ----------- | ----------------------------------- |
+| `icon-lg` | `--icon-lg`  | `20px–28px` | Nav icons, main weather icon        |
+| `icon-md` | `--icon-md`  | `14px–22px` | Forecast icons, music, chevrons     |
+| `icon-sm` | `--icon-sm`  | `12px–18px` | Close buttons, recurrence icon row  |
+| `icon-xs` | `--icon-xs`  | `10px–14px` | Smallest inline icons               |
+
 ## Backend Services
 
 Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service backed by **SQLite**.
 
-| Service   | Port | Status      | Responsibility                                     |
-| --------- | ---- | ----------- | -------------------------------------------------- |
-| `tasks`   | 8081 | Implemented | Task CRUD with due dates and recurrence            |
+| Service   | Port | Status      | Responsibility                                          |
+| --------- | ---- | ----------- | ------------------------------------------------------- |
+| `tasks`   | 8081 | Implemented | Task CRUD with due dates, recurrence, and countdown events |
 | `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast        |
 | `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                        |
 | `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours |
@@ -86,13 +108,13 @@ JSON responses use `JsonNamingPolicy.SnakeCaseLower` so property names match fro
 
 ## Tasks Service
 
-The `tasks` service handles full CRUD for household tasks with optional due dates, times, and recurrence.
+The `tasks` service handles full CRUD for household tasks with optional due dates, times, recurrence, and countdown events.
 
 ### Endpoints
 
 | Method   | Path          | Description                                                                                  |
 | -------- | ------------- | -------------------------------------------------------------------------------------------- |
-| `GET`    | `/tasks`      | List tasks: all done tasks + undone tasks due within 60 days + undone tasks with no due date |
+| `GET`    | `/tasks`      | List tasks: all done tasks + undone tasks due within 1 year + undone tasks with no due date  |
 | `POST`   | `/tasks`      | Create a task; pre-generates all recurring instances up to 1 year ahead                      |
 | `PUT`    | `/tasks/{id}` | Update done status, title, due date, due time, description, or assignee                      |
 | `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series                  |
@@ -114,6 +136,24 @@ Recurring tasks use a **pre-generation** approach: when a task with a recurrence
 **Marking done:** Marking an instance done simply sets `done = 1` on that row. Future instances already exist and remain unaffected.
 
 **Deleting a series:** `DELETE /tasks/{id}?series=true` looks up the `series_id` of the given task and deletes all rows sharing that `series_id`.
+
+**Supported intervals:**
+
+| UI label   | `recurrence_unit` | `recurrence_interval` |
+| ---------- | ----------------- | --------------------- |
+| Daily      | `day`             | 1                     |
+| Weekly     | `week`            | 1                     |
+| Bi-weekly  | `week`            | 2                     |
+| Monthly    | `month`           | 1                     |
+| Yearly     | `month`           | 12                    |
+
+Weekly recurrences may additionally specify `recurrence_days` (e.g. `"Mon,Wed,Fri"`) to pin to specific weekdays.
+
+### Countdown Events
+
+Tasks with `is_countdown = 1` are one-off events tracked by time remaining rather than completion. They appear in a dedicated **Countdowns** widget on the schedule page showing the 5 nearest upcoming events sorted by days remaining, and are filtered out of the main upcoming-tasks list.
+
+The `is_countdown` flag is set at creation time and cannot be changed after the fact. Countdown tasks and recurrence are mutually exclusive — the UI hides repeat options when "Event countdown" is checked.
 
 ### Environment variables
 
@@ -290,14 +330,14 @@ Hearth/
 ├── frontend/
 │   ├── src/
 │   │   ├── routes/
-│   │   │   ├── +layout.svelte          # root layout, task loading, ThemeStore init
-│   │   │   ├── +page.svelte            # schedule page (tasks + weather + music)
+│   │   │   ├── +layout.svelte          # root layout, task loading, ThemeStore init, favicon
+│   │   │   ├── +page.svelte            # schedule page (tasks, countdowns, moon phase, weather, music)
 │   │   │   ├── calendar/
 │   │   │   │   └── +page.svelte        # calendar view
 │   │   │   ├── ambient/
 │   │   │   │   └── +page.svelte        # fullscreen photo slideshow
 │   │   │   └── settings/
-│   │   │       └── +page.svelte        # theme picker + ambient mode settings
+│   │   │       └── +page.svelte        # collapsible settings sections
 │   │   ├── lib/
 │   │   │   ├── api.ts                  # centralised API calls
 │   │   │   ├── themes.ts               # theme metadata array + ThemeId type
@@ -307,14 +347,23 @@ Hearth/
 │   │   │   ├── ThemeStore.ts           # active theme; persists to localStorage + sets dataset.theme
 │   │   │   ├── SettingsStore.ts        # ambient cadence, categories, attribution; persists to localStorage
 │   │   │   └── components/
-│   │   │       ├── Nav.svelte
-│   │   │       ├── Schedule.svelte
-│   │   │       ├── NowPlaying.svelte
-│   │   │       ├── WeatherWidget.svelte
-│   │   │       ├── TaskList.svelte
-│   │   │       ├── TaskModal.svelte
-│   │   │       └── Calendar.svelte
-│   │   └── app.css                     # Tailwind base + 7 theme definitions
+│   │   │       ├── Calendar.svelte     # month grid with per-day task lists
+│   │   │       ├── Nav.svelte          # desktop masthead + mobile bottom nav; active link via $app/state
+│   │   │       ├── TaskList.svelte     # add/edit task form
+│   │   │       ├── modals/
+│   │   │       │   ├── DayOverflowModal.svelte  # full task list for a day ("+X more" trigger)
+│   │   │       │   └── TaskModal.svelte          # add/edit task dialog
+│   │   │       ├── widgets/
+│   │   │       │   ├── CountdownWidget.svelte    # top-5 upcoming countdown events
+│   │   │       │   ├── MoonPhaseWidget.svelte    # SVG moon phase + phase name + next major phase
+│   │   │       │   ├── NowPlayingWidget.svelte   # Spotify now-playing card
+│   │   │       │   ├── UpcomingTasksWidget.svelte # grouped upcoming task list
+│   │   │       │   └── WeatherWidget.svelte      # current conditions + 5-day forecast
+│   │   │       └── settings/
+│   │   │           ├── AmbientSettings.svelte    # cadence, categories, attribution controls
+│   │   │           ├── SettingsSection.svelte    # collapsible section wrapper
+│   │   │           └── ThemePicker.svelte        # theme colour swatches
+│   │   └── app.css                     # Tailwind base + fluid type/icon scale + 7 theme definitions
 │   ├── Dockerfile                      # production (multi-stage, node adapter)
 │   ├── Dockerfile.dev                  # development (vite dev server)
 │   └── vite.config.ts

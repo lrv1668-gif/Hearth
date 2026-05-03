@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
-    import { tasks, addTask, toggleTask, removeTask, editTask } from '$lib/TaskStore';
+    import { tasks, addTask, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore';
     import Calendar from '$lib/components/Calendar.svelte';
     import TaskModal from '$lib/components/modals/TaskModal.svelte';
 

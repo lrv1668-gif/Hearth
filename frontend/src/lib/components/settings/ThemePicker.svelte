@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { themes, themeGroups } from '$lib/themes';
-    import { theme, setTheme } from '$lib/ThemeStore';
+    import { themes, themeGroups } from '$lib/constants/themes';
+    import { theme, setTheme } from '$lib/stores/ThemeStore';
 </script>
 
 <div class="flex flex-col gap-5">
     {#each themeGroups as group}
         <div class="flex flex-col gap-3">
-            <p class="type-label tracking-widest uppercase text-[var(--text-1)]">{group}</p>
+            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">{group}</p>
             <div class="flex gap-4 flex-wrap">
                 {#each themes.filter((t) => t.group === group) as t}
                     <button
@@ -24,7 +24,7 @@
                         <span
                             class="type-label tracking-wide {$theme === t.id
                                 ? 'text-[var(--text-1)] font-medium'
-                                : 'text-[var(--text-3)]'}"
+                                : 'text-[var(--text-2)]'}"
                         >
                             {t.label}
                         </span>

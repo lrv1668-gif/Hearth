@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { settings, updateCadence, toggleCategory, type PhotoCategory } from '$lib/SettingsStore';
+    import { settings, updateCadence, toggleCategory, type PhotoCategory } from '$lib/stores/SettingsStore';
+    import Toggle from '$lib/components/Toggle.svelte';
 
     function toggleAttribution() {
         settings.update((s) => ({ ...s, showAttribution: !s.showAttribution }));
@@ -25,7 +26,7 @@
 <div class="space-y-6">
     <!-- Cadence -->
     <div class="space-y-3">
-        <p class="type-label tracking-widest uppercase text-[var(--text-1)]">Photo cadence</p>
+        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo cadence</p>
         <div class="flex gap-2">
             {#each cadenceOptions as opt}
                 <button
@@ -43,19 +44,19 @@
 
     <!-- Categories -->
     <div class="space-y-3">
-        <p class="type-label tracking-widest uppercase text-[var(--text-1)]">Photo categories</p>
+        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo categories</p>
+        <p class="type-label text-[var(--text-2)]">
+            Select one or more categories from below to filter what will be pulled in ambient mode. If none are
+            selected, then no filtering is made when pulling a random photo.
+        </p>
         <div class="flex flex-col gap-2">
             {#each categoryOptions as cat}
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input
-                        type="checkbox"
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <Toggle
                         checked={$settings.photoCategories.includes(cat.id)}
                         onchange={() => toggleCategory(cat.id)}
-                        class="w-4 h-4 accent-[var(--accent)]"
                     />
-                    <span class="type-body text-[var(--text-2)] group-hover:text-[var(--text-2)] transition-colors">
-                        {cat.label}
-                    </span>
+                    <span class="type-label text-[var(--text-2)]">{cat.label}</span>
                 </label>
             {/each}
         </div>
@@ -63,17 +64,10 @@
 
     <!-- Attribution -->
     <div class="space-y-3">
-        <p class="type-label tracking-widest uppercase text-[var(--text-1)]">Photographer info</p>
-        <label class="flex items-center gap-3 cursor-pointer group">
-            <input
-                type="checkbox"
-                checked={$settings.showAttribution}
-                onchange={toggleAttribution}
-                class="w-4 h-4 accent-[var(--accent)]"
-            />
-            <span class="type-body text-[var(--text-2)] group-hover:text-[var(--text-2)] transition-colors">
-                Show photographer name in ambient mode
-            </span>
+        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photographer info</p>
+        <label class="flex items-center gap-3 cursor-pointer">
+            <Toggle checked={$settings.showAttribution} onchange={toggleAttribution} />
+            <span class="type-label text-[var(--text-2)]">Show photographer name in ambient mode</span>
         </label>
     </div>
 </div>

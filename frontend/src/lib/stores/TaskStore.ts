@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { fetchTasks, createTask, updateTask, deleteTask, type Task } from './api';
+import { fetchTasks, createTask, updateTask, deleteTask, type Task } from '../api';
 
 export const tasks = writable<Task[]>([]);
 
