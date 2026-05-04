@@ -8,7 +8,14 @@
     import MoonPhaseWidget from '$lib/components/widgets/MoonPhaseWidget.svelte';
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
     import TodaysDateWidget from '$lib/components/widgets/TodaysDateWidget.svelte';
+    import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+
+    const gridCols = $derived(
+        settings.enabledWidgets.length >= 2
+            ? 'md:grid-cols-[3fr_2fr]'
+            : 'sm:grid-cols-[3fr_2fr]'
+    );
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -31,65 +38,35 @@
 </svelte:head>
 
 <main class="max-w-5xl mx-auto px-6 md:px-8 py-6 md:py-4">
-    <div class="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
-        <!-- Left column: schedule -->
-        <div class="flex flex-col gap-4">
-            <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3">
-                Upcoming Tasks
-            </h2>
+    <div class="grid {gridCols} gap-8 items-start">
+        <WidgetContainer title="Upcoming Tasks">
             <UpcomingTasksWidget
                 tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
                 onToggle={toggleTask}
                 onDelete={removeTask}
                 onEdit={openEditTask}
             />
+        </WidgetContainer>
 
-            {#if settings.enabledWidgets.includes('countdowns')}
-                <div>
-                    <div class="flex items-baseline justify-between border-b border-[var(--border)] pb-3 mb-4">
-                        <h2 class="type-title font-semibold text-[var(--text-1)]">Countdowns</h2>
-                    </div>
-                    <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
-                </div>
-            {/if}
+        <WidgetContainer title="Countdowns" associatedWidgetId="countdowns">
+            <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
+        </WidgetContainer>
 
-            {#if settings.enabledWidgets.includes('now-playing')}
-                <div>
-                    <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
-                        Now Playing
-                    </h2>
-                    <NowPlayingWidget />
-                </div>
-            {/if}
-        </div>
+        <WidgetContainer title="Now Playing" associatedWidgetId="now-playing">
+            <NowPlayingWidget />
+        </WidgetContainer>
 
-        <!-- Right column: date display + music + weather + calendar teaser -->
-        <div class="flex flex-col gap-8">
-            <div>
-                <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
-                    Today's Date
-                </h2>
-                <TodaysDateWidget />
-            </div>
+        <WidgetContainer title="Today's Date">
+            <TodaysDateWidget />
+        </WidgetContainer>
 
-            {#if settings.enabledWidgets.includes('weather')}
-                <div>
-                    <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
-                        Weather Forecast
-                    </h2>
-                    <WeatherWidget />
-                </div>
-            {/if}
+        <WidgetContainer title="Weather Forecast" associatedWidgetId="weather">
+            <WeatherWidget />
+        </WidgetContainer>
 
-            {#if settings.enabledWidgets.includes('moon-phase')}
-                <div>
-                    <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
-                        Moon Phase
-                    </h2>
-                    <MoonPhaseWidget />
-                </div>
-            {/if}
-        </div>
+        <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase">
+            <MoonPhaseWidget />
+        </WidgetContainer>
     </div>
 </main>
 
