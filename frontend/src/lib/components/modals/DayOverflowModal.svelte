@@ -50,7 +50,7 @@
                     class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors w-6 h-6 flex items-center justify-center"
                     aria-label="Close"
                 >
-                    <X size={12} class="icon-sm" />
+                    <X class="icon-sm" />
                 </button>
             </div>
             <ul class="space-y-2">

@@ -3,11 +3,17 @@
     import { browser } from '$app/environment';
     import Nav from '$lib/components/Nav.svelte';
     import { loadTasks } from '$lib/stores/TaskStore';
-
+    import { initTheme } from '$lib/stores/ThemeStore';
     let { children } = $props();
 
+    let loaded = $state(false);
+
     $effect(() => {
-        if (browser) loadTasks();
+        if (browser) {
+            initTheme();
+            loadTasks();
+            loaded = true;
+        }
     });
 </script>
 
@@ -15,7 +21,9 @@
     <link rel="icon" href="/favicon.ico" />
 </svelte:head>
 
-<div class="min-h-screen bg-[var(--bg)] text-[var(--text-1)] transition-colors duration-300 pb-16 md:pb-0">
-    <Nav />
-    {@render children()}
-</div>
+{#if loaded}
+    <div class="min-h-screen bg-[var(--bg)] text-[var(--text-1)] transition-colors duration-300 pb-16 md:pb-0">
+        <Nav />
+        {@render children()}
+    </div>
+{/if}

@@ -4,7 +4,7 @@
 </script>
 
 <!-- Desktop masthead -->
-<header class="border-b border-[var(--border)] bg-[var(--bg)] hidden md:block">
+<header class="border-b border-[var(--border)] bg-[var(--bg)] hidden lg:block">
     <div class="max-w-5xl mx-auto flex items-center px-8 pt-4 pb-2">
         <div class="flex-1"></div>
         <a href="/">
@@ -69,7 +69,7 @@
 
 <!-- Mobile bottom nav -->
 <nav
-    class="fixed bottom-0 left-0 right-0 flex justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 z-50 md:hidden"
+    class="fixed bottom-0 left-0 right-0 flex justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 z-50 lg:hidden"
 >
     <a
         href="/"
@@ -77,7 +77,7 @@
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
-        <LayoutList size={20} class="icon-lg" />
+        <LayoutList class="icon-lg" />
         <span class="type-caption tracking-wide uppercase">Schedule</span>
     </a>
     <a
@@ -86,7 +86,7 @@
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
-        <CalendarDays size={20} class="icon-lg" />
+        <CalendarDays class="icon-lg" />
         <span class="type-caption tracking-wide uppercase">Calendar</span>
     </a>
     <a
@@ -95,7 +95,7 @@
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
-        <Image size={20} class="icon-lg" />
+        <Image class="icon-lg" />
         <span class="type-caption tracking-wide uppercase">Ambient</span>
     </a>
     <a
@@ -104,7 +104,7 @@
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
            hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
     >
-        <Settings size={20} class="icon-lg" />
+        <Settings class="icon-lg" />
         <span class="type-caption tracking-wide uppercase">Settings</span>
     </a>
 </nav>

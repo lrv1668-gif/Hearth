@@ -123,14 +123,14 @@
                 class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
                 aria-label="Previous month"
             >
-                <ChevronLeft size="16" class="icon-md" />
+                <ChevronLeft class="icon-md" />
             </button>
             <button
                 onclick={nextMonth}
                 class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
                 aria-label="Next month"
             >
-                <ChevronRight size="16" class="icon-md" />
+                <ChevronRight class="icon-md" />
             </button>
         </div>
 
@@ -149,7 +149,7 @@
              bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--accent-fg)]
              transition-colors type-label"
         >
-            <Plus size="13" class="icon-md" />
+            <Plus class="icon-md" />
             New Task
         </button>
     </div>

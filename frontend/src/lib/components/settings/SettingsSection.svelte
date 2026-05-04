@@ -22,15 +22,9 @@
     >
         <h2 class="type-subtitle tracking-widest uppercase text-[var(--text-1)]">{title}</h2>
         {#if open}
-            <ChevronUp
-                size={12}
-                class="icon-sm text-[var(--text-3)] group-hover:text-[var(--text-1)] transition-colors"
-            />
+            <ChevronUp class="icon-sm text-[var(--text-3)] group-hover:text-[var(--text-1)] transition-colors" />
         {:else}
-            <ChevronDown
-                size={12}
-                class="icon-sm text-[var(--text-3)] group-hover:text-[var(--text-1)] transition-colors"
-            />
+            <ChevronDown class="icon-sm text-[var(--text-3)] group-hover:text-[var(--text-1)] transition-colors" />
         {/if}
     </button>
 

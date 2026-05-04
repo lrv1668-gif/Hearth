@@ -44,7 +44,7 @@
             />
         {:else}
             <div class="w-12 h-12 rounded-lg bg-[var(--border)] flex items-center justify-center flex-shrink-0">
-                <Music size={20} class="icon-lg text-[var(--text-4)]" />
+                <Music class="icon-lg text-[var(--text-4)]" />
             </div>
         {/if}
 

@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
     import { ChevronDown, ChevronUp, RefreshCw, Timer } from '@lucide/svelte';
-    import Toggle from './Toggle.svelte';
 
     interface Props {
         task?: Task;
