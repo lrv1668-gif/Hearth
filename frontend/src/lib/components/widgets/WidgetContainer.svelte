@@ -7,9 +7,10 @@
         children: Snippet;
         title: String;
         associatedWidgetId?: WidgetId;
+        align?: 'left' | 'right';
     }
 
-    let { children, title, associatedWidgetId }: Props = $props();
+    let { children, title, associatedWidgetId, align = 'left' }: Props = $props();
 </script>
 
 <!--
@@ -22,7 +23,7 @@ NOTE:If no widget ID is passed, then this widget will default to being displayed
 -->
 {#if !associatedWidgetId || settings.enabledWidgets.includes(associatedWidgetId)}
     <div class="min-w-0">
-        <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] mb-4 pb-2">{title}</h2>
+        <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] mb-4 pb-2 {align === 'right' ? 'text-right' : ''}">{title}</h2>
         {@render children()}
     </div>
 {/if}

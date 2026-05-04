@@ -4,9 +4,10 @@
     interface Props {
         tasks: Task[];
         onEdit: (task: Task) => void;
+        align?: 'left' | 'right';
     }
 
-    let { tasks, onEdit }: Props = $props();
+    let { tasks, onEdit, align = 'left' }: Props = $props();
 
     function daysUntil(dueDate: string): number {
         const today = new Date();
@@ -40,7 +41,7 @@
             <li>
                 <button
                     onclick={() => onEdit(item)}
-                    class="w-full text-left flex items-start gap-3 group hover:opacity-80 transition-opacity"
+                    class="w-full text-left flex items-start gap-3 group hover:opacity-80 transition-opacity {align === 'right' ? 'flex-row-reverse' : ''}"
                 >
                     <div class="flex flex-col items-end flex-shrink-0 w-12">
                         {#if item.days === 0}
@@ -55,7 +56,7 @@
                         {/if}
                     </div>
 
-                    <div class="min-w-0 flex-1">
+                    <div class="min-w-0 flex-1 {align === 'right' ? 'text-right' : ''}">
                         {#if item.days === 0}
                             <p class="type-label font-semibold uppercase tracking-widest text-[var(--accent)]">Today</p>
                         {/if}
