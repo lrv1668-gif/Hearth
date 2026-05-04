@@ -12,10 +12,9 @@ export type Theme = (typeof themes)[number];
 export type ThemeId = Theme['id'];
 export type ThemeGroup = Theme['group'];
 
-export const DEFAULT_THEME: ThemeId = 'stone';
-
-export const themeGroups: ThemeGroup[] = ['Black & White', 'Color'];
+export const DEFAULT_THEME: ThemeId = themes[0].id;
+export const THEME_GROUPS: ThemeGroup[] = [...new Set(themes.map((theme) => theme.group))];
 
 export function isValidThemeId(value: string | null): value is ThemeId {
-    return themes.some((t) => t.id === value);
+    return !!value && themes.some((t) => t.id === value);
 }

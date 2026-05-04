@@ -22,8 +22,6 @@
 /* ── Themes ──────────────────────────────────────────────────────────────── */
 /* Each theme exposes the same set of semantic tokens so every component
    can reference var(--token) without knowing which palette is active.      */
-
-:root,
 [data-theme='stone'] {
     /* Stone — warm brown dark. Worn leather, aged timber, candlelit study. */
     --bg: #1a1410;

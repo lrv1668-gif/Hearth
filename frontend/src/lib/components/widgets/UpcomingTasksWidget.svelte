@@ -122,11 +122,11 @@
 </script>
 
 {#if groups.length === 0}
-    <p class="text-center type-body text-[var(--text-2)] py-16">Nothing scheduled.</p>
+    <p class="text-center type-body text-[var(--text-2)] py-8">Nothing scheduled.</p>
 {:else}
-    <div class="space-y-8">
+    <div class="space-y-4">
         {#each groups as group (group.key)}
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <div class="">
                     <div class="flex items-center gap-3 pt-1">
                         <h2 class="type-body font-semibold whitespace-nowrap text-[var(--text-1)]">
@@ -134,7 +134,7 @@
                         </h2>
                     </div>
                 </div>
-                <ul class="space-y-1.5">
+                <ul class="space-y-2">
                     {#each group.tasks as task (task.id)}
                         <li class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group/row">
                             <button
@@ -146,7 +146,7 @@
                                 aria-label="Toggle {task.title}"
                             >
                                 {#if task.done}
-                                    <Check size="10" class="icon-xs text-[var(--bg)]" />
+                                    <Check class="icon-xs text-[var(--bg)]" />
                                 {/if}
                             </button>
 
@@ -180,7 +180,7 @@
                                         <span
                                             class="flex-shrink-0 flex items-center gap-0.5 type-label text-[var(--text-2)]"
                                         >
-                                            <RefreshCw size={10} class="icon-xs" />
+                                            <RefreshCw class="icon-xs" />
                                             {recurrenceLabel(task)}
                                         </span>
                                     {/if}
@@ -217,7 +217,7 @@
                                         class="text-[var(--text-4)] hover:text-[var(--text-2)] transition"
                                         aria-label="Cancel"
                                     >
-                                        <X size="12" class="icon-sm" />
+                                        <X class="icon-sm" />
                                     </button>
                                 </div>
                             {:else}
@@ -232,7 +232,7 @@
                                     class="opacity-0 group-hover/row:opacity-100 text-[var(--text-3)] hover:text-[var(--text-1)] transition flex-shrink-0"
                                     aria-label="Delete {task.title}"
                                 >
-                                    <X size="14" class="icon-md" />
+                                    <X class="icon-md" />
                                 </button>
                             {/if}
                         </li>

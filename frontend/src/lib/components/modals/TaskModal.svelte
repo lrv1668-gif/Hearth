@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
-    import TaskList from '../TaskList.svelte';
+    import TaskAddEdit from '../TaskAddEdit.svelte';
     import { Trash2, X } from '@lucide/svelte';
 
     interface Props {
@@ -108,9 +108,9 @@
         </div>
 
         {#if isEdit}
-            <TaskList task={task!} onSave={handleSave} />
+            <TaskAddEdit task={task!} onSave={handleSave} />
         {:else}
-            <TaskList onAdd={handleAdd} {initialDate} />
+            <TaskAddEdit onAdd={handleAdd} {initialDate} />
         {/if}
 
         {#if isEdit}

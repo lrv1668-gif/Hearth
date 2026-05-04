@@ -10,11 +10,18 @@ function getInitialTheme(): ThemeId {
 
 export const theme = writable<ThemeId>(getInitialTheme());
 
-if (browser) {
-    theme.subscribe((value) => {
-        localStorage.setItem('hearth-theme', value);
-        document.documentElement.dataset.theme = value;
-    });
+export function initTheme() {
+    // Set the initial theme on the site
+    const currentTheme = getInitialTheme();
+    document.documentElement.dataset.theme = currentTheme;
+
+    // Subscribe to future changes
+    if (browser) {
+        theme.subscribe((value) => {
+            localStorage.setItem('hearth-theme', value);
+            document.documentElement.dataset.theme = value;
+        });
+    }
 }
 
 export function setTheme(id: ThemeId) {
