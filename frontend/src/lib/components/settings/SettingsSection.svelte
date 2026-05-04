@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
     import { untrack } from 'svelte';
-    import { slide } from 'svelte/transition';
     import { ChevronDown, ChevronUp } from '@lucide/svelte';
 
     interface Props {

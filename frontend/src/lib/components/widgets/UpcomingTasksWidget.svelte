@@ -122,13 +122,13 @@
 </script>
 
 {#if groups.length === 0}
-    <p class="text-center type-body text-[var(--text-2)] py-8">Nothing scheduled.</p>
+    <p class="text-center type-body text-[var(--text-2)] py-4">Nothing scheduled.</p>
 {:else}
     <div class="space-y-4">
         {#each groups as group (group.key)}
             <div class="space-y-1">
                 <div class="">
-                    <div class="flex items-center gap-3 pt-1">
+                    <div class="flex items-center gap-3">
                         <h2 class="type-body font-semibold whitespace-nowrap text-[var(--text-1)]">
                             {group.label}
                         </h2>
