@@ -151,7 +151,7 @@
                             </button>
 
                             {#if task.due_time}
-                                <span class="type-label text-[var(--text-3)] w-14 flex-shrink-0 tabular-nums">
+                                <span class="type-label text-[var(--text-2)] w-14 flex-shrink-0 tabular-nums">
                                     {formatTime(task.due_time)}
                                 </span>
                             {:else}

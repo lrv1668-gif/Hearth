@@ -21,7 +21,7 @@ It contents a title, children content, and an associated widget ID to be rendere
 NOTE:If no widget ID is passed, then this widget will default to being displayed.
 -->
 {#if !associatedWidgetId || settings.enabledWidgets.includes(associatedWidgetId)}
-    <div>
+    <div class="min-w-0">
         <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] mb-4 pb-2">{title}</h2>
         {@render children()}
     </div>

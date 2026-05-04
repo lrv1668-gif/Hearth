@@ -12,9 +12,7 @@
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
 
     const gridCols = $derived(
-        settings.enabledWidgets.length >= 2
-            ? 'md:grid-cols-[3fr_2fr]'
-            : 'sm:grid-cols-[3fr_2fr]'
+        settings.enabledWidgets.length >= 2 ? 'md:grid-cols-[3fr_2fr]' : 'sm:grid-cols-[3fr_2fr]'
     );
 
     let modalOpen = $state(false);
@@ -37,36 +35,40 @@
     <title>Hearth — Schedule</title>
 </svelte:head>
 
-<main class="max-w-5xl mx-auto px-6 md:px-8 py-6 md:py-4">
+<main class="max-w-5xl mx-auto px-6 md:px-8 py-6 overflow-x-hidden">
     <div class="grid {gridCols} gap-8 items-start">
-        <WidgetContainer title="Upcoming Tasks">
-            <UpcomingTasksWidget
-                tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
-                onToggle={toggleTask}
-                onDelete={removeTask}
-                onEdit={openEditTask}
-            />
-        </WidgetContainer>
-
-        <WidgetContainer title="Countdowns" associatedWidgetId="countdowns">
-            <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
-        </WidgetContainer>
-
-        <WidgetContainer title="Now Playing" associatedWidgetId="now-playing">
-            <NowPlayingWidget />
-        </WidgetContainer>
-
-        <WidgetContainer title="Today's Date">
-            <TodaysDateWidget />
-        </WidgetContainer>
-
-        <WidgetContainer title="Weather Forecast" associatedWidgetId="weather">
-            <WeatherWidget />
-        </WidgetContainer>
-
-        <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase">
-            <MoonPhaseWidget />
-        </WidgetContainer>
+        {#each settings.widgetOrder as id (id)}
+            {#if id === 'upcoming-tasks'}
+                <WidgetContainer title="Upcoming Tasks">
+                    <UpcomingTasksWidget
+                        tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
+                        onToggle={toggleTask}
+                        onDelete={removeTask}
+                        onEdit={openEditTask}
+                    />
+                </WidgetContainer>
+            {:else if id === 'countdowns'}
+                <WidgetContainer title="Countdowns" associatedWidgetId="countdowns">
+                    <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
+                </WidgetContainer>
+            {:else if id === 'now-playing'}
+                <WidgetContainer title="Now Playing" associatedWidgetId="now-playing">
+                    <NowPlayingWidget />
+                </WidgetContainer>
+            {:else if id === 'todays-date'}
+                <WidgetContainer title="Today's Date">
+                    <TodaysDateWidget />
+                </WidgetContainer>
+            {:else if id === 'weather'}
+                <WidgetContainer title="Weather Forecast" associatedWidgetId="weather">
+                    <WeatherWidget />
+                </WidgetContainer>
+            {:else if id === 'moon-phase'}
+                <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase">
+                    <MoonPhaseWidget />
+                </WidgetContainer>
+            {/if}
+        {/each}
     </div>
 </main>
 
