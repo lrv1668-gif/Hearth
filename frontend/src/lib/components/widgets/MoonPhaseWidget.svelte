@@ -60,7 +60,7 @@
     let { align = 'left' }: Props = $props();
 </script>
 
-<div class="flex items-center gap-4 {align === 'right' ? 'flex-row-reverse' : ''}">
+<div class="flex items-center gap-4 {align === 'right' ? 'justify-end' : ''}">
     <svg viewBox="-50 -50 100 100" class="w-16 h-16 flex-shrink-0" aria-label="Moon phase: {name}" role="img">
         <circle r="40" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
         <path d={litPath} fill="var(--text-2)" />
