@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
-    import { tasks, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore';
+    import { taskStore, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore.svelte.ts';
     import UpcomingTasksWidget from '$lib/components/widgets/UpcomingTasksWidget.svelte';
     import TaskModal from '$lib/components/modals/TaskModal.svelte';
     import NowPlayingWidget from '$lib/components/widgets/NowPlayingWidget.svelte';
@@ -8,7 +8,7 @@
     import MoonPhaseWidget from '$lib/components/widgets/MoonPhaseWidget.svelte';
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
     import TodaysDateWidget from '$lib/components/widgets/TodaysDateWidget.svelte';
-    import { settings } from '$lib/stores/SettingsStore';
+    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -38,22 +38,22 @@
                 Upcoming Tasks
             </h2>
             <UpcomingTasksWidget
-                tasks={$tasks.filter((t) => !t.is_countdown)}
+                tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
                 onToggle={toggleTask}
                 onDelete={removeTask}
                 onEdit={openEditTask}
             />
 
-            {#if $settings.enabledWidgets.includes('countdowns')}
+            {#if settings.enabledWidgets.includes('countdowns')}
                 <div>
                     <div class="flex items-baseline justify-between border-b border-[var(--border)] pb-3 mb-4">
                         <h2 class="type-title font-semibold text-[var(--text-1)]">Countdowns</h2>
                     </div>
-                    <CountdownWidget tasks={$tasks} onEdit={openEditTask} />
+                    <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
                 </div>
             {/if}
 
-            {#if $settings.enabledWidgets.includes('now-playing')}
+            {#if settings.enabledWidgets.includes('now-playing')}
                 <div>
                     <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                         Now Playing
@@ -72,7 +72,7 @@
                 <TodaysDateWidget />
             </div>
 
-            {#if $settings.enabledWidgets.includes('weather')}
+            {#if settings.enabledWidgets.includes('weather')}
                 <div>
                     <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                         Weather Forecast
@@ -81,7 +81,7 @@
                 </div>
             {/if}
 
-            {#if $settings.enabledWidgets.includes('moon-phase')}
+            {#if settings.enabledWidgets.includes('moon-phase')}
                 <div>
                     <h2 class="type-title font-semibold text-[var(--text-1)] border-b border-[var(--border)] pb-3 mb-4">
                         Moon Phase

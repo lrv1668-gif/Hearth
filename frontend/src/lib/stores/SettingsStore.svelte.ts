@@ -1,5 +1,4 @@
 import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
 import { ALL_WIDGET_IDS, type WidgetId } from '$lib/constants/widgets';
 
 export type PhotoCategory = 'nature' | 'architecture' | 'interiors' | 'abstract';
@@ -30,32 +29,32 @@ function loadSettings(): Settings {
     }
 }
 
-export const settings = writable<Settings>(loadSettings());
-
-if (browser) {
-    settings.subscribe((value) => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
-    });
+function save() {
+    if (browser) localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
 
+export const settings = $state<Settings>(loadSettings());
+
 export function updateCadence(seconds: number) {
-    settings.update((s) => ({ ...s, cadenceSeconds: seconds }));
+    settings.cadenceSeconds = seconds;
+    save();
 }
 
 export function toggleCategory(cat: PhotoCategory) {
-    settings.update((s) => ({
-        ...s,
-        photoCategories: s.photoCategories.includes(cat)
-            ? s.photoCategories.filter((c) => c !== cat)
-            : [...s.photoCategories, cat],
-    }));
+    settings.photoCategories = settings.photoCategories.includes(cat)
+        ? settings.photoCategories.filter((c) => c !== cat)
+        : [...settings.photoCategories, cat];
+    save();
 }
 
 export function toggleWidget(id: WidgetId) {
-    settings.update((s) => ({
-        ...s,
-        enabledWidgets: s.enabledWidgets.includes(id)
-            ? s.enabledWidgets.filter((w) => w !== id)
-            : [...s.enabledWidgets, id],
-    }));
+    settings.enabledWidgets = settings.enabledWidgets.includes(id)
+        ? settings.enabledWidgets.filter((w) => w !== id)
+        : [...settings.enabledWidgets, id];
+    save();
+}
+
+export function toggleAttribution() {
+    settings.showAttribution = !settings.showAttribution;
+    save();
 }

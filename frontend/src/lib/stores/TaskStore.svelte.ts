@@ -1,10 +1,9 @@
-import { writable } from 'svelte/store';
 import { fetchTasks, createTask, updateTask, deleteTask, type Task } from '../api';
 
-export const tasks = writable<Task[]>([]);
+export const taskStore = $state({ tasks: [] as Task[] });
 
 export async function loadTasks() {
-    tasks.set(await fetchTasks());
+    taskStore.tasks = await fetchTasks();
 }
 
 export async function addTask(
@@ -31,7 +30,7 @@ export async function addTask(
         recurrenceEndDate,
         isCountdown
     );
-    tasks.update((ts) => [task, ...ts]);
+    taskStore.tasks = [task, ...taskStore.tasks];
 }
 
 export async function toggleTask(task: Task) {
@@ -44,7 +43,7 @@ export async function toggleTask(task: Task) {
         task.description ?? undefined,
         task.assignee ?? undefined
     );
-    tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));
+    taskStore.tasks = taskStore.tasks.map((t) => (t.id === task.id ? updated : t));
 }
 
 export async function editTask(
@@ -56,7 +55,7 @@ export async function editTask(
     assignee?: string
 ) {
     const updated = await updateTask(task.id, task.done, title, dueDate, dueTime, description, assignee);
-    tasks.update((ts) => ts.map((t) => (t.id === task.id ? updated : t)));
+    taskStore.tasks = taskStore.tasks.map((t) => (t.id === task.id ? updated : t));
 }
 
 export async function removeTask(id: number, series = false) {
@@ -64,6 +63,6 @@ export async function removeTask(id: number, series = false) {
     if (series) {
         await loadTasks();
     } else {
-        tasks.update((ts) => ts.filter((t) => t.id !== id));
+        taskStore.tasks = taskStore.tasks.filter((t) => t.id !== id);
     }
 }
