@@ -18,10 +18,7 @@
         <AmbientSettings />
     </SettingsSection>
 
-    <SettingsSection
-        title="Widgets"
-        description="Control the visibility of widgets below. If turned off, they won't appear on the Schedule page."
-    >
+    <SettingsSection title="Widgets">
         <WidgetSettings />
     </SettingsSection>
 </div>

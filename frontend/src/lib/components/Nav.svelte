@@ -69,7 +69,7 @@
 
 <!-- Mobile bottom nav -->
 <nav
-    class="fixed bottom-0 left-0 right-0 flex justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 z-50 lg:hidden"
+    class="fixed min-h-max bottom-0 left-0 right-0 flex justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 lg:hidden"
 >
     <a
         href="/"

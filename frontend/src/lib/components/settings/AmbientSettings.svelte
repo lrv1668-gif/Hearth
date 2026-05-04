@@ -1,5 +1,11 @@
 <script lang="ts">
-    import { settings, updateCadence, toggleCategory, toggleAttribution, type PhotoCategory } from '$lib/stores/SettingsStore.svelte.ts';
+    import {
+        settings,
+        updateCadence,
+        toggleCategory,
+        toggleAttribution,
+        type PhotoCategory,
+    } from '$lib/stores/SettingsStore.svelte.ts';
     import Toggle from '$lib/components/Toggle.svelte';
 
     const cadenceOptions = [
@@ -22,8 +28,10 @@
 <div class="space-y-6">
     <!-- Cadence -->
     <div class="space-y-3">
-        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo cadence</p>
-        <p class="type-label text-[var(--text-2)]">Choose how often photos cycle.</p>
+        <div class="mb-4">
+            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo cadence</p>
+            <p class="type-label text-[var(--text-2)]">Choose how often photos cycle.</p>
+        </div>
         <div class="flex gap-2">
             {#each cadenceOptions as opt}
                 <button
@@ -41,11 +49,14 @@
 
     <!-- Categories -->
     <div class="space-y-3">
-        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo categories</p>
-        <p class="type-label text-[var(--text-2)]">
-            Select one or more categories from below to filter what category of photos will be pulled . If none are
-            selected, then no filtering is made when pulling a random photo.
-        </p>
+        <div class="mb-4">
+            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo categories</p>
+            <p class="type-label text-[var(--text-2)]">
+                Select one or more categories from below to filter what category of photos will be pulled . If none are
+                selected, then no filtering is made when pulling a random photo.
+            </p>
+        </div>
+
         <div class="flex flex-col gap-2">
             {#each categoryOptions as cat}
                 <label class="flex items-center gap-3 cursor-pointer">
@@ -61,10 +72,12 @@
 
     <!-- Attribution -->
     <div class="space-y-3">
-        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photographer info</p>
-        <p class="type-label text-[var(--text-2)]">
-            Photographer info shows up on the very bottom of the Ambient page.
-        </p>
+        <div class="mb-4">
+            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photographer info</p>
+            <p class="type-label text-[var(--text-2)]">
+                Photographer info shows up on the very bottom of the Ambient page.
+            </p>
+        </div>
         <label class="flex items-center gap-3 cursor-pointer">
             <Toggle checked={settings.showAttribution} onchange={toggleAttribution} />
             <span class="type-body text-[var(--text-1)]">Show photographer name in ambient mode</span>

@@ -1,5 +1,10 @@
 import { browser } from '$app/environment';
-import { ALL_WIDGET_IDS, type WidgetId } from '$lib/constants/widgets';
+import {
+    DEFAULT_ENABLED_WIDGETS_IDS,
+    DEFAULT_WIDGET_ORDER,
+    type WidgetId,
+    type AllWidgetId,
+} from '$lib/constants/widgets';
 
 export type PhotoCategory = 'nature' | 'architecture' | 'interiors' | 'abstract';
 
@@ -8,6 +13,7 @@ export interface Settings {
     photoCategories: PhotoCategory[];
     showAttribution: boolean;
     enabledWidgets: WidgetId[];
+    widgetOrder: AllWidgetId[];
 }
 
 const STORAGE_KEY = 'hearth-settings';
@@ -16,7 +22,8 @@ const DEFAULT_SETTINGS: Settings = {
     cadenceSeconds: 120,
     photoCategories: ['nature', 'architecture'],
     showAttribution: true,
-    enabledWidgets: ALL_WIDGET_IDS,
+    enabledWidgets: DEFAULT_ENABLED_WIDGETS_IDS,
+    widgetOrder: DEFAULT_WIDGET_ORDER,
 };
 
 function loadSettings(): Settings {
@@ -56,5 +63,10 @@ export function toggleWidget(id: WidgetId) {
 
 export function toggleAttribution() {
     settings.showAttribution = !settings.showAttribution;
+    save();
+}
+
+export function reorderWidgets(order: AllWidgetId[]) {
+    settings.widgetOrder = order;
     save();
 }
