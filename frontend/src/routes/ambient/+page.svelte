@@ -3,14 +3,14 @@
     import { fade } from 'svelte/transition';
     import { goto } from '$app/navigation';
     import { fetchRandomPhoto, type Photo } from '$lib/api';
-    import { settings } from '$lib/stores/SettingsStore';
+    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
 
     let photo = $state<Photo | null>(null);
     let loading = $state(true);
     let interval: ReturnType<typeof setInterval>;
 
     function buildQuery(): string {
-        const categories = $settings.photoCategories;
+        const categories = settings.photoCategories;
         return categories.length > 0 ? categories.join(',') : 'nature';
     }
 
@@ -26,7 +26,7 @@
     onMount(async () => {
         await advance();
         loading = false;
-        interval = setInterval(advance, $settings.cadenceSeconds * 1000);
+        interval = setInterval(advance, settings.cadenceSeconds * 1000);
     });
 
     onDestroy(() => clearInterval(interval));
@@ -57,7 +57,7 @@
         {/key}
 
         <!-- Attribution bar -->
-        {#if $settings.showAttribution}
+        {#if settings.showAttribution}
             <div
                 class="absolute bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between"
             >

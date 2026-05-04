@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
-    import { tasks, addTask, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore';
+    import { taskStore, addTask, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore.svelte.ts';
     import Calendar from '$lib/components/Calendar.svelte';
     import TaskModal from '$lib/components/modals/TaskModal.svelte';
 
@@ -44,7 +44,7 @@
 
 <main class="max-w-6xl mx-auto px-8 py-8">
     <Calendar
-        tasks={$tasks}
+        tasks={taskStore.tasks}
         onToggle={toggleTask}
         onDelete={removeTask}
         onNewTask={openNewTask}

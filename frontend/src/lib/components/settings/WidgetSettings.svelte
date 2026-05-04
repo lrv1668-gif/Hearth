@@ -2,9 +2,9 @@
     import { onMount } from 'svelte';
     import { Settings } from '@lucide/svelte';
     import { widgets } from '$lib/constants/widgets';
-    import { settings, toggleWidget } from '$lib/stores/SettingsStore';
+    import { settings, toggleWidget } from '$lib/stores/SettingsStore.svelte.ts';
     import Toggle from '$lib/components/Toggle.svelte';
-    import { nowPlaying, refreshNowPlaying } from '$lib/stores/SpotifyStore';
+    import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
     import { disconnectSpotify } from '$lib/api';
 
     onMount(() => refreshNowPlaying());
@@ -14,16 +14,16 @@
         await refreshNowPlaying();
     }
 
-    const spotifyConnected = $derived($nowPlaying !== undefined);
+    const spotifyConnected = $derived(spotifyStore.nowPlaying !== undefined);
 </script>
 
 <div class="space-y-4">
     {#each widgets as widget}
         <div>
-            <label class="flex items-start gap-3 cursor-pointer">
+            <label class="flex items-center gap-3 cursor-pointer">
                 <div class="mt-0.5 shrink-0">
                     <Toggle
-                        checked={$settings.enabledWidgets.includes(widget.id)}
+                        checked={settings.enabledWidgets.includes(widget.id)}
                         onchange={() => toggleWidget(widget.id)}
                     />
                 </div>

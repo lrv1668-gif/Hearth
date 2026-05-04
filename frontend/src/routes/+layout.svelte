@@ -2,8 +2,8 @@
     import '../app.css';
     import { browser } from '$app/environment';
     import Nav from '$lib/components/Nav.svelte';
-    import { loadTasks } from '$lib/stores/TaskStore';
-    import { initTheme } from '$lib/stores/ThemeStore';
+    import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
+    import { initTheme } from '$lib/stores/ThemeStore.svelte.ts';
     let { children } = $props();
 
     let loaded = $state(false);

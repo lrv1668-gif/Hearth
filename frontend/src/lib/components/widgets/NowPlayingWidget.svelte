@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Music } from '@lucide/svelte';
-    import { nowPlaying, refreshNowPlaying } from '$lib/stores/SpotifyStore';
+    import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
 
     let fetchedAt = $state(Date.now());
     let tickMs = $state(0);
@@ -25,7 +25,7 @@
         };
     });
 
-    const track = $derived($nowPlaying);
+    const track = $derived(spotifyStore.nowPlaying);
 
     const progressPct = $derived(
         track ? Math.min(100, ((track.progress_ms + (track.is_playing ? tickMs : 0)) / track.duration_ms) * 100) : 0
