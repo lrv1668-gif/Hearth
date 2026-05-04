@@ -27,6 +27,11 @@
 
     const track = $derived(spotifyStore.nowPlaying);
 
+    interface Props {
+        align?: 'left' | 'right';
+    }
+    let { align = 'left' }: Props = $props();
+
     const progressPct = $derived(
         track ? Math.min(100, ((track.progress_ms + (track.is_playing ? tickMs : 0)) / track.duration_ms) * 100) : 0
     );
@@ -35,7 +40,12 @@
 {#if track === undefined}
     <p class="type-label text-[var(--text-4)]">Spotify not connected — add it in Settings.</p>
 {:else if track !== null}
-    <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] min-w-0">
+    <div
+        class="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] min-w-0 {align ===
+        'right'
+            ? 'flex-row-reverse'
+            : ''}"
+    >
         {#if track.album_art_url}
             <img
                 src={track.album_art_url}
@@ -48,7 +58,7 @@
             </div>
         {/if}
 
-        <div class="flex flex-col min-w-0 gap-1 flex-1">
+        <div class="flex flex-col min-w-0 gap-1 flex-1 {align === 'right' ? 'text-right' : ''}">
             <div class="min-w-0">
                 <p class="type-body font-medium text-[var(--text-1)] truncate leading-tight">
                     {track.title}
@@ -64,5 +74,5 @@
         </div>
     </div>
 {:else}
-    <p class="type-label text-[var(--text-2)]">Nothing playing.</p>
+    <p class="type-label text-[var(--text-2)] {align === 'right' ? 'text-right' : ''}">Nothing playing.</p>
 {/if}

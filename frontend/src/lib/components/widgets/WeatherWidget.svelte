@@ -32,15 +32,20 @@
     onMount(async () => {
         [current, forecast] = await Promise.all([fetchCurrentWeather(), fetchWeatherForecast()]);
     });
+
+    interface Props {
+        align?: 'left' | 'right';
+    }
+    let { align = 'left' }: Props = $props();
 </script>
 
 {#if current}
     {@const WeatherIcon = weatherIcon(current.weather_code)}
     <div class="space-y-3">
         <!-- Current conditions -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 {align === 'right' ? 'flex-row-reverse' : ''}">
             <WeatherIcon class="icon-lg text-[var(--text-1)] flex-shrink-0" />
-            <div>
+            <div class={align === 'right' ? 'text-right' : ''}>
                 <span class="type-display font-semibold text-[var(--text-1)]"
                     >{Math.round(current.temperature_f)}°F</span
                 >
@@ -70,7 +75,7 @@
         {/if}
 
         <!-- Detail stats: sunrise, sunset, wind -->
-        <div class="flex items-center gap-4 type-label text-[var(--text-2)]">
+        <div class="flex items-center gap-4 type-label text-[var(--text-2)] {align === 'right' ? 'justify-end' : ''}">
             {#if forecast[0]?.sunrise}
                 <span class="flex items-center gap-1">
                     <Sunrise class="icon-sm" />{formatSunTime(forecast[0].sunrise)}

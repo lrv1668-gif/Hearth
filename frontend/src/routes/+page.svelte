@@ -11,6 +11,14 @@
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
 
+    const ALWAYS_ON = new Set(['upcoming-tasks', 'todays-date']);
+
+    const renderedWidgetOrder = $derived(
+        settings.widgetOrder.filter(
+            (id) => ALWAYS_ON.has(id) || (settings.enabledWidgets as string[]).includes(id)
+        )
+    );
+
     const gridCols = $derived(
         settings.enabledWidgets.length >= 2 ? 'md:grid-cols-[3fr_2fr]' : 'sm:grid-cols-[3fr_2fr]'
     );
@@ -38,8 +46,9 @@
 <main class="max-w-5xl mx-auto px-6 md:px-8 py-6 overflow-x-hidden">
     <div class="grid {gridCols} gap-8 items-start">
         {#each settings.widgetOrder as id (id)}
+            {@const align = renderedWidgetOrder.indexOf(id) % 2 === 1 ? 'right' : 'left'}
             {#if id === 'upcoming-tasks'}
-                <WidgetContainer title="Upcoming Tasks">
+                <WidgetContainer title="Upcoming Tasks" {align}>
                     <UpcomingTasksWidget
                         tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
                         onToggle={toggleTask}
@@ -48,24 +57,24 @@
                     />
                 </WidgetContainer>
             {:else if id === 'countdowns'}
-                <WidgetContainer title="Countdowns" associatedWidgetId="countdowns">
-                    <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
+                <WidgetContainer title="Countdowns" associatedWidgetId="countdowns" {align}>
+                    <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} {align} />
                 </WidgetContainer>
             {:else if id === 'now-playing'}
-                <WidgetContainer title="Now Playing" associatedWidgetId="now-playing">
-                    <NowPlayingWidget />
+                <WidgetContainer title="Now Playing" associatedWidgetId="now-playing" {align}>
+                    <NowPlayingWidget {align} />
                 </WidgetContainer>
             {:else if id === 'todays-date'}
-                <WidgetContainer title="Today's Date">
-                    <TodaysDateWidget />
+                <WidgetContainer title="Today's Date" {align}>
+                    <TodaysDateWidget {align} />
                 </WidgetContainer>
             {:else if id === 'weather'}
-                <WidgetContainer title="Weather Forecast" associatedWidgetId="weather">
-                    <WeatherWidget />
+                <WidgetContainer title="Weather Forecast" associatedWidgetId="weather" {align}>
+                    <WeatherWidget {align} />
                 </WidgetContainer>
             {:else if id === 'moon-phase'}
-                <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase">
-                    <MoonPhaseWidget />
+                <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase" {align}>
+                    <MoonPhaseWidget {align} />
                 </WidgetContainer>
             {/if}
         {/each}
