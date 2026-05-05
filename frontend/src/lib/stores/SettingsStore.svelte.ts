@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
-    DEFAULT_WIDGET_ORDER,
+    DEFAULT_WIDGET_COLUMNS,
     type WidgetId,
     type AllWidgetId,
 } from '$lib/constants/widgets';
@@ -13,7 +13,8 @@ export interface Settings {
     photoCategories: PhotoCategory[];
     showAttribution: boolean;
     enabledWidgets: WidgetId[];
-    widgetOrder: AllWidgetId[];
+    widgetColumns: { left: AllWidgetId[]; right: AllWidgetId[] };
+    leftColumnWidth: number;
 }
 
 const STORAGE_KEY = 'hearth-settings';
@@ -23,7 +24,8 @@ const DEFAULT_SETTINGS: Settings = {
     photoCategories: ['nature', 'architecture'],
     showAttribution: true,
     enabledWidgets: DEFAULT_ENABLED_WIDGETS_IDS,
-    widgetOrder: DEFAULT_WIDGET_ORDER,
+    widgetColumns: DEFAULT_WIDGET_COLUMNS,
+    leftColumnWidth: 60,
 };
 
 function loadSettings(): Settings {
@@ -66,7 +68,12 @@ export function toggleAttribution() {
     save();
 }
 
-export function reorderWidgets(order: AllWidgetId[]) {
-    settings.widgetOrder = order;
+export function reorderWidgetColumns(columns: { left: AllWidgetId[]; right: AllWidgetId[] }) {
+    settings.widgetColumns = columns;
+    save();
+}
+
+export function updateColumnWidth(pct: number) {
+    settings.leftColumnWidth = pct;
     save();
 }

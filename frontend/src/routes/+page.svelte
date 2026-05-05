@@ -10,18 +10,7 @@
     import TodaysDateWidget from '$lib/components/widgets/TodaysDateWidget.svelte';
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-
-    const ALWAYS_ON = new Set(['upcoming-tasks', 'todays-date']);
-
-    const renderedWidgetOrder = $derived(
-        settings.widgetOrder.filter(
-            (id) => ALWAYS_ON.has(id) || (settings.enabledWidgets as string[]).includes(id)
-        )
-    );
-
-    const gridCols = $derived(
-        settings.enabledWidgets.length >= 2 ? 'md:grid-cols-[3fr_2fr]' : 'sm:grid-cols-[3fr_2fr]'
-    );
+    import type { AllWidgetId } from '$lib/constants/widgets';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -43,41 +32,52 @@
     <title>Hearth — Schedule</title>
 </svelte:head>
 
+{#snippet renderWidget(id: AllWidgetId, align: 'left' | 'right')}
+    {#if id === 'upcoming-tasks'}
+        <WidgetContainer title="Upcoming Tasks">
+            <UpcomingTasksWidget
+                tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
+                onToggle={toggleTask}
+                onDelete={removeTask}
+                onEdit={openEditTask}
+            />
+        </WidgetContainer>
+    {:else if id === 'countdowns'}
+        <WidgetContainer title="Countdowns" associatedWidgetId="countdowns">
+            <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} {align} />
+        </WidgetContainer>
+    {:else if id === 'now-playing'}
+        <WidgetContainer title="Now Playing" associatedWidgetId="now-playing">
+            <NowPlayingWidget {align} />
+        </WidgetContainer>
+    {:else if id === 'todays-date'}
+        <WidgetContainer title="Today's Date">
+            <TodaysDateWidget {align} />
+        </WidgetContainer>
+    {:else if id === 'weather'}
+        <WidgetContainer title="Weather Forecast" associatedWidgetId="weather">
+            <WeatherWidget {align} />
+        </WidgetContainer>
+    {:else if id === 'moon-phase'}
+        <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase">
+            <MoonPhaseWidget {align} />
+        </WidgetContainer>
+    {/if}
+{/snippet}
+
 <main class="max-w-5xl mx-auto px-6 md:px-8 py-6 overflow-x-hidden">
-    <div class="grid {gridCols} gap-8 items-start">
-        {#each settings.widgetOrder as id (id)}
-            {@const align = renderedWidgetOrder.indexOf(id) % 2 === 1 ? 'right' : 'left'}
-            {#if id === 'upcoming-tasks'}
-                <WidgetContainer title="Upcoming Tasks" {align}>
-                    <UpcomingTasksWidget
-                        tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
-                        onToggle={toggleTask}
-                        onDelete={removeTask}
-                        onEdit={openEditTask}
-                    />
-                </WidgetContainer>
-            {:else if id === 'countdowns'}
-                <WidgetContainer title="Countdowns" associatedWidgetId="countdowns" {align}>
-                    <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} {align} />
-                </WidgetContainer>
-            {:else if id === 'now-playing'}
-                <WidgetContainer title="Now Playing" associatedWidgetId="now-playing" {align}>
-                    <NowPlayingWidget {align} />
-                </WidgetContainer>
-            {:else if id === 'todays-date'}
-                <WidgetContainer title="Today's Date" {align}>
-                    <TodaysDateWidget {align} />
-                </WidgetContainer>
-            {:else if id === 'weather'}
-                <WidgetContainer title="Weather Forecast" associatedWidgetId="weather" {align}>
-                    <WeatherWidget {align} />
-                </WidgetContainer>
-            {:else if id === 'moon-phase'}
-                <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase" {align}>
-                    <MoonPhaseWidget {align} />
-                </WidgetContainer>
-            {/if}
-        {/each}
+    <div class="flex w-full gap-8">
+        <div class="flex flex-col gap-4 min-w-0" style="flex: {settings.leftColumnWidth} 1 0%">
+            {#each settings.widgetColumns.left as id (id)}
+                {@render renderWidget(id, 'left')}
+            {/each}
+        </div>
+
+        <div class="flex flex-col gap-6 min-w-0" style="flex: {100 - settings.leftColumnWidth} 1 0%">
+            {#each settings.widgetColumns.right as id (id)}
+                {@render renderWidget(id, 'right')}
+            {/each}
+        </div>
     </div>
 </main>
 
