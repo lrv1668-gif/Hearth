@@ -75,12 +75,12 @@
         {/if}
 
         <!-- Detail stats: sunrise, sunset, wind -->
-        <div class="type-label flex items-center gap-4 text-[var(--text-2)] {align === 'right' ? 'justify-end' : ''}">
+        <div class="type-label flex items-center gap-2 text-[var(--text-2)] {align === 'right' ? 'justify-end' : ''}">
             {#if forecast[0]?.sunrise}
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
                     <Sunrise class="icon-sm" />{formatSunTime(forecast[0].sunrise)}
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
                     <Sunset class="icon-sm" />{formatSunTime(forecast[0].sunset)}
                 </span>
             {/if}
