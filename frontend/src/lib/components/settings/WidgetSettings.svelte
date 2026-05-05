@@ -76,8 +76,10 @@
     </div>
 
     <div>
-        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Widget Order</p>
-        <p class="type-label text-[var(--text-2)] mb-4">Drag to reorder widgets on the schedule page</p>
+        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Widget Layout</p>
+        <p class="type-label text-[var(--text-2)] mb-4">
+            Drag widgets between columns and reorder them on the schedule page
+        </p>
         <WidgetOrderEditor />
     </div>
 </div>

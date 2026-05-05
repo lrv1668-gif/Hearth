@@ -18,4 +18,8 @@ export const allWidgets = [
 ] as const;
 
 export type AllWidgetId = (typeof allWidgets)[number]['id'];
-export const DEFAULT_WIDGET_ORDER: AllWidgetId[] = allWidgets.map((w) => w.id as AllWidgetId);
+
+export const DEFAULT_WIDGET_COLUMNS: { left: AllWidgetId[]; right: AllWidgetId[] } = {
+    left: ['upcoming-tasks', 'todays-date', 'countdowns', 'now-playing'],
+    right: ['weather', 'moon-phase'],
+};
