@@ -3,6 +3,7 @@
     import { formatTime } from '$lib/utils';
     import { Check, ChevronLeft, ChevronRight, Plus, X } from '@lucide/svelte';
     import DayOverflowModal from './modals/DayOverflowModal.svelte';
+    import { DAY_NAMES, MONTH_NAMES } from '$lib/constants/calendar';
 
     interface Props {
         tasks: Task[];
@@ -14,23 +15,6 @@
     }
 
     let { tasks, onToggle, onDelete, onNewTask, onEdit, onDateClick }: Props = $props();
-
-    const MONTH_NAMES = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-    ];
-    const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
     const today = new Date();
 
     function dateKey(d: Date): string {

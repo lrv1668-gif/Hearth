@@ -1,37 +1,14 @@
 <script lang="ts">
-    import {
-        settings,
-        updateCadence,
-        toggleCategory,
-        toggleAttribution,
-        type PhotoCategory,
-    } from '$lib/stores/SettingsStore.svelte.ts';
+    import { settings, updateCadence, toggleCategory, toggleAttribution } from '$lib/stores/SettingsStore.svelte.ts';
     import Toggle from '$lib/components/Toggle.svelte';
-
-    const cadenceOptions = [
-        { label: '2m', value: 120 },
-        { label: '5m', value: 300 },
-        { label: '10m', value: 600 },
-        { label: '30m', value: 1800 },
-        { label: '1hr', value: 3600 },
-        { label: '2hr', value: 7200 },
-    ];
-
-    const categoryOptions: { id: PhotoCategory; label: string }[] = [
-        { id: 'nature', label: 'Nature' },
-        { id: 'architecture', label: 'Architecture' },
-        { id: 'interiors', label: 'Interiors' },
-        { id: 'abstract', label: 'Abstract art' },
-    ];
+    import SubTitle from '../SubTitle.svelte';
+    import { cadenceOptions, categoryOptions } from '$lib/constants/ambient';
 </script>
 
 <div class="space-y-6">
     <!-- Cadence -->
     <div class="space-y-3">
-        <div class="mb-4">
-            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo cadence</p>
-            <p class="type-label text-[var(--text-2)]">Choose how often photos cycle.</p>
-        </div>
+        <SubTitle subTitleText="Photo cadence" subTitleDescription="Choose how often photos cycle." />
         <div class="flex gap-2">
             {#each cadenceOptions as opt}
                 <button
@@ -49,13 +26,11 @@
 
     <!-- Categories -->
     <div class="space-y-3">
-        <div class="mb-4">
-            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photo categories</p>
-            <p class="type-label text-[var(--text-2)]">
-                Select one or more categories from below to filter what category of photos will be pulled . If none are
-                selected, then no filtering is made when pulling a random photo.
-            </p>
-        </div>
+        <SubTitle
+            subTitleText="Photo categories"
+            subTitleDescription="Select one or more categories from below to filter what category of photos will be pulled . If none are
+        selected, then no filtering is made when pulling a random photo."
+        />
 
         <div class="flex flex-col gap-2">
             {#each categoryOptions as cat}
@@ -72,12 +47,10 @@
 
     <!-- Attribution -->
     <div class="space-y-3">
-        <div class="mb-4">
-            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Photographer info</p>
-            <p class="type-label text-[var(--text-2)]">
-                Photographer info shows up on the very bottom of the Ambient page.
-            </p>
-        </div>
+        <SubTitle
+            subTitleText="Photographer info"
+            subTitleDescription="Control whether or not photographer info shows up on the very bottom of the Ambient page."
+        />
         <label class="flex items-center gap-3 cursor-pointer">
             <Toggle checked={settings.showAttribution} onchange={toggleAttribution} />
             <span class="type-body text-[var(--text-1)]">Show photographer name in ambient mode</span>

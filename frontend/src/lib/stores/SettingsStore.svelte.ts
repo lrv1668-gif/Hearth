@@ -1,12 +1,11 @@
 import { browser } from '$app/environment';
+import type { PhotoCategory } from '$lib/constants/photos';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
     type WidgetId,
     type AllWidgetId,
 } from '$lib/constants/widgets';
-
-export type PhotoCategory = 'nature' | 'architecture' | 'interiors' | 'abstract';
 
 export interface Settings {
     cadenceSeconds: number;

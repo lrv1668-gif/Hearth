@@ -7,6 +7,7 @@
     import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
     import { disconnectSpotify } from '$lib/api';
     import WidgetOrderEditor from '$lib/components/settings/WidgetOrderEditor.svelte';
+    import SubTitle from '../SubTitle.svelte';
 
     onMount(() => refreshNowPlaying());
 
@@ -20,12 +21,10 @@
 
 <div class="space-y-4 flex flex-col gap-2">
     <div>
-        <div class="mb-4">
-            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Visibility</p>
-            <p class="type-label text-[var(--text-2)]">
-                Enable/disable widgets you want to appear on the Schedules page.
-            </p>
-        </div>
+        <SubTitle
+            subTitleText="Visibility"
+            subTitleDescription="Enable/disable widgets you want to appear on the Schedules page."
+        />
         <div class="flex flex-col gap-2">
             {#each toggleableWidgets as widget}
                 <div>
@@ -76,10 +75,11 @@
     </div>
 
     <div>
-        <p class="type-body tracking-widest uppercase text-[var(--text-1)]">Widget Layout</p>
-        <p class="type-label text-[var(--text-2)] mb-4">
-            Drag widgets between columns and reorder them on the schedule page
-        </p>
+        <SubTitle
+            subTitleText="Widget Layout"
+            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
+                want the column width to be."
+        />
         <WidgetOrderEditor />
     </div>
 </div>

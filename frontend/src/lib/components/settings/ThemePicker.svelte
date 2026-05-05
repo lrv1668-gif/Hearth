@@ -1,18 +1,23 @@
 <script lang="ts">
     import { themes, THEME_GROUPS } from '$lib/constants/themes';
     import { themeStore, setTheme } from '$lib/stores/ThemeStore.svelte.ts';
+    import SubTitle from '../SubTitle.svelte';
 </script>
+
+<SubTitle subTitleText="Themes" subTitleDescription="Choose a theme that best fits you and your home's style." />
 
 <div class="flex flex-col gap-5">
     {#each THEME_GROUPS as group}
         <div class="flex flex-col gap-3">
-            <p class="type-body tracking-widest uppercase text-[var(--text-1)]">{group}</p>
+            <p class="type-label tracking-widest uppercase text-[var(--text-1)]">{group}</p>
             <div class="flex gap-4 flex-wrap">
                 {#each themes.filter((t) => t.group === group) as t}
                     <button
                         onclick={() => setTheme(t.id)}
                         aria-pressed={themeStore.theme === t.id}
-                        class="flex flex-col items-center gap-2 group {themeStore.theme === t.id ? 'pointer-events-none' : ''}"
+                        class="flex flex-col items-center gap-2 group {themeStore.theme === t.id
+                            ? 'pointer-events-none'
+                            : ''}"
                     >
                         <span
                             style="background: {t.fill}; border: 2px solid {t.stroke};"
