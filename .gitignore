@@ -13,6 +13,7 @@ services/**/*.db
 services/**/*.db-shm
 services/**/*.db-wal
 services/**/*.lscache
+services/**/.env
 
 # OS / editor
 .DS_Store

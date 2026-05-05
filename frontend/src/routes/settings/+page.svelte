@@ -10,7 +10,7 @@
 </svelte:head>
 
 <div class="max-w-2xl mx-auto px-8 py-10 space-y-6">
-    <SettingsSection title="Appearance" description="Select a theme below to change how the site looks.">
+    <SettingsSection title="Appearance">
         <ThemePicker />
     </SettingsSection>
 

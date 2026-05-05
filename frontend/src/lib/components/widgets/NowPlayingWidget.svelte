@@ -38,7 +38,7 @@
 </script>
 
 {#if track === undefined}
-    <p class="type-label text-[var(--text-4)]">Spotify not connected — add it in Settings.</p>
+    <p class="type-label text-[var(--text-2)]">Spotify not connected - add it in Settings.</p>
 {:else if track !== null}
     <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] min-w-0">
         {#if track.album_art_url}
