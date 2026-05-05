@@ -1,8 +1,15 @@
 # Hearth
 
-A calm, self-hosted home dashboard for a wall-mounted frame — art, weather, plants, music, and daily tasks in one quiet display. Designed to look beautiful and recede into the room rather than demand attention.
+A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, music, and daily tasks. The long-term target is an always-on e-paper frame (Raspberry Pi).
 
-The primary target is an always-on e-paper frame (Raspberry Pi), but it is also fully accessible via web browser.
+## Pages
+
+| Route | What it shows |
+|-------|---------------|
+| `/` | Schedule — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing |
+| `/calendar` | Month grid with per-day task lists and a detail modal |
+| `/ambient` | Fullscreen photo slideshow at a configurable cadence |
+| `/settings` | Theme picker, photo cadence and categories, attribution toggle |
 
 ## Prerequisites
 
@@ -72,13 +79,19 @@ dotnet run
 ```
 
 ```bash
+# Backend — Photos service (optional; requires services/Photos/.env with UNSPLASH_ACCESS_KEY)
+cd services/Photos
+dotnet run
+```
+
+```bash
 # Frontend
 cd frontend
 npm install   # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, and `/spotify` → `http://localhost:8083`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
+Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, and `/photos` → `http://localhost:8084`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
 ## Tech Stack
 
