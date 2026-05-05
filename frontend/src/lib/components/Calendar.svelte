@@ -92,10 +92,10 @@
         <button
             onclick={goToToday}
             disabled={isCurrentMonth}
-            class="type-label tracking-wide transition-colors px-2.5 py-1 rounded border
+            class="type-label rounded border px-2.5 py-1 tracking-wide transition-colors
              {isCurrentMonth
-                ? 'border-[var(--border)] text-[var(--text-4)] cursor-default opacity-50'
-                : 'border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface)] hover:border-[var(--text-3)]'}"
+                ? 'cursor-default border-[var(--border)] text-[var(--text-4)] opacity-50'
+                : 'border-[var(--border)] text-[var(--text-2)] hover:border-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]'}"
         >
             Today
         </button>
@@ -104,14 +104,14 @@
         <div class="flex items-center gap-1">
             <button
                 onclick={prevMonth}
-                class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
+                class="p-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
                 aria-label="Previous month"
             >
                 <ChevronLeft class="icon-md" />
             </button>
             <button
                 onclick={nextMonth}
-                class="p-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
+                class="p-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
                 aria-label="Next month"
             >
                 <ChevronRight class="icon-md" />
@@ -119,7 +119,7 @@
         </div>
 
         <!-- Month + year -->
-        <h2 class="type-body font-bold tracking-widest text-[var(--text-1)] uppercase select-none">
+        <h2 class="type-body select-none font-bold uppercase tracking-widest text-[var(--text-1)]">
             {MONTH_NAMES[viewMonth]}
             {viewYear}
         </h2>
@@ -129,9 +129,9 @@
         <!-- Far right: new task -->
         <button
             onclick={onNewTask}
-            class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium
-             bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--accent-fg)]
-             transition-colors type-label"
+            class="type-label flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1
+             text-xs font-medium text-[var(--accent-fg)]
+             transition-colors hover:bg-[var(--accent-hi)]"
         >
             <Plus class="icon-md" />
             New Task
@@ -139,10 +139,10 @@
     </div>
 
     <!-- Calendar grid — gap-px + bg-[var(--border)] creates hairline grid lines -->
-    <div class="grid grid-cols-7 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+    <div class="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)]">
         <!-- Day-of-week headers -->
         {#each DAY_NAMES as day}
-            <div class="bg-[var(--bg)] text-center type-label text-[var(--text-3)] font-medium tracking-wider py-2">
+            <div class="type-label bg-[var(--bg)] py-2 text-center font-medium tracking-wider text-[var(--text-3)]">
                 {day}
             </div>
         {/each}
@@ -159,18 +159,18 @@
                 tabindex={day ? 0 : undefined}
                 onclick={() => day && onDateClick(key)}
                 onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && day && onDateClick(key)}
-                class="min-h-20 p-2 w-full text-left flex flex-col items-start
+                class="flex min-h-20 w-full flex-col items-start p-2 text-left
                   {day
                     ? isToday
-                        ? 'bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)] hover:bg-[var(--surface-hi)] transition-colors cursor-default'
-                        : 'bg-[var(--bg)] hover:bg-[var(--surface)] transition-colors cursor-default'
+                        ? 'cursor-default bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)] transition-colors hover:bg-[var(--surface-hi)]'
+                        : 'cursor-default bg-[var(--bg)] transition-colors hover:bg-[var(--surface)]'
                     : 'bg-[var(--bg)]'}"
                 aria-label={day ? `Add task on ${key}` : undefined}
             >
                 {#if day}
                     <span
-                        class="block type-label leading-none mb-1.5
-                       {isToday ? 'text-[var(--text-1)] font-semibold' : 'text-[var(--text-3)]'}"
+                        class="type-label mb-1.5 block leading-none
+                       {isToday ? 'font-semibold text-[var(--text-1)]' : 'text-[var(--text-3)]'}"
                     >
                         {day}
                     </span>
@@ -178,13 +178,13 @@
                     {#if dayTasks.length > 0}
                         <ul class="space-y-1">
                             {#each dayTasks.slice(0, 3) as task (task.id)}
-                                <li class="flex items-center gap-1 min-w-0">
+                                <li class="flex min-w-0 items-center gap-1">
                                     <button
                                         onclick={(e) => {
                                             e.stopPropagation();
                                             onToggle(task);
                                         }}
-                                        class="w-2 h-2 rounded-full flex-shrink-0 transition-colors
+                                        class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
                            {task.done ? 'bg-[var(--done-bg)]' : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
                                         aria-label="Toggle {task.title}"
                                     ></button>
@@ -193,11 +193,11 @@
                                             e.stopPropagation();
                                             onEdit(task);
                                         }}
-                                        class="type-label truncate min-w-0 text-left transition-colors hover:underline
-                               {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
+                                        class="type-label min-w-0 truncate text-left transition-colors hover:underline
+                               {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
                                     >
                                         {#if task.due_time}
-                                            <span class="text-[var(--text-3)] mr-0.5">{formatTime(task.due_time)}</span>
+                                            <span class="mr-0.5 text-[var(--text-3)]">{formatTime(task.due_time)}</span>
                                         {/if}
                                         {task.title}
                                     </button>
@@ -210,7 +210,7 @@
                                             e.stopPropagation();
                                             overflowDayKey = key;
                                         }}
-                                        class="type-label text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                                        class="type-label text-[var(--text-3)] transition-colors hover:text-[var(--text-1)]"
                                     >
                                         +{dayTasks.length - 3} more
                                     </button>
@@ -228,15 +228,15 @@
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}
         <div class="space-y-3">
-            <h3 class="type-label font-medium tracking-widest text-[var(--text-3)] uppercase">No due date</h3>
+            <h3 class="type-label font-medium uppercase tracking-widest text-[var(--text-3)]">No due date</h3>
             <ul class="space-y-1.5">
                 {#each undatedTasks as task (task.id)}
-                    <li class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group">
+                    <li class="group flex items-center gap-3 rounded-lg bg-[var(--surface)] px-3 py-2.5">
                         <button
                             onclick={() => onToggle(task)}
-                            class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors
+                            class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
                      {task.done
-                                ? 'bg-[var(--done-bg)] border-[var(--done-bg)]'
+                                ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
                                 : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
                             aria-label="Toggle {task.title}"
                         >
@@ -247,16 +247,16 @@
 
                         <button
                             onclick={() => onEdit(task)}
-                            class="flex-1 type-body text-left transition-colors hover:underline
-                         {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
+                            class="type-body flex-1 text-left transition-colors hover:underline
+                         {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
                         >
                             {task.title}
                         </button>
 
                         <button
                             onclick={() => onDelete(task.id)}
-                            class="opacity-0 group-hover:opacity-100 text-[var(--text-4)] hover:text-[var(--text-2)]
-                     type-title leading-none transition"
+                            class="type-title leading-none text-[var(--text-4)] opacity-0
+                     transition hover:text-[var(--text-2)] group-hover:opacity-100"
                             aria-label="Delete {task.title}"
                         >
                             <X />

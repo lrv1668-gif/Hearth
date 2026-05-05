@@ -7,10 +7,10 @@
 </script>
 
 <div class={align === 'right' ? 'text-right' : 'text-left'}>
-    <p class="type-title font-bold text-[var(--text-1)] leading-tight">
+    <p class="type-title font-bold leading-tight text-[var(--text-1)]">
         {todaysDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}
     </p>
-    <p class="type-subtitle tracking-widest uppercase text-[var(--text-2)] mt-2">
+    <p class="type-subtitle mt-2 uppercase tracking-widest text-[var(--text-2)]">
         {todaysDate.toLocaleDateString('en-US', { weekday: 'long' })}
     </p>
 </div>

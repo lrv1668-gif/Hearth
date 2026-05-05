@@ -44,12 +44,12 @@
     <div class="space-y-3">
         <!-- Current conditions -->
         <div class="flex items-center gap-3 {align === 'right' ? 'flex-row-reverse' : ''}">
-            <WeatherIcon class="icon-lg text-[var(--text-1)] flex-shrink-0" />
+            <WeatherIcon class="icon-lg flex-shrink-0 text-[var(--text-1)]" />
             <div class={align === 'right' ? 'text-right' : ''}>
                 <span class="type-display font-semibold text-[var(--text-1)]"
                     >{Math.round(current.temperature_f)}°F</span
                 >
-                <span class="type-body text-[var(--text-2)] ml-2">{current.description}</span>
+                <span class="type-body ml-2 text-[var(--text-2)]">{current.description}</span>
             </div>
         </div>
 
@@ -59,9 +59,9 @@
                 {#each forecast.slice(0, 5) as day (day.date)}
                     {@const ForecastIcon = weatherIcon(day.weather_code)}
                     <div
-                        class="flex flex-col items-center gap-1 flex-1 min-w-0 px-1 py-2 rounded-lg bg-[var(--surface)]"
+                        class="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg bg-[var(--surface)] px-1 py-2"
                     >
-                        <span class="type-caption text-[var(--text-1)] truncate w-full text-center">
+                        <span class="type-caption w-full truncate text-center text-[var(--text-1)]">
                             {new Date(`${day.date}T00:00`).toLocaleDateString('en-US', {
                                 weekday: 'short',
                             })}
@@ -75,7 +75,7 @@
         {/if}
 
         <!-- Detail stats: sunrise, sunset, wind -->
-        <div class="flex items-center gap-4 type-label text-[var(--text-2)] {align === 'right' ? 'justify-end' : ''}">
+        <div class="type-label flex items-center gap-4 text-[var(--text-2)] {align === 'right' ? 'justify-end' : ''}">
             {#if forecast[0]?.sunrise}
                 <span class="flex items-center gap-1">
                     <Sunrise class="icon-sm" />{formatSunTime(forecast[0].sunrise)}

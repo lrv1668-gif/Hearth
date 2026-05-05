@@ -4,12 +4,12 @@
 </script>
 
 <!-- Desktop masthead -->
-<header class="border-b border-[var(--border)] bg-[var(--bg)] hidden lg:block">
-    <div class="max-w-5xl mx-auto flex items-center px-8 pt-4 pb-2">
+<header class="hidden border-b border-[var(--border)] bg-[var(--bg)] lg:block">
+    <div class="mx-auto flex max-w-5xl items-center px-8 pb-2 pt-4">
         <div class="flex-1"></div>
         <a href="/">
             <span
-                class="type-title font-bold tracking-[0.25em] uppercase text-[var(--text-1)] hover:text-[var(--text-2)] transition-colors"
+                class="type-title font-bold uppercase tracking-[0.25em] text-[var(--text-1)] transition-colors hover:text-[var(--text-2)]"
             >
                 Hearth
             </span>
@@ -19,43 +19,43 @@
 
     <div class="border-t-2 border-[var(--text-1)]"></div>
 
-    <nav class="flex justify-center items-center py-3">
+    <nav class="flex items-center justify-center py-3">
         <a
             href="/"
             aria-current={page.url.pathname === '/' ? 'page' : undefined}
-            class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-2)] hover:text-[var(--text-1)]
-             aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
+            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
+             transition-colors hover:text-[var(--text-1)]
+             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
         >
             Schedule
         </a>
-        <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
+        <span class="h-3 w-px bg-[var(--border)]" aria-hidden="true"></span>
         <a
             href="/calendar"
             aria-current={page.url.pathname === '/calendar' ? 'page' : undefined}
-            class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-2)] hover:text-[var(--text-1)]
-             aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
+            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
+             transition-colors hover:text-[var(--text-1)]
+             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
         >
             Calendar
         </a>
-        <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
+        <span class="h-3 w-px bg-[var(--border)]" aria-hidden="true"></span>
         <a
             href="/ambient"
             aria-current={page.url.pathname === '/ambient' ? 'page' : undefined}
-            class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-2)] hover:text-[var(--text-1)]
-             aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
+            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
+             transition-colors hover:text-[var(--text-1)]
+             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
         >
             Ambient
         </a>
-        <span class="w-px h-3 bg-[var(--border)]" aria-hidden="true"></span>
+        <span class="h-3 w-px bg-[var(--border)]" aria-hidden="true"></span>
         <a
             href="/settings"
             aria-current={page.url.pathname === '/settings' ? 'page' : undefined}
-            class="px-6 type-label tracking-widest uppercase transition-colors
-             text-[var(--text-2)] hover:text-[var(--text-1)]
-             aria-[current=page]:text-[var(--text-1)] aria-[current=page]:font-semibold"
+            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
+             transition-colors hover:text-[var(--text-1)]
+             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
         >
             Settings
         </a>
@@ -63,48 +63,48 @@
 </header>
 
 <!-- Mobile: compact top bar -->
-<header class="flex items-center justify-center px-4 py-3 border-b border-[var(--border)] bg-[var(--bg)] md:hidden">
-    <a href="/" class="type-title font-bold tracking-widest uppercase text-[var(--text-1)]">Hearth</a>
+<header class="flex items-center justify-center border-b border-[var(--border)] bg-[var(--bg)] px-4 py-3 md:hidden">
+    <a href="/" class="type-title font-bold uppercase tracking-widest text-[var(--text-1)]">Hearth</a>
 </header>
 
 <!-- Mobile bottom nav -->
 <nav
-    class="fixed min-h-max bottom-0 left-0 right-0 flex justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 lg:hidden"
+    class="fixed bottom-0 left-0 right-0 flex min-h-max justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 lg:hidden"
 >
     <a
         href="/"
         aria-current={page.url.pathname === '/' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
-           hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
+           transition-colors hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)]"
     >
         <LayoutList class="icon-lg" />
-        <span class="type-caption tracking-wide uppercase">Schedule</span>
+        <span class="type-caption uppercase tracking-wide">Schedule</span>
     </a>
     <a
         href="/calendar"
         aria-current={page.url.pathname === '/calendar' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
-           hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
+           transition-colors hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)]"
     >
         <CalendarDays class="icon-lg" />
-        <span class="type-caption tracking-wide uppercase">Calendar</span>
+        <span class="type-caption uppercase tracking-wide">Calendar</span>
     </a>
     <a
         href="/ambient"
         aria-current={page.url.pathname === '/ambient' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
-           hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
+           transition-colors hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)]"
     >
         <Image class="icon-lg" />
-        <span class="type-caption tracking-wide uppercase">Ambient</span>
+        <span class="type-caption uppercase tracking-wide">Ambient</span>
     </a>
     <a
         href="/settings"
         aria-current={page.url.pathname === '/settings' ? 'page' : undefined}
         class="flex flex-col items-center gap-0.5 px-4 py-1 text-[var(--text-3)]
-           hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)] transition-colors"
+           transition-colors hover:text-[var(--text-1)] aria-[current=page]:text-[var(--text-1)]"
     >
         <Settings class="icon-lg" />
-        <span class="type-caption tracking-wide uppercase">Settings</span>
+        <span class="type-caption uppercase tracking-wide">Settings</span>
     </a>
 </nav>

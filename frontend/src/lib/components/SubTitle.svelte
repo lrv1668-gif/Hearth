@@ -8,7 +8,7 @@
 </script>
 
 <div class="mb-4">
-    <p class="type-body tracking-widest uppercase text-[var(--text-1)]">{subTitleText}</p>
+    <p class="type-body uppercase tracking-widest text-[var(--text-1)]">{subTitleText}</p>
 
     {#if subTitleDescription}
         <p class="type-label text-[var(--text-2)]">{subTitleDescription}</p>

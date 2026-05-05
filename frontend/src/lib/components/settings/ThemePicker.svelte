@@ -9,26 +9,26 @@
 <div class="flex flex-col gap-5">
     {#each THEME_GROUPS as group}
         <div class="flex flex-col gap-3">
-            <p class="type-label tracking-widest uppercase text-[var(--text-1)]">{group}</p>
-            <div class="flex gap-4 flex-wrap">
+            <p class="type-label uppercase tracking-widest text-[var(--text-1)]">{group}</p>
+            <div class="flex flex-wrap gap-4">
                 {#each themes.filter((t) => t.group === group) as t}
                     <button
                         onclick={() => setTheme(t.id)}
                         aria-pressed={themeStore.theme === t.id}
-                        class="flex flex-col items-center gap-2 group {themeStore.theme === t.id
+                        class="group flex flex-col items-center gap-2 {themeStore.theme === t.id
                             ? 'pointer-events-none'
                             : ''}"
                     >
                         <span
                             style="background: {t.fill}; border: 2px solid {t.stroke};"
-                            class="block w-10 h-10 rounded-full transition-all
+                            class="block h-10 w-10 rounded-full transition-all
                                 {themeStore.theme === t.id
-                                ? 'ring-2 ring-offset-2 ring-[var(--text-3)] ring-offset-[var(--bg)]'
+                                ? 'ring-2 ring-[var(--text-3)] ring-offset-2 ring-offset-[var(--bg)]'
                                 : 'opacity-60 group-hover:opacity-100'}"
                         ></span>
                         <span
                             class="type-label tracking-wide {themeStore.theme === t.id
-                                ? 'text-[var(--text-1)] font-medium'
+                                ? 'font-medium text-[var(--text-1)]'
                                 : 'text-[var(--text-2)]'}"
                         >
                             {t.label}
