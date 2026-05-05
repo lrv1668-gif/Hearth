@@ -41,16 +41,16 @@
     role="button"
     tabindex="0"
     aria-label="Exit ambient mode"
-    class="fixed inset-0 z-[100] bg-black flex items-center justify-center cursor-pointer"
+    class="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center bg-black"
 >
     {#if loading}
-        <p class="text-white/40 type-body tracking-widest uppercase">Loading…</p>
+        <p class="type-body uppercase tracking-widest text-white/40">Loading…</p>
     {:else if photo}
         {#key photo.id}
             <img
                 src={photo.url}
                 alt={photo.description ?? ''}
-                class="absolute inset-0 w-full h-full object-cover"
+                class="absolute inset-0 h-full w-full object-cover"
                 in:fade={{ duration: 1500 }}
                 out:fade={{ duration: 1500 }}
             />
@@ -59,25 +59,25 @@
         <!-- Attribution bar -->
         {#if settings.showAttribution}
             <div
-                class="absolute bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between"
+                class="absolute bottom-0 left-0 right-0 flex items-end justify-between bg-gradient-to-t from-black/60 to-transparent px-6 py-4"
             >
-                <p class="text-white/70 type-label">
+                <p class="type-label text-white/70">
                     Photo by
                     <a
                         href={photo.unsplash_link}
                         target="_blank"
                         rel="noopener noreferrer"
                         onclick={(e) => e.stopPropagation()}
-                        class="underline hover:text-white transition-colors"
+                        class="underline transition-colors hover:text-white"
                     >
                         {photo.photographer_name}
                     </a>
                     on Unsplash
                 </p>
-                <p class="text-white/40 type-label">Click or press any key to exit</p>
+                <p class="type-label text-white/40">Click or press any key to exit</p>
             </div>
         {/if}
     {:else}
-        <p class="text-white/40 type-body tracking-widest uppercase">No photos available</p>
+        <p class="type-body uppercase tracking-widest text-white/40">No photos available</p>
     {/if}
 </div>

@@ -41,13 +41,13 @@
             <li class="flex {align === 'right' ? 'justify-end' : ''}">
                 <button
                     onclick={() => onEdit(item)}
-                    class="text-right flex items-start gap-3 group hover:opacity-80 transition-opacity"
+                    class="group flex items-start gap-3 text-right transition-opacity hover:opacity-80"
                 >
-                    <div class="flex flex-col items-end flex-shrink-0 w-12">
+                    <div class="flex w-12 flex-shrink-0 flex-col items-end">
                         {#if item.days === 0}
-                            <span class="type-title font-bold text-[var(--accent)] leading-none">!</span>
+                            <span class="type-title font-bold leading-none text-[var(--accent)]">!</span>
                         {:else}
-                            <span class="type-title font-bold text-[var(--text-1)] leading-none tabular-nums">
+                            <span class="type-title font-bold tabular-nums leading-none text-[var(--text-1)]">
                                 {item.days}
                             </span>
                             <span class="type-caption leading-none text-[var(--text-2)]">
@@ -61,7 +61,7 @@
                             <p class="type-label font-semibold uppercase tracking-widest text-[var(--accent)]">Today</p>
                         {/if}
 
-                        <p class="type-body text-[var(--text-1)] truncate leading-tight">{item.title}</p>
+                        <p class="type-body truncate leading-tight text-[var(--text-1)]">{item.title}</p>
 
                         {#if item.days !== 0}
                             <p class="type-label text-[var(--text-2)]">{formatDate(item.due_date!)}</p>

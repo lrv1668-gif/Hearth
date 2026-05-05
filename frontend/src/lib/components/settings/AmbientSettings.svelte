@@ -13,10 +13,10 @@
             {#each cadenceOptions as opt}
                 <button
                     onclick={() => updateCadence(opt.value)}
-                    class="px-4 py-1.5 rounded-full text-xs tracking-wide border transition-colors
+                    class="rounded-full border px-4 py-1.5 text-xs tracking-wide transition-colors
                         {settings.cadenceSeconds === opt.value
-                        ? 'bg-[var(--text-1)] text-[var(--bg)] border-[var(--text-1)] pointer-events-none'
-                        : 'border-[var(--border)] hover:bg-[var(--text-4)] text-[var(--text-1)] hover:text-[var(--text-1)] hover:border-[var(--text-2)]'} type-label"
+                        ? 'pointer-events-none border-[var(--text-1)] bg-[var(--text-1)] text-[var(--bg)]'
+                        : 'border-[var(--border)] text-[var(--text-1)] hover:border-[var(--text-2)] hover:bg-[var(--text-4)] hover:text-[var(--text-1)]'} type-label"
                 >
                     {opt.label}
                 </button>
@@ -34,7 +34,7 @@
 
         <div class="flex flex-col gap-2">
             {#each categoryOptions as cat}
-                <label class="flex items-center gap-3 cursor-pointer">
+                <label class="flex cursor-pointer items-center gap-3">
                     <Toggle
                         checked={settings.photoCategories.includes(cat.id)}
                         onchange={() => toggleCategory(cat.id)}
@@ -51,7 +51,7 @@
             subTitleText="Photographer info"
             subTitleDescription="Control whether or not photographer info shows up on the very bottom of the Ambient page."
         />
-        <label class="flex items-center gap-3 cursor-pointer">
+        <label class="flex cursor-pointer items-center gap-3">
             <Toggle checked={settings.showAttribution} onchange={toggleAttribution} />
             <span class="type-body text-[var(--text-1)]">Show photographer name in ambient mode</span>
         </label>

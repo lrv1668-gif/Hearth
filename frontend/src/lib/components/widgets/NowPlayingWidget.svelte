@@ -40,29 +40,29 @@
 {#if track === undefined}
     <p class="type-label text-[var(--text-2)]">Spotify not connected - add it in Settings.</p>
 {:else if track !== null}
-    <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] min-w-0">
+    <div class="flex min-w-0 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
         {#if track.album_art_url}
             <img
                 src={track.album_art_url}
                 alt={track.album_name}
-                class="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                class="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
             />
         {:else}
-            <div class="w-12 h-12 rounded-lg bg-[var(--border)] flex items-center justify-center flex-shrink-0">
+            <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--border)]">
                 <Music class="icon-lg text-[var(--text-4)]" />
             </div>
         {/if}
 
-        <div class="flex flex-col min-w-0 gap-1 flex-1">
+        <div class="flex min-w-0 flex-1 flex-col gap-1">
             <div class="min-w-0">
-                <p class="type-body font-medium text-[var(--text-1)] truncate leading-tight">
+                <p class="type-body truncate font-medium leading-tight text-[var(--text-1)]">
                     {track.title}
                 </p>
-                <p class="type-label text-[var(--text-2)] truncate leading-tight">{track.artist}</p>
+                <p class="type-label truncate leading-tight text-[var(--text-2)]">{track.artist}</p>
             </div>
-            <div class="w-full h-1 bg-[var(--border)] rounded-full overflow-hidden">
+            <div class="h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
                 <div
-                    class="h-full bg-[var(--text-3)] rounded-full"
+                    class="h-full rounded-full bg-[var(--text-3)]"
                     style="width: {progressPct}%; transition: none"
                 ></div>
             </div>

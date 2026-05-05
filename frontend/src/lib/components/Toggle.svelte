@@ -12,7 +12,7 @@
     aria-checked={checked}
     onclick={onchange}
     class="inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border px-[1px] transition-colors duration-200
-        {checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--surface-hi)] border-[var(--border)]'}"
+        {checked ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border)] bg-[var(--surface-hi)]'}"
     aria-label="Toggle"
 >
     <span

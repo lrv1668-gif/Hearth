@@ -19,7 +19,7 @@
     const spotifyConnected = $derived(spotifyStore.nowPlaying !== undefined);
 </script>
 
-<div class="space-y-4 flex flex-col gap-2">
+<div class="flex flex-col gap-2 space-y-4">
     <div>
         <SubTitle
             subTitleText="Visibility"
@@ -28,7 +28,7 @@
         <div class="flex flex-col gap-2">
             {#each toggleableWidgets as widget}
                 <div>
-                    <label class="flex items-center gap-3 cursor-pointer">
+                    <label class="flex cursor-pointer items-center gap-3">
                         <div class="mt-0.5 shrink-0">
                             <Toggle
                                 checked={settings.enabledWidgets.includes(widget.id)}
@@ -36,8 +36,8 @@
                             />
                         </div>
                         <div>
-                            <p class="type-body text-[var(--text-1)] select-none">{widget.label}</p>
-                            <p class="type-label text-[var(--text-2)] select-none">{widget.description}</p>
+                            <p class="type-body select-none text-[var(--text-1)]">{widget.label}</p>
+                            <p class="type-label select-none text-[var(--text-2)]">{widget.description}</p>
                         </div>
                     </label>
 
@@ -46,22 +46,22 @@
                             <div class="flex flex-row gap-2">
                                 <Settings class="icon-sm" />
                                 {#if spotifyConnected}
-                                    <p class="type-label text-[var(--text-1)] border-r pr-2 border-r-[var(--text-3)]">
+                                    <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">
                                         Spotify connected
                                     </p>
                                     <button
                                         onclick={handleDisconnect}
-                                        class="type-label text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
+                                        class="type-label text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
                                     >
                                         Disconnect
                                     </button>
                                 {:else}
-                                    <p class="type-label text-[var(--text-1)] border-r pr-2 border-r-[var(--text-3)]">
+                                    <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">
                                         Spotify disconnected
                                     </p>
                                     <a
                                         href="/spotify/auth"
-                                        class="inline-flex items-center gap-1 type-label text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
+                                        class="type-label inline-flex items-center gap-1 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
                                     >
                                         Connect
                                     </a>

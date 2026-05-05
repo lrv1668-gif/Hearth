@@ -70,22 +70,22 @@
     {/if}
 {/snippet}
 
-<main class="max-w-5xl mx-auto px-6 md:px-8 py-6 overflow-x-hidden">
+<main class="mx-auto max-w-5xl overflow-x-hidden px-6 py-6 md:px-8">
     <div class="flex w-full gap-8">
         {#if !isMobile.current}
-            <div class="flex flex-col gap-4 min-w-0" style="flex: {settings.leftColumnWidth} 1 0%">
+            <div class="flex min-w-0 flex-col gap-4" style="flex: {settings.leftColumnWidth} 1 0%">
                 {#each settings.widgetColumns.left as id}
                     {@render renderWidget(id, 'left')}
                 {/each}
             </div>
 
-            <div class="flex flex-col gap-6 min-w-0" style="flex: {100 - settings.leftColumnWidth} 1 0%">
+            <div class="flex min-w-0 flex-col gap-6" style="flex: {100 - settings.leftColumnWidth} 1 0%">
                 {#each settings.widgetColumns.right as id}
                     {@render renderWidget(id, 'right')}
                 {/each}
             </div>
         {:else}
-            <div class="flex flex-col gap-4 min-w-0 w-full">
+            <div class="flex w-full min-w-0 flex-col gap-4">
                 {#each settings.widgetColumns.left.concat(settings.widgetColumns.right) as id}
                     {@render renderWidget(id, 'left')}
                 {/each}

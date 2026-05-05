@@ -22,7 +22,7 @@
 </svelte:head>
 
 {#if loaded}
-    <div class="min-h-screen bg-[var(--bg)] text-[var(--text-1)] transition-colors duration-300 pb-16 lg:pb-0">
+    <div class="min-h-screen bg-[var(--bg)] pb-16 text-[var(--text-1)] transition-colors duration-300 lg:pb-0">
         <Nav />
         {@render children()}
     </div>

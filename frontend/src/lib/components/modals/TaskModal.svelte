@@ -93,14 +93,14 @@
     bind:this={dialog}
     onclose={close}
     onclick={handleBackdropClick}
-    class="bg-transparent p-0 max-w-lg w-full backdrop:bg-black/40 backdrop:backdrop-blur-sm"
+    class="w-full max-w-lg bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
-    <div class="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl p-6 space-y-5 mx-4">
+    <div class="mx-4 space-y-5 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-6 shadow-xl">
         <div class="flex items-center justify-between">
             <h2 class="text-[var(--text-1)]">{isEdit ? 'Edit Task' : 'Add a New Task'}</h2>
             <button
                 onclick={close}
-                class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors w-6 h-6 flex items-center justify-center"
+                class="flex h-6 w-6 items-center justify-center text-[var(--text-3)] transition-colors hover:text-[var(--text-1)]"
                 aria-label="Close"
             >
                 <X class="icon-md" />
@@ -114,27 +114,27 @@
         {/if}
 
         {#if isEdit}
-            <div class="pt-2 border-t border-[var(--border)]">
+            <div class="border-t border-[var(--border)] pt-2">
                 {#if confirmDelete}
                     <div class="flex items-center gap-2">
-                        <span class="type-label text-[var(--text-3)] mr-1">Delete:</span>
+                        <span class="type-label mr-1 text-[var(--text-3)]">Delete:</span>
                         <button
                             onclick={() => handleDelete(false)}
-                            class="type-label px-2.5 py-1 rounded bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                            class="type-label rounded bg-[var(--surface)] px-2.5 py-1 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
                         >
                             Just this
                         </button>
                         {#if task?.series_id !== null}
                             <button
                                 onclick={() => handleDelete(true)}
-                                class="type-label px-2.5 py-1 rounded bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                class="type-label rounded bg-[var(--surface)] px-2.5 py-1 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
                             >
                                 All future
                             </button>
                         {/if}
                         <button
                             onclick={() => (confirmDelete = false)}
-                            class="text-[var(--text-4)] hover:text-[var(--text-2)] transition ml-1"
+                            class="ml-1 text-[var(--text-4)] transition hover:text-[var(--text-2)]"
                             aria-label="Cancel delete"
                         >
                             <X class="icon-sm" />
@@ -149,7 +149,7 @@
                                 handleDelete(false);
                             }
                         }}
-                        class="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                        class="text-[var(--text-3)] transition-colors hover:text-[var(--text-1)]"
                         aria-label="Delete task"
                     >
                         <Trash2 class="icon-md" />

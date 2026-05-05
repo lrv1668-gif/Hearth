@@ -16,13 +16,13 @@
 <section class="space-y-5">
     <button
         onclick={() => (open = !open)}
-        class="w-full flex items-center justify-between border-b border-[var(--border)] pb-2 group"
+        class="group flex w-full items-center justify-between border-b border-[var(--border)] pb-2"
     >
         {@render header()}
         {#if open}
-            <ChevronUp class="icon-sm text-[var(--text-3)] group-hover:text-[var(--text-1)] transition-colors" />
+            <ChevronUp class="icon-sm text-[var(--text-3)] transition-colors group-hover:text-[var(--text-1)]" />
         {:else}
-            <ChevronDown class="icon-sm text-[var(--text-3)] group-hover:text-[var(--text-1)] transition-colors" />
+            <ChevronDown class="icon-sm text-[var(--text-3)] transition-colors group-hover:text-[var(--text-1)]" />
         {/if}
     </button>
 

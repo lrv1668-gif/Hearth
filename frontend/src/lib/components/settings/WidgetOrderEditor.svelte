@@ -69,22 +69,22 @@
 <div
     bind:this={containerEl}
     role="presentation"
-    class="flex border-2 border-[var(--border)] rounded overflow-hidden mb-4"
+    class="mb-4 flex overflow-hidden rounded border-2 border-[var(--border)]"
     class:cursor-col-resize={dragging}
     onpointermove={onDrag}
     onpointerup={endDrag}
 >
-    <div class="p-3 shrink-0" style="width: {previewWidth}%">
-        <p class="type-label text-[var(--text-1)] mb-2">Left column</p>
+    <div class="shrink-0 p-3" style="width: {previewWidth}%">
+        <p class="type-label mb-2 text-[var(--text-1)]">Left column</p>
         <div
             use:dndzone={{ items: leftItems, type: 'widget', flipDurationMs: 150 }}
             onconsider={onconsiderLeft}
             onfinalize={onfinalizeLeft}
-            class="space-y-1 min-h-16"
+            class="min-h-16 space-y-1"
         >
             {#each leftItems as item (item.id)}
-                <div class="flex items-center gap-2 py-1.5 cursor-grab active:cursor-grabbing select-none">
-                    <Grip class="icon-sm text-[var(--text-2)] shrink-0" />
+                <div class="flex cursor-grab select-none items-center gap-2 py-1.5 active:cursor-grabbing">
+                    <Grip class="icon-sm shrink-0 text-[var(--text-2)]" />
                     <span class="type-body text-[var(--text-1)]">{item.label}</span>
                 </div>
             {/each}
@@ -96,23 +96,23 @@
         aria-valuenow={Math.round(previewWidth)}
         aria-valuemin={30}
         aria-valuemax={70}
-        class="flex items-center justify-center bg-[var(--accent)] cursor-col-resize text-[var(--text-4)] transition-colors"
+        class="flex cursor-col-resize items-center justify-center bg-[var(--accent)] text-[var(--text-4)] transition-colors"
         onpointerdown={startDrag}
     >
         <GripVertical class="icon-sm" />
     </div>
 
-    <div class="p-3 flex-1">
-        <p class="type-label text-[var(--text-1)] mb-2">Right column</p>
+    <div class="flex-1 p-3">
+        <p class="type-label mb-2 text-[var(--text-1)]">Right column</p>
         <div
             use:dndzone={{ items: rightItems, type: 'widget', flipDurationMs: 150 }}
             onconsider={onconsiderRight}
             onfinalize={onfinalizeRight}
-            class="space-y-1 min-h-16"
+            class="min-h-16 space-y-1"
         >
             {#each rightItems as item (item.id)}
-                <div class="flex items-center gap-2 py-1.5 cursor-grab active:cursor-grabbing select-none">
-                    <Grip class="icon-sm text-[var(--text-2)] shrink-0" />
+                <div class="flex cursor-grab select-none items-center gap-2 py-1.5 active:cursor-grabbing">
+                    <Grip class="icon-sm shrink-0 text-[var(--text-2)]" />
                     <span class="type-body text-[var(--text-1)]">{item.label}</span>
                 </div>
             {/each}

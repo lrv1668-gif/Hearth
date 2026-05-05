@@ -122,26 +122,26 @@
 </script>
 
 {#if groups.length === 0}
-    <p class="text-center type-body text-[var(--text-2)] py-4">Nothing scheduled.</p>
+    <p class="type-body py-4 text-center text-[var(--text-2)]">Nothing scheduled.</p>
 {:else}
     <div class="space-y-4">
         {#each groups as group (group.key)}
             <div class="space-y-1">
                 <div class="">
                     <div class="flex items-center gap-3">
-                        <h2 class="type-body font-semibold whitespace-nowrap text-[var(--text-1)]">
+                        <h2 class="type-body whitespace-nowrap font-semibold text-[var(--text-1)]">
                             {group.label}
                         </h2>
                     </div>
                 </div>
                 <ul class="space-y-2">
                     {#each group.tasks as task (task.id)}
-                        <li class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[var(--surface)] group/row">
+                        <li class="group/row flex items-center gap-3 rounded-lg bg-[var(--surface)] px-3 py-2.5">
                             <button
                                 onclick={() => onToggle(task)}
-                                class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors
+                                class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
                        {task.done
-                                    ? 'bg-[var(--done-bg)] border-[var(--done-bg)]'
+                                    ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
                                     : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
                                 aria-label="Toggle {task.title}"
                             >
@@ -151,7 +151,7 @@
                             </button>
 
                             {#if task.due_time}
-                                <span class="type-label text-[var(--text-2)] w-14 flex-shrink-0 tabular-nums">
+                                <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
                                     {formatTime(task.due_time)}
                                 </span>
                             {:else}
@@ -160,25 +160,25 @@
 
                             <button
                                 onclick={() => onEdit(task)}
-                                class="flex-1 min-w-0 text-left transition-colors hover:opacity-80"
+                                class="min-w-0 flex-1 text-left transition-colors hover:opacity-80"
                             >
-                                <div class="flex items-center gap-2 min-w-0">
+                                <div class="flex min-w-0 items-center gap-2">
                                     <span
-                                        class="type-body transition-colors truncate
-                                               {task.done ? 'line-through text-[var(--done)]' : 'text-[var(--text-1)]'}"
+                                        class="type-body truncate transition-colors
+                                               {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
                                     >
                                         {task.title}
                                     </span>
                                     {#if task.assignee}
                                         <span
-                                            class="flex-shrink-0 type-label px-1.5 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)]"
+                                            class="type-label flex-shrink-0 rounded bg-[var(--surface-hi)] px-1.5 py-0.5 text-[var(--text-2)]"
                                         >
                                             {task.assignee}
                                         </span>
                                     {/if}
                                     {#if task.recurrence_unit}
                                         <span
-                                            class="flex-shrink-0 flex items-center gap-0.5 type-label text-[var(--text-2)]"
+                                            class="type-label flex flex-shrink-0 items-center gap-0.5 text-[var(--text-2)]"
                                         >
                                             <RefreshCw class="icon-xs" />
                                             {recurrenceLabel(task)}
@@ -186,20 +186,20 @@
                                     {/if}
                                 </div>
                                 {#if task.description}
-                                    <p class="type-label text-[var(--text-2)] truncate mt-0.5">
+                                    <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
                                         {task.description}
                                     </p>
                                 {/if}
                             </button>
 
                             {#if confirmDeleteId === task.id}
-                                <div class="flex items-center gap-1 flex-shrink-0">
+                                <div class="flex flex-shrink-0 items-center gap-1">
                                     <button
                                         onclick={() => {
                                             onDelete(task.id);
                                             confirmDeleteId = null;
                                         }}
-                                        class="type-label px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                        class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
                                     >
                                         Just this
                                     </button>
@@ -208,13 +208,13 @@
                                             onDelete(task.id, true);
                                             confirmDeleteId = null;
                                         }}
-                                        class="type-label px-2 py-0.5 rounded bg-[var(--surface-hi)] text-[var(--text-2)] hover:text-[var(--text-1)] transition"
+                                        class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
                                     >
                                         All future
                                     </button>
                                     <button
                                         onclick={() => (confirmDeleteId = null)}
-                                        class="text-[var(--text-4)] hover:text-[var(--text-2)] transition"
+                                        class="text-[var(--text-4)] transition hover:text-[var(--text-2)]"
                                         aria-label="Cancel"
                                     >
                                         <X class="icon-sm" />
@@ -229,7 +229,7 @@
                                             onDelete(task.id);
                                         }
                                     }}
-                                    class="opacity-0 group-hover/row:opacity-100 text-[var(--text-3)] hover:text-[var(--text-1)] transition flex-shrink-0"
+                                    class="flex-shrink-0 text-[var(--text-3)] opacity-0 transition hover:text-[var(--text-1)] group-hover/row:opacity-100"
                                     aria-label="Delete {task.title}"
                                 >
                                     <X class="icon-md" />
