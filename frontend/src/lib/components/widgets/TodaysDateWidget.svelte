@@ -1,12 +1,8 @@
 <script lang="ts">
-    interface Props {
-        align?: 'left' | 'right';
-    }
-    let { align = 'left' }: Props = $props();
     const todaysDate = $state(new Date());
 </script>
 
-<div class={align === 'right' ? 'text-right' : 'text-left'}>
+<div>
     <p class="type-title font-bold leading-tight text-[var(--text-1)]">
         {todaysDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}
     </p>

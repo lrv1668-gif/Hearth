@@ -5,9 +5,9 @@ namespace Photos;
 
 public sealed class PhotoFetcher(HttpClient http)
 {
-    public async Task<List<PhotoResponse>> FetchAsync(string query, string apiKey)
+    public async Task<List<PhotoResponse>> FetchAsync(string query, string orientation, string apiKey)
     {
-        var url = $"https://api.unsplash.com/photos/random?query={Uri.EscapeDataString(query)}&count=20&orientation=landscape";
+        var url = $"https://api.unsplash.com/photos/random?query={Uri.EscapeDataString(query)}&orientation={orientation}&count=20";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("Authorization", $"Client-ID {apiKey}");
 
