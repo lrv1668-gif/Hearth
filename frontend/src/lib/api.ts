@@ -148,8 +148,8 @@ export interface Photo {
     unsplash_link: string;
 }
 
-export async function fetchRandomPhoto(query: string): Promise<Photo | null> {
-    const res = await fetch(`/photos/random?query=${encodeURIComponent(query)}`);
+export async function fetchRandomPhoto(query: string, orientation: 'portrait' | 'landscape'): Promise<Photo | null> {
+    const res = await fetch(`/photos/random?query=${encodeURIComponent(query)}&orientation=${orientation}`);
     if (!res.ok) return null;
     return res.json();
 }

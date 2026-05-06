@@ -6,6 +6,8 @@ namespace Photos.Extensions;
 
 public static class WebApplicationExtensions
 {
+    private static readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+
     public static void InitializeWebAppForPhotos(this WebApplication app)
     {
         app.Services.GetRequiredService<PhotoStore>().Migrate();
@@ -21,6 +23,7 @@ public static class WebApplicationExtensions
             IConfiguration config) =>
         {
             var query = ctx.Request.Query["query"].FirstOrDefault() ?? "nature";
+            var orientation = ctx.Request.Query["orientation"].FirstOrDefault() ?? "portrait";
 
             var key = config["UNSPLASH_ACCESS_KEY"];
             if (string.IsNullOrEmpty(key))
@@ -32,24 +35,25 @@ public static class WebApplicationExtensions
             var cache = store.Load();
             List<PhotoResponse>? photos = null;
 
-            if (cache is not null && !PhotoStore.IsStale(cache) && PhotoStore.IsQueryMatch(cache, query))
+            if (cache is not null && !PhotoStore.IsStale(cache) && PhotoStore.IsQueryMatch(cache, query) && PhotoStore.IsOrientationMatch(cache, orientation))
             {
                 photos = JsonSerializer.Deserialize<List<PhotoResponse>>(
                     cache.PhotosJson,
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+                    _serializerOptions);
             }
 
             if (photos is null || photos.Count == 0)
             {
                 try
                 {
-                    photos = await fetcher.FetchAsync(query, key);
+                    photos = await fetcher.FetchAsync(query, orientation, key);
                     if (photos.Count == 0)
                         return Results.Json(new { error = "no photos returned" }, statusCode: 502);
 
                     store.Save(
-                        JsonSerializer.Serialize(photos, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }),
-                        query);
+                        JsonSerializer.Serialize(photos, _serializerOptions),
+                        query,
+                        orientation);
                 }
                 catch (Exception ex)
                 {

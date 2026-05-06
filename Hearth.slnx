@@ -3,6 +3,7 @@
     <Project Path="services/Tasks/Tasks.csproj" />
     <Project Path="services/Data.Abstractions/Data.Abstractions.csproj" />
     <Project Path="services/Data/Data.csproj" />
+    <Project Path="services/Photos/Photos.csproj" />
     <Project Path="services/Spotify/Spotify.csproj" />
     <Project Path="services/Weather/Weather.csproj" />
   </Folder>

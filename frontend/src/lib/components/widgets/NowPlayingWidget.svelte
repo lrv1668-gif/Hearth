@@ -27,18 +27,13 @@
 
     const track = $derived(spotifyStore.nowPlaying);
 
-    interface Props {
-        align?: 'left' | 'right';
-    }
-    let { align = 'left' }: Props = $props();
-
     const progressPct = $derived(
         track ? Math.min(100, ((track.progress_ms + (track.is_playing ? tickMs : 0)) / track.duration_ms) * 100) : 0
     );
 </script>
 
 {#if track === undefined}
-    <p class="type-label text-[var(--text-2)]">Spotify not connected - add it in Settings.</p>
+    <p class="type-body text-[var(--text-2)]">Spotify not connected - add it in Settings.</p>
 {:else if track !== null}
     <div class="flex min-w-0 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
         {#if track.album_art_url}
@@ -69,5 +64,5 @@
         </div>
     </div>
 {:else}
-    <p class="type-label text-[var(--text-2)] {align === 'right' ? 'text-right' : ''}">Nothing playing.</p>
+    <p class="type-body text-[var(--text-2)]">Nothing playing.</p>
 {/if}
