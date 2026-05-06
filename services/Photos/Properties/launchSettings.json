@@ -2,11 +2,7 @@
   "profiles": {
     "Photos": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://localhost:51260;http://localhost:51261"
+      "applicationUrl": "https://localhost:8084"
     }
   }
 }
