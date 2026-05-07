@@ -8,7 +8,7 @@ Keep documentation in sync with code at all times:
 
 - When a new service is added or changed, update `SOFTWARE-DESIGN.md` and the directory structure below.
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
-- When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and this file.
+- When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and the theme list below.
 - When a new service needs environment variables, create `services/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
 - When adding a new backend service: add it to `docker-compose.yml`, `Caddyfile`, and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency.
 - Each frontend data type gets its own `<Type>Store.ts` file — do not combine stores.
@@ -25,8 +25,6 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 - **Proxy:** Caddy 2
 - **Infra:** Docker Compose
 
-See `docs/SOFTWARE-DESIGN.md` for full architecture decisions.
-
 ## Directory Structure
 
 ```text
@@ -41,80 +39,6 @@ services/
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 Caddyfile
-```
-
-## Environment Configuration
-
-Services that need secrets or location config use a per-service `.env` file loaded via `env_file` in `docker-compose.yml`. The `DotNetEnv` package in each service also loads the same file for local `dotnet run`.
-
-| Service | File                    | Key variables                                                        |
-| ------- | ----------------------- | -------------------------------------------------------------------- |
-| Spotify | `services/Spotify/.env` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` |
-| Weather | `services/Weather/.env` | `LATITUDE`, `LONGITUDE`                                              |
-| Photos  | `services/Photos/.env`  | `UNSPLASH_ACCESS_KEY`                                                |
-
-Create the file before running the service. Example for Weather:
-
-```bash
-# services/Weather/.env
-LATITUDE=40.7128
-LONGITUDE=-74.0060
-```
-
-## Running Locally (dev, no Docker)
-
-**Tasks service:**
-
-```bash
-cd services/Tasks
-dotnet run
-```
-
-**Weather service** (requires `services/Weather/.env` with `LATITUDE` and `LONGITUDE`):
-
-```bash
-cd services/Weather
-dotnet run
-```
-
-**Spotify service** (optional; requires `services/Spotify/.env` with `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`):
-
-```bash
-cd services/Spotify
-dotnet run
-```
-
-**Photos service** (optional; requires `services/Photos/.env` with `UNSPLASH_ACCESS_KEY`):
-
-```bash
-cd services/Photos
-dotnet run
-```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm install        # first time only
-npm run dev
-```
-
-Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, and `/spotify` → `http://localhost:8083`. Open http://localhost:5173.
-
-## Running in Docker
-
-**Development (live reload via Vite HMR):**
-
-```bash
-docker compose watch
-```
-
-`docker-compose.override.yml` is auto-merged and swaps the frontend for the Vite dev server (`Dockerfile.dev`). Changes to `frontend/src/` and `frontend/static/` sync instantly; changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a rebuild.
-
-**Production:**
-
-```bash
-docker compose -f docker-compose.yml up --build
 ```
 
 ## Conventions

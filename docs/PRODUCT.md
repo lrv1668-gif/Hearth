@@ -150,35 +150,6 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 
 ---
 
-## Architecture Overview
-
-Each capability is a self-contained microservice running on the Pi. Services expose REST APIs consumed by:
-
-1. The **Display Service** — which owns the render pipeline and writes frames to the e-paper hardware
-2. The **Web/API Gateway** — which serves the phone UI and routes requests to services
-
-### Service Decomposition
-
-| Service          | Responsibility                                                               | Status          |
-| ---------------- | ---------------------------------------------------------------------------- | --------------- |
-| Display Service  | Renders layouts to bitmap, drives e-paper hardware, manages refresh schedule | Planned         |
-| Photos Service   | Fetches Unsplash photos, caches batches, serves `/ambient` slideshow         | Implemented     |
-| Weather Service  | Polls Open-Meteo on a schedule, caches current + 7-day forecast              | Implemented     |
-| Tasks Service    | CRUD for household to-do lists with recurrence and countdown events          | Implemented     |
-| Plants Service   | Tracks plant watering schedules and due dates                                | Planned         |
-| Music Service    | Polls Spotify API for now-playing                                            | Implemented     |
-| Calendar Service | Syncs with Google/Apple Calendar                                             | Planned         |
-| Web/API Gateway  | Serves the phone UI, routes requests to services, handles first-run setup    | Caddy (partial) |
-
-### Design Principles
-
-- Services communicate over local HTTP on fixed, well-known ports. No service discovery in v1.
-- State is persisted per-service using SQLite. No shared database.
-- If a service is unavailable at render time, the Display Service renders gracefully without that data — it does not fail or wait. Stale data from the last successful fetch is used where possible.
-- No external cloud infrastructure required for core operation. External API calls are made by individual services on their own polling schedules.
-
----
-
 ## What Makes It Stick
 
 1. **It's beautiful out of the box.** First run should look good in 60 seconds, not require configuration.
@@ -213,8 +184,6 @@ These need to be decided before or early in development:
 
 - **E-paper hardware module:** Which specific display and driver board? This determines the SPI interface, color palette (4-color vs. 7-color ACeP), resolution, and which C# library or native bindings to use.
 - **Physical input:** Does the frame have any physical controls (button, tap sensor, PIR motion sensor)? The "frame tap" concept mentioned in Phase 2 tasks requires this to be defined.
-- ~~**Spotify OAuth on a local device:** Spotify's auth flow requires a redirect URI. How does this work when the device has no public URL?~~ **Resolved:** The `spotify` service uses a loopback redirect URI (e.g. `http://127.0.0.1:8083/spotify/callback`) registered in the Spotify app dashboard. After the OAuth callback, the service redirects the browser to `FRONTEND_URL` (the Caddy entry point). Tokens are stored in SQLite and reused across restarts. Users can disconnect from the UI at any time.
-- ~~**Unsplash attribution:** Unsplash's API requires attribution. How is this displayed on an e-paper frame without cluttering the art?~~ **Resolved:** Attribution is shown as a subtle gradient bar at the bottom of the `/ambient` display ("Photo by X on Unsplash"). It is user-toggleable in Settings — on by default, but can be hidden for a fully clean display.
 - **Art in Daily Mode:** Current spec says no art in Daily Mode — the layout is full-frame structured content. Is this correct, or should there be a small art pane?
 
 ---
