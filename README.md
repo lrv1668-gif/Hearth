@@ -85,13 +85,19 @@ dotnet run
 ```
 
 ```bash
+# Backend — RSS service
+cd services/Rss
+dotnet run
+```
+
+```bash
 # Frontend
 cd frontend
 npm install   # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, and `/photos` → `http://localhost:8084`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
+Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, and `/rss` → `http://localhost:8085`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
 ## Tech Stack
 

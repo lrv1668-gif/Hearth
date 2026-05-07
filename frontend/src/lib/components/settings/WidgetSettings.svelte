@@ -8,6 +8,7 @@
     import { disconnectSpotify } from '$lib/api';
     import WidgetOrderEditor from '$lib/components/settings/WidgetOrderEditor.svelte';
     import SubTitle from '../SubTitle.svelte';
+    import FeedSettings from './FeedSettings.svelte';
 
     onMount(() => refreshNowPlaying());
 
@@ -23,8 +24,7 @@
     <div>
         <SubTitle
             subTitleText="Visibility"
-            subTitleDescription="Enable/disable widgets you want to appear on the Schedules page."
-        />
+            subTitleDescription="Enable/disable widgets you want to appear on the Schedules page." />
         <div class="flex flex-col gap-2">
             {#each toggleableWidgets as widget}
                 <div>
@@ -73,6 +73,14 @@
             {/each}
         </div>
     </div>
+
+    {#if settings.enabledWidgets.includes('rss-feeds')}
+        <div>
+            <SubTitle subTitleText="Today's News"
+                subTitleDescription="Configure how many articles are displayed from your RSS feeds." />
+            <FeedSettings />
+        </div>
+    {/if}
 
     <div>
         <SubTitle

@@ -153,3 +153,16 @@ export async function fetchRandomPhoto(query: string, orientation: 'portrait' | 
     if (!res.ok) return null;
     return res.json();
 }
+
+export interface RssArticle {
+    title: string;
+    link: string;
+    description: string | null;
+    published_at: string | null;
+}
+
+export async function fetchRssArticles(count: number): Promise<RssArticle[]> {
+    const res = await fetch(`/rss/articles?count=${count}`);
+    if (!res.ok) return [];
+    return res.json();
+}
