@@ -53,25 +53,7 @@ Themes are defined in two places that must be kept in sync: `frontend/src/app.cs
 
 ### Typography Scale
 
-A fluid type scale is defined in `app.css` using `clamp()` so text grows smoothly from mobile (~375 px) to the 13.3" e-paper target (~1200 px). The scale is exposed as utility classes via `@layer utilities` — components use these instead of raw Tailwind `text-*` classes so tuning a single `clamp()` value adjusts every component simultaneously.
-
-| Class           | CSS variable      | Range (min → max)        | Usage                          |
-| --------------- | ----------------- | ------------------------ | ------------------------------ |
-| `type-display`  | `--font-display`  | `2rem` → `4.5rem`        | Date number, temperature       |
-| `type-title`    | `--font-title`    | `1.125rem` → `1.875rem`  | Section headings, logo         |
-| `type-subtitle` | `--font-subtitle` | `1rem` → `1.5rem`        | Sub-headings, settings labels  |
-| `type-body`     | `--font-body`     | `0.875rem` → `1.25rem`   | Task text, form inputs         |
-| `type-label`    | `--font-label`    | `0.6875rem` → `1rem`     | Nav links, tags, badges        |
-| `type-caption`  | `--font-caption`  | `0.5625rem` → `0.875rem` | Mobile nav labels, small hints |
-
-Icon sizes follow the same approach:
-
-| Class     | CSS variable | Range       | Usage                              |
-| --------- | ------------ | ----------- | ---------------------------------- |
-| `icon-lg` | `--icon-lg`  | `20px–28px` | Nav icons, main weather icon       |
-| `icon-md` | `--icon-md`  | `14px–22px` | Forecast icons, music, chevrons    |
-| `icon-sm` | `--icon-sm`  | `12px–18px` | Close buttons, recurrence icon row |
-| `icon-xs` | `--icon-xs`  | `10px–14px` | Smallest inline icons              |
+A fluid type scale is defined in `app.css` using `clamp()`, exposed as `type-display`, `type-title`, `type-subtitle`, `type-body`, `type-label`, `type-caption` utility classes. Icon sizes follow the same pattern: `icon-lg`, `icon-md`, `icon-sm`, `icon-xs`. Components use these classes — never raw Tailwind `text-*` sizes.
 
 ## Backend Services
 
@@ -303,13 +285,7 @@ The Caddy config is the same in development and production — the only differen
 docker compose watch
 ```
 
-`docker-compose.override.yml` overrides the frontend service to use `frontend/Dockerfile.dev`, which runs `vite dev --host --port 3000`. The `develop.watch` block syncs changes from:
-
-- `frontend/src/` → `/app/src` (triggers Vite HMR — browser updates without a page reload)
-- `frontend/static/` → `/app/static` (same)
-- `package.json`, `svelte.config.js`, `vite.config.ts` → full container rebuild
-
-HMR WebSocket connections go through Caddy on port 80. The `HMR_CLIENT_PORT=80` environment variable tells Vite to advertise port 80 to the browser (`server.hmr.clientPort`), so the websocket connects through the proxy rather than directly to the container port.
+`docker-compose.override.yml` swaps the frontend for `frontend/Dockerfile.dev` (Vite dev server). File changes under `frontend/src/` and `frontend/static/` sync into the container via HMR; changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a rebuild. HMR WebSocket goes through Caddy on port 80 via `HMR_CLIENT_PORT=80`.
 
 ### Production build
 
@@ -317,99 +293,3 @@ HMR WebSocket connections go through Caddy on port 80. The `HMR_CLIENT_PORT=80` 
 docker compose -f docker-compose.yml up --build
 ```
 
-Explicitly excludes `docker-compose.override.yml`, using the production Dockerfile which builds the SvelteKit app with `@sveltejs/adapter-node` and serves it with `node index.js`.
-
-## Real-time Updates
-
-**SSE (Server-Sent Events)** will be used for pushing display refreshes to the frontend. One-way push is simpler and more reliable than WebSockets for an ambient screen that only reads data.
-
-## Directory Structure
-
-```text
-Hearth/
-├── frontend/
-│   ├── src/
-│   │   ├── routes/
-│   │   │   ├── +layout.svelte          # root layout, task loading, ThemeStore init, favicon
-│   │   │   ├── +page.svelte            # schedule page (tasks, countdowns, moon phase, weather, music)
-│   │   │   ├── calendar/
-│   │   │   │   └── +page.svelte        # calendar view
-│   │   │   ├── ambient/
-│   │   │   │   └── +page.svelte        # fullscreen photo slideshow
-│   │   │   └── settings/
-│   │   │       └── +page.svelte        # collapsible settings sections
-│   │   ├── lib/
-│   │   │   ├── api.ts                  # centralised API calls
-│   │   │   ├── themes.ts               # theme metadata array + ThemeId type
-│   │   │   ├── utils.ts                # shared utilities
-│   │   │   ├── TaskStore.ts            # tasks writable store
-│   │   │   ├── SpotifyStore.ts         # now-playing writable store
-│   │   │   ├── ThemeStore.ts           # active theme; persists to localStorage + sets dataset.theme
-│   │   │   ├── SettingsStore.ts        # ambient cadence, categories, attribution; persists to localStorage
-│   │   │   └── components/
-│   │   │       ├── Calendar.svelte     # month grid with per-day task lists
-│   │   │       ├── Nav.svelte          # desktop masthead + mobile bottom nav; active link via $app/state
-│   │   │       ├── TaskList.svelte     # add/edit task form
-│   │   │       ├── modals/
-│   │   │       │   ├── DayOverflowModal.svelte  # full task list for a day ("+X more" trigger)
-│   │   │       │   └── TaskModal.svelte          # add/edit task dialog
-│   │   │       ├── widgets/
-│   │   │       │   ├── CountdownWidget.svelte    # top-5 upcoming countdown events
-│   │   │       │   ├── MoonPhaseWidget.svelte    # SVG moon phase + phase name + next major phase
-│   │   │       │   ├── NowPlayingWidget.svelte   # Spotify now-playing card
-│   │   │       │   ├── UpcomingTasksWidget.svelte # grouped upcoming task list
-│   │   │       │   └── WeatherWidget.svelte      # current conditions + 5-day forecast
-│   │   │       └── settings/
-│   │   │           ├── AmbientSettings.svelte    # cadence, categories, attribution controls
-│   │   │           ├── SettingsSection.svelte    # collapsible section wrapper
-│   │   │           └── ThemePicker.svelte        # theme colour swatches
-│   │   └── app.css                     # Tailwind base + fluid type/icon scale + 7 theme definitions
-│   ├── Dockerfile                      # production (multi-stage, node adapter)
-│   ├── Dockerfile.dev                  # development (vite dev server)
-│   └── vite.config.ts
-├── services/
-│   ├── Data.Abstractions/              # IDatabase interface + DbCommandExtensions (no SQLite dep)
-│   │   ├── IDatabase.cs
-│   │   ├── DbCommandExtensions.cs
-│   │   ├── DbReaderExtensions.cs
-│   │   └── Data.Abstractions.csproj
-│   ├── Data/                           # concrete SQLite implementation of IDatabase
-│   │   ├── Database.cs
-│   │   └── Data.csproj
-│   ├── Tasks/                          # ASP.NET Core 10 Minimal API, port 8081
-│   │   ├── Program.cs
-│   │   ├── TaskStore.cs
-│   │   ├── Extensions/
-│   │   ├── Records/
-│   │   └── Dockerfile
-│   ├── Weather/                        # ASP.NET Core 10 Minimal API, port 8082
-│   │   ├── Program.cs
-│   │   ├── WeatherStore.cs
-│   │   ├── WeatherFetcher.cs
-│   │   ├── Extensions/
-│   │   ├── Records/
-│   │   └── Dockerfile
-│   ├── Spotify/                        # ASP.NET Core 10 Minimal API, port 8083
-│   │   ├── Program.cs
-│   │   ├── SpotifyStore.cs
-│   │   ├── SpotifyClientService.cs
-│   │   ├── Extensions/
-│   │   ├── Records/
-│   │   ├── .env                        # SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
-│   │   └── Dockerfile
-│   └── Photos/                         # ASP.NET Core 10 Minimal API, port 8084
-│       ├── Program.cs
-│       ├── PhotoStore.cs
-│       ├── PhotoFetcher.cs
-│       ├── Extensions/
-│       ├── Records/
-│       ├── .env                        # UNSPLASH_ACCESS_KEY
-│       └── Dockerfile
-├── docker-compose.yml                  # production
-├── docker-compose.override.yml         # development (auto-merged)
-├── Caddyfile
-├── README.md
-└── docs/
-    ├── PRODUCT.md
-    └── SOFTWARE-DESIGN.md
-```
