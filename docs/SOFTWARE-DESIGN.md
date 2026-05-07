@@ -17,11 +17,11 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ### Routes
 
-| Route       | Description                                                                              |
-| ----------- | ---------------------------------------------------------------------------------------- |
-| `/`         | Schedule — upcoming tasks, countdown events, moon phase, weather, date, now playing      |
-| `/calendar` | Calendar view with month grid and per-day task overflow modal                            |
-| `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                         |
+| Route       | Description                                                                               |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| `/`         | Schedule — upcoming tasks, countdown events, moon phase, weather, date, now playing       |
+| `/calendar` | Calendar view with month grid and per-day task overflow modal                             |
+| `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                          |
 | `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, attribution toggle |
 
 ### State Management
@@ -55,35 +55,35 @@ Themes are defined in two places that must be kept in sync: `frontend/src/app.cs
 
 A fluid type scale is defined in `app.css` using `clamp()` so text grows smoothly from mobile (~375 px) to the 13.3" e-paper target (~1200 px). The scale is exposed as utility classes via `@layer utilities` — components use these instead of raw Tailwind `text-*` classes so tuning a single `clamp()` value adjusts every component simultaneously.
 
-| Class           | CSS variable        | Range (min → max)         | Usage                           |
-| --------------- | ------------------- | ------------------------- | ------------------------------- |
-| `type-display`  | `--font-display`    | `2rem` → `4.5rem`         | Date number, temperature        |
-| `type-title`    | `--font-title`      | `1.125rem` → `1.875rem`   | Section headings, logo          |
-| `type-subtitle` | `--font-subtitle`   | `1rem` → `1.5rem`         | Sub-headings, settings labels   |
-| `type-body`     | `--font-body`       | `0.875rem` → `1.25rem`    | Task text, form inputs          |
-| `type-label`    | `--font-label`      | `0.6875rem` → `1rem`      | Nav links, tags, badges         |
-| `type-caption`  | `--font-caption`    | `0.5625rem` → `0.875rem`  | Mobile nav labels, small hints  |
+| Class           | CSS variable      | Range (min → max)        | Usage                          |
+| --------------- | ----------------- | ------------------------ | ------------------------------ |
+| `type-display`  | `--font-display`  | `2rem` → `4.5rem`        | Date number, temperature       |
+| `type-title`    | `--font-title`    | `1.125rem` → `1.875rem`  | Section headings, logo         |
+| `type-subtitle` | `--font-subtitle` | `1rem` → `1.5rem`        | Sub-headings, settings labels  |
+| `type-body`     | `--font-body`     | `0.875rem` → `1.25rem`   | Task text, form inputs         |
+| `type-label`    | `--font-label`    | `0.6875rem` → `1rem`     | Nav links, tags, badges        |
+| `type-caption`  | `--font-caption`  | `0.5625rem` → `0.875rem` | Mobile nav labels, small hints |
 
 Icon sizes follow the same approach:
 
-| Class     | CSS variable | Range       | Usage                               |
-| --------- | ------------ | ----------- | ----------------------------------- |
-| `icon-lg` | `--icon-lg`  | `20px–28px` | Nav icons, main weather icon        |
-| `icon-md` | `--icon-md`  | `14px–22px` | Forecast icons, music, chevrons     |
-| `icon-sm` | `--icon-sm`  | `12px–18px` | Close buttons, recurrence icon row  |
-| `icon-xs` | `--icon-xs`  | `10px–14px` | Smallest inline icons               |
+| Class     | CSS variable | Range       | Usage                              |
+| --------- | ------------ | ----------- | ---------------------------------- |
+| `icon-lg` | `--icon-lg`  | `20px–28px` | Nav icons, main weather icon       |
+| `icon-md` | `--icon-md`  | `14px–22px` | Forecast icons, music, chevrons    |
+| `icon-sm` | `--icon-sm`  | `12px–18px` | Close buttons, recurrence icon row |
+| `icon-xs` | `--icon-xs`  | `10px–14px` | Smallest inline icons              |
 
 ## Backend Services
 
 Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service backed by **SQLite**.
 
-| Service   | Port | Status      | Responsibility                                          |
-| --------- | ---- | ----------- | ------------------------------------------------------- |
+| Service   | Port | Status      | Responsibility                                             |
+| --------- | ---- | ----------- | ---------------------------------------------------------- |
 | `tasks`   | 8081 | Implemented | Task CRUD with due dates, recurrence, and countdown events |
-| `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast        |
-| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                        |
-| `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours |
-| `plants`  | 8085 | Planned     | Watering schedules and reminders                   |
+| `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast                |
+| `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                                |
+| `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours         |
+| `plants`  | 8085 | Planned     | Watering schedules and reminders                           |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
@@ -112,12 +112,12 @@ The `tasks` service handles full CRUD for household tasks with optional due date
 
 ### Endpoints
 
-| Method   | Path          | Description                                                                                  |
-| -------- | ------------- | -------------------------------------------------------------------------------------------- |
-| `GET`    | `/tasks`      | List tasks: all done tasks + undone tasks due within 1 year + undone tasks with no due date  |
-| `POST`   | `/tasks`      | Create a task; pre-generates all recurring instances up to 1 year ahead                      |
-| `PUT`    | `/tasks/{id}` | Update done status, title, due date, due time, description, or assignee                      |
-| `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series                  |
+| Method   | Path          | Description                                                                                 |
+| -------- | ------------- | ------------------------------------------------------------------------------------------- |
+| `GET`    | `/tasks`      | List tasks: all done tasks + undone tasks due within 1 year + undone tasks with no due date |
+| `POST`   | `/tasks`      | Create a task; pre-generates all recurring instances up to 1 year ahead                     |
+| `PUT`    | `/tasks/{id}` | Update done status, title, due date, due time, description, or assignee                     |
+| `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series                 |
 
 ### Recurrence Model
 
@@ -139,13 +139,13 @@ Recurring tasks use a **pre-generation** approach: when a task with a recurrence
 
 **Supported intervals:**
 
-| UI label   | `recurrence_unit` | `recurrence_interval` |
-| ---------- | ----------------- | --------------------- |
-| Daily      | `day`             | 1                     |
-| Weekly     | `week`            | 1                     |
-| Bi-weekly  | `week`            | 2                     |
-| Monthly    | `month`           | 1                     |
-| Yearly     | `month`           | 12                    |
+| UI label  | `recurrence_unit` | `recurrence_interval` |
+| --------- | ----------------- | --------------------- |
+| Daily     | `day`             | 1                     |
+| Weekly    | `week`            | 1                     |
+| Bi-weekly | `week`            | 2                     |
+| Monthly   | `month`           | 1                     |
+| Yearly    | `month`           | 12                    |
 
 Weekly recurrences may additionally specify `recurrence_days` (e.g. `"Mon,Wed,Fri"`) to pin to specific weekdays.
 
@@ -223,7 +223,7 @@ Clicking disconnect calls `DELETE /spotify/auth` then immediately re-polls, whic
 
 ## Photos Service
 
-The `photos` service fetches landscape photos from the [Unsplash API](https://unsplash.com/developers) and caches a batch of 20 in SQLite for 24 hours. The frontend `/ambient` route rotates through these photos at a user-configured cadence.
+The `photos` service fetches portrait or landscape photos from the [Unsplash API](https://unsplash.com/developers) and caches a batch of 20 in SQLite for 24 hours. The frontend `/ambient` route rotates through these photos at a user-configured cadence.
 
 ### Endpoints
 
@@ -237,11 +237,11 @@ Query param `query` (default: `nature`) is forwarded to the Unsplash random phot
 
 ```json
 {
-    "id": "abc123",
-    "url": "https://images.unsplash.com/...",
-    "description": "A misty forest at dawn",
-    "photographer_name": "Jane Smith",
-    "unsplash_link": "https://unsplash.com/photos/abc123"
+  "id": "abc123",
+  "url": "https://images.unsplash.com/...",
+  "description": "A misty forest at dawn",
+  "photographer_name": "Jane Smith",
+  "unsplash_link": "https://unsplash.com/photos/abc123"
 }
 ```
 

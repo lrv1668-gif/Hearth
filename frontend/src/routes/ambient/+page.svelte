@@ -4,6 +4,7 @@
     import { goto } from '$app/navigation';
     import { fetchRandomPhoto, type Photo } from '$lib/api';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+    import { MediaQuery } from 'svelte/reactivity';
 
     let photo = $state<Photo | null>(null);
     let loading = $state(true);
@@ -15,7 +16,9 @@
     }
 
     async function advance() {
-        const next = await fetchRandomPhoto(buildQuery());
+        const isPortrait = new MediaQuery('orientation: portrait');
+        console.log(`isPortrait: ${isPortrait.current}`)
+        const next = await fetchRandomPhoto(buildQuery(), isPortrait.current ? 'portrait' : 'landscape');
         if (next) photo = next;
     }
 

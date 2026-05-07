@@ -4,10 +4,9 @@
     interface Props {
         tasks: Task[];
         onEdit: (task: Task) => void;
-        align?: 'left' | 'right';
     }
 
-    let { tasks, onEdit, align = 'left' }: Props = $props();
+    let { tasks, onEdit }: Props = $props();
 
     function daysUntil(dueDate: string): number {
         const today = new Date();
@@ -34,11 +33,11 @@
 </script>
 
 {#if upcoming.length === 0}
-    <p class="type-label text-[var(--text-2)]">No countdowns added yet.</p>
+    <p class="type-body text-[var(--text-2)]">No countdowns added yet.</p>
 {:else}
     <ul class="space-y-3">
         {#each upcoming as item (item.id)}
-            <li class="flex {align === 'right' ? 'justify-end' : ''}">
+            <li class="flex">
                 <button
                     onclick={() => onEdit(item)}
                     class="group flex items-start gap-3 text-right transition-opacity hover:opacity-80"
@@ -56,7 +55,7 @@
                         {/if}
                     </div>
 
-                    <div class="min-w-0 flex-1 {align === 'right' ? 'text-right' : ''}">
+                    <div class="min-w-0 flex-1">
                         {#if item.days === 0}
                             <p class="type-label font-semibold uppercase tracking-widest text-[var(--accent)]">Today</p>
                         {/if}
@@ -64,7 +63,7 @@
                         <p class="type-body truncate leading-tight text-[var(--text-1)]">{item.title}</p>
 
                         {#if item.days !== 0}
-                            <p class="type-label text-[var(--text-2)]">{formatDate(item.due_date!)}</p>
+                            <p class="type-label text-left text-[var(--text-2)]">{formatDate(item.due_date!)}</p>
                         {/if}
                     </div>
                 </button>

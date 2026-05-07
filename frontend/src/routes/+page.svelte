@@ -37,7 +37,7 @@
 </svelte:head>
 
 <!-- When adding a new widget component, add it here to be rendered on this page. -->
-{#snippet renderWidget(id: AllWidgetId, align?: 'left' | 'right')}
+{#snippet renderWidget(id: AllWidgetId)}
     {#if id === 'upcoming-tasks'}
         <WidgetContainer title="Upcoming Tasks">
             <UpcomingTasksWidget
@@ -49,23 +49,23 @@
         </WidgetContainer>
     {:else if id === 'countdowns'}
         <WidgetContainer title="Countdowns" associatedWidgetId="countdowns">
-            <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} {align} />
+            <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
         </WidgetContainer>
     {:else if id === 'now-playing'}
         <WidgetContainer title="Now Playing" associatedWidgetId="now-playing">
-            <NowPlayingWidget {align} />
+            <NowPlayingWidget />
         </WidgetContainer>
     {:else if id === 'todays-date'}
         <WidgetContainer title="Today's Date">
-            <TodaysDateWidget {align} />
+            <TodaysDateWidget />
         </WidgetContainer>
     {:else if id === 'weather'}
         <WidgetContainer title="Weather Forecast" associatedWidgetId="weather">
-            <WeatherWidget {align} />
+            <WeatherWidget />
         </WidgetContainer>
     {:else if id === 'moon-phase'}
         <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase">
-            <MoonPhaseWidget {align} />
+            <MoonPhaseWidget />
         </WidgetContainer>
     {/if}
 {/snippet}
@@ -75,19 +75,19 @@
         {#if !isMobile.current}
             <div class="flex min-w-0 flex-col gap-4" style="flex: {settings.leftColumnWidth} 1 0%">
                 {#each settings.widgetColumns.left as id}
-                    {@render renderWidget(id, 'left')}
+                    {@render renderWidget(id)}
                 {/each}
             </div>
 
             <div class="flex min-w-0 flex-col gap-6" style="flex: {100 - settings.leftColumnWidth} 1 0%">
                 {#each settings.widgetColumns.right as id}
-                    {@render renderWidget(id, 'right')}
+                    {@render renderWidget(id)}
                 {/each}
             </div>
         {:else}
             <div class="flex w-full min-w-0 flex-col gap-4">
                 {#each settings.widgetColumns.left.concat(settings.widgetColumns.right) as id}
-                    {@render renderWidget(id, 'left')}
+                    {@render renderWidget(id)}
                 {/each}
             </div>
         {/if}
