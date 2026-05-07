@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Photos": {
+      "commandName": "Project",
+      "applicationUrl": "https://localhost:8084"
+    }
+  }
+}

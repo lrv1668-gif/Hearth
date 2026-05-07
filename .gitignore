@@ -23,3 +23,4 @@ Thumbs.db
 *.suo
 *.user
 .claude/
+.vs/
