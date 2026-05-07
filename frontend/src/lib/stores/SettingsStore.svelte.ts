@@ -14,6 +14,7 @@ export interface Settings {
     enabledWidgets: WidgetId[];
     widgetColumns: { left: AllWidgetId[]; right: AllWidgetId[] };
     leftColumnWidth: number;
+    rssArticleCount: number;
 }
 
 const STORAGE_KEY = 'hearth-settings';
@@ -25,13 +26,37 @@ const DEFAULT_SETTINGS: Settings = {
     enabledWidgets: DEFAULT_ENABLED_WIDGETS_IDS,
     widgetColumns: DEFAULT_WIDGET_COLUMNS,
     leftColumnWidth: 60,
+    rssArticleCount: 5,
 };
 
 function loadSettings(): Settings {
     if (!browser) return DEFAULT_SETTINGS;
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? { ...DEFAULT_SETTINGS, ...JSON.parse(stored) } : DEFAULT_SETTINGS;
+        if (!stored) return DEFAULT_SETTINGS;
+
+        const parsed = JSON.parse(stored) as Partial<Settings>;
+        const merged: Settings = { ...DEFAULT_SETTINGS, ...parsed };
+
+        // Add new default widgets missing from stored columns (new widgets added after initial save)
+        if (parsed.widgetColumns) {
+            const known = new Set<AllWidgetId>([...parsed.widgetColumns.left, ...parsed.widgetColumns.right]);
+            merged.widgetColumns = {
+                left: [...parsed.widgetColumns.left, ...DEFAULT_WIDGET_COLUMNS.left.filter((id) => !known.has(id))],
+                right: [...parsed.widgetColumns.right, ...DEFAULT_WIDGET_COLUMNS.right.filter((id) => !known.has(id))],
+            };
+        }
+
+        // Enable any new toggleable widgets not present in stored list
+        if (parsed.enabledWidgets) {
+            const known = new Set<WidgetId>(parsed.enabledWidgets);
+            merged.enabledWidgets = [
+                ...parsed.enabledWidgets,
+                ...DEFAULT_ENABLED_WIDGETS_IDS.filter((id) => !known.has(id)),
+            ];
+        }
+
+        return merged;
     } catch {
         return DEFAULT_SETTINGS;
     }
@@ -74,5 +99,10 @@ export function reorderWidgetColumns(columns: { left: AllWidgetId[]; right: AllW
 
 export function updateColumnWidth(pct: number) {
     settings.leftColumnWidth = pct;
+    save();
+}
+
+export function updateRssArticleCount(n: number) {
+    settings.rssArticleCount = n;
     save();
 }

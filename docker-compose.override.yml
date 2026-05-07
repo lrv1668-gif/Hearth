@@ -7,6 +7,10 @@ services:
     ports:
       - "127.0.0.1:8082:8082"
 
+  rss:
+    ports:
+      - "127.0.0.1:8085:8085"
+
   frontend:
     build:
       context: ./frontend
@@ -15,6 +19,8 @@ services:
       - TASKS_URL=http://tasks:8081
       - SPOTIFY_URL=http://spotify:8083
       - WEATHER_URL=http://weather:8082
+      - PHOTOS_URL=http://photos:8084
+      - RSS_URL=http://rss:8085
       - HMR_CLIENT_PORT=80
     develop:
       watch:

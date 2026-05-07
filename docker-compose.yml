@@ -46,6 +46,16 @@ services:
         volumes:
             - photos-data:/data
 
+    rss:
+        build:
+            context: ./services
+            dockerfile: Rss/Dockerfile
+        environment:
+            - DB_PATH=/data/rss.db
+            - ASPNETCORE_HTTP_PORTS=8085
+        volumes:
+            - rss-data:/data
+
     frontend:
         build: ./frontend
         depends_on:
@@ -53,6 +63,7 @@ services:
             - spotify
             - weather
             - photos
+            - rss
 
     caddy:
         image: caddy:2
@@ -68,10 +79,12 @@ services:
             - spotify
             - weather
             - photos
+            - rss
 
 volumes:
     tasks-data:
     spotify-data:
     weather-data:
     photos-data:
+    rss-data:
     caddy-data:
