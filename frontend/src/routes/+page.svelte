@@ -8,7 +8,7 @@
     import MoonPhaseWidget from '$lib/components/widgets/MoonPhaseWidget.svelte';
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
     import TodaysDateWidget from '$lib/components/widgets/TodaysDateWidget.svelte';
-    import RssFeedsWidget from '$lib/components/widgets/NewsFeedWidget.svelte';
+    import NewsFeedWidget from '$lib/components/widgets/NewsFeedWidget.svelte';
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import type { AllWidgetId } from '$lib/constants/widgets';
@@ -70,7 +70,7 @@
         </WidgetContainer>
     {:else if id === 'rss-feeds'}
         <WidgetContainer title="Today's News" associatedWidgetId="rss-feeds">
-            <RssFeedsWidget />
+            <NewsFeedWidget />
         </WidgetContainer>
     {/if}
 {/snippet}

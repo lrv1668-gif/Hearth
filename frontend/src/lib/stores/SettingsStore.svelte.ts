@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import type { PhotoCategory } from '$lib/constants/photos';
+import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
@@ -15,6 +16,7 @@ export interface Settings {
     widgetColumns: { left: AllWidgetId[]; right: AllWidgetId[] };
     leftColumnWidth: number;
     rssArticleCount: number;
+    rssFeeds: RssFeed[];
 }
 
 const STORAGE_KEY = 'hearth-settings';
@@ -27,6 +29,7 @@ const DEFAULT_SETTINGS: Settings = {
     widgetColumns: DEFAULT_WIDGET_COLUMNS,
     leftColumnWidth: 60,
     rssArticleCount: 5,
+    rssFeeds: DEFAULT_RSS_FEEDS,
 };
 
 function loadSettings(): Settings {
@@ -104,5 +107,15 @@ export function updateColumnWidth(pct: number) {
 
 export function updateRssArticleCount(n: number) {
     settings.rssArticleCount = n;
+    save();
+}
+
+export function subscribeToRssFeed(title: string, url: string) {
+    settings.rssFeeds = [...settings.rssFeeds, { title, url }];
+    save();
+}
+
+export function unsubscribeFromRssFeed(title: string) {
+    settings.rssFeeds = settings.rssFeeds.filter((rssFeed) => rssFeed.title != title);
     save();
 }

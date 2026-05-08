@@ -23,8 +23,18 @@
 <div class="flex flex-col gap-2 space-y-4">
     <div>
         <SubTitle
+            subTitleText="Widget Layout"
+            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
+                want the column width to be."
+        />
+        <WidgetOrderEditor />
+    </div>
+
+    <div>
+        <SubTitle
             subTitleText="Visibility"
-            subTitleDescription="Enable/disable widgets you want to appear on the Schedules page." />
+            subTitleDescription="Enable/disable widgets you want to appear on the Schedules page."
+        />
         <div class="flex flex-col gap-2">
             {#each toggleableWidgets as widget}
                 <div>
@@ -41,8 +51,8 @@
                         </div>
                     </label>
 
-                    {#if widget.id === 'now-playing'}
-                        <div class="ml-12 mt-1.5">
+                    {#if widget.id === 'now-playing' && settings.enabledWidgets.includes('now-playing')}
+                        <div class="ml-12 mt-1.5 border-l-2 border-l-[var(--border)] p-4">
                             <div class="flex flex-row gap-2">
                                 <Settings class="icon-sm" />
                                 {#if spotifyConnected}
@@ -75,19 +85,8 @@
     </div>
 
     {#if settings.enabledWidgets.includes('rss-feeds')}
-        <div>
-            <SubTitle subTitleText="Today's News"
-                subTitleDescription="Configure how many articles are displayed from your RSS feeds." />
+        <div class="ml-12 border-l-2 border-l-[var(--border)] pl-4">
             <FeedSettings />
         </div>
     {/if}
-
-    <div>
-        <SubTitle
-            subTitleText="Widget Layout"
-            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
-                want the column width to be."
-        />
-        <WidgetOrderEditor />
-    </div>
 </div>
