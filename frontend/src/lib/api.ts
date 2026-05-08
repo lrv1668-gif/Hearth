@@ -161,8 +161,17 @@ export interface RssArticle {
     published_at: string | null;
 }
 
-export async function fetchRssArticles(count: number): Promise<RssArticle[]> {
-    const res = await fetch(`/rss/articles?count=${count}`);
+export interface RssFeedGroup {
+    feed_title: string;
+    feed_url: string;
+    articles: RssArticle[];
+}
+
+export async function fetchRssArticles(urls: string[], count: number): Promise<RssFeedGroup[]> {
+    if (urls.length === 0) return [];
+    const params = new URLSearchParams({ count: String(count) });
+    urls.forEach((url) => params.append('url', url));
+    const res = await fetch(`/rss/articles?${params}`);
     if (!res.ok) return [];
     return res.json();
 }

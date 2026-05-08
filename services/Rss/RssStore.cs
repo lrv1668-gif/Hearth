@@ -6,44 +6,68 @@ namespace Rss;
 
 public sealed class RssStore([FromKeyedServices("rss")] IDatabase db)
 {
-    public void Migrate() => db.NonQuery("""
-        CREATE TABLE IF NOT EXISTS rss_articles (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
-            title        TEXT    NOT NULL,
-            link         TEXT    NOT NULL,
-            description  TEXT,
-            published_at TEXT,
-            fetched_at   TEXT    NOT NULL
-        )
-        """);
+    public void Migrate()
+    {
+        db.NonQuery("""
+            CREATE TABLE IF NOT EXISTS rss_articles (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                feed_url     TEXT    NOT NULL DEFAULT '',
+                feed_title   TEXT    NOT NULL DEFAULT '',
+                title        TEXT    NOT NULL,
+                link         TEXT    NOT NULL,
+                description  TEXT,
+                published_at TEXT,
+                fetched_at   TEXT    NOT NULL
+            )
+            """);
 
-    public bool IsStale()
+        foreach (var col in new[]
+        {
+            "ALTER TABLE rss_articles ADD COLUMN feed_url TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE rss_articles ADD COLUMN feed_title TEXT NOT NULL DEFAULT ''",
+        })
+        {
+            try { db.NonQuery(col); } catch { /* column already exists */ }
+        }
+    }
+
+    public bool IsStale(string feedUrl)
     {
         var fetched = db.QueryOne(
-            "SELECT fetched_at FROM rss_articles LIMIT 1",
-            r => r.Field<string>("fetched_at"));
+            "SELECT fetched_at FROM rss_articles WHERE feed_url = $url LIMIT 1",
+            r => r.Field<string>("fetched_at"),
+            cmd => cmd.AddParam("$url", feedUrl));
         if (fetched is null) return true;
         if (!DateTime.TryParse(fetched, out var dt)) return true;
         return (DateTime.UtcNow - dt).TotalMinutes > 30;
     }
 
-    public IEnumerable<ArticleItem> GetArticles(int count) =>
-        db.Query(
-            "SELECT title, link, description, published_at FROM rss_articles ORDER BY published_at DESC LIMIT $count",
-            Map,
-            cmd => cmd.AddParam("$count", count));
+    public string? GetFeedTitle(string feedUrl) =>
+        db.QueryOne(
+            "SELECT feed_title FROM rss_articles WHERE feed_url = $url LIMIT 1",
+            r => r.Field<string>("feed_title"),
+            cmd => cmd.AddParam("$url", feedUrl));
 
-    public void CacheArticles(IEnumerable<ArticleItem> articles)
+    public IEnumerable<ArticleItem> GetArticles(string feedUrl, int count) =>
+        db.Query(
+            "SELECT title, link, description, published_at FROM rss_articles WHERE feed_url = $url ORDER BY published_at DESC LIMIT $count",
+            Map,
+            cmd => { cmd.AddParam("$url", feedUrl); cmd.AddParam("$count", count); });
+
+    public void CacheArticles(string feedUrl, string feedTitle, IEnumerable<ArticleItem> articles)
     {
         var fetchedAt = DateTime.UtcNow.ToString("o");
-        db.NonQuery("DELETE FROM rss_articles");
+        db.NonQuery("DELETE FROM rss_articles WHERE feed_url = $url",
+            cmd => cmd.AddParam("$url", feedUrl));
         foreach (var a in articles)
         {
             db.NonQuery("""
-                INSERT INTO rss_articles (title, link, description, published_at, fetched_at)
-                VALUES ($title, $link, $description, $published_at, $fetched_at)
+                INSERT INTO rss_articles (feed_url, feed_title, title, link, description, published_at, fetched_at)
+                VALUES ($feed_url, $feed_title, $title, $link, $description, $published_at, $fetched_at)
                 """, cmd =>
             {
+                cmd.AddParam("$feed_url", feedUrl);
+                cmd.AddParam("$feed_title", feedTitle);
                 cmd.AddParam("$title", a.Title);
                 cmd.AddParam("$link", a.Link);
                 cmd.AddParam("$description", a.Description);

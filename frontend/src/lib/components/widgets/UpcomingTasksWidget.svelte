@@ -136,7 +136,7 @@
                 </div>
                 <ul class="space-y-2">
                     {#each group.tasks as task (task.id)}
-                        <li class="group/row flex items-center gap-3 rounded-lg bg-[var(--surface)] px-3 py-2.5">
+                        <li class="group/row flex items-center gap-3 rounded-lg px-3 py-2.5">
                             <button
                                 onclick={() => onToggle(task)}
                                 class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors

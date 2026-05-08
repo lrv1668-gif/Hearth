@@ -17,7 +17,7 @@
 
     async function advance() {
         const isPortrait = new MediaQuery('orientation: portrait');
-        console.log(`isPortrait: ${isPortrait.current}`)
+        console.log(`isPortrait: ${isPortrait.current}`);
         const next = await fetchRandomPhoto(buildQuery(), isPortrait.current ? 'portrait' : 'landscape');
         if (next) photo = next;
     }

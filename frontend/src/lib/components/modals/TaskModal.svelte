@@ -93,7 +93,7 @@
     bind:this={dialog}
     onclose={close}
     onclick={handleBackdropClick}
-    class="w-full max-w-lg bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
+    class="w-full max-w-2xl bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
     <div class="mx-4 space-y-5 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-6 shadow-xl">
         <div class="flex items-center justify-between">
