@@ -30,7 +30,7 @@ public sealed class PhotoFetcher(HttpClient http)
             else if (photo.TryGetProperty("alt_description", out var alt) && alt.ValueKind == JsonValueKind.String)
                 desc = alt.GetString();
 
-            results.Add(new PhotoResponse(id, imageUrl, desc, photographer, link));
+            results.Add(new PhotoResponse(id, imageUrl, null, desc, photographer, link, "unsplash"));
         }
 
         return results;

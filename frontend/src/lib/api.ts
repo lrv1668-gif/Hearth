@@ -1,3 +1,5 @@
+// ---- Types ----
+
 export interface Task {
     id: number;
     title: string;
@@ -15,68 +17,26 @@ export interface Task {
     is_countdown: boolean;
 }
 
-export async function fetchTasks(): Promise<Task[]> {
-    const res = await fetch('/tasks');
-    return res.json();
+export interface CreateTaskInput {
+    title: string;
+    due_date?: string | null;
+    due_time?: string | null;
+    description?: string | null;
+    assignee?: string | null;
+    recurrence_unit?: string | null;
+    recurrence_interval?: number | null;
+    recurrence_days?: string | null;
+    recurrence_end_date?: string | null;
+    is_countdown?: boolean;
 }
 
-export async function createTask(
-    title: string,
-    due_date?: string,
-    due_time?: string,
-    description?: string,
-    assignee?: string,
-    recurrence_unit?: string,
-    recurrence_interval?: number,
-    recurrence_days?: string,
-    recurrence_end_date?: string,
-    is_countdown = false
-): Promise<Task> {
-    const res = await fetch('/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            title,
-            due_date: due_date ?? null,
-            due_time: due_time ?? null,
-            description: description ?? null,
-            assignee: assignee ?? null,
-            recurrence_unit: recurrence_unit ?? null,
-            recurrence_interval: recurrence_interval ?? null,
-            recurrence_days: recurrence_days ?? null,
-            recurrence_end_date: recurrence_end_date ?? null,
-            is_countdown,
-        }),
-    });
-    return res.json();
-}
-
-export async function updateTask(
-    id: number,
-    done: boolean,
-    title: string,
-    dueDate?: string,
-    dueTime?: string,
-    description?: string,
-    assignee?: string
-): Promise<Task> {
-    const res = await fetch(`/tasks/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            done,
-            title,
-            due_date: dueDate ?? null,
-            due_time: dueTime ?? null,
-            description: description ?? null,
-            assignee: assignee ?? null,
-        }),
-    });
-    return res.json();
-}
-
-export async function deleteTask(id: number, series = false): Promise<void> {
-    await fetch(`/tasks/${id}${series ? '?series=true' : ''}`, { method: 'DELETE' });
+export interface UpdateTaskInput {
+    done: boolean;
+    title: string;
+    due_date?: string | null;
+    due_time?: string | null;
+    description?: string | null;
+    assignee?: string | null;
 }
 
 export interface NowPlaying {
@@ -91,23 +51,6 @@ export interface NowPlaying {
 
 export interface SpotifyStatus {
     authenticated: boolean;
-}
-
-export async function fetchSpotifyStatus(): Promise<SpotifyStatus> {
-    const res = await fetch('/spotify/status');
-    return res.json();
-}
-
-// undefined = not authenticated, null = authenticated but nothing playing, NowPlaying = track data
-export async function disconnectSpotify(): Promise<void> {
-    await fetch('/spotify/auth', { method: 'DELETE' });
-}
-
-export async function fetchNowPlaying(): Promise<NowPlaying | null | undefined> {
-    const res = await fetch('/spotify/now-playing');
-    if (res.status === 401) return undefined;
-    if (res.status === 204) return null;
-    return res.json();
 }
 
 export interface CurrentWeather {
@@ -128,28 +71,140 @@ export interface ForecastDay {
     sunset: string;
 }
 
-export async function fetchCurrentWeather(): Promise<CurrentWeather | null> {
-    const res = await fetch('/weather/current');
-    if (!res.ok) return null;
-    return res.json();
-}
-
-export async function fetchWeatherForecast(): Promise<ForecastDay[]> {
-    const res = await fetch('/weather/forecast');
-    if (!res.ok) return [];
-    return res.json();
-}
-
 export interface Photo {
     id: string;
     url: string;
+    thumb_url: string | null;
     description: string | null;
-    photographer_name: string;
-    unsplash_link: string;
+    photographer_name: string | null;
+    unsplash_link: string | null;
+    source: string;
 }
 
-export async function fetchRandomPhoto(query: string, orientation: 'portrait' | 'landscape'): Promise<Photo | null> {
-    const res = await fetch(`/photos/random?query=${encodeURIComponent(query)}&orientation=${orientation}`);
-    if (!res.ok) return null;
-    return res.json();
+export interface UploadedPhoto {
+    id: string;
+    url: string;
+    thumb_url: string;
 }
+
+export interface BatchFileResult {
+    file_name: string;
+    status: 'ok' | 'duplicate' | 'error';
+    error: string | null;
+    photo: UploadedPhoto | null;
+}
+
+// ---- Client ----
+
+class ApiClient {
+    readonly tasks = {
+        list: (): Promise<Task[]> =>
+            this.get<Task[]>('/tasks').then((r) => r ?? []),
+
+        create: (input: CreateTaskInput): Promise<Task> =>
+            this.post<Task>('/tasks', input),
+
+        update: (id: number, input: UpdateTaskInput): Promise<Task> =>
+            this.put<Task>(`/tasks/${id}`, input),
+
+        delete: (id: number, series = false): Promise<void> =>
+            this.del(`/tasks/${id}${series ? '?series=true' : ''}`).then(() => {}),
+    };
+
+    readonly spotify = {
+        status: (): Promise<SpotifyStatus> =>
+            this.get<SpotifyStatus>('/spotify/status').then((r) => r ?? { authenticated: false }),
+
+        disconnect: (): Promise<void> =>
+            this.del('/spotify/auth').then(() => {}),
+
+        nowPlaying: async (): Promise<NowPlaying | null | undefined> => {
+            const res = await fetch('/spotify/now-playing');
+            if (res.status === 401) return undefined;
+            if (res.status === 204) return null;
+            return res.json() as Promise<NowPlaying>;
+        },
+    };
+
+    readonly weather = {
+        current: (): Promise<CurrentWeather | null> =>
+            this.get<CurrentWeather>('/weather/current'),
+
+        forecast: (): Promise<ForecastDay[]> =>
+            this.get<ForecastDay[]>('/weather/forecast').then((r) => r ?? []),
+    };
+
+    readonly photos = {
+        sources: (): Promise<string[]> =>
+            this.get<string[]>('/photos/sources').then((r) => r ?? ['unsplash']),
+
+        random: (
+            query: string,
+            orientation: 'portrait' | 'landscape',
+            source = 'unsplash',
+        ): Promise<Photo | null> => {
+            const params = new URLSearchParams({ query, orientation, source });
+            return this.get<Photo>(`/photos/random?${params}`);
+        },
+
+        list: (): Promise<UploadedPhoto[]> =>
+            this.get<UploadedPhoto[]>('/photos/uploads').then((r) => r ?? []),
+
+        upload: async (files: File[]): Promise<BatchFileResult[]> => {
+            const form = new FormData();
+            for (const file of files) form.append('file', file);
+            const res = await fetch('/photos/uploads', { method: 'POST', body: form });
+            if (res.status === 413) {
+                return files.map((f) => ({
+                    file_name: f.name,
+                    status: 'error' as const,
+                    error: 'batch too large — try uploading fewer at a time',
+                    photo: null,
+                }));
+            }
+            if (!res.ok) {
+                return files.map((f) => ({
+                    file_name: f.name,
+                    status: 'error' as const,
+                    error: 'upload failed',
+                    photo: null,
+                }));
+            }
+            return res.json() as Promise<BatchFileResult[]>;
+        },
+
+        delete: (id: string): Promise<boolean> =>
+            this.del(`/photos/uploads/${id}`),
+    };
+
+    private async get<T>(url: string): Promise<T | null> {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return res.json() as Promise<T>;
+    }
+
+    private async post<T>(url: string, body: unknown): Promise<T> {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        return res.json() as Promise<T>;
+    }
+
+    private async put<T>(url: string, body: unknown): Promise<T> {
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        return res.json() as Promise<T>;
+    }
+
+    private async del(url: string): Promise<boolean> {
+        const res = await fetch(url, { method: 'DELETE' });
+        return res.ok;
+    }
+}
+
+export const api = new ApiClient();

@@ -2,17 +2,17 @@
     import { onMount } from 'svelte';
     import { Settings } from '@lucide/svelte';
     import { toggleableWidgets } from '$lib/constants/widgets';
-    import { settings, toggleWidget } from '$lib/stores/SettingsStore.svelte.ts';
+    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import Toggle from '$lib/components/Toggle.svelte';
     import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
-    import { disconnectSpotify } from '$lib/api';
+    import { api } from '$lib/api';
     import WidgetOrderEditor from '$lib/components/settings/WidgetOrderEditor.svelte';
     import SubTitle from '../SubTitle.svelte';
 
     onMount(() => refreshNowPlaying());
 
     async function handleDisconnect() {
-        await disconnectSpotify();
+        await api.spotify.disconnect();
         await refreshNowPlaying();
     }
 
@@ -32,7 +32,7 @@
                         <div class="mt-0.5 shrink-0">
                             <Toggle
                                 checked={settings.enabledWidgets.includes(widget.id)}
-                                onchange={() => toggleWidget(widget.id)}
+                                onchange={() => settings.toggleWidget(widget.id)}
                             />
                         </div>
                         <div>
