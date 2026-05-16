@@ -1,69 +1,112 @@
-using System.Text.Json;
-using Photos;
-using Photos.Records;
-
 namespace Photos.Extensions;
 
 public static class WebApplicationExtensions
 {
-    private static readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+    private static readonly string[] KnownSources = ["unsplash", "local"];
 
     public static void InitializeWebAppForPhotos(this WebApplication app)
     {
-        app.Services.GetRequiredService<PhotoStore>().Migrate();
         app.AddPhotoEndpoints();
     }
 
     private static void AddPhotoEndpoints(this WebApplication app)
     {
-        app.MapGet("/photos/random", async (
-            HttpContext ctx,
-            PhotoStore store,
-            PhotoFetcher fetcher,
-            IConfiguration config) =>
+        app.MapGet("/photos/sources", (IServiceProvider sp) =>
         {
-            var query = ctx.Request.Query["query"].FirstOrDefault() ?? "nature";
-            var orientation = ctx.Request.Query["orientation"].FirstOrDefault() ?? "portrait";
+            var available = KnownSources
+                .Where(k => sp.GetKeyedService<IPhotoSource>(k) is not null)
+                .ToArray();
+            return Results.Ok(available);
+        });
 
-            var key = config["UNSPLASH_ACCESS_KEY"];
-            if (string.IsNullOrEmpty(key))
+        app.MapGet("/photos/random", async (
+            string? source,
+            string? orientation,
+            string? query,
+            IServiceProvider sp) =>
+        {
+            var key = source ?? "unsplash";
+            var provider = sp.GetKeyedService<IPhotoSource>(key);
+            if (provider is null)
+                return Results.BadRequest(new { error = $"unknown source: {key}" });
+
+            var ctx = new PhotoSourceContext(orientation ?? "portrait", query ?? "nature");
+            var photo = await provider.GetRandomAsync(ctx);
+            return photo is null ? Results.NotFound() : Results.Ok(photo);
+        });
+
+        app.MapPost("/photos/uploads", async (HttpRequest req, UploadStore uploads) =>
+        {
+            if (!req.HasFormContentType)
+                return Results.BadRequest(new { error = "multipart/form-data required" });
+
+            var form = await req.ReadFormAsync();
+            if (form.Files.Count == 0)
+                return Results.BadRequest(new { error = "no files provided" });
+
+            var tasks = form.Files.Select(async file =>
             {
-                app.Logger.LogError("UNSPLASH_ACCESS_KEY must be set. Update the .env file to add your Unsplash API key.");
-                return Results.Json(new { error = "API key not configured" }, statusCode: 503);
-            }
+                if (file.Length == 0)
+                    return new BatchFileResult(file.FileName, "error", "file is empty", null);
 
-            var cache = store.Load();
-            List<PhotoResponse>? photos = null;
+                if (file.Length > 25 * 1024 * 1024)
+                    return new BatchFileResult(file.FileName, "error", "file exceeds 25 MB limit", null);
 
-            if (cache is not null && !PhotoStore.IsStale(cache) && PhotoStore.IsQueryMatch(cache, query) && PhotoStore.IsOrientationMatch(cache, orientation))
-            {
-                photos = JsonSerializer.Deserialize<List<PhotoResponse>>(
-                    cache.PhotosJson,
-                    _serializerOptions);
-            }
+                var ext = Path.GetExtension(file.FileName);
+                if (!uploads.IsAllowedExtension(ext))
+                    return new BatchFileResult(file.FileName, "error", "only JPEG, PNG, and WebP are accepted", null);
 
-            if (photos is null || photos.Count == 0)
-            {
                 try
                 {
-                    photos = await fetcher.FetchAsync(query, orientation, key);
-                    if (photos.Count == 0)
-                        return Results.Json(new { error = "no photos returned" }, statusCode: 502);
-
-                    store.Save(
-                        JsonSerializer.Serialize(photos, _serializerOptions),
-                        query,
-                        orientation);
+                    var photo = await uploads.SaveAsync(file);
+                    return photo is null
+                        ? new BatchFileResult(file.FileName, "duplicate", null, null)
+                        : new BatchFileResult(file.FileName, "ok", null, photo);
                 }
-                catch (Exception ex)
+                catch (InvalidDataException ex)
                 {
-                    app.Logger.LogError(ex, "Failed to fetch photos from Unsplash");
-                    return Results.Json(new { error = "photo fetch failed" }, statusCode: 502);
+                    return new BatchFileResult(file.FileName, "error", ex.Message, null);
                 }
-            }
+            });
 
-            var pick = photos[Random.Shared.Next(photos.Count)];
-            return Results.Ok(pick);
+            var results = await Task.WhenAll(tasks);
+            return Results.Ok(results);
+        });
+
+        app.MapGet("/photos/uploads", (UploadStore uploads) =>
+        {
+            var list = uploads.List().Select(p => new { p.Id, p.Url, p.ThumbUrl });
+            return Results.Ok(list);
+        });
+
+        app.MapDelete("/photos/uploads/{id}", (string id, UploadStore uploads) =>
+            uploads.Delete(id) ? Results.NoContent() : Results.NotFound());
+
+        app.MapGet("/photos/files/{filename}", (string filename, UploadStore uploads, HttpContext ctx) =>
+        {
+            if (filename.Contains("..") || filename.Contains('/') || filename.Contains('\\'))
+                return Results.BadRequest();
+
+            var path = uploads.GetFilePath(filename);
+            if (!File.Exists(path)) return Results.NotFound();
+
+            var ext = Path.GetExtension(filename).ToLowerInvariant();
+            var contentType = ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png"            => "image/png",
+                ".webp"           => "image/webp",
+                _                 => "application/octet-stream",
+            };
+
+            ctx.Response.Headers.CacheControl = "public, max-age=86400";
+
+            return Results.File(
+                path,
+                contentType,
+                enableRangeProcessing: true,
+                lastModified: File.GetLastWriteTimeUtc(path),
+                entityTag: new Microsoft.Net.Http.Headers.EntityTagHeaderValue($"\"{Path.GetFileNameWithoutExtension(filename)}\""));
         });
     }
 }

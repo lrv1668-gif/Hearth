@@ -1,9 +1,9 @@
-import { fetchTasks, createTask, updateTask, deleteTask, type Task } from '../api';
+import { api, type Task } from '../api';
 
 export const taskStore = $state({ tasks: [] as Task[] });
 
 export async function loadTasks() {
-    taskStore.tasks = await fetchTasks();
+    taskStore.tasks = await api.tasks.list();
 }
 
 export async function addTask(
@@ -18,31 +18,30 @@ export async function addTask(
     recurrenceEndDate?: string,
     isCountdown = false
 ) {
-    const task = await createTask(
+    const task = await api.tasks.create({
         title,
-        dueDate,
-        dueTime,
-        description,
-        assignee,
-        recurrenceUnit,
-        recurrenceInterval,
-        recurrenceDays,
-        recurrenceEndDate,
-        isCountdown
-    );
+        due_date: dueDate ?? null,
+        due_time: dueTime ?? null,
+        description: description ?? null,
+        assignee: assignee ?? null,
+        recurrence_unit: recurrenceUnit ?? null,
+        recurrence_interval: recurrenceInterval ?? null,
+        recurrence_days: recurrenceDays ?? null,
+        recurrence_end_date: recurrenceEndDate ?? null,
+        is_countdown: isCountdown,
+    });
     taskStore.tasks = [task, ...taskStore.tasks];
 }
 
 export async function toggleTask(task: Task) {
-    const updated = await updateTask(
-        task.id,
-        !task.done,
-        task.title,
-        task.due_date ?? undefined,
-        task.due_time ?? undefined,
-        task.description ?? undefined,
-        task.assignee ?? undefined
-    );
+    const updated = await api.tasks.update(task.id, {
+        done: !task.done,
+        title: task.title,
+        due_date: task.due_date,
+        due_time: task.due_time,
+        description: task.description,
+        assignee: task.assignee,
+    });
     taskStore.tasks = taskStore.tasks.map((t) => (t.id === task.id ? updated : t));
 }
 
@@ -54,12 +53,19 @@ export async function editTask(
     description?: string,
     assignee?: string
 ) {
-    const updated = await updateTask(task.id, task.done, title, dueDate, dueTime, description, assignee);
+    const updated = await api.tasks.update(task.id, {
+        done: task.done,
+        title,
+        due_date: dueDate ?? null,
+        due_time: dueTime ?? null,
+        description: description ?? null,
+        assignee: assignee ?? null,
+    });
     taskStore.tasks = taskStore.tasks.map((t) => (t.id === task.id ? updated : t));
 }
 
 export async function removeTask(id: number, series = false) {
-    await deleteTask(id, series);
+    await api.tasks.delete(id, series);
     if (series) {
         await loadTasks();
     } else {

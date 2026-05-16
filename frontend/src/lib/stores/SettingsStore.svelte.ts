@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import type { PhotoCategory } from '$lib/constants/photos';
+import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
@@ -7,72 +7,60 @@ import {
     type AllWidgetId,
 } from '$lib/constants/widgets';
 
-export interface Settings {
-    cadenceSeconds: number;
-    photoCategories: PhotoCategory[];
-    showAttribution: boolean;
-    enabledWidgets: WidgetId[];
-    widgetColumns: { left: AllWidgetId[]; right: AllWidgetId[] };
-    leftColumnWidth: number;
-}
-
 const STORAGE_KEY = 'hearth-settings';
 
-const DEFAULT_SETTINGS: Settings = {
-    cadenceSeconds: 120,
-    photoCategories: ['nature', 'architecture'],
-    showAttribution: true,
-    enabledWidgets: DEFAULT_ENABLED_WIDGETS_IDS,
-    widgetColumns: DEFAULT_WIDGET_COLUMNS,
-    leftColumnWidth: 60,
-};
+class SettingsStore {
+    cadenceSeconds  = $state(120);
+    photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);
+    photoSource     = $state<PhotoSource>('unsplash');
+    showAttribution = $state(true);
+    enabledWidgets  = $state<WidgetId[]>(DEFAULT_ENABLED_WIDGETS_IDS);
+    widgetColumns   = $state<{ left: AllWidgetId[]; right: AllWidgetId[] }>(DEFAULT_WIDGET_COLUMNS);
+    leftColumnWidth = $state(60);
 
-function loadSettings(): Settings {
-    if (!browser) return DEFAULT_SETTINGS;
-    try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? { ...DEFAULT_SETTINGS, ...JSON.parse(stored) } : DEFAULT_SETTINGS;
-    } catch {
-        return DEFAULT_SETTINGS;
+    toggleCategory(cat: PhotoCategory) {
+        this.photoCategories = this.photoCategories.includes(cat)
+            ? this.photoCategories.filter((c) => c !== cat)
+            : [...this.photoCategories, cat];
+    }
+
+    toggleWidget(id: WidgetId) {
+        this.enabledWidgets = this.enabledWidgets.includes(id)
+            ? this.enabledWidgets.filter((w) => w !== id)
+            : [...this.enabledWidgets, id];
     }
 }
 
-function save() {
-    if (browser) localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+function createSettings(): SettingsStore {
+    const store = new SettingsStore();
+    if (!browser) return store;
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) Object.assign(store, JSON.parse(raw));
+    } catch {
+        // fall back to defaults
+    }
+    return store;
 }
 
-export const settings = $state<Settings>(loadSettings());
+export const settings = createSettings();
 
-export function updateCadence(seconds: number) {
-    settings.cadenceSeconds = seconds;
-    save();
-}
-
-export function toggleCategory(cat: PhotoCategory) {
-    settings.photoCategories = settings.photoCategories.includes(cat)
-        ? settings.photoCategories.filter((c) => c !== cat)
-        : [...settings.photoCategories, cat];
-    save();
-}
-
-export function toggleWidget(id: WidgetId) {
-    settings.enabledWidgets = settings.enabledWidgets.includes(id)
-        ? settings.enabledWidgets.filter((w) => w !== id)
-        : [...settings.enabledWidgets, id];
-    save();
-}
-
-export function toggleAttribution() {
-    settings.showAttribution = !settings.showAttribution;
-    save();
-}
-
-export function reorderWidgetColumns(columns: { left: AllWidgetId[]; right: AllWidgetId[] }) {
-    settings.widgetColumns = columns;
-    save();
-}
-
-export function updateColumnWidth(pct: number) {
-    settings.leftColumnWidth = pct;
-    save();
+// Auto-persist any mutation to localStorage
+if (browser) {
+    $effect.root(() => {
+        $effect(() => {
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                    cadenceSeconds:  settings.cadenceSeconds,
+                    photoCategories: settings.photoCategories,
+                    photoSource:     settings.photoSource,
+                    showAttribution: settings.showAttribution,
+                    enabledWidgets:  settings.enabledWidgets,
+                    widgetColumns:   settings.widgetColumns,
+                    leftColumnWidth: settings.leftColumnWidth,
+                }),
+            );
+        });
+    });
 }

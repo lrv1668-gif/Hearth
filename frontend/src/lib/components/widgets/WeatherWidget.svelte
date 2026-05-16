@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Cloud, CloudRain, CloudSnow, Sun, Sunrise, Sunset, Wind, Zap } from '@lucide/svelte';
-    import { fetchCurrentWeather, fetchWeatherForecast, type CurrentWeather, type ForecastDay } from '$lib/api';
+    import { api, type CurrentWeather, type ForecastDay } from '$lib/api';
 
     let current = $state<CurrentWeather | null>(null);
     let forecast = $state<ForecastDay[]>([]);
@@ -30,7 +30,7 @@
     }
 
     onMount(async () => {
-        [current, forecast] = await Promise.all([fetchCurrentWeather(), fetchWeatherForecast()]);
+        [current, forecast] = await Promise.all([api.weather.current(), api.weather.forecast()]);
     });
 </script>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { dndzone } from 'svelte-dnd-action';
     import { Grip, GripVertical } from '@lucide/svelte';
-    import { settings, reorderWidgetColumns, updateColumnWidth } from '$lib/stores/SettingsStore.svelte.ts';
+    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import { allWidgets, type AllWidgetId } from '$lib/constants/widgets';
 
     type DragItem = { id: AllWidgetId; label: string };
@@ -31,18 +31,18 @@
 
     function onfinalizeLeft(e: CustomEvent) {
         leftItems = e.detail.items;
-        reorderWidgetColumns({
+        settings.widgetColumns = {
             left: leftItems.map((i: DragItem) => i.id),
             right: rightItems.map((i: DragItem) => i.id),
-        });
+        };
     }
 
     function onfinalizeRight(e: CustomEvent) {
         rightItems = e.detail.items;
-        reorderWidgetColumns({
+        settings.widgetColumns = {
             left: leftItems.map((i: DragItem) => i.id),
             right: rightItems.map((i: DragItem) => i.id),
-        });
+        };
     }
 
     function startDrag(e: PointerEvent) {
@@ -62,7 +62,7 @@
     function endDrag() {
         if (!dragging) return;
         dragging = false;
-        updateColumnWidth(Math.round(previewWidth));
+        settings.leftColumnWidth = Math.round(previewWidth);
     }
 </script>
 
