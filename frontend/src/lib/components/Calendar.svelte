@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
     import { formatTime } from '$lib/utils';
-    import { Check, ChevronLeft, ChevronRight, Plus, X } from '@lucide/svelte';
+    import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Plus, X } from '@lucide/svelte';
     import DayOverflowModal from './modals/DayOverflowModal.svelte';
     import { DAY_NAMES, MONTH_NAMES } from '$lib/constants/calendar';
 
@@ -27,6 +27,14 @@
     let viewMonth = $state(today.getMonth());
 
     let isCurrentMonth = $derived(viewYear === today.getFullYear() && viewMonth === today.getMonth());
+
+    // 'left' = view is ahead of today (Today button goes back), 'right' = view is behind
+    let todayArrowDir = $derived.by(() => {
+        if (isCurrentMonth) return null;
+        const viewTime = new Date(viewYear, viewMonth).getTime();
+        const todayTime = new Date(today.getFullYear(), today.getMonth()).getTime();
+        return viewTime > todayTime ? 'left' : 'right';
+    });
 
     function prevMonth() {
         if (viewMonth === 0) {
@@ -76,6 +84,8 @@
         return cells;
     });
 
+    let numWeeks = $derived(calendarCells.length / 7);
+
     function cellKey(day: number): string {
         return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
@@ -85,19 +95,21 @@
     const overflowTasks = $derived(overflowDayKey ? (tasksByDate[overflowDayKey] ?? []) : []);
 </script>
 
-<div class="space-y-6">
+<div class="flex min-h-0 flex-1 flex-col gap-6">
     <!-- Month navigation -->
     <div class="flex flex-row items-center gap-4">
         <!-- Left: today -->
         <button
             onclick={goToToday}
             disabled={isCurrentMonth}
-            class="type-label rounded border px-2.5 py-1 tracking-wide transition-colors
+            class="type-label flex items-center gap-1 rounded border px-2.5 py-1 tracking-wide transition-colors
              {isCurrentMonth
                 ? 'cursor-default border-[var(--border)] text-[var(--text-4)] opacity-50'
                 : 'border-[var(--border)] text-[var(--text-2)] hover:border-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]'}"
         >
+            <ArrowLeft class="icon-sm {todayArrowDir === 'left' ? '' : 'invisible'}" />
             Today
+            <ArrowRight class="icon-sm {todayArrowDir === 'right' ? '' : 'invisible'}" />
         </button>
 
         <!-- Center: prev + next arrows -->
@@ -139,10 +151,15 @@
     </div>
 
     <!-- Calendar grid — gap-px + bg-[var(--border)] creates hairline grid lines -->
-    <div class="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)]">
+    <div
+        class="grid min-h-0 flex-1 grid-cols-7 gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)]"
+        style="grid-template-rows: auto repeat({numWeeks}, 1fr)"
+    >
         <!-- Day-of-week headers -->
         {#each DAY_NAMES as day}
-            <div class="type-label bg-[var(--bg)] py-2 text-center font-medium tracking-wider text-[var(--text-3)]">
+            <div
+                class="type-label bg-[var(--surface)] py-2.5 text-center font-semibold tracking-widest text-[var(--text-2)]"
+            >
                 {day}
             </div>
         {/each}
@@ -159,25 +176,25 @@
                 tabindex={day ? 0 : undefined}
                 onclick={() => day && onDateClick(key)}
                 onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && day && onDateClick(key)}
-                class="flex min-h-20 w-full flex-col items-start p-2 text-left
+                class="flex h-full w-full flex-col items-start p-3 text-left
                   {day
                     ? isToday
-                        ? 'cursor-default bg-[var(--surface)] ring-1 ring-inset ring-[var(--text-3)] transition-colors hover:bg-[var(--surface-hi)]'
+                        ? 'cursor-default bg-[var(--surface-hi)] ring-2 ring-inset ring-[var(--accent)] transition-colors hover:bg-[var(--surface-hi)]'
                         : 'cursor-default bg-[var(--bg)] transition-colors hover:bg-[var(--surface)]'
-                    : 'bg-[var(--bg)]'}"
+                    : 'pointer-events-none bg-[var(--surface)] opacity-60'}"
                 aria-label={day ? `Add task on ${key}` : undefined}
             >
                 {#if day}
                     <span
                         class="type-label mb-1.5 block leading-none
-                       {isToday ? 'font-semibold text-[var(--text-1)]' : 'text-[var(--text-3)]'}"
+                               {isToday ? 'font-semibold text-[var(--text-1)]' : 'text-[var(--text-3)]'}"
                     >
                         {day}
                     </span>
 
                     {#if dayTasks.length > 0}
                         <ul class="space-y-1">
-                            {#each dayTasks.slice(0, 3) as task (task.id)}
+                            {#each dayTasks.slice(0, 4) as task (task.id)}
                                 <li class="flex min-w-0 items-center gap-1">
                                     <button
                                         onclick={(e) => {
@@ -203,7 +220,7 @@
                                     </button>
                                 </li>
                             {/each}
-                            {#if dayTasks.length > 3}
+                            {#if dayTasks.length > 4}
                                 <li>
                                     <button
                                         onclick={(e) => {

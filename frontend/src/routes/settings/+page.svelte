@@ -10,7 +10,7 @@
     <title>Hearth — Settings</title>
 </svelte:head>
 
-<div class="mx-auto max-w-2xl space-y-6 px-8 py-10">
+<div class="mx-auto w-full max-w-2xl space-y-6 px-8 py-10">
     <SettingsSection title="Appearance">
         <ThemePicker />
     </SettingsSection>

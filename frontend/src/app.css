@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    background-color: var(--bg);
+}
+
 /* ── Typography & icon scale ─────────────────────────────────────────────── */
 /* clamp(min, preferred-vw, max) — scales smoothly from mobile (~375px)
    to the 13.3" e-paper target (1200px wide, ~150 PPI).                      */
