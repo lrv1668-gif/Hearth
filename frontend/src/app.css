@@ -209,7 +209,16 @@
 }
 
 /* ── Scrollbar utility ───────────────────────────────────────────────────── */
-.scroll-thin::-webkit-scrollbar { width: 3px; }
-.scroll-thin::-webkit-scrollbar-track { background: transparent; }
-.scroll-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
-.scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+.scroll-thin::-webkit-scrollbar {
+    width: 3px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 9999px;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--text-3);
+}
