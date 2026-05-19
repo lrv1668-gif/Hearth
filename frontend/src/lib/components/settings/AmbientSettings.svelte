@@ -59,26 +59,26 @@
         </div>
     </div>
 
-    <!-- Categories — dimmed when not using Unsplash -->
-    <div class="space-y-3 transition-opacity {settings.photoSource !== 'unsplash' ? 'opacity-40' : ''}">
-        <SubTitle
-            subTitleText="Photo categories"
-            subTitleDescription={settings.photoSource === 'unsplash'
-                ? 'Select one or more categories to filter Unsplash photos. If none are selected, no filtering is applied.'
-                : 'Categories apply only to Unsplash photos.'}
-        />
-        <div class="flex flex-col gap-2" class:pointer-events-none={settings.photoSource !== 'unsplash'}>
-            {#each categoryOptions as cat}
-                <label class="flex cursor-pointer items-center gap-3">
-                    <Toggle
-                        checked={settings.photoCategories.includes(cat.id)}
-                        onchange={() => settings.toggleCategory(cat.id)}
-                    />
-                    <span class="type-body text-[var(--text-1)]">{cat.label}</span>
-                </label>
-            {/each}
+    <!-- Categories — Unsplash only -->
+    {#if settings.photoSource === 'unsplash'}
+        <div class="space-y-3">
+            <SubTitle
+                subTitleText="Photo categories"
+                subTitleDescription="Select one or more categories to filter Unsplash photos. If none are selected, no filtering is applied."
+            />
+            <div class="flex flex-col gap-2">
+                {#each categoryOptions as cat}
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <Toggle
+                            checked={settings.photoCategories.includes(cat.id)}
+                            onchange={() => settings.toggleCategory(cat.id)}
+                        />
+                        <span class="type-body text-[var(--text-1)]">{cat.label}</span>
+                    </label>
+                {/each}
+            </div>
         </div>
-    </div>
+    {/if}
 
     <!-- Attribution — Unsplash only -->
     {#if settings.photoSource === 'unsplash'}

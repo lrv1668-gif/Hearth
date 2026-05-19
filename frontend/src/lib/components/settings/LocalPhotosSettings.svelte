@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Images, ImageUp, Upload } from '@lucide/svelte';
+    import { Images, ImageUp } from '@lucide/svelte';
     import SubTitle from '../SubTitle.svelte';
     import PhotoCollectionModal from '../modals/PhotoCollectionModal.svelte';
     import { api, type UploadedPhoto } from '$lib/api';
