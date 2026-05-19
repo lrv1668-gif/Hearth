@@ -22,7 +22,7 @@
 </svelte:head>
 
 {#if loaded}
-    <div class="min-h-screen bg-[var(--bg)] pb-16 text-[var(--text-1)] transition-colors duration-300 lg:pb-0">
+    <div class="grid h-[100dvh] grid-rows-[auto_1fr] bg-[var(--bg)] pb-16 text-[var(--text-1)] transition-colors duration-300 lg:pb-0">
         <Nav />
         {@render children()}
     </div>

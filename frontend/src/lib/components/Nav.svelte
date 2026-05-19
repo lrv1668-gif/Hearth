@@ -3,63 +3,56 @@
     import { page } from '$app/state';
 </script>
 
-<!-- Desktop masthead -->
+<!-- Desktop masthead — single compact row: logo left, links right -->
 <header class="hidden border-b border-[var(--border)] bg-[var(--bg)] lg:block">
-    <div class="mx-auto flex max-w-5xl items-center px-8 pb-2 pt-4">
-        <div class="flex-1"></div>
-        <a href="/">
+    <div class="mx-auto flex max-w-7xl items-center gap-8 px-8 py-2">
+        <a href="/" class="inline-flex items-center">
             <span
-                class="type-title font-bold uppercase tracking-[0.25em] text-[var(--text-1)] transition-colors hover:text-[var(--text-2)]"
+                class="font-bold uppercase tracking-[0.25em] text-[var(--text-1)] transition-colors hover:text-[var(--text-2)]"
             >
                 Hearth
             </span>
         </a>
-        <div class="flex-1"></div>
+
+        <nav class="flex items-center divide-x divide-[var(--border)]">
+            <a
+                href="/"
+                aria-current={page.url.pathname === '/' ? 'page' : undefined}
+                class="type-label px-3 uppercase tracking-widest text-[var(--text-2)]
+                 transition-colors hover:text-[var(--text-1)]
+                 aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
+            >
+                Schedule
+            </a>
+            <a
+                href="/calendar"
+                aria-current={page.url.pathname === '/calendar' ? 'page' : undefined}
+                class="type-label px-3 uppercase tracking-widest text-[var(--text-2)]
+                 transition-colors hover:text-[var(--text-1)]
+                 aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
+            >
+                Calendar
+            </a>
+            <a
+                href="/ambient"
+                aria-current={page.url.pathname === '/ambient' ? 'page' : undefined}
+                class="type-label px-3 uppercase tracking-widest text-[var(--text-2)]
+                 transition-colors hover:text-[var(--text-1)]
+                 aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
+            >
+                Ambient
+            </a>
+            <a
+                href="/settings"
+                aria-current={page.url.pathname === '/settings' ? 'page' : undefined}
+                class="type-label px-3 uppercase tracking-widest text-[var(--text-2)]
+                 transition-colors hover:text-[var(--text-1)]
+                 aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
+            >
+                Settings
+            </a>
+        </nav>
     </div>
-
-    <div class="border-t-2 border-[var(--text-1)]"></div>
-
-    <nav class="flex items-center justify-center py-3">
-        <a
-            href="/"
-            aria-current={page.url.pathname === '/' ? 'page' : undefined}
-            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
-             transition-colors hover:text-[var(--text-1)]
-             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
-        >
-            Schedule
-        </a>
-        <span class="h-3 w-px bg-[var(--border)]" aria-hidden="true"></span>
-        <a
-            href="/calendar"
-            aria-current={page.url.pathname === '/calendar' ? 'page' : undefined}
-            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
-             transition-colors hover:text-[var(--text-1)]
-             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
-        >
-            Calendar
-        </a>
-        <span class="h-3 w-px bg-[var(--border)]" aria-hidden="true"></span>
-        <a
-            href="/ambient"
-            aria-current={page.url.pathname === '/ambient' ? 'page' : undefined}
-            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
-             transition-colors hover:text-[var(--text-1)]
-             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
-        >
-            Ambient
-        </a>
-        <span class="h-3 w-px bg-[var(--border)]" aria-hidden="true"></span>
-        <a
-            href="/settings"
-            aria-current={page.url.pathname === '/settings' ? 'page' : undefined}
-            class="type-label px-6 uppercase tracking-widest text-[var(--text-2)]
-             transition-colors hover:text-[var(--text-1)]
-             aria-[current=page]:font-semibold aria-[current=page]:text-[var(--text-1)]"
-        >
-            Settings
-        </a>
-    </nav>
 </header>
 
 <!-- Mobile: compact top bar -->

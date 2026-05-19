@@ -42,7 +42,7 @@
     <title>Hearth — Calendar</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl px-8 py-8">
+<main class="mx-auto flex min-h-0 w-full max-w-7xl flex-col px-8 py-8">
     <Calendar
         tasks={taskStore.tasks}
         onToggle={toggleTask}
