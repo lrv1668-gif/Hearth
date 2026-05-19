@@ -35,7 +35,7 @@
 {#if track === undefined}
     <p class="type-body text-[var(--text-2)]">Spotify not connected - add it in Settings.</p>
 {:else if track !== null}
-    <div class="flex min-w-0 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
+    <div class="flex min-w-0 items-center gap-3 rounded-xl border border-[var(--border)] p-3">
         {#if track.album_art_url}
             <img
                 src={track.album_art_url}

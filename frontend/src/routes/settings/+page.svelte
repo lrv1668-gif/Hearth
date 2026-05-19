@@ -3,6 +3,7 @@
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import AmbientSettings from '$lib/components/settings/AmbientSettings.svelte';
     import WidgetSettings from '$lib/components/settings/WidgetSettings.svelte';
+    import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
 </script>
 
 <svelte:head>

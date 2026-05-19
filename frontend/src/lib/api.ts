@@ -94,18 +94,28 @@ export interface BatchFileResult {
     photo: UploadedPhoto | null;
 }
 
+export interface RssArticle {
+    title: string;
+    link: string;
+    description: string | null;
+    published_at: string | null;
+}
+
+export interface RssFeedGroup {
+    feed_title: string;
+    feed_url: string;
+    articles: RssArticle[];
+}
+
 // ---- Client ----
 
 class ApiClient {
     readonly tasks = {
-        list: (): Promise<Task[]> =>
-            this.get<Task[]>('/tasks').then((r) => r ?? []),
+        list: (): Promise<Task[]> => this.get<Task[]>('/tasks').then((r) => r ?? []),
 
-        create: (input: CreateTaskInput): Promise<Task> =>
-            this.post<Task>('/tasks', input),
+        create: (input: CreateTaskInput): Promise<Task> => this.post<Task>('/tasks', input),
 
-        update: (id: number, input: UpdateTaskInput): Promise<Task> =>
-            this.put<Task>(`/tasks/${id}`, input),
+        update: (id: number, input: UpdateTaskInput): Promise<Task> => this.put<Task>(`/tasks/${id}`, input),
 
         delete: (id: number, series = false): Promise<void> =>
             this.del(`/tasks/${id}${series ? '?series=true' : ''}`).then(() => {}),
@@ -115,8 +125,7 @@ class ApiClient {
         status: (): Promise<SpotifyStatus> =>
             this.get<SpotifyStatus>('/spotify/status').then((r) => r ?? { authenticated: false }),
 
-        disconnect: (): Promise<void> =>
-            this.del('/spotify/auth').then(() => {}),
+        disconnect: (): Promise<void> => this.del('/spotify/auth').then(() => {}),
 
         nowPlaying: async (): Promise<NowPlaying | null | undefined> => {
             const res = await fetch('/spotify/now-playing');
@@ -127,28 +136,20 @@ class ApiClient {
     };
 
     readonly weather = {
-        current: (): Promise<CurrentWeather | null> =>
-            this.get<CurrentWeather>('/weather/current'),
+        current: (): Promise<CurrentWeather | null> => this.get<CurrentWeather>('/weather/current'),
 
-        forecast: (): Promise<ForecastDay[]> =>
-            this.get<ForecastDay[]>('/weather/forecast').then((r) => r ?? []),
+        forecast: (): Promise<ForecastDay[]> => this.get<ForecastDay[]>('/weather/forecast').then((r) => r ?? []),
     };
 
     readonly photos = {
-        sources: (): Promise<string[]> =>
-            this.get<string[]>('/photos/sources').then((r) => r ?? ['unsplash']),
+        sources: (): Promise<string[]> => this.get<string[]>('/photos/sources').then((r) => r ?? ['unsplash']),
 
-        random: (
-            query: string,
-            orientation: 'portrait' | 'landscape',
-            source = 'unsplash',
-        ): Promise<Photo | null> => {
+        random: (query: string, orientation: 'portrait' | 'landscape', source = 'unsplash'): Promise<Photo | null> => {
             const params = new URLSearchParams({ query, orientation, source });
             return this.get<Photo>(`/photos/random?${params}`);
         },
 
-        list: (): Promise<UploadedPhoto[]> =>
-            this.get<UploadedPhoto[]>('/photos/uploads').then((r) => r ?? []),
+        list: (): Promise<UploadedPhoto[]> => this.get<UploadedPhoto[]>('/photos/uploads').then((r) => r ?? []),
 
         upload: async (files: File[]): Promise<BatchFileResult[]> => {
             const form = new FormData();
@@ -173,8 +174,7 @@ class ApiClient {
             return res.json() as Promise<BatchFileResult[]>;
         },
 
-        delete: (id: string): Promise<boolean> =>
-            this.del(`/photos/uploads/${id}`),
+        delete: (id: string): Promise<boolean> => this.del(`/photos/uploads/${id}`),
     };
 
     private async get<T>(url: string): Promise<T | null> {
@@ -208,3 +208,12 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
+export async function fetchRssArticles(urls: string[], count: number): Promise<RssFeedGroup[]> {
+    if (urls.length === 0) return [];
+    const params = new URLSearchParams({ count: String(count) });
+    urls.forEach((url) => params.append('url', url));
+    const res = await fetch(`/rss/articles?${params}`);
+    if (!res.ok) return [];
+    return res.json();
+}

@@ -8,6 +8,7 @@
     import { api } from '$lib/api';
     import WidgetOrderEditor from '$lib/components/settings/WidgetOrderEditor.svelte';
     import SubTitle from '../SubTitle.svelte';
+    import FeedSettings from './FeedSettings.svelte';
 
     onMount(() => refreshNowPlaying());
 
@@ -20,6 +21,15 @@
 </script>
 
 <div class="flex flex-col gap-2 space-y-4">
+    <div>
+        <SubTitle
+            subTitleText="Widget Layout"
+            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
+                want the column width to be."
+        />
+        <WidgetOrderEditor />
+    </div>
+
     <div>
         <SubTitle
             subTitleText="Visibility"
@@ -41,8 +51,8 @@
                         </div>
                     </label>
 
-                    {#if widget.id === 'now-playing'}
-                        <div class="ml-12 mt-1.5">
+                    {#if widget.id === 'now-playing' && settings.enabledWidgets.includes('now-playing')}
+                        <div class="ml-12 mt-1.5 border-l-2 border-l-[var(--border)] p-4">
                             <div class="flex flex-row gap-2">
                                 <Settings class="icon-sm" />
                                 {#if spotifyConnected}
@@ -74,12 +84,9 @@
         </div>
     </div>
 
-    <div>
-        <SubTitle
-            subTitleText="Widget Layout"
-            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
-                want the column width to be."
-        />
-        <WidgetOrderEditor />
-    </div>
+    {#if settings.enabledWidgets.includes('rss-feeds')}
+        <div class="ml-12 border-l-2 border-l-[var(--border)] pl-4">
+            <FeedSettings />
+        </div>
+    {/if}
 </div>
