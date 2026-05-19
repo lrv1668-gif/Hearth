@@ -26,12 +26,13 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ### State Management
 
-| Store        | File               | Persisted to    | Responsibility                                      |
-| ------------ | ------------------ | --------------- | --------------------------------------------------- |
-| `theme`      | `ThemeStore.ts`    | `localStorage`  | Active theme ID; writes `dataset.theme` on change   |
-| `settings`   | `SettingsStore.ts` | `localStorage`  | Ambient cadence, photo categories, attribution flag |
-| `tasks`      | `TaskStore.ts`     | Server (SQLite) | Task list, CRUD operations                          |
-| `nowPlaying` | `SpotifyStore.ts`  | Server (SQLite) | Spotify now-playing state                           |
+| Store        | File                  | Persisted to    | Responsibility                                      |
+| ------------ | --------------------- | --------------- | --------------------------------------------------- |
+| `theme`      | `ThemeStore.ts`       | `localStorage`  | Active theme ID; writes `dataset.theme` on change   |
+| `settings`   | `SettingsStore.ts`    | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS article count |
+| `tasks`      | `TaskStore.ts`        | Server (SQLite) | Task list, CRUD operations                          |
+| `nowPlaying` | `SpotifyStore.ts`     | Server (SQLite) | Spotify now-playing state                           |
+| `rssStore`   | `RssFeedStore.svelte.ts` | Server (SQLite) | RSS article list, loading state                  |
 
 ### Themes
 
@@ -65,7 +66,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `weather` | 8082 | Implemented | Polls Open-Meteo, caches current + forecast                |
 | `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                                |
 | `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours         |
-| `plants`  | 8085 | Planned     | Watering schedules and reminders                           |
+| `rss`     | 8085 | Implemented | Fetches RSS/Atom feed articles, caches for 30 minutes      |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
@@ -256,6 +257,37 @@ Stored in `services/Photos/.env`:
 
 Photos transition with a 1.5-second crossfade. Clicking anywhere or pressing any key exits back to `/`.
 
+## RSS Service
+
+The `rss` service fetches articles from The Verge's Atom feed and caches them in SQLite to avoid redundant fetches. The feed URL is hardcoded; multi-feed management is planned for a future iteration.
+
+### Endpoints
+
+| Method | Path           | Description                                                        |
+| ------ | -------------- | ------------------------------------------------------------------ |
+| `GET`  | `/rss/articles` | Returns up to `count` (default 10) articles sorted by publish date |
+
+If the cache is stale (older than 30 minutes) or empty, the service re-fetches from the upstream feed before responding. On fetch failure, the endpoint returns whatever is in the cache (possibly empty).
+
+### Caching
+
+| Field | Value                                       |
+| ----- | ------------------------------------------- |
+| Feed  | `https://www.theverge.com/rss/index.xml`    |
+| TTL   | 30 minutes                                  |
+| Format | Atom 1.0 (XDocument parsing; RSS 2.0 fallback) |
+
+### Environment variables
+
+| Variable                | Required | Description                                    |
+| ----------------------- | -------- | ---------------------------------------------- |
+| `DB_PATH`               | No       | Path to SQLite cache file (default: `rss.db`)  |
+| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8085` in Docker                        |
+
+### Frontend integration
+
+`RssFeedsWidget.svelte` loads articles on mount via `RssFeedStore.svelte.ts`. The article count is controlled by `settings.rssArticleCount` (default 10, configurable in Settings → RSS Feeds). Clicking an article opens the link in a new tab.
+
 ## Routing
 
 **Caddy** acts as the reverse proxy and TLS terminator. URL-prefix routing maps paths to services:
@@ -265,6 +297,7 @@ Photos transition with a 1.5-second crossfade. Clicking anywhere or pressing any
 /weather/*  →  weather:8082
 /spotify/*  →  spotify:8083
 /photos/*   →  photos:8084
+/rss/*      →  rss:8085
 /           →  frontend:3000
 ```
 

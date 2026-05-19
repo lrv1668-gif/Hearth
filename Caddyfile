@@ -11,6 +11,9 @@
     handle /photos* {
         reverse_proxy photos:8084
     }
+    handle /rss* {
+        reverse_proxy rss:8085
+    }
     handle {
         reverse_proxy frontend:3000
     }

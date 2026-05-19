@@ -9,6 +9,7 @@ export default defineConfig({
             '/spotify': process.env.SPOTIFY_URL ?? 'http://localhost:8083',
             '/weather': process.env.WEATHER_URL ?? 'http://localhost:8082',
             '/photos': process.env.PHOTOS_URL ?? 'http://localhost:8084',
+            '/rss': process.env.RSS_URL ?? 'http://localhost:8085',
         },
         hmr: process.env.HMR_CLIENT_PORT ? { clientPort: parseInt(process.env.HMR_CLIENT_PORT) } : undefined,
     },

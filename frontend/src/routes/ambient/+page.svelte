@@ -55,7 +55,7 @@
             const next = await api.photos.random(
                 buildQuery(),
                 isPortrait.current ? 'portrait' : 'landscape',
-                settings.photoSource,
+                settings.photoSource
             );
             if (next) photo = next;
         }

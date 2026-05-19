@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
+import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
@@ -10,13 +11,15 @@ import {
 const STORAGE_KEY = 'hearth-settings';
 
 class SettingsStore {
-    cadenceSeconds  = $state(120);
+    cadenceSeconds = $state(120);
     photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);
-    photoSource     = $state<PhotoSource>('unsplash');
+    photoSource = $state<PhotoSource>('unsplash');
     showAttribution = $state(true);
-    enabledWidgets  = $state<WidgetId[]>(DEFAULT_ENABLED_WIDGETS_IDS);
-    widgetColumns   = $state<{ left: AllWidgetId[]; right: AllWidgetId[] }>(DEFAULT_WIDGET_COLUMNS);
+    enabledWidgets = $state<WidgetId[]>(DEFAULT_ENABLED_WIDGETS_IDS);
+    widgetColumns = $state<{ left: AllWidgetId[]; right: AllWidgetId[] }>(DEFAULT_WIDGET_COLUMNS);
     leftColumnWidth = $state(60);
+    rssArticleCount = $state(5);
+    rssFeeds = $state<RssFeed[]>(DEFAULT_RSS_FEEDS);
 
     toggleCategory(cat: PhotoCategory) {
         this.photoCategories = this.photoCategories.includes(cat)
@@ -52,15 +55,29 @@ if (browser) {
             localStorage.setItem(
                 STORAGE_KEY,
                 JSON.stringify({
-                    cadenceSeconds:  settings.cadenceSeconds,
+                    cadenceSeconds: settings.cadenceSeconds,
                     photoCategories: settings.photoCategories,
-                    photoSource:     settings.photoSource,
+                    photoSource: settings.photoSource,
                     showAttribution: settings.showAttribution,
-                    enabledWidgets:  settings.enabledWidgets,
-                    widgetColumns:   settings.widgetColumns,
+                    enabledWidgets: settings.enabledWidgets,
+                    widgetColumns: settings.widgetColumns,
                     leftColumnWidth: settings.leftColumnWidth,
-                }),
+                    rssArticleCount: settings.rssArticleCount,
+                    rssFeeds: settings.rssFeeds,
+                })
             );
         });
     });
+}
+
+export function updateRssArticleCount(n: number) {
+    settings.rssArticleCount = n;
+}
+
+export function subscribeToRssFeed(title: string, url: string) {
+    settings.rssFeeds = [...settings.rssFeeds, { title, url }];
+}
+
+export function unsubscribeFromRssFeed(title: string) {
+    settings.rssFeeds = settings.rssFeeds.filter((rssFeed) => rssFeed.title != title);
 }

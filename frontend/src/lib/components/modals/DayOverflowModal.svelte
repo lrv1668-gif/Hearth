@@ -42,7 +42,7 @@
     class="w-full max-w-sm bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
     {#if dayKey}
-        <div class="mx-4 space-y-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-5 shadow-xl">
+        <div class="mx-4 space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5 shadow-xl">
             <div class="flex items-center justify-between">
                 <h2 class="type-body font-semibold text-[var(--text-1)]">{dateLabel(dayKey)}</h2>
                 <button
