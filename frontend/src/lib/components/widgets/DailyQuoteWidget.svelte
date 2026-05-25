@@ -18,7 +18,7 @@
             <p class="type-body italic leading-relaxed text-[var(--text-1)]">
                 "{dailyQuoteStore.quote.q}"
             </p>
-            <p class="type-label text-[var(--text-3)]">— {dailyQuoteStore.quote.a}</p>
+            <p class="type-label text-[var(--text-2)]">— {dailyQuoteStore.quote.a}</p>
         </div>
     {/if}
 </SkeletonLoader>
