@@ -23,4 +23,5 @@ Thumbs.db
 *.suo
 *.user
 .claude/
+!.claude/skills/**/**/*
 .vs/

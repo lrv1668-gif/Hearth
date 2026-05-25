@@ -55,7 +55,7 @@ Caddyfile
 
 ### Frontend (Svelte / TypeScript)
 
-- Svelte components use Svelte 5 runes: `$state`, `$effect`, `$props`, `{@render}`
+- Svelte components use Svelte 5 runes: `$state`, `$derived`, `$effect`, `$props`, `{@render}`
 - API calls live in `frontend/src/lib/api.ts` — all paths are relative (e.g. `/tasks`)
 - Each data type has its own store file: `TaskStore.ts`, `SpotifyStore.ts`, etc. — never combine into a shared `stores.ts`
 
