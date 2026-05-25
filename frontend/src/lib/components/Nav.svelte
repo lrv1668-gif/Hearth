@@ -5,7 +5,7 @@
 
 <!-- Desktop masthead — single compact row: logo left, links right -->
 <header class="hidden border-b border-[var(--border)] bg-[var(--bg)] lg:block">
-    <div class="mx-auto flex max-w-7xl items-center gap-8 px-8 py-2">
+    <div class="mx-auto flex max-w-7xl items-center gap-8 px-8 py-2 lg:mx-32">
         <a href="/" class="inline-flex items-center">
             <span
                 class="font-bold uppercase tracking-[0.25em] text-[var(--text-1)] transition-colors hover:text-[var(--text-2)]"
