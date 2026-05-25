@@ -7,7 +7,7 @@
     import WeatherWidget from '$lib/components/widgets/WeatherWidget.svelte';
     import MoonPhaseWidget from '$lib/components/widgets/MoonPhaseWidget.svelte';
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
-    import TodaysDateWidget from '$lib/components/widgets/TodaysDateWidget.svelte';
+    import TodaysDateTimeWidget from '$lib/components/widgets/TodaysDateTimeWidget.svelte';
     import NewsFeedWidget from '$lib/components/widgets/NewsFeedWidget.svelte';
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
@@ -56,8 +56,8 @@
             <NowPlayingWidget />
         </WidgetContainer>
     {:else if id === 'todays-date'}
-        <WidgetContainer title="Today's Date">
-            <TodaysDateWidget />
+        <WidgetContainer title="Time & Date">
+            <TodaysDateTimeWidget />
         </WidgetContainer>
     {:else if id === 'weather'}
         <WidgetContainer title="Weather Forecast" associatedWidgetId="weather">
@@ -68,7 +68,7 @@
             <MoonPhaseWidget />
         </WidgetContainer>
     {:else if id === 'rss-feeds'}
-        <WidgetContainer title="Today's News" associatedWidgetId="rss-feeds">
+        <WidgetContainer title="News" associatedWidgetId="rss-feeds">
             <NewsFeedWidget />
         </WidgetContainer>
     {/if}
