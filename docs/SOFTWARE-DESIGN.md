@@ -26,17 +26,17 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ### State Management
 
-| Store        | File                  | Persisted to    | Responsibility                                      |
-| ------------ | --------------------- | --------------- | --------------------------------------------------- |
-| `theme`      | `ThemeStore.ts`       | `localStorage`  | Active theme ID; writes `dataset.theme` on change   |
-| `settings`   | `SettingsStore.ts`    | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS article count |
-| `tasks`      | `TaskStore.ts`        | Server (SQLite) | Task list, CRUD operations                          |
-| `nowPlaying` | `SpotifyStore.ts`     | Server (SQLite) | Spotify now-playing state                           |
-| `rssStore`   | `RssFeedStore.svelte.ts` | Server (SQLite) | RSS article list, loading state                  |
+| Store        | File                        | Persisted to    | Responsibility                                      |
+| ------------ | --------------------------- | --------------- | --------------------------------------------------- |
+| `theme`      | `ThemeStore.svelte.ts`      | `localStorage`  | Active theme ID; writes `dataset.theme` on change   |
+| `settings`   | `SettingsStore.svelte.ts`   | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS feeds config |
+| `tasks`      | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                          |
+| `nowPlaying` | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state                           |
+| `rssStore`   | `RssFeedStore.svelte.ts`    | Server (SQLite) | RSS article list, loading state                     |
 
 ### Themes
 
-Seven built-in themes are applied via CSS custom properties on `[data-theme]`. The active theme is persisted in `localStorage` via `ThemeStore.ts` and selected from the `/settings` page.
+Fourteen built-in themes are applied via CSS custom properties on `[data-theme]`. The active theme is persisted in `localStorage` via `ThemeStore.svelte.ts` and selected from the `/settings` page.
 
 | Theme        | Style                        |
 | ------------ | ---------------------------- |
@@ -47,10 +47,17 @@ Seven built-in themes are applied via CSS custom properties on `[data-theme]`. T
 | `ash`        | Pure monochrome dark         |
 | `chalk`      | Pure monochrome light        |
 | `terracotta` | Sandy earth tones light mode |
+| `tide`       | Oceanic blue-greens          |
+| `slate`      | Cool grey dark mode          |
+| `blush`      | Warm pink light mode         |
+| `frost`      | Crisp cool whites            |
+| `smoke`      | Muted grey dark mode         |
+| `sage`       | Soft green light mode        |
+| `sky`        | Airy light blue              |
 
-Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`. Components reference tokens only — never hardcoded colors.
+Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme`. Components reference tokens only — never hardcoded colors.
 
-Themes are defined in two places that must be kept in sync: `frontend/src/app.css` (CSS variables) and `frontend/src/lib/themes.ts` (switcher metadata).
+Themes are defined in two places that must be kept in sync: `frontend/src/themes.css` (CSS variables) and `frontend/src/lib/constants/themes.ts` (switcher metadata).
 
 ### Typography Scale
 
@@ -138,6 +145,20 @@ Tasks with `is_countdown = 1` are one-off events tracked by time remaining rathe
 
 The `is_countdown` flag is set at creation time and cannot be changed after the fact. Countdown tasks and recurrence are mutually exclusive — the UI hides repeat options when "Event countdown" is checked.
 
+## Moon Phase Widget
+
+The moon phase display is entirely front-end computed — no backend service is required.
+
+**Algorithm (`frontend/src/lib/constants/moonphase.ts`):**
+
+- Anchor: `KNOWN_NEW_MOON = 2000-01-06T18:14:00Z`
+- Period: `SYNODIC_PERIOD = 29.53059` days
+- Phase fraction: `(daysSince % SYNODIC_PERIOD) / SYNODIC_PERIOD`
+- Illumination: `(1 − cos(2π × phase)) / 2`
+- Phase is mapped to one of eight named phases (New Moon, Waxing Crescent, First Quarter, Waxing Gibbous, Full Moon, Waning Gibbous, Last Quarter, Waning Crescent)
+
+`MoonPhaseWidget.svelte` renders a custom SVG visualization, the phase name, illumination percentage, and days until the next major phase (new, first quarter, full, last quarter).
+
 ### Environment variables
 
 | Variable                | Default    | Description                      |
@@ -157,6 +178,8 @@ The `weather` service fetches current conditions and a 7-day forecast from [Open
 | `GET`  | `/weather/forecast` | Returns 7-day forecast; uses cache if fresh     |
 
 Both endpoints return `503` with `{ "error": "location not configured" }` if `LATITUDE` or `LONGITUDE` are missing, and log a `LogError` pointing to `.env.example`.
+
+The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise` and `sunset` as ISO strings. `WeatherWidget.svelte` displays today's sunrise/sunset from `forecast[0]`.
 
 ### Environment variables
 
@@ -210,9 +233,13 @@ The `photos` service fetches portrait or landscape photos from the [Unsplash API
 
 ### Endpoints
 
-| Method | Path             | Description                                                                                 |
-| ------ | ---------------- | ------------------------------------------------------------------------------------------- |
-| `GET`  | `/photos/random` | Returns one random `PhotoResponse` from cache; refetches if cache is stale or query changed |
+| Method   | Path                    | Description                                                                                 |
+| -------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| `GET`    | `/photos/random`        | Returns one random `PhotoResponse` from cache; refetches if cache is stale or query changed |
+| `GET`    | `/photos/sources`       | Returns the list of available photo source names                                            |
+| `GET`    | `/photos/uploads`       | Returns the list of user-uploaded photos                                                    |
+| `POST`   | `/photos/uploads`       | Uploads a photo (multipart/form-data; max 200 MB)                                          |
+| `DELETE` | `/photos/uploads/{id}`  | Deletes a user-uploaded photo by ID                                                         |
 
 Query param `query` (default: `nature`) is forwarded to the Unsplash random photo endpoint. The cache is keyed by query — changing categories busts the cache.
 
@@ -259,22 +286,21 @@ Photos transition with a 1.5-second crossfade. Clicking anywhere or pressing any
 
 ## RSS Service
 
-The `rss` service fetches articles from The Verge's Atom feed and caches them in SQLite to avoid redundant fetches. The feed URL is hardcoded; multi-feed management is planned for a future iteration.
+The `rss` service fetches articles from one or more user-configured RSS/Atom feed URLs and caches them in SQLite to avoid redundant fetches.
 
 ### Endpoints
 
-| Method | Path           | Description                                                        |
-| ------ | -------------- | ------------------------------------------------------------------ |
-| `GET`  | `/rss/articles` | Returns up to `count` (default 10) articles sorted by publish date |
+| Method | Path            | Description                                                                               |
+| ------ | --------------- | ----------------------------------------------------------------------------------------- |
+| `GET`  | `/rss/articles` | Accepts one or more `url` query params and a `count` (default 10); returns a `RssFeedGroup[]` sorted by publish date |
 
-If the cache is stale (older than 30 minutes) or empty, the service re-fetches from the upstream feed before responding. On fetch failure, the endpoint returns whatever is in the cache (possibly empty).
+If a feed's cache is stale (older than 30 minutes) or empty, the service re-fetches from the upstream URL before responding. On fetch failure, the endpoint returns whatever is in the cache (possibly empty).
 
 ### Caching
 
-| Field | Value                                       |
-| ----- | ------------------------------------------- |
-| Feed  | `https://www.theverge.com/rss/index.xml`    |
-| TTL   | 30 minutes                                  |
+| Field  | Value                                          |
+| ------ | ---------------------------------------------- |
+| TTL    | 30 minutes per feed URL                        |
 | Format | Atom 1.0 (XDocument parsing; RSS 2.0 fallback) |
 
 ### Environment variables
@@ -286,7 +312,7 @@ If the cache is stale (older than 30 minutes) or empty, the service re-fetches f
 
 ### Frontend integration
 
-`RssFeedsWidget.svelte` loads articles on mount via `RssFeedStore.svelte.ts`. The article count is controlled by `settings.rssArticleCount` (default 10, configurable in Settings → RSS Feeds). Clicking an article opens the link in a new tab.
+`NewsFeedWidget.svelte` loads articles on mount via `RssFeedStore.svelte.ts`. Feed URLs and the article count are controlled by the settings persisted in `SettingsStore.svelte.ts`, configurable in Settings → RSS Feeds. Clicking an article opens the link in a new tab.
 
 ## Routing
 
