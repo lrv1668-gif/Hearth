@@ -18,7 +18,6 @@
     let editingTask = $state<Task | null>(null);
 
     const isMobile = new MediaQuery('(max-width: 800px)');
-    console.log(isMobile);
 
     function openEditTask(task: Task) {
         editingTask = task;
