@@ -17,7 +17,7 @@ export async function loadDailyQuote() {
 
     dailyQuoteStore.error = false;
     try {
-        const res = await fetch('https://zenquotes.io/api/today');
+        const res = await fetch('/api/quote');
         if (!res.ok) throw new Error('Failed to fetch');
         const data: ZenQuote[] = await res.json();
         dailyQuoteStore.quote = data[0] ?? null;
