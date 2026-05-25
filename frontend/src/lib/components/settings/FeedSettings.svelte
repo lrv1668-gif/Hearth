@@ -5,7 +5,7 @@
         unsubscribeFromRssFeed,
         updateRssArticleCount,
     } from '$lib/stores/SettingsStore.svelte.ts';
-    import { Plus, Save, Trash } from '@lucide/svelte';
+    import { Save, Trash } from '@lucide/svelte';
     import SubTitle from '../SubTitle.svelte';
 
     let newRssTitle = $state('');
