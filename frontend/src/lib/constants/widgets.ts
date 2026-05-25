@@ -11,12 +11,12 @@ export const DEFAULT_ENABLED_WIDGETS_IDS: WidgetId[] = toggleableWidgets.map((w)
 
 export const allWidgets = [
     { id: 'upcoming-tasks', label: 'Upcoming Tasks' },
-    { id: 'todays-date', label: "Today's Date" },
+    { id: 'todays-date', label: 'Time & Date' },
     { id: 'weather', label: 'Weather' },
     { id: 'countdowns', label: 'Countdowns' },
     { id: 'moon-phase', label: 'Moon Phase' },
     { id: 'now-playing', label: 'Now Playing' },
-    { id: 'rss-feeds', label: "Today's News" },
+    { id: 'rss-feeds', label: 'News' },
 ] as const;
 
 export type AllWidgetId = (typeof allWidgets)[number]['id'];
