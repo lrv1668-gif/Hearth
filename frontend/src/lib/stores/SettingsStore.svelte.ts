@@ -28,9 +28,26 @@ class SettingsStore {
     }
 
     toggleWidget(id: WidgetId) {
-        this.enabledWidgets = this.enabledWidgets.includes(id)
-            ? this.enabledWidgets.filter((w) => w !== id)
-            : [...this.enabledWidgets, id];
+        const inColumns =
+            this.widgetColumns.left.includes(id as AllWidgetId) ||
+            this.widgetColumns.right.includes(id as AllWidgetId);
+
+        if (inColumns) {
+            this.widgetColumns = {
+                left: this.widgetColumns.left.filter((w) => w !== id),
+                right: this.widgetColumns.right.filter((w) => w !== id),
+            };
+            this.enabledWidgets = this.enabledWidgets.filter((w) => w !== id);
+        } else {
+            const defaultCol = DEFAULT_WIDGET_COLUMNS.left.includes(id as AllWidgetId)
+                ? 'left'
+                : 'right';
+            this.widgetColumns = {
+                ...this.widgetColumns,
+                [defaultCol]: [...this.widgetColumns[defaultCol], id as AllWidgetId],
+            };
+            this.enabledWidgets = [...this.enabledWidgets, id];
+        }
     }
 }
 
@@ -39,7 +56,28 @@ function createSettings(): SettingsStore {
     if (!browser) return store;
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) Object.assign(store, JSON.parse(raw));
+        if (raw) {
+            Object.assign(store, JSON.parse(raw));
+
+            // Merge any widgets added after this settings snapshot was saved.
+            const storedIds = new Set([...store.widgetColumns.left, ...store.widgetColumns.right]);
+            for (const col of ['left', 'right'] as const) {
+                for (const id of DEFAULT_WIDGET_COLUMNS[col]) {
+                    if (!storedIds.has(id)) {
+                        store.widgetColumns = {
+                            ...store.widgetColumns,
+                            [col]: [...store.widgetColumns[col], id],
+                        };
+                        storedIds.add(id);
+                    }
+                }
+            }
+            for (const id of DEFAULT_ENABLED_WIDGETS_IDS) {
+                if (!store.enabledWidgets.includes(id)) {
+                    store.enabledWidgets = [...store.enabledWidgets, id];
+                }
+            }
+        }
     } catch {
         // fall back to defaults
     }

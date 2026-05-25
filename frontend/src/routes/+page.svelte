@@ -9,6 +9,7 @@
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
     import TodaysDateTimeWidget from '$lib/components/widgets/TodaysDateTimeWidget.svelte';
     import NewsFeedWidget from '$lib/components/widgets/NewsFeedWidget.svelte';
+    import DailyQuoteWidget from '$lib/components/widgets/DailyQuoteWidget.svelte';
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import type { AllWidgetId } from '$lib/constants/widgets';
@@ -70,6 +71,10 @@
     {:else if id === 'rss-feeds'}
         <WidgetContainer title="News" associatedWidgetId="rss-feeds">
             <NewsFeedWidget />
+        </WidgetContainer>
+    {:else if id === 'daily-quote'}
+        <WidgetContainer title="Daily Quote" associatedWidgetId="daily-quote">
+            <DailyQuoteWidget />
         </WidgetContainer>
     {/if}
 {/snippet}

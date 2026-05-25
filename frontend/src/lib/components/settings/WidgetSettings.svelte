@@ -23,15 +23,6 @@
 <div class="flex flex-col gap-2 space-y-4">
     <div>
         <SubTitle
-            subTitleText="Widget Layout"
-            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
-                want the column width to be."
-        />
-        <WidgetOrderEditor />
-    </div>
-
-    <div>
-        <SubTitle
             subTitleText="Visibility"
             subTitleDescription="Enable/disable widgets you want to appear on the Schedules page."
         />
@@ -41,7 +32,8 @@
                     <label class="flex cursor-pointer items-center gap-3">
                         <div class="mt-0.5 shrink-0">
                             <Toggle
-                                checked={settings.enabledWidgets.includes(widget.id)}
+                                checked={settings.widgetColumns.left.includes(widget.id) ||
+                                    settings.widgetColumns.right.includes(widget.id)}
                                 onchange={() => settings.toggleWidget(widget.id)}
                             />
                         </div>
@@ -51,7 +43,7 @@
                         </div>
                     </label>
 
-                    {#if widget.id === 'now-playing' && settings.enabledWidgets.includes('now-playing')}
+                    {#if widget.id === 'now-playing' && (settings.widgetColumns.left.includes('now-playing') || settings.widgetColumns.right.includes('now-playing'))}
                         <div class="ml-12 mt-1.5 border-l-2 border-l-[var(--border)] p-4">
                             <div class="flex flex-row gap-2">
                                 <Settings class="icon-sm" />
@@ -78,15 +70,21 @@
                                 {/if}
                             </div>
                         </div>
+                    {:else if widget.id === 'rss-feeds' && (settings.widgetColumns.left.includes('rss-feeds') || settings.widgetColumns.right.includes('rss-feeds'))}
+                        <div class="ml-12 border-l-2 border-l-[var(--border)] pl-4">
+                            <FeedSettings />
+                        </div>
                     {/if}
                 </div>
             {/each}
         </div>
     </div>
-
-    {#if settings.enabledWidgets.includes('rss-feeds')}
-        <div class="ml-12 border-l-2 border-l-[var(--border)] pl-4">
-            <FeedSettings />
-        </div>
-    {/if}
+    <div>
+        <SubTitle
+            subTitleText="Layout"
+            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
+                want the column width to be."
+        />
+        <WidgetOrderEditor />
+    </div>
 </div>
