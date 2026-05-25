@@ -123,8 +123,11 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 ### Phase 1 — The Frame
 
 - Art display: Unsplash integration, your own photos, or a local image folder — dithered and optimized for e-paper rendering
-- Weather: current conditions + today's forecast + 5-day (Open-Meteo or similar free API, no key required)
+- Weather: current conditions + today's forecast + 5-day (Open-Meteo or similar free API, no key required); includes sunrise and sunset times for the current day
 - Clock and date, always present in both modes
+- Countdown events: one-off events tracked by days remaining; five nearest upcoming events shown in a dedicated widget
+- Moon phase: front-end computed lunar phase with phase name, illumination %, SVG visualization, and countdown to the next major phase
+- News feeds: user-configured RSS/Atom feeds with a configurable article count
 - Color/B&W mode toggle: switchable on demand or by schedule
 - Scheduled display refresh: configurable cadence, full refresh only in v1
 - First-run setup flow via local web UI
@@ -133,8 +136,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 ### Phase 2 — The Home
 
 - Plant tracker: name your plants, set watering intervals, visual wilt indicator in Ambient overlay, full list in Daily mode
-- Daily tasks: shared household to-do list, completable from the web UI; recurring tasks (daily through yearly) and one-off countdown events
-- Moon phase widget: pure-math SVG display with phase name, illumination %, and countdown to next major phase
+- Daily tasks: shared household to-do list, completable from the web UI; recurring tasks (daily through yearly)
 - Grocery list: add from phone, shown in Daily mode alongside tasks
 
 ### Phase 3 — The Pulse

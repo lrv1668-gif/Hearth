@@ -16,7 +16,7 @@ Keep documentation in sync with code at all times:
 
 ## Project Overview
 
-Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, plant care, music, and daily tasks into a single quiet display. The primary target is an always-on, ambient display (e.g. a digital picture frame), though it is also accessible via web browser.
+Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, plant care, music, daily tasks, countdown events, moon phase, and news feeds into a single quiet display. The primary target is an always-on, ambient display (e.g. a digital picture frame), though it is also accessible via web browser.
 
 ## Tech Stack
 
