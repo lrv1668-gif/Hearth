@@ -15,6 +15,14 @@
 
     let leftItems = $state(toItems(settings.widgetColumns.left));
     let rightItems = $state(toItems(settings.widgetColumns.right));
+
+    // Re-sync when widgetColumns is changed externally (e.g. from the visibility toggles).
+    // During drag, only leftItems/rightItems change — settings.widgetColumns stays stable — so
+    // this effect does not fire mid-drag and does not disturb the dndzone state.
+    $effect(() => {
+        leftItems = toItems(settings.widgetColumns.left);
+        rightItems = toItems(settings.widgetColumns.right);
+    });
     let previewWidth = $state(settings.leftColumnWidth);
     let dragging = $state(false);
     let dragStartX = 0;

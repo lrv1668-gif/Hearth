@@ -18,6 +18,17 @@ Creates new widgets for the Hearth SvelteKit home dashboard. Every widget touche
 
 ---
 
+## Step 0: Explore Context First
+
+Before writing any code, read these two files to understand the current state of the dashboard:
+
+1. `frontend/src/lib/constants/widgets.ts` — see which widget IDs already exist, what's in each column, and which are toggleable
+2. `frontend/src/routes/+page.svelte` — see the existing `renderWidget` snippet so you can match the pattern
+
+Also skim one or two existing widget components in `frontend/src/lib/components/widgets/` for style reference — pick one that's similar to what you're building (e.g. an API-fetching widget if yours fetches data).
+
+---
+
 ## Step 1: Register in widgets.ts
 
 ```typescript
@@ -33,12 +44,19 @@ export const toggleableWidgets = [
     { id: 'your-widget-id', label: 'Display Name', description: 'One-line description for the settings panel' },
 ] as const;
 
-// Place it in the appropriate column
+// Place it in the appropriate column (see Column Placement below)
 export const DEFAULT_WIDGET_COLUMNS = {
     left: [..., 'your-widget-id'],
     right: [...],
 };
 ```
+
+### Column Placement
+
+- **Left column** — action-oriented or time-sensitive content: tasks, calendar, countdowns, now-playing
+- **Right column** — ambient or informational content: weather, moon phase, news feeds, quotes
+
+When in doubt, ask the user which column they prefer.
 
 ---
 
@@ -57,26 +75,44 @@ export const DEFAULT_WIDGET_COLUMNS = {
 </script>
 ```
 
-### B — Async API call (widget-local data from a backend service)
+### B — Async API call (widget-local data from a backend service or external API)
 ```svelte
 <script lang="ts">
     import { onMount } from 'svelte';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
 
-    let data = $state<YourType | null>(null);
+    interface MyDataType {
+        field: string;
+        // ...
+    }
+
+    let data = $state<MyDataType | null>(null);
+    let error = $state(false);
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
 
     onMount(() => {
         loadPromise = (async () => {
-            data = await fetch('/your-endpoint').then(r => r.json());
+            try {
+                const res = await fetch('/your-endpoint');
+                if (!res.ok) throw new Error('Failed to fetch');
+                data = await res.json() as MyDataType;
+            } catch {
+                error = true;
+            }
         })();
     });
 </script>
 
 <SkeletonLoader promise={loadPromise}>
-    {#if data}<!-- render -->{/if}
+    {#if error || !data}
+        <p class="type-label text-[var(--text-3)]">Data unavailable.</p>
+    {:else}
+        <!-- render data -->
+    {/if}
 </SkeletonLoader>
 ```
+
+> **External APIs and CORS**: When fetching a third-party URL directly from the browser, confirm the API supports CORS (i.e. returns `Access-Control-Allow-Origin: *`). If it doesn't, you'll need a SvelteKit server route (`+server.ts`) as a thin proxy rather than fetching from the component directly.
 
 ### C — Shared Store (data consumed by more than one widget)
 ```svelte
@@ -146,10 +182,13 @@ import YourWidget from '$lib/components/widgets/YourWidget.svelte';
 
 ## Checklist
 
+- [ ] Read `widgets.ts` and `+page.svelte` before starting
 - [ ] Added to `allWidgets` in `widgets.ts`
 - [ ] Added to `toggleableWidgets` if user-toggleable (with `description`)
-- [ ] Added to `DEFAULT_WIDGET_COLUMNS`
+- [ ] Added to `DEFAULT_WIDGET_COLUMNS` in the appropriate column
 - [ ] Created `YourWidget.svelte` using the appropriate data pattern
+- [ ] Typed the fetched data with an interface (Pattern B)
+- [ ] Added error state and try/catch (Pattern B)
 - [ ] Styled with type utilities + CSS variable tokens only
 - [ ] Imported in `+page.svelte`
 - [ ] Added to `renderWidget` snippet in `+page.svelte`
