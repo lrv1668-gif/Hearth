@@ -70,3 +70,12 @@ Themes are defined in two places — both must be updated together:
 Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`
 
 Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme` (for native inputs).
+
+### Testing (xUnit)
+
+- Each service that gets tests has a matching `<Service>.Tests/` project in `services/`
+- Test projects use `Microsoft.NET.Sdk` (not `Microsoft.NET.Sdk.Web`)
+- HTTP-backed services use a `FakeHttpMessageHandler` test helper (see `Quote.Tests/Helpers/`)
+- Test method naming: `Method_Scenario_ExpectedOutcome`
+- Add each new test project to `Hearth.slnx`
+- Use the `/write-unit-tests` skill to scaffold a new test project
