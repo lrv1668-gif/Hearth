@@ -37,6 +37,7 @@ services/
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
   Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache
   Rss/                       # ASP.NET Core 10 Minimal API, port 8085 — RSS/Atom feed fetch + cache
+  Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 Caddyfile

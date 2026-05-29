@@ -1,12 +1,15 @@
 <script lang="ts">
-    import type { Task } from '$lib/api';
+    import type { Task, CalendarEvent } from '$lib/api';
     import { taskStore, addTask, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore.svelte.ts';
+    import { calendarStore } from '$lib/stores/CalendarStore.svelte.ts';
     import Calendar from '$lib/components/Calendar.svelte';
     import TaskModal from '$lib/components/modals/TaskModal.svelte';
+    import EventDetailModal from '$lib/components/modals/EventDetailModal.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
     let initialDate = $state<string | undefined>(undefined);
+    let selectedEvent = $state<CalendarEvent | null>(null);
 
     function openNewTask() {
         editingTask = null;
@@ -45,11 +48,13 @@
 <main class="mx-auto flex min-h-0 w-full max-w-7xl flex-col px-8 py-8">
     <Calendar
         tasks={taskStore.tasks}
+        events={calendarStore.events}
         onToggle={toggleTask}
         onDelete={removeTask}
         onNewTask={openNewTask}
         onEdit={openEditTask}
         onDateClick={openDateTask}
+        onEventClick={(e) => (selectedEvent = e)}
     />
 </main>
 
@@ -64,3 +69,5 @@
         editingTask = null;
     }}
 />
+
+<EventDetailModal event={selectedEvent} onClose={() => (selectedEvent = null)} />

@@ -4,6 +4,26 @@
  * @param time The time in the HH:MM format, in 24-hour time.
  * @returns
  */
+/**
+ * Returns "YYYY-MM-DD" for a CalendarEvent in local time.
+ *
+ * All-day events: slices the date string directly — avoids the UTC midnight shift
+ * that new Date("YYYY-MM-DD") causes in negative UTC offset timezones.
+ *
+ * Timed events: ISO string with timezone offset → new Date() converts to local time
+ * correctly in all browsers, so dateKey arithmetic is safe.
+ */
+export function providerLabel(provider: string): string {
+    if (provider === 'google') return 'Google Calendar';
+    return provider;
+}
+
+export function eventDateKey(event: { start: string; is_all_day: boolean }): string {
+    if (event.is_all_day) return event.start.slice(0, 10);
+    const d = new Date(event.start);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function formatTime(time: string): string {
     const [h, m] = time.split(':').map(Number);
     const period = h >= 12 ? 'PM' : 'AM';

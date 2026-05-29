@@ -1,16 +1,19 @@
 <script lang="ts">
-    import type { Task } from '$lib/api';
-    import { formatTime } from '$lib/utils';
-    import { Check, RefreshCw, X } from '@lucide/svelte';
+    import type { Task, CalendarEvent, Item } from '$lib/api';
+    import { formatTime, eventDateKey } from '$lib/utils';
+    import { Calendar as CalendarIcon, Check, RefreshCw, X } from '@lucide/svelte';
+    import ProviderIcon from '$lib/components/ProviderIcon.svelte';
 
     interface Props {
         tasks: Task[];
+        events: CalendarEvent[];
         onToggle: (task: Task) => void;
         onDelete: (id: number, series?: boolean) => void;
         onEdit: (task: Task) => void;
+        onEventClick?: (event: CalendarEvent) => void;
     }
 
-    let { tasks, onToggle, onDelete, onEdit }: Props = $props();
+    let { tasks, events, onToggle, onDelete, onEdit, onEventClick }: Props = $props();
 
     let confirmDeleteId = $state<number | null>(null);
 
@@ -27,14 +30,24 @@
     interface Group {
         key: string;
         label: string;
-        tasks: Task[];
+        items: Item[];
     }
 
-    const timeComparator = (a: Task, b: Task) => {
-        if (!a.due_time && !b.due_time) return 0;
-        if (!a.due_time) return 1;
-        if (!b.due_time) return -1;
-        return a.due_time.localeCompare(b.due_time);
+    // Returns "HH:MM" in local time for sorting, or null for all-day / undated items (sort last).
+    function timeKey(item: Item): string | null {
+        if (item.kind === 'task') return item.data.due_time;
+        if (item.data.is_all_day) return null;
+        const d = new Date(item.data.start);
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    const itemComparator = (a: Item, b: Item): number => {
+        const ta = timeKey(a);
+        const tb = timeKey(b);
+        if (!ta && !tb) return 0;
+        if (!ta) return 1;
+        if (!tb) return -1;
+        return ta.localeCompare(tb);
     };
 
     let groups = $derived.by((): Group[] => {
@@ -47,62 +60,63 @@
         cutoff.setDate(today.getDate() + 3);
         const cutoffKey = dateKey(cutoff);
 
-        const todayTasks: Task[] = [];
-        const tomorrowTasks: Task[] = [];
-        const futureMap: Map<string, Task[]> = new Map();
-        const undated: Task[] = [];
+        const todayItems: Item[] = [];
+        const tomorrowItems: Item[] = [];
+        const futureMap: Map<string, Item[]> = new Map();
+        const undated: Item[] = [];
 
         for (const t of tasks) {
+            const item: Item = { kind: 'task', data: t };
             if (!t.due_date) {
-                undated.push(t);
+                undated.push(item);
             } else {
                 const key = t.due_date.slice(0, 10);
                 if (key < todayKey || key >= cutoffKey) {
                     // outside 3-day window — skip
                 } else if (key === todayKey) {
-                    todayTasks.push(t);
+                    todayItems.push(item);
                 } else if (key === tomorrowKey) {
-                    tomorrowTasks.push(t);
+                    tomorrowItems.push(item);
                 } else {
                     const bucket = futureMap.get(key) ?? [];
-                    bucket.push(t);
+                    bucket.push(item);
                     futureMap.set(key, bucket);
                 }
             }
         }
 
+        for (const e of events) {
+            if (!e.start) continue;
+            const item: Item = { kind: 'event', data: e };
+            const key = eventDateKey(e);
+            if (key < todayKey || key >= cutoffKey) continue;
+            if (key === todayKey) {
+                todayItems.push(item);
+            } else if (key === tomorrowKey) {
+                tomorrowItems.push(item);
+            } else {
+                const bucket = futureMap.get(key) ?? [];
+                bucket.push(item);
+                futureMap.set(key, bucket);
+            }
+            // All-day calendar events always have a date string — never go into undated.
+        }
+
         const result: Group[] = [];
 
-        if (todayTasks.length > 0) {
-            result.push({
-                key: 'today',
-                label: 'Today',
-                tasks: todayTasks.sort(timeComparator),
-            });
+        if (todayItems.length > 0) {
+            result.push({ key: 'today', label: 'Today', items: todayItems.sort(itemComparator) });
         }
-        if (tomorrowTasks.length > 0) {
-            result.push({
-                key: 'tomorrow',
-                label: 'Tomorrow',
-                tasks: tomorrowTasks.sort(timeComparator),
-            });
+        if (tomorrowItems.length > 0) {
+            result.push({ key: 'tomorrow', label: 'Tomorrow', items: tomorrowItems.sort(itemComparator) });
         }
 
-        const sortedFutureKeys = [...futureMap.keys()].sort();
-        for (const key of sortedFutureKeys) {
-            result.push({
-                key,
-                label: formatGroupLabel(key),
-                tasks: futureMap.get(key)!.sort(timeComparator),
-            });
+        for (const key of [...futureMap.keys()].sort()) {
+            result.push({ key, label: formatGroupLabel(key), items: futureMap.get(key)!.sort(itemComparator) });
         }
 
         if (undated.length > 0) {
-            result.push({
-                key: 'undated',
-                label: 'No due date',
-                tasks: undated,
-            });
+            result.push({ key: 'undated', label: 'No due date', items: undated });
         }
 
         return result;
@@ -135,107 +149,133 @@
                     </div>
                 </div>
                 <ul class="space-y-2">
-                    {#each group.tasks as task (task.id)}
-                        <li class="group/row flex items-center gap-3 rounded-lg px-3 py-2.5">
-                            <button
-                                onclick={() => onToggle(task)}
-                                class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
-                       {task.done
-                                    ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
-                                    : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
-                                aria-label="Toggle {task.title}"
-                            >
-                                {#if task.done}
-                                    <Check class="icon-xs text-[var(--bg)]" />
-                                {/if}
-                            </button>
-
-                            {#if task.due_time}
-                                <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
-                                    {formatTime(task.due_time)}
-                                </span>
-                            {:else}
-                                <span class="w-14 flex-shrink-0"></span>
-                            {/if}
-
-                            <button
-                                onclick={() => onEdit(task)}
-                                class="min-w-0 flex-1 text-left transition-colors hover:opacity-80"
-                            >
-                                <div class="flex min-w-0 items-center gap-2">
-                                    <span
-                                        class="type-body truncate transition-colors
-                                               {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
-                                    >
-                                        {task.title}
-                                    </span>
-                                    {#if task.assignee}
-                                        <span
-                                            class="type-label flex-shrink-0 rounded bg-[var(--surface-hi)] px-1.5 py-0.5 text-[var(--text-2)]"
-                                        >
-                                            {task.assignee}
-                                        </span>
-                                    {/if}
-                                    {#if task.recurrence_unit}
-                                        <span
-                                            class="type-label flex flex-shrink-0 items-center gap-0.5 text-[var(--text-2)]"
-                                        >
-                                            <RefreshCw class="icon-xs" />
-                                            {recurrenceLabel(task)}
-                                        </span>
-                                    {/if}
-                                </div>
-                                {#if task.description}
-                                    <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
-                                        {task.description}
-                                    </p>
-                                {/if}
-                            </button>
-
-                            {#if confirmDeleteId === task.id}
-                                <div class="flex flex-shrink-0 items-center gap-1">
-                                    <button
-                                        onclick={() => {
-                                            onDelete(task.id);
-                                            confirmDeleteId = null;
-                                        }}
-                                        class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
-                                    >
-                                        Just this
-                                    </button>
-                                    <button
-                                        onclick={() => {
-                                            onDelete(task.id, true);
-                                            confirmDeleteId = null;
-                                        }}
-                                        class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
-                                    >
-                                        All future
-                                    </button>
-                                    <button
-                                        onclick={() => (confirmDeleteId = null)}
-                                        class="text-[var(--text-4)] transition hover:text-[var(--text-2)]"
-                                        aria-label="Cancel"
-                                    >
-                                        <X class="icon-sm" />
-                                    </button>
-                                </div>
-                            {:else}
+                    {#each group.items as item (item.kind === 'task' ? `t-${item.data.id}` : `e-${item.data.id}`)}
+                        {#if item.kind === 'task'}
+                            {@const task = item.data}
+                            <li class="group/row flex items-center gap-3 rounded-lg px-3 py-2.5">
                                 <button
-                                    onclick={() => {
-                                        if (task.series_id !== null) {
-                                            confirmDeleteId = task.id;
-                                        } else {
-                                            onDelete(task.id);
-                                        }
-                                    }}
-                                    class="flex-shrink-0 text-[var(--text-3)] opacity-0 transition hover:text-[var(--text-1)] group-hover/row:opacity-100"
-                                    aria-label="Delete {task.title}"
+                                    onclick={() => onToggle(task)}
+                                    class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
+                           {task.done
+                                        ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
+                                        : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
+                                    aria-label="Toggle {task.title}"
                                 >
-                                    <X class="icon-md" />
+                                    {#if task.done}
+                                        <Check class="icon-xs text-[var(--bg)]" />
+                                    {/if}
                                 </button>
-                            {/if}
-                        </li>
+
+                                {#if task.due_time}
+                                    <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
+                                        {formatTime(task.due_time)}
+                                    </span>
+                                {:else}
+                                    <span class="w-14 flex-shrink-0"></span>
+                                {/if}
+
+                                <button
+                                    onclick={() => onEdit(task)}
+                                    class="min-w-0 flex-1 text-left transition-colors hover:opacity-80"
+                                >
+                                    <div class="flex min-w-0 items-center gap-2">
+                                        <span
+                                            class="type-body truncate transition-colors
+                                                   {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                        >
+                                            {task.title}
+                                        </span>
+                                        {#if task.assignee}
+                                            <span
+                                                class="type-label flex-shrink-0 rounded bg-[var(--surface-hi)] px-1.5 py-0.5 text-[var(--text-2)]"
+                                            >
+                                                {task.assignee}
+                                            </span>
+                                        {/if}
+                                        {#if task.recurrence_unit}
+                                            <span
+                                                class="type-label flex flex-shrink-0 items-center gap-0.5 text-[var(--text-2)]"
+                                            >
+                                                <RefreshCw class="icon-xs" />
+                                                {recurrenceLabel(task)}
+                                            </span>
+                                        {/if}
+                                    </div>
+                                    {#if task.description}
+                                        <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
+                                            {task.description}
+                                        </p>
+                                    {/if}
+                                </button>
+
+                                {#if confirmDeleteId === task.id}
+                                    <div class="flex flex-shrink-0 items-center gap-1">
+                                        <button
+                                            onclick={() => {
+                                                onDelete(task.id);
+                                                confirmDeleteId = null;
+                                            }}
+                                            class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
+                                        >
+                                            Just this
+                                        </button>
+                                        <button
+                                            onclick={() => {
+                                                onDelete(task.id, true);
+                                                confirmDeleteId = null;
+                                            }}
+                                            class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
+                                        >
+                                            All future
+                                        </button>
+                                        <button
+                                            onclick={() => (confirmDeleteId = null)}
+                                            class="text-[var(--text-4)] transition hover:text-[var(--text-2)]"
+                                            aria-label="Cancel"
+                                        >
+                                            <X class="icon-sm" />
+                                        </button>
+                                    </div>
+                                {:else}
+                                    <button
+                                        onclick={() => {
+                                            if (task.series_id !== null) {
+                                                confirmDeleteId = task.id;
+                                            } else {
+                                                onDelete(task.id);
+                                            }
+                                        }}
+                                        class="flex-shrink-0 text-[var(--text-3)] opacity-0 transition hover:text-[var(--text-1)] group-hover/row:opacity-100"
+                                        aria-label="Delete {task.title}"
+                                    >
+                                        <X class="icon-md" />
+                                    </button>
+                                {/if}
+                            </li>
+                        {:else}
+                            {@const event = item.data}
+                            <li class="flex items-center gap-3 rounded-lg px-3 py-2.5">
+                                <div class="relative flex-shrink-0">
+                                    <CalendarIcon class="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+                                    <div class="absolute -bottom-1 -right-1">
+                                        <ProviderIcon provider={event.provider} />
+                                    </div>
+                                </div>
+                                {#if !event.is_all_day}
+                                    <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
+                                        {formatTime(timeKey(item) ?? '')}
+                                    </span>
+                                {:else}
+                                    <span class="w-14 flex-shrink-0"></span>
+                                {/if}
+                                <button
+                                    onclick={() => onEventClick?.(event)}
+                                    class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
+                                >
+                                    <span class="type-body block truncate text-[var(--text-1)]">{event.title}</span>
+                                </button>
+                            </li>
+                        {/if}
                     {/each}
                 </ul>
             </div>

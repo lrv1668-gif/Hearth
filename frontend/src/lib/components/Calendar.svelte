@@ -1,20 +1,22 @@
 <script lang="ts">
-    import type { Task } from '$lib/api';
-    import { formatTime } from '$lib/utils';
-    import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Plus, X } from '@lucide/svelte';
+    import type { Task, CalendarEvent, Item } from '$lib/api';
+    import { formatTime, eventDateKey } from '$lib/utils';
+    import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Plus, X } from '@lucide/svelte';
     import DayOverflowModal from './modals/DayOverflowModal.svelte';
     import { DAY_NAMES, MONTH_NAMES } from '$lib/constants/calendar';
 
     interface Props {
         tasks: Task[];
+        events: CalendarEvent[];
         onToggle: (task: Task) => void;
         onDelete: (id: number) => void;
         onNewTask: () => void;
         onEdit: (task: Task) => void;
         onDateClick: (date: string) => void;
+        onEventClick?: (event: CalendarEvent) => void;
     }
 
-    let { tasks, onToggle, onDelete, onNewTask, onEdit, onDateClick }: Props = $props();
+    let { tasks, events, onToggle, onDelete, onNewTask, onEdit, onDateClick, onEventClick }: Props = $props();
     const today = new Date();
 
     function dateKey(d: Date): string {
@@ -90,9 +92,24 @@
         return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
 
+    let eventsByDate = $derived.by(() => {
+        const map: Record<string, CalendarEvent[]> = {};
+        for (const e of events) {
+            if (!e.start) continue;
+            const key = eventDateKey(e);
+            (map[key] ??= []).push(e);
+        }
+        return map;
+    });
+
     let overflowDayKey = $state<string | null>(null);
 
-    const overflowTasks = $derived(overflowDayKey ? (tasksByDate[overflowDayKey] ?? []) : []);
+    const overflowItems = $derived.by((): Item[] => {
+        if (!overflowDayKey) return [];
+        const t = (tasksByDate[overflowDayKey] ?? []).map((d) => ({ kind: 'task' as const, data: d }));
+        const ev = (eventsByDate[overflowDayKey] ?? []).map((d) => ({ kind: 'event' as const, data: d }));
+        return [...t, ...ev];
+    });
 </script>
 
 <div class="flex min-h-0 flex-1 flex-col gap-6">
@@ -169,6 +186,8 @@
             {@const key = day ? cellKey(day) : ''}
             {@const isToday = key === todayKey}
             {@const dayTasks = day ? (tasksByDate[key] ?? []) : []}
+            {@const dayEvents = day ? (eventsByDate[key] ?? []) : []}
+            {@const dayItems = [...dayTasks, ...dayEvents]}
 
             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
@@ -192,7 +211,7 @@
                         {day}
                     </span>
 
-                    {#if dayTasks.length > 0}
+                    {#if dayItems.length > 0}
                         <ul class="space-y-1">
                             {#each dayTasks.slice(0, 4) as task (task.id)}
                                 <li class="flex min-w-0 items-center gap-1">
@@ -220,7 +239,26 @@
                                     </button>
                                 </li>
                             {/each}
-                            {#if dayTasks.length > 4}
+                            {#each dayEvents.slice(0, Math.max(0, 4 - dayTasks.length)) as event (event.id)}
+                                <li class="flex min-w-0 items-center gap-1">
+                                    <CalendarIcon
+                                        class="h-2 w-2 flex-shrink-0 text-[var(--accent)]"
+                                        aria-hidden="true"
+                                    />
+                                    <button
+                                        onclick={(e) => { e.stopPropagation(); onEventClick?.(event); }}
+                                        class="type-label min-w-0 flex-1 truncate text-left text-[var(--text-1)] transition-opacity hover:opacity-70"
+                                    >
+                                        {#if !event.is_all_day}
+                                            <span class="mr-0.5 text-[var(--text-3)]">
+                                                {formatTime(event.start.slice(11, 16))}
+                                            </span>
+                                        {/if}
+                                        {event.title}
+                                    </button>
+                                </li>
+                            {/each}
+                            {#if dayItems.length > 4}
                                 <li>
                                     <button
                                         onclick={(e) => {
@@ -229,7 +267,7 @@
                                         }}
                                         class="type-label text-[var(--text-3)] transition-colors hover:text-[var(--text-1)]"
                                     >
-                                        +{dayTasks.length - 3} more
+                                        +{dayItems.length - 3} more
                                     </button>
                                 </li>
                             {/if}
@@ -240,7 +278,7 @@
         {/each}
     </div>
 
-    <DayOverflowModal bind:dayKey={overflowDayKey} tasks={overflowTasks} {onToggle} {onEdit} />
+    <DayOverflowModal bind:dayKey={overflowDayKey} items={overflowItems} {onToggle} {onEdit} {onEventClick} />
 
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}

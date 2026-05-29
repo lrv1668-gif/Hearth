@@ -107,6 +107,21 @@ export interface RssFeedGroup {
     articles: RssArticle[];
 }
 
+export interface CalendarEvent {
+    id: string;
+    title: string;
+    description: string | null;
+    location: string | null;
+    start: string; // ISO 8601 with timezone offset, OR "YYYY-MM-DD" for all-day events
+    end: string;
+    is_all_day: boolean;
+    calendar_name: string | null;
+    provider: string; // "google"
+}
+
+// Discriminated union shared by Calendar.svelte, DayOverflowModal.svelte, and UpcomingTasksWidget.svelte.
+export type Item = { kind: 'task'; data: Task } | { kind: 'event'; data: CalendarEvent };
+
 // ---- Client ----
 
 class ApiClient {
@@ -139,6 +154,16 @@ class ApiClient {
         current: (): Promise<CurrentWeather | null> => this.get<CurrentWeather>('/weather/current'),
 
         forecast: (): Promise<ForecastDay[]> => this.get<ForecastDay[]>('/weather/forecast').then((r) => r ?? []),
+    };
+
+    readonly calendar = {
+        googleStatus: (): Promise<{ authenticated: boolean } | null> =>
+            this.get('/calendar/google/status'),
+
+        googleDisconnect: (): Promise<boolean> => this.del('/calendar/google/auth'),
+
+        events: (): Promise<CalendarEvent[]> =>
+            this.get<CalendarEvent[]>('/calendar/events').then((r) => r ?? []),
     };
 
     readonly photos = {

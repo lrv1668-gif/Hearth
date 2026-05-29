@@ -3,6 +3,7 @@
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import AmbientSettings from '$lib/components/settings/AmbientSettings.svelte';
     import WidgetSettings from '$lib/components/settings/WidgetSettings.svelte';
+    import IntegrationsSettings from '$lib/components/settings/IntegrationsSettings.svelte';
 </script>
 
 <svelte:head>
@@ -20,5 +21,9 @@
 
     <SettingsSection title="Widgets">
         <WidgetSettings />
+    </SettingsSection>
+
+    <SettingsSection title="Connections">
+        <IntegrationsSettings />
     </SettingsSection>
 </div>

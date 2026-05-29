@@ -10,6 +10,8 @@ export default defineConfig({
             '/weather': process.env.WEATHER_URL ?? 'http://localhost:8082',
             '/photos': process.env.PHOTOS_URL ?? 'http://localhost:8084',
             '/rss': process.env.RSS_URL ?? 'http://localhost:8085',
+            '/calendar/google': process.env.CALENDAR_URL ?? 'http://localhost:8087',
+            '/calendar/events': process.env.CALENDAR_URL ?? 'http://localhost:8087',
         },
         hmr: process.env.HMR_CLIENT_PORT ? { clientPort: parseInt(process.env.HMR_CLIENT_PORT) } : undefined,
     },

@@ -4,6 +4,7 @@
     import Nav from '$lib/components/Nav.svelte';
     import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
     import { initTheme } from '$lib/stores/ThemeStore.svelte.ts';
+    import { loadCalendarStatus, loadCalendarEvents } from '$lib/stores/CalendarStore.svelte.ts';
     let { children } = $props();
 
     let loaded = $state(false);
@@ -12,6 +13,8 @@
         if (browser) {
             initTheme();
             loadTasks();
+            loadCalendarStatus();
+            loadCalendarEvents(); // fire-and-forget; returns [] silently when not authenticated
             loaded = true;
         }
     });
