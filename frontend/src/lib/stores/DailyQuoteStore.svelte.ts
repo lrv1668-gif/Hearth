@@ -6,22 +6,16 @@ export interface ZenQuote {
 class DailyQuoteStore {
     quote = $state<ZenQuote | null>(null);
     error = $state(false);
-    fetchedDate = $state<string | null>(null);
 }
 
 export const dailyQuoteStore = new DailyQuoteStore();
 
 export async function loadDailyQuote() {
-    const today = new Date().toISOString().slice(0, 10);
-    if (dailyQuoteStore.fetchedDate === today) return;
-
     dailyQuoteStore.error = false;
     try {
-        const res = await fetch('/api/quote');
+        const res = await fetch('/quote');
         if (!res.ok) throw new Error('Failed to fetch');
-        const data: ZenQuote[] = await res.json();
-        dailyQuoteStore.quote = data[0] ?? null;
-        dailyQuoteStore.fetchedDate = today;
+        dailyQuoteStore.quote = await res.json();
     } catch {
         dailyQuoteStore.error = true;
     }

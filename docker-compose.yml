@@ -56,6 +56,13 @@ services:
         volumes:
             - rss-data:/data
 
+    quote:
+        build:
+            context: ./services
+            dockerfile: Quote/Dockerfile
+        environment:
+            - ASPNETCORE_HTTP_PORTS=8086
+
     frontend:
         build: ./frontend
         depends_on:
@@ -64,6 +71,7 @@ services:
             - weather
             - photos
             - rss
+            - quote
 
     caddy:
         image: caddy:2
@@ -80,6 +88,7 @@ services:
             - weather
             - photos
             - rss
+            - quote
 
 volumes:
     tasks-data:

@@ -7,7 +7,7 @@ public static class ServiceCollectionExtensions
 {
     public static void AddServicesForPhotos(this IServiceCollection services)
     {
-        services.AddSingleton<UnsplashCache>();
+        services.AddMemoryCache();
         services.AddSingleton<UploadStore>();
         services.AddHttpClient<PhotoFetcher>();
 
