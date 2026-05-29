@@ -14,6 +14,9 @@
     handle /rss* {
         reverse_proxy rss:8085
     }
+    handle /quote* {
+        reverse_proxy quote:8086
+    }
     handle {
         reverse_proxy frontend:3000
     }

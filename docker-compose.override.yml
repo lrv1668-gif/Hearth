@@ -11,6 +11,10 @@ services:
     ports:
       - "127.0.0.1:8085:8085"
 
+  quote:
+    ports:
+      - "127.0.0.1:8086:8086"
+
   frontend:
     build:
       context: ./frontend
@@ -21,6 +25,7 @@ services:
       - WEATHER_URL=http://weather:8082
       - PHOTOS_URL=http://photos:8084
       - RSS_URL=http://rss:8085
+      - QUOTE_URL=http://quote:8086
       - HMR_CLIENT_PORT=80
     develop:
       watch:
