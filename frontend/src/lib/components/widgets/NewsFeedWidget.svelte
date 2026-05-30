@@ -42,7 +42,13 @@
         </div>
     {:else}
         <div class="relative">
-            <div class="scroll-thin flex max-h-[min(25vh,320px)] flex-col overflow-y-auto" onscroll={e => { const el = e.currentTarget as HTMLDivElement; atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1; }}>
+            <div
+                class="scroll-thin flex max-h-[min(25vh,320px)] flex-col overflow-y-auto"
+                onscroll={(e) => {
+                    const el = e.currentTarget as HTMLDivElement;
+                    atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+                }}
+            >
                 {#each flatArticles as article}
                     <a
                         href={article.link}

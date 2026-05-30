@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Images, ImageUp } from '@lucide/svelte';
-    import SubTitle from '../SubTitle.svelte';
     import PhotoCollectionModal from '../modals/PhotoCollectionModal.svelte';
     import { api, type UploadedPhoto } from '$lib/api';
 
@@ -61,11 +60,6 @@
 </script>
 
 <div class="space-y-3">
-    <SubTitle
-        subTitleText="My photos"
-        subTitleDescription="Upload photos from your device. JPEG, PNG, and WebP accepted, up to 25 MB each."
-    />
-
     <p class="type-label text-[var(--text-2)]">
         {photos.length === 0
             ? 'No photos in your collection.'
