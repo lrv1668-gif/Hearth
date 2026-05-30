@@ -69,6 +69,13 @@ services:
         volumes:
             - calendar-data:/data
 
+    quote:
+        build:
+            context: ./services
+            dockerfile: Quote/Dockerfile
+        environment:
+            - ASPNETCORE_HTTP_PORTS=8086
+
     frontend:
         build: ./frontend
         depends_on:
@@ -78,6 +85,7 @@ services:
             - photos
             - rss
             - calendar
+            - quote
 
     caddy:
         image: caddy:2
@@ -95,6 +103,7 @@ services:
             - photos
             - rss
             - calendar
+            - quote
 
 volumes:
     tasks-data:

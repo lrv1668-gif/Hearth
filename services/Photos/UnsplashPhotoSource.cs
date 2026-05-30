@@ -1,9 +1,10 @@
+using Microsoft.Extensions.Caching.Memory;
 using Photos.Records;
 
 namespace Photos;
 
 public sealed class UnsplashPhotoSource(
-    UnsplashCache cache,
+    IMemoryCache cache,
     PhotoFetcher fetcher,
     IConfiguration config,
     ILogger<UnsplashPhotoSource> logger) : IPhotoSource
@@ -21,15 +22,16 @@ public sealed class UnsplashPhotoSource(
 
         var query = ctx.Query ?? "nature";
         var orientation = ctx.Orientation;
+        var cacheKey = $"unsplash:{query}:{orientation}";
 
-        if (cache.TryGet(query, orientation, out var cached))
-            return cached[Random.Shared.Next(cached.Count)];
+        if (cache.TryGetValue(cacheKey, out List<PhotoResponse>? photos) && photos!.Count > 0)
+            return photos[Random.Shared.Next(photos.Count)];
 
         try
         {
-            var photos = await fetcher.FetchAsync(query, orientation, key);
+            photos = await fetcher.FetchAsync(query, orientation, key);
             if (photos.Count == 0) return null;
-            cache.Set(photos, query, orientation);
+            cache.Set(cacheKey, photos, TimeSpan.FromHours(24));
             return photos[Random.Shared.Next(photos.Count)];
         }
         catch (Exception ex)

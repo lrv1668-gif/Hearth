@@ -74,6 +74,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `spotify` | 8083 | Implemented | Spotify OAuth + now-playing                                |
 | `photos`  | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours         |
 | `rss`     | 8085 | Implemented | Fetches RSS/Atom feed articles, caches for 30 minutes      |
+| `quote`   | 8086 | Implemented | Fetches daily quote from ZenQuotes, caches until next day  |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
@@ -284,6 +285,36 @@ Stored in `services/Photos/.env`:
 
 Photos transition with a 1.5-second crossfade. Clicking anywhere or pressing any key exits back to `/`.
 
+## Quote Service
+
+The `quote` service fetches the daily quote from the ZenQuotes API and caches it in SQLite until the next UTC day.
+
+### Endpoints
+
+| Method | Path     | Description                                                                 |
+| ------ | -------- | --------------------------------------------------------------------------- |
+| `GET`  | `/quote` | Returns the current day's quote as `{ q: string, a: string }` |
+
+If the cached quote is from a prior UTC day (or absent), the service re-fetches before responding. On fetch failure, the endpoint returns the last cached quote; if no quote has ever been fetched, it returns 503.
+
+### Caching
+
+| Field  | Value                                         |
+| ------ | --------------------------------------------- |
+| TTL    | Until the next UTC midnight                   |
+| Source | `https://zenquotes.io/api/today`              |
+
+### Environment variables
+
+| Variable                | Required | Description                                     |
+| ----------------------- | -------- | ----------------------------------------------- |
+| `DB_PATH`               | No       | Path to SQLite cache file (default: `quote.db`) |
+| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8086` in Docker                         |
+
+### Frontend integration
+
+`DailyQuoteWidget.svelte` loads the quote on mount via `DailyQuoteStore.svelte.ts`.
+
 ## RSS Service
 
 The `rss` service fetches articles from one or more user-configured RSS/Atom feed URLs and caches them in SQLite to avoid redundant fetches.
@@ -324,6 +355,7 @@ If a feed's cache is stale (older than 30 minutes) or empty, the service re-fetc
 /spotify/*  →  spotify:8083
 /photos/*   →  photos:8084
 /rss/*      →  rss:8085
+/quote/*    →  quote:8086
 /           →  frontend:3000
 ```
 

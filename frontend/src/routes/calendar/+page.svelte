@@ -36,9 +36,7 @@
         }
     }
 
-    function handleModalClose() {
-        editingTask = null;
-    }
+
 </script>
 
 <svelte:head>

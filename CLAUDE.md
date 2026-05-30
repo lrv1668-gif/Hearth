@@ -37,6 +37,7 @@ services/
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
   Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache
   Rss/                       # ASP.NET Core 10 Minimal API, port 8085 — RSS/Atom feed fetch + cache
+  Quote/                     # ASP.NET Core 10 Minimal API, port 8086 — ZenQuotes daily quote + cache
   Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
@@ -70,3 +71,12 @@ Themes are defined in two places — both must be updated together:
 Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`
 
 Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme` (for native inputs).
+
+### Testing (xUnit)
+
+- Each service that gets tests has a matching `<Service>.Tests/` project in `services/`
+- Test projects use `Microsoft.NET.Sdk` (not `Microsoft.NET.Sdk.Web`)
+- HTTP-backed services use a `FakeHttpMessageHandler` test helper (see `Quote.Tests/Helpers/`)
+- Test method naming: `Method_Scenario_ExpectedOutcome`
+- Add each new test project to `Hearth.slnx`
+- Use the `/write-unit-tests` skill to scaffold a new test project

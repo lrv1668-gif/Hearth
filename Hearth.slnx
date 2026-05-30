@@ -9,5 +9,8 @@
     <Project Path="services/Weather/Weather.csproj" />
     <Project Path="services/Rss/Rss.csproj" />
     <Project Path="services/Calendar/Calendar.csproj" />
+
+    <Project Path="services/Quote/Quote.csproj" />
+    <Project Path="services/Quote.Tests/Quote.Tests.csproj" />
   </Folder>
 </Solution>

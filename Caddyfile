@@ -20,6 +20,9 @@
     handle /calendar/events* {
         reverse_proxy calendar:8087
     }
+    handle /quote* {
+        reverse_proxy quote:8086
+    }
     handle {
         reverse_proxy frontend:3000
     }
