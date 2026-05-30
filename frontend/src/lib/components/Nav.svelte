@@ -4,8 +4,8 @@
 </script>
 
 <!-- Desktop masthead — single compact row: logo left, links right -->
-<header class="hidden border-b border-[var(--border)] bg-[var(--bg)] lg:block">
-    <div class="mx-auto flex max-w-7xl items-center gap-8 px-8 py-2 lg:mx-32">
+<header class="hidden border-b-2 border-[var(--border)] bg-[var(--bg)] lg:block">
+    <div class="mx-auto flex items-center justify-between gap-8 px-8 py-2">
         <a href="/" class="inline-flex items-center">
             <span
                 class="font-bold uppercase tracking-[0.25em] text-[var(--text-1)] transition-colors hover:text-[var(--text-2)]"
@@ -55,14 +55,9 @@
     </div>
 </header>
 
-<!-- Mobile: compact top bar -->
-<header class="flex items-center justify-center border-b border-[var(--border)] bg-[var(--bg)] px-4 py-3 md:hidden">
-    <a href="/" class="type-title font-bold uppercase tracking-widest text-[var(--text-1)]">Hearth</a>
-</header>
-
 <!-- Mobile bottom nav -->
 <nav
-    class="fixed bottom-0 left-0 right-0 flex min-h-max justify-around border-t border-[var(--border)] bg-[var(--bg)] py-2 lg:hidden"
+    class="fixed bottom-0 left-0 right-0 flex min-h-max justify-around border-t-2 border-[var(--border)] bg-[var(--bg)] py-2 lg:hidden"
 >
     <a
         href="/"

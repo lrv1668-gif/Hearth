@@ -29,8 +29,7 @@ class SettingsStore {
 
     toggleWidget(id: WidgetId) {
         const inColumns =
-            this.widgetColumns.left.includes(id as AllWidgetId) ||
-            this.widgetColumns.right.includes(id as AllWidgetId);
+            this.widgetColumns.left.includes(id as AllWidgetId) || this.widgetColumns.right.includes(id as AllWidgetId);
 
         if (inColumns) {
             this.widgetColumns = {
@@ -39,9 +38,7 @@ class SettingsStore {
             };
             this.enabledWidgets = this.enabledWidgets.filter((w) => w !== id);
         } else {
-            const defaultCol = DEFAULT_WIDGET_COLUMNS.left.includes(id as AllWidgetId)
-                ? 'left'
-                : 'right';
+            const defaultCol = DEFAULT_WIDGET_COLUMNS.left.includes(id as AllWidgetId) ? 'left' : 'right';
             this.widgetColumns = {
                 ...this.widgetColumns,
                 [defaultCol]: [...this.widgetColumns[defaultCol], id as AllWidgetId],
