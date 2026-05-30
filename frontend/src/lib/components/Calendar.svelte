@@ -1,7 +1,17 @@
 <script lang="ts">
     import type { Task, CalendarEvent, Item } from '$lib/api';
     import { formatTime, eventDateKey } from '$lib/utils';
-    import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Plus, X } from '@lucide/svelte';
+    import {
+        ArrowDownToLine,
+        ArrowLeft,
+        ArrowRight,
+        Calendar as CalendarIcon,
+        Check,
+        ChevronLeft,
+        ChevronRight,
+        Plus,
+        X,
+    } from '@lucide/svelte';
     import DayOverflowModal from './modals/DayOverflowModal.svelte';
     import { DAY_NAMES, MONTH_NAMES } from '$lib/constants/calendar';
 
@@ -124,9 +134,14 @@
                 ? 'cursor-default border-[var(--border)] text-[var(--text-4)] opacity-50'
                 : 'border-[var(--border)] text-[var(--text-2)] hover:border-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]'}"
         >
-            <ArrowLeft class="icon-sm {todayArrowDir === 'left' ? '' : 'invisible'}" />
+            {#if isCurrentMonth}
+                <ArrowDownToLine class="icon-sm" />
+            {:else if todayArrowDir === 'left'}
+                <ArrowLeft class="icon-sm" />
+            {:else}
+                <ArrowRight class="icon-sm" />
+            {/if}
             Today
-            <ArrowRight class="icon-sm {todayArrowDir === 'right' ? '' : 'invisible'}" />
         </button>
 
         <!-- Center: prev + next arrows -->
@@ -246,7 +261,10 @@
                                         aria-hidden="true"
                                     />
                                     <button
-                                        onclick={(e) => { e.stopPropagation(); onEventClick?.(event); }}
+                                        onclick={(e) => {
+                                            e.stopPropagation();
+                                            onEventClick?.(event);
+                                        }}
                                         class="type-label min-w-0 flex-1 truncate text-left text-[var(--text-1)] transition-opacity hover:opacity-70"
                                     >
                                         {#if !event.is_all_day}
