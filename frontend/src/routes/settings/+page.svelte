@@ -151,8 +151,8 @@
             {#snippet spotifyContent()}<SpotifyConnectionSettings />{/snippet}
             {#snippet calendarContent()}<GoogleCalendarConnectionSettings />{/snippet}
             <div class="flex flex-col gap-4">
-                {@render card('Spotify', 'Show your currently playing track in the Now Playing widget.', spotifyContent)}
-                {@render card('Google Calendar', 'Sync events to the calendar and upcoming views.', calendarContent)}
+                {@render card('Music', 'Show your currently playing track in the Now Playing widget.', spotifyContent)}
+                {@render card('Calendar', 'Sync events to the calendar and upcoming views.', calendarContent)}
             </div>
         {:else}
             {#snippet comingSoon()}<p class="type-body text-[var(--text-1)]">Coming soon.</p>{/snippet}

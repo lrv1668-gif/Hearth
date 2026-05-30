@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { CalendarEvent } from '$lib/api';
     import { formatTime, providerLabel } from '$lib/utils';
-    import { Cable, CalendarDays, MapPin, TextAlignStart, X } from '@lucide/svelte';
+    import { CalendarDays, MapPin, Plug, TextAlignStart, X } from '@lucide/svelte';
 
     interface Props {
         event: CalendarEvent | null;
@@ -49,7 +49,9 @@
     class="w-full max-w-lg bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
     {#if event}
-        <div class="mx-4 max-h-[70vh] space-y-3 overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5 shadow-xl">
+        <div
+            class="mx-4 max-h-[70vh] space-y-3 overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5 shadow-xl"
+        >
             <div class="flex items-start justify-between gap-3">
                 <h2 class="type-title min-w-0 break-words font-semibold text-[var(--text-1)]">{event.title}</h2>
                 <button
@@ -76,12 +78,14 @@
             {#if event.description}
                 <div class="flex min-w-0 items-start gap-2">
                     <TextAlignStart class="icon-sm mt-0.5 flex-shrink-0 text-[var(--text-1)]" />
-                    <p class="event-description type-body min-w-0 whitespace-pre-line text-[var(--text-1)]">{@html event.description}</p>
+                    <p class="event-description type-body min-w-0 whitespace-pre-line text-[var(--text-1)]">
+                        {@html event.description}
+                    </p>
                 </div>
             {/if}
 
             <div class="flex items-center gap-2">
-                <Cable class="icon-sm text-[var(--text-2)]" />
+                <Plug class="icon-sm text-[var(--text-2)]" />
                 <p class="type-body text-[var(--text-2)]">{providerLabel(event.provider)}</p>
             </div>
         </div>
