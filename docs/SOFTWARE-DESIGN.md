@@ -19,20 +19,32 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 | Route       | Description                                                                               |
 | ----------- | ----------------------------------------------------------------------------------------- |
-| `/`         | Schedule — upcoming tasks, countdown events, moon phase, weather, date, now playing       |
+| `/`         | Schedule — configurable widget columns (tasks, weather, countdowns, moon phase, news, quote) |
 | `/calendar` | Calendar view with month grid and per-day task overflow modal                             |
 | `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                          |
-| `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, attribution toggle |
+| `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, widget visibility  |
+
+#### Kiosk mode
+
+Kiosk mode can be activated in two ways: toggle **Settings → Frame → Kiosk Mode** (persisted to `localStorage`), or append `?kiosk=1` to the URL (useful for hardcoding the e-paper display URL). Either condition is sufficient. In kiosk mode:
+
+- The desktop navigation header (`Nav.svelte`) is hidden.
+- The `DashboardHeader` strip (live clock + date + current weather) is shown above the widget columns.
+- The `DashboardFooter` (now-playing + refresh time) is shown below the widget columns.
+
+The persistent setting is the recommended choice for a dedicated wall display. The URL param is useful when the setting cannot be changed (e.g. a shared device or a hardcoded display URL). The standard URL with no param and the setting off shows the nav and hides the dashboard header/footer chrome, which suits regular browser access.
 
 ### State Management
 
-| Store        | File                        | Persisted to    | Responsibility                                      |
-| ------------ | --------------------------- | --------------- | --------------------------------------------------- |
-| `theme`      | `ThemeStore.svelte.ts`      | `localStorage`  | Active theme ID; writes `dataset.theme` on change   |
-| `settings`   | `SettingsStore.svelte.ts`   | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS feeds config |
-| `tasks`      | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                          |
-| `nowPlaying` | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state                           |
-| `rssStore`   | `RssFeedStore.svelte.ts`    | Server (SQLite) | RSS article list, loading state                     |
+| Store          | File                        | Persisted to    | Responsibility                                                        |
+| -------------- | --------------------------- | --------------- | --------------------------------------------------------------------- |
+| `theme`        | `ThemeStore.svelte.ts`      | `localStorage`  | Active theme ID; writes `dataset.theme` on change                     |
+| `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS feeds config, kiosk mode |
+| `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
+| `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `DashboardFooter`     |
+| `rssStore`     | `RssFeedStore.svelte.ts`    | Server (SQLite) | RSS article list, loading state                                       |
+| `weatherStore` | `WeatherStore.svelte.ts`    | Server (SQLite) | Current conditions + 7-day forecast; loaded once per page visit      |
+| `kioskStore`   | `KioskStore.svelte.ts`      | URL param       | True when `settings.kioskMode` is on or `?kiosk=1` is in the URL    |
 
 ### Themes
 

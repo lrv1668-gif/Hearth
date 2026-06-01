@@ -8,7 +8,7 @@ public sealed class WeatherFetcher(HttpClient http)
     private static readonly Dictionary<int, string> WmoDescriptions = new()
     {
         [0]  = "Clear sky",
-        [1]  = "Mainly clear", [2]  = "Partly cloudy", [3]  = "Overcast",
+        [1]  = "Mostly clear", [2]  = "Partly cloudy", [3]  = "Overcast",
         [45] = "Fog",          [48] = "Icy fog",
         [51] = "Light drizzle", [53] = "Drizzle",       [55] = "Heavy drizzle",
         [56] = "Freezing drizzle", [57] = "Heavy freezing drizzle",
