@@ -20,6 +20,7 @@ class SettingsStore {
     leftColumnWidth = $state(60);
     rssArticleCount = $state(5);
     rssFeeds = $state<RssFeed[]>(DEFAULT_RSS_FEEDS);
+    kioskMode = $state(false);
 
     toggleCategory(cat: PhotoCategory) {
         this.photoCategories = this.photoCategories.includes(cat)
@@ -99,6 +100,7 @@ if (browser) {
                     leftColumnWidth: settings.leftColumnWidth,
                     rssArticleCount: settings.rssArticleCount,
                     rssFeeds: settings.rssFeeds,
+                    kioskMode: settings.kioskMode,
                 })
             );
         });

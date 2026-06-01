@@ -7,10 +7,9 @@
     <Project Path="services/Photos/Photos.csproj" />
     <Project Path="services/Spotify/Spotify.csproj" />
     <Project Path="services/Weather/Weather.csproj" />
+    <Project Path="services/Rss/Rss.csproj" />
 
     <Project Path="services/Quote/Quote.csproj" />
     <Project Path="services/Quote.Tests/Quote.Tests.csproj" />
-
-    <Project Path="services/Rss/Rss.csproj" />
   </Folder>
 </Solution>

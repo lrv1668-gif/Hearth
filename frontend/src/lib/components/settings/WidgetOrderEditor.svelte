@@ -1,16 +1,20 @@
 <script lang="ts">
     import { dndzone } from 'svelte-dnd-action';
-    import { Grip, GripVertical } from '@lucide/svelte';
+    import { GripVertical, Grip, Lock } from '@lucide/svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-    import { allWidgets, type AllWidgetId } from '$lib/constants/widgets';
+    import { allWidgets, fixedHeaderWidgets, fixedFooterWidgets, type AllWidgetId } from '$lib/constants/widgets';
 
     type DragItem = { id: AllWidgetId; label: string };
 
+    const validIds = new Set(allWidgets.map((w) => w.id));
+
     function toItems(order: AllWidgetId[]): DragItem[] {
-        return order.map((id) => ({
-            id,
-            label: allWidgets.find((w) => w.id === id)?.label ?? id,
-        }));
+        return order
+            .filter((id) => validIds.has(id))
+            .map((id) => ({
+                id,
+                label: allWidgets.find((w) => w.id === id)?.label ?? id,
+            }));
     }
 
     let leftItems = $state(toItems(settings.widgetColumns.left));
@@ -23,6 +27,7 @@
         leftItems = toItems(settings.widgetColumns.left);
         rightItems = toItems(settings.widgetColumns.right);
     });
+
     let previewWidth = $state(settings.leftColumnWidth);
     let dragging = $state(false);
     let dragStartX = 0;
@@ -74,56 +79,70 @@
     }
 </script>
 
-<div
-    bind:this={containerEl}
-    role="presentation"
-    class="mb-4 flex overflow-hidden rounded border-2 border-[var(--border)]"
-    class:cursor-col-resize={dragging}
-    onpointermove={onDrag}
-    onpointerup={endDrag}
->
-    <div class="shrink-0 p-3" style="width: {previewWidth}%">
-        <p class="type-label mb-2 text-[var(--text-1)]">Left column</p>
+<div bind:this={containerEl} role="presentation" class:cursor-col-resize={dragging} onpointermove={onDrag} onpointerup={endDrag}>
+    <!-- Fixed header strip -->
+    <div class="mb-1 flex items-center gap-2 rounded border border-dashed border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+        <Lock class="icon-xs shrink-0 text-[var(--text-3)]" />
+        <span class="type-label text-[var(--text-3)]">Header —</span>
+        {#each fixedHeaderWidgets as w}
+            <span class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)]">{w.label}</span>
+        {/each}
+    </div>
+
+    <!-- Column layout editor -->
+    <div class="mb-1 flex overflow-hidden rounded border-2 border-[var(--border)]">
+        <div class="shrink-0 p-3" style="width: {previewWidth}%">
+            <p class="type-label mb-2 text-[var(--text-1)]">Left column</p>
+            <div
+                use:dndzone={{ items: leftItems, type: 'widget', flipDurationMs: 150 }}
+                onconsider={onconsiderLeft}
+                onfinalize={onfinalizeLeft}
+                class="min-h-16 space-y-1"
+            >
+                {#each leftItems as item (item.id)}
+                    <div class="flex cursor-grab select-none items-center gap-2 py-1.5 active:cursor-grabbing">
+                        <Grip class="icon-sm shrink-0 text-[var(--text-2)]" />
+                        <span class="type-body text-[var(--text-1)]">{item.label}</span>
+                    </div>
+                {/each}
+            </div>
+        </div>
+
         <div
-            use:dndzone={{ items: leftItems, type: 'widget', flipDurationMs: 150 }}
-            onconsider={onconsiderLeft}
-            onfinalize={onfinalizeLeft}
-            class="min-h-16 space-y-1"
+            role="separator"
+            aria-valuenow={Math.round(previewWidth)}
+            aria-valuemin={30}
+            aria-valuemax={70}
+            class="flex cursor-col-resize items-center justify-center bg-[var(--accent)] text-[var(--text-4)] transition-colors"
+            onpointerdown={startDrag}
         >
-            {#each leftItems as item (item.id)}
-                <div class="flex cursor-grab select-none items-center gap-2 py-1.5 active:cursor-grabbing">
-                    <Grip class="icon-sm shrink-0 text-[var(--text-2)]" />
-                    <span class="type-body text-[var(--text-1)]">{item.label}</span>
-                </div>
-            {/each}
+            <GripVertical class="icon-sm" />
+        </div>
+
+        <div class="flex-1 p-3">
+            <p class="type-label mb-2 text-[var(--text-1)]">Right column</p>
+            <div
+                use:dndzone={{ items: rightItems, type: 'widget', flipDurationMs: 150 }}
+                onconsider={onconsiderRight}
+                onfinalize={onfinalizeRight}
+                class="min-h-16 space-y-1"
+            >
+                {#each rightItems as item (item.id)}
+                    <div class="flex cursor-grab select-none items-center gap-2 py-1.5 active:cursor-grabbing">
+                        <Grip class="icon-sm shrink-0 text-[var(--text-2)]" />
+                        <span class="type-body text-[var(--text-1)]">{item.label}</span>
+                    </div>
+                {/each}
+            </div>
         </div>
     </div>
 
-    <div
-        role="separator"
-        aria-valuenow={Math.round(previewWidth)}
-        aria-valuemin={30}
-        aria-valuemax={70}
-        class="flex cursor-col-resize items-center justify-center bg-[var(--accent)] text-[var(--text-4)] transition-colors"
-        onpointerdown={startDrag}
-    >
-        <GripVertical class="icon-sm" />
-    </div>
-
-    <div class="flex-1 p-3">
-        <p class="type-label mb-2 text-[var(--text-1)]">Right column</p>
-        <div
-            use:dndzone={{ items: rightItems, type: 'widget', flipDurationMs: 150 }}
-            onconsider={onconsiderRight}
-            onfinalize={onfinalizeRight}
-            class="min-h-16 space-y-1"
-        >
-            {#each rightItems as item (item.id)}
-                <div class="flex cursor-grab select-none items-center gap-2 py-1.5 active:cursor-grabbing">
-                    <Grip class="icon-sm shrink-0 text-[var(--text-2)]" />
-                    <span class="type-body text-[var(--text-1)]">{item.label}</span>
-                </div>
-            {/each}
-        </div>
+    <!-- Fixed footer strip -->
+    <div class="flex items-center gap-2 rounded border border-dashed border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+        <Lock class="icon-xs shrink-0 text-[var(--text-3)]" />
+        <span class="type-label text-[var(--text-3)]">Footer —</span>
+        {#each fixedFooterWidgets as w}
+            <span class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)]">{w.label}</span>
+        {/each}
     </div>
 </div>

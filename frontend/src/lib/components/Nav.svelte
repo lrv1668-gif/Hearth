@@ -1,10 +1,14 @@
 <script lang="ts">
     import { CalendarDays, Image, LayoutList, Settings } from '@lucide/svelte';
     import { page } from '$app/state';
+    import { kioskStore } from '$lib/stores/KioskStore.svelte.ts';
 </script>
 
 <!-- Desktop masthead — single compact row: logo left, links right -->
-<header class="hidden border-b-2 border-[var(--border)] bg-[var(--bg)] lg:block">
+<header
+    class="mb-4 border-b-2 border-[var(--border)] bg-[var(--bg)]
+    {kioskStore.isKiosk ? 'hidden' : 'hidden lg:block'}"
+>
     <div class="mx-auto flex items-center justify-between gap-8 px-8 py-2">
         <a href="/" class="inline-flex items-center">
             <span

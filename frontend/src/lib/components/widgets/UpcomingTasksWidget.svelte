@@ -74,16 +74,26 @@
         const result: Group[] = [];
 
         if (todayTasks.length > 0) {
+            const todayFmt = today.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+            });
             result.push({
                 key: 'today',
-                label: 'Today',
+                label: `Today · ${todayFmt}`,
                 tasks: todayTasks.sort(timeComparator),
             });
         }
         if (tomorrowTasks.length > 0) {
+            const tomorrowFmt = tomorrow.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+            });
             result.push({
                 key: 'tomorrow',
-                label: 'Tomorrow',
+                label: `Tomorrow · ${tomorrowFmt}`,
                 tasks: tomorrowTasks.sort(timeComparator),
             });
         }
@@ -129,14 +139,14 @@
             <div class="space-y-1">
                 <div class="">
                     <div class="flex items-center gap-3">
-                        <h2 class="type-body whitespace-nowrap font-semibold text-[var(--text-1)]">
+                        <h2 class="type-label whitespace-nowrap font-semibold uppercase tracking-wider text-[var(--text-2)]">
                             {group.label}
                         </h2>
                     </div>
                 </div>
                 <ul class="space-y-2">
                     {#each group.tasks as task (task.id)}
-                        <li class="group/row flex items-center gap-3 rounded-lg px-3 py-2.5">
+                        <li class="group/row flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--surface)]">
                             <button
                                 onclick={() => onToggle(task)}
                                 class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
