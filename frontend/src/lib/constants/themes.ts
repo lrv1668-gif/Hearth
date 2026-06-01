@@ -136,6 +136,23 @@ export const themes = [
         },
     },
     {
+        id: 'plum',
+        label: 'Plum',
+        fill: '#261118',
+        stroke: '#7a3850',
+        group: 'Color',
+        colors: {
+            bg: '#18090e',
+            surface: '#261118',
+            surfaceHi: '#321620',
+            border: '#4a2030',
+            text1: '#f0d8e0',
+            text2: '#b05870',
+            text3: '#7a3850',
+            accent: '#f0d8e0',
+        },
+    },
+    {
         id: 'sage',
         label: 'Sage',
         fill: '#e2ece0',

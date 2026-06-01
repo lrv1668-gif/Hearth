@@ -274,6 +274,27 @@
     }
 }
 
+[data-theme='plum'] {
+    /* Plum — dark red wine. Aged Burgundy, dried roses, velvet in candlelight. */
+    --bg: #18090e;
+    --surface: #261118;
+    --surface-hi: #321620;
+    --border: #4a2030;
+    --text-1: #f0d8e0;
+    --text-2: #b05870;
+    --text-3: #7a3850;
+    --text-4: #52243a;
+    --done: #52243a;
+    --done-bg: #7a3850;
+    --accent: #f0d8e0;
+    --accent-hi: #dcc4cc;
+    --accent-fg: #18090e;
+
+    input {
+        color-scheme: dark;
+    }
+}
+
 [data-theme='sky'] {
     /* Sky — soft blue light. Open sky, whitewashed walls, calm water. */
     --bg: #eaf1f8;
