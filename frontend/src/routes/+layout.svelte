@@ -26,7 +26,7 @@
 
 {#if loaded}
     <div
-        class="grid h-[100dvh] grid-rows-[auto_1fr] bg-[var(--bg)] pb-16 text-[var(--text-1)] transition-colors duration-300 lg:pb-0"
+        class="flex h-[100dvh] flex-col bg-[var(--bg)] pb-16 text-[var(--text-1)] transition-colors duration-300 lg:pb-0"
     >
         <Nav />
         {@render children()}

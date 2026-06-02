@@ -143,7 +143,7 @@
             <div class="space-y-1">
                 <div class="">
                     <div class="flex items-center gap-3">
-                        <h2 class="type-body whitespace-nowrap font-semibold text-[var(--text-1)]">
+                        <h2 class="type-label whitespace-nowrap font-semibold uppercase tracking-wider text-[var(--text-2)]">
                             {group.label}
                         </h2>
                     </div>

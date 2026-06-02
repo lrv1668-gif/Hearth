@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { Monitor, LayoutList, Image, Plug } from '@lucide/svelte';
+    import { Monitor, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
+    import Toggle from '$lib/components/Toggle.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import AmbientSourceSettings from '$lib/components/settings/AmbientSourceSettings.svelte';
     import AmbientCadenceSettings from '$lib/components/settings/AmbientCadenceSettings.svelte';
@@ -19,6 +20,7 @@
         { id: 'schedule' as SectionId, label: 'Schedule', subtitle: 'Widgets · layout', icon: LayoutList },
         { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · cadence & source', icon: Image },
         { id: 'connections' as SectionId, label: 'Connections', subtitle: 'Spotify · calendar', icon: Plug },
+        { id: 'frame' as SectionId, label: 'Frame', subtitle: 'Kiosk · display mode', icon: Tv },
     ] as const;
 
     const content: Record<SectionId, { heading: string; description: string }> = {
@@ -38,7 +40,7 @@
             heading: 'Connections',
             description: 'Connect and manage external services like Spotify and weather providers.',
         },
-        frame: { heading: 'Frame', description: 'Configure your wall-mounted frame display settings and pairing.' },
+        frame: { heading: 'Frame', description: 'Control how Hearth presents itself on this device.' },
         about: { heading: 'About Hearth', description: 'Version information, acknowledgements, and credits.' },
     };
 
@@ -75,7 +77,7 @@
     </nav>
 </div>
 
-<div class="flex h-full flex-col overflow-hidden lg:grid lg:grid-cols-[280px_1fr]">
+<div class="flex min-h-0 flex-1 flex-col overflow-hidden lg:grid lg:grid-cols-[280px_1fr]">
     <!-- Desktop: sidebar -->
     <aside
         class="hidden flex-col gap-1 overflow-y-auto border-r-2 border-[var(--border)] bg-[var(--bg)] px-3 py-4 lg:flex"
@@ -154,6 +156,38 @@
                 {@render card('Music', 'Show your currently playing track in the Now Playing widget.', spotifyContent)}
                 {@render card('Calendar', 'Sync events to the calendar and upcoming views.', calendarContent)}
             </div>
+        {:else if active === 'frame'}
+            {#snippet kioskContent()}
+                <label class="flex cursor-pointer items-center gap-3">
+                    <div class="mt-0.5 shrink-0">
+                        <Toggle
+                            checked={settings.kioskMode}
+                            onchange={() => (settings.kioskMode = !settings.kioskMode)}
+                        />
+                    </div>
+                    <div>
+                        <p class="type-body select-none text-[var(--text-1)]">Kiosk Mode</p>
+                        <p class="type-label select-none text-[var(--text-2)]">
+                            Hides the navigation bar and shows the time, date, and weather header. Best for always-on
+                            wall displays. Can also be activated with <code class="font-mono">?kiosk=1</code> in the URL.
+                        </p>
+                    </div>
+                </label>
+                {#if settings.kioskMode}
+                    <div class="mt-4 border-t border-[var(--border)] pt-4">
+                        <a
+                            href="/"
+                            class="type-label inline-flex items-center gap-1.5 text-[var(--accent)] hover:underline"
+                        >
+                            Go to Schedule →
+                        </a>
+                        <p class="type-label mt-0.5 text-[var(--text-3)]">
+                            The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.
+                        </p>
+                    </div>
+                {/if}
+            {/snippet}
+            {@render card('Display mode', 'Control how Hearth presents on this device.', kioskContent)}
         {:else}
             {#snippet comingSoon()}<p class="type-body text-[var(--text-1)]">Coming soon.</p>{/snippet}
             {@render card('', '', comingSoon)}
