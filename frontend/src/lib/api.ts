@@ -107,20 +107,25 @@ export interface RssFeedGroup {
     articles: RssArticle[];
 }
 
-export interface CalendarEvent {
+export interface CalendarItem {
+    kind: 'event' | 'task';  // "event" = Google Calendar event; "task" = Google Task
     id: string;
     title: string;
-    description: string | null;
-    location: string | null;
-    start: string; // ISO 8601 with timezone offset, OR "YYYY-MM-DD" for all-day events
-    end: string;
+    description?: string | null;
+    location?: string | null;
+    start?: string | null;   // ISO 8601 with offset, "YYYY-MM-DD" for all-day/tasks, or null (undated task)
+    end?: string | null;     // null for tasks
     is_all_day: boolean;
-    calendar_name: string | null;
-    provider: string; // "google"
+    calendar_name?: string | null;
+    provider: string;        // "google"
+    is_completed?: boolean | null;  // null for events; true/false for tasks
+    task_list_id?: string | null;   // null for events; required for toggle endpoint
+    html_link?: string | null;      // direct URL to view in provider
 }
 
 // Discriminated union shared by Calendar.svelte, DayOverflowModal.svelte, and UpcomingTasksWidget.svelte.
-export type Item = { kind: 'task'; data: Task } | { kind: 'event'; data: CalendarEvent };
+// kind: 'task' = internal Hearth task; kind: 'event' = external calendar item (CalendarItem.kind determines event vs task).
+export type Item = { kind: 'task'; data: Task } | { kind: 'event'; data: CalendarItem };
 
 // ---- Client ----
 
@@ -162,8 +167,11 @@ class ApiClient {
 
         googleDisconnect: (): Promise<boolean> => this.del('/calendar/google/auth'),
 
-        events: (): Promise<CalendarEvent[]> =>
-            this.get<CalendarEvent[]>('/calendar/events').then((r) => r ?? []),
+        items: (): Promise<CalendarItem[]> =>
+            this.get<CalendarItem[]>('/calendar/items').then((r) => r ?? []),
+
+        toggleTask: (taskListId: string, taskId: string, completed: boolean): Promise<boolean> =>
+            this.patch(`/calendar/google/tasks/${taskListId}/${taskId}`, { completed }),
     };
 
     readonly photos = {
@@ -224,6 +232,15 @@ class ApiClient {
             body: JSON.stringify(body),
         });
         return res.json() as Promise<T>;
+    }
+
+    private async patch(url: string, body: unknown): Promise<boolean> {
+        const res = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        return res.ok;
     }
 
     private async del(url: string): Promise<boolean> {

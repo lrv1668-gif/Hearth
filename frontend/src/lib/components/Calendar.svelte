@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Task, CalendarEvent, Item } from '$lib/api';
+    import type { Task, CalendarItem, Item } from '$lib/api';
     import { formatTime, eventDateKey } from '$lib/utils';
     import {
         ArrowDownToLine,
@@ -17,16 +17,17 @@
 
     interface Props {
         tasks: Task[];
-        events: CalendarEvent[];
+        calItems: CalendarItem[];
         onToggle: (task: Task) => void;
         onDelete: (id: number) => void;
         onNewTask: () => void;
         onEdit: (task: Task) => void;
         onDateClick: (date: string) => void;
-        onEventClick?: (event: CalendarEvent) => void;
+        onEventClick?: (event: CalendarItem) => void;
+        onToggleCalendarTask?: (taskListId: string, taskId: string, completed: boolean) => void;
     }
 
-    let { tasks, events, onToggle, onDelete, onNewTask, onEdit, onDateClick, onEventClick }: Props = $props();
+    let { tasks, calItems, onToggle, onDelete, onNewTask, onEdit, onDateClick, onEventClick, onToggleCalendarTask }: Props = $props();
     const today = new Date();
 
     function dateKey(d: Date): string {
@@ -102,11 +103,12 @@
         return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
 
-    let eventsByDate = $derived.by(() => {
-        const map: Record<string, CalendarEvent[]> = {};
-        for (const e of events) {
+    let calItemsByDate = $derived.by(() => {
+        const map: Record<string, CalendarItem[]> = {};
+        for (const e of calItems) {
             if (!e.start) continue;
             const key = eventDateKey(e);
+            if (!key) continue;
             (map[key] ??= []).push(e);
         }
         return map;
@@ -117,7 +119,7 @@
     const overflowItems = $derived.by((): Item[] => {
         if (!overflowDayKey) return [];
         const t = (tasksByDate[overflowDayKey] ?? []).map((d) => ({ kind: 'task' as const, data: d }));
-        const ev = (eventsByDate[overflowDayKey] ?? []).map((d) => ({ kind: 'event' as const, data: d }));
+        const ev = (calItemsByDate[overflowDayKey] ?? []).map((d) => ({ kind: 'event' as const, data: d }));
         return [...t, ...ev];
     });
 </script>
@@ -201,8 +203,8 @@
             {@const key = day ? cellKey(day) : ''}
             {@const isToday = key === todayKey}
             {@const dayTasks = day ? (tasksByDate[key] ?? []) : []}
-            {@const dayEvents = day ? (eventsByDate[key] ?? []) : []}
-            {@const dayItems = [...dayTasks, ...dayEvents]}
+            {@const dayCalItems = day ? (calItemsByDate[key] ?? []) : []}
+            {@const dayItems = [...dayTasks, ...dayCalItems]}
 
             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
@@ -254,26 +256,45 @@
                                     </button>
                                 </li>
                             {/each}
-                            {#each dayEvents.slice(0, Math.max(0, 4 - dayTasks.length)) as event (event.id)}
+                            {#each dayCalItems.slice(0, Math.max(0, 4 - dayTasks.length)) as calItem (calItem.id)}
                                 <li class="flex min-w-0 items-center gap-1">
-                                    <CalendarIcon
-                                        class="h-2 w-2 flex-shrink-0 text-[var(--accent)]"
-                                        aria-hidden="true"
-                                    />
-                                    <button
-                                        onclick={(e) => {
-                                            e.stopPropagation();
-                                            onEventClick?.(event);
-                                        }}
-                                        class="type-label min-w-0 flex-1 truncate text-left text-[var(--text-1)] transition-opacity hover:opacity-70"
-                                    >
-                                        {#if !event.is_all_day}
-                                            <span class="mr-0.5 text-[var(--text-3)]">
-                                                {formatTime(event.start.slice(11, 16))}
-                                            </span>
-                                        {/if}
-                                        {event.title}
-                                    </button>
+                                    {#if calItem.kind === 'task'}
+                                        <button
+                                            onclick={(e) => {
+                                                e.stopPropagation();
+                                                if (calItem.task_list_id)
+                                                    onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
+                                            }}
+                                            class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
+                                               {calItem.is_completed ? 'bg-[var(--done-bg)]' : 'bg-[var(--accent)] hover:opacity-80'}"
+                                            aria-label="Toggle {calItem.title}"
+                                        ></button>
+                                        <span
+                                            class="type-label min-w-0 truncate
+                                                   {calItem.is_completed ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                        >
+                                            {calItem.title}
+                                        </span>
+                                    {:else}
+                                        <CalendarIcon
+                                            class="h-2 w-2 flex-shrink-0 text-[var(--accent)]"
+                                            aria-hidden="true"
+                                        />
+                                        <button
+                                            onclick={(e) => {
+                                                e.stopPropagation();
+                                                onEventClick?.(calItem);
+                                            }}
+                                            class="type-label min-w-0 flex-1 truncate text-left text-[var(--text-1)] transition-opacity hover:opacity-70"
+                                        >
+                                            {#if !calItem.is_all_day && calItem.start}
+                                                <span class="mr-0.5 text-[var(--text-3)]">
+                                                    {formatTime(calItem.start.slice(11, 16))}
+                                                </span>
+                                            {/if}
+                                            {calItem.title}
+                                        </button>
+                                    {/if}
                                 </li>
                             {/each}
                             {#if dayItems.length > 4}
@@ -296,7 +317,7 @@
         {/each}
     </div>
 
-    <DayOverflowModal bind:dayKey={overflowDayKey} items={overflowItems} {onToggle} {onEdit} {onEventClick} />
+    <DayOverflowModal bind:dayKey={overflowDayKey} items={overflowItems} {onToggle} {onEdit} {onEventClick} {onToggleCalendarTask} />
 
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}

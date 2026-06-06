@@ -56,29 +56,55 @@ public static class WebApplicationExtensions
         app.MapGet("/calendar/google/status", (GoogleCalendarProvider provider) =>
             Results.Ok(new CalendarStatusResponse(provider.IsAuthenticated)));
 
-        // DELETE /calendar/google/auth — clears token + event cache, returns 204
+        // DELETE /calendar/google/auth — clears token + item cache, returns 204
         app.MapDelete("/calendar/google/auth", (GoogleCalendarProvider provider) =>
         {
             provider.Disconnect();
             return Results.NoContent();
         });
 
-        // GET /calendar/events — aggregates across all authenticated providers.
-        // GetEventsAsync catches all exceptions internally and returns empty on failure,
+        // GET /calendar/items — aggregates across all authenticated providers.
+        // GetItemsAsync catches all exceptions internally and returns empty on failure,
         // so no outer try/catch is needed here.
-        app.MapGet("/calendar/events", async (
+        app.MapGet("/calendar/items", async (
             IEnumerable<ICalendarProvider> providers,
             CancellationToken ct) =>
         {
             var from = DateTimeOffset.UtcNow;
-            var to   = from.AddDays(365);
+            var to   = from.AddDays(14);
 
             var fetches = providers
                 .Where(p => p.IsAuthenticated)
-                .Select(p => p.GetEventsAsync(from, to, ct));
+                .Select(p => p.GetItemsAsync(from, to, ct));
 
             var all = await Task.WhenAll(fetches);
             return Results.Ok(all.SelectMany(e => e).ToList());
         });
+
+        // PATCH /calendar/google/tasks/{taskListId}/{taskId}
+        // Body: { "completed": bool }
+        // Updates completion state in Google Tasks and invalidates the items cache.
+        app.MapMethods("/calendar/google/tasks/{taskListId}/{taskId}", ["PATCH"], async (
+            string taskListId,
+            string taskId,
+            ToggleTaskRequest body,
+            GoogleCalendarProvider provider,
+            CancellationToken ct) =>
+        {
+            if (!provider.IsAuthenticated)
+                return Results.Unauthorized();
+
+            try
+            {
+                await provider.SetTaskCompletedAsync(taskListId, taskId, body.Completed, ct);
+                return Results.NoContent();
+            }
+            catch (Exception)
+            {
+                return Results.Problem(statusCode: 502, detail: "Failed to update task in Google Tasks.");
+            }
+        });
     }
 }
+
+internal record ToggleTaskRequest(bool Completed);

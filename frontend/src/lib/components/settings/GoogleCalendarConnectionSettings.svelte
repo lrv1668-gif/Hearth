@@ -8,7 +8,7 @@
 
     async function handleDisconnect() {
         await api.calendar.googleDisconnect();
-        calendarStore.events = [];
+        calendarStore.items = [];
         await loadCalendarStatus();
     }
 </script>
@@ -21,7 +21,7 @@
         <div>
             <p class="type-body font-medium text-[var(--text-1)]">Google Calendar</p>
             <p class="type-label text-[var(--text-2)]">
-                {calendarStore.googleConnected ? 'Connected - events are syncing.' : 'Not connected.'}
+                {calendarStore.googleConnected ? 'Connected — events and tasks are syncing.' : 'Not connected.'}
             </p>
         </div>
         <div class="flex items-center gap-3">

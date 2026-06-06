@@ -61,7 +61,7 @@ Fetches and parses RSS/Atom feeds on demand. No persistent cache — feeds are f
 
 ### Calendar (port 8087)
 
-Google Calendar OAuth 2.0 integration. Exposes read-only events for the next 14 days. Built with an extensibility interface so future providers (Outlook, etc.) can be added.
+Google Calendar + Google Tasks OAuth 2.0 integration. Surfaces events (read-only) and tasks (completable via checkbox) for the next 14 days. Built with an extensibility interface so future providers (Outlook, etc.) can be added.
 
 #### Extensibility interface
 
@@ -72,13 +72,15 @@ public interface ICalendarProvider
     bool IsAuthenticated { get; }        // sync SQLite row-presence check
     string GetAuthUrl(string state);
     Task HandleCallbackAsync(string code, CancellationToken ct = default);
-    void Disconnect();                   // clears token + events cache
-    Task<IEnumerable<CalendarEvent>> GetEventsAsync(
+    void Disconnect();                   // clears token + items cache
+    Task<IEnumerable<CalendarItem>> GetItemsAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
+    Task SetTaskCompletedAsync(
+        string taskListId, string taskId, bool completed, CancellationToken ct = default);
 }
 ```
 
-`/calendar/events` injects `IEnumerable<ICalendarProvider>` and fans out across all authenticated providers. Adding a second provider requires implementing `ICalendarProvider` and registering it with `services.AddSingleton<ICalendarProvider>(...)`.
+`/calendar/items` injects `IEnumerable<ICalendarProvider>` and fans out across all authenticated providers. Adding a second provider requires implementing `ICalendarProvider` and registering it with `services.AddSingleton<ICalendarProvider>(...)`.
 
 #### SQLite schema
 
@@ -91,10 +93,10 @@ CREATE TABLE IF NOT EXISTS calendar_tokens (
     expires_at    TEXT NOT NULL   -- ISO 8601
 );
 
--- Cached event JSON per provider, 5-minute TTL
-CREATE TABLE IF NOT EXISTS calendar_events_cache (
+-- Cached item JSON per provider, 5-minute TTL
+CREATE TABLE IF NOT EXISTS calendar_items_cache (
     provider    TEXT PRIMARY KEY,
-    events_json TEXT NOT NULL,
+    items_json  TEXT NOT NULL,
     cached_at   TEXT NOT NULL     -- ISO 8601
 );
 ```
@@ -106,36 +108,40 @@ CREATE TABLE IF NOT EXISTS calendar_events_cache (
 | `GET` | `/calendar/google/auth` | Validate env vars, generate CSRF state, redirect to Google |
 | `GET` | `/calendar/google/callback` | Validate state, exchange code for tokens, redirect to frontend |
 | `GET` | `/calendar/google/status` | `{ authenticated: bool }` |
-| `DELETE` | `/calendar/google/auth` | Clear token + events cache (disconnect) |
-| `GET` | `/calendar/events` | Aggregated `CalendarEvent[]` from all authenticated providers |
+| `DELETE` | `/calendar/google/auth` | Clear token + items cache (disconnect) |
+| `GET` | `/calendar/items` | Aggregated `CalendarItem[]` from all authenticated providers (5-min cache) |
+| `PATCH` | `/calendar/google/tasks/{listId}/{taskId}` | Toggle Google Task completion, invalidate cache |
 
 #### OAuth details
 
-- Scope: `calendar.readonly`
+- Scopes: `calendar.readonly` + `tasks` (write scope required for task toggle)
 - `access_type=offline` + `prompt=consent` force refresh token on every authorization
 - Token refresh: manual — checked 30 seconds before expiry using `UserCredential.RefreshTokenAsync`
 - If refresh token is absent in the refresh response, falls back to the stored value
-- `GoogleCredential.FromAccessToken` used to build `CalendarService` after refresh
+- `GoogleCredential.FromAccessToken` used to build service clients after refresh
 
 #### Caching
 
-`GetEventsAsync` checks `calendar_events_cache` on every call. If `cached_at` is within the last 5 minutes, returns the cached JSON. On cache miss: refreshes token if needed, calls Google Calendar API, stores result.
+`GetItemsAsync` fetches Google Calendar events and Google Tasks in parallel, merges them, and caches the result for 5 minutes per provider. Task toggle (`SetTaskCompletedAsync`) invalidates the cache so the next `/calendar/items` fetch reflects the change.
 
 **Env vars:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 
-#### `CalendarEvent` record
+#### `CalendarItem` record
 
 ```csharp
-public record CalendarEvent(
+public record CalendarItem(
+    string Kind,           // "event" | "task"
     string Id,
     string Title,
     string? Description,
     string? Location,
-    string Start,       // ISO 8601 with offset OR "YYYY-MM-DD" for all-day
-    string End,
+    string? Start,         // ISO 8601 with offset, "YYYY-MM-DD" for all-day/tasks, null for undated tasks
+    string? End,           // null for tasks
     bool IsAllDay,
     string? CalendarName,
-    string Provider     // "google"
+    string Provider,       // "google"
+    bool? IsCompleted,     // null for events; true/false for tasks
+    string? TaskListId     // null for events; required for toggle endpoint
 );
 ```
 

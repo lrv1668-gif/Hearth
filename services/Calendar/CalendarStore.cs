@@ -17,9 +17,9 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db)
             """);
 
         db.NonQuery("""
-            CREATE TABLE IF NOT EXISTS calendar_events_cache (
+            CREATE TABLE IF NOT EXISTS calendar_items_cache (
                 provider    TEXT PRIMARY KEY,
-                events_json TEXT NOT NULL,
+                items_json  TEXT NOT NULL,
                 cached_at   TEXT NOT NULL
             )
             """);
@@ -49,15 +49,15 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db)
             cmd.AddParam("$expires_at", expiresAt.ToString("o"));
         });
 
-    public (string Json, DateTimeOffset CachedAt)? LoadEventsCache(string provider) =>
+    public (string Json, DateTimeOffset CachedAt)? LoadItemsCache(string provider) =>
         db.QueryOne(
-            "SELECT events_json, cached_at FROM calendar_events_cache WHERE provider = $p",
-            r => (r.Field<string>("events_json")!, DateTimeOffset.Parse(r.Field<string>("cached_at")!)),
+            "SELECT items_json, cached_at FROM calendar_items_cache WHERE provider = $p",
+            r => (r.Field<string>("items_json")!, DateTimeOffset.Parse(r.Field<string>("cached_at")!)),
             c => c.AddParam("$p", provider));
 
-    public void SaveEventsCache(string provider, string json) =>
+    public void SaveItemsCache(string provider, string json) =>
         db.NonQuery("""
-            INSERT OR REPLACE INTO calendar_events_cache (provider, events_json, cached_at)
+            INSERT OR REPLACE INTO calendar_items_cache (provider, items_json, cached_at)
             VALUES ($provider, $json, $cached_at)
             """, cmd =>
         {
@@ -66,16 +66,21 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db)
             cmd.AddParam("$cached_at", DateTimeOffset.UtcNow.ToString("o"));
         });
 
+    public void InvalidateItemsCache(string provider) =>
+        db.NonQuery(
+            "DELETE FROM calendar_items_cache WHERE provider = $p",
+            c => c.AddParam("$p", provider));
+
     // Two sequential deletes — IDatabase has no transaction API.
     // A crash between them leaves a stale cache row but no token row, which is
-    // harmless: GetEventsAsync checks IsAuthenticated before reading the cache.
+    // harmless: GetItemsAsync checks IsAuthenticated before reading the cache.
     public void Clear(string provider)
     {
         db.NonQuery(
             "DELETE FROM calendar_tokens WHERE provider = $p",
             c => c.AddParam("$p", provider));
         db.NonQuery(
-            "DELETE FROM calendar_events_cache WHERE provider = $p",
+            "DELETE FROM calendar_items_cache WHERE provider = $p",
             c => c.AddParam("$p", provider));
     }
 

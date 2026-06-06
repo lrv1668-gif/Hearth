@@ -1,19 +1,20 @@
 <script lang="ts">
-    import type { Task, CalendarEvent, Item } from '$lib/api';
+    import type { Task, CalendarItem, Item } from '$lib/api';
     import { formatTime, eventDateKey } from '$lib/utils';
-    import { Calendar as CalendarIcon, Check, RefreshCw, X } from '@lucide/svelte';
+    import { Calendar as CalendarIcon, Check, ExternalLink, RefreshCw, X } from '@lucide/svelte';
     import ProviderIcon from '$lib/components/ProviderIcon.svelte';
 
     interface Props {
         tasks: Task[];
-        events: CalendarEvent[];
+        calItems: CalendarItem[];
         onToggle: (task: Task) => void;
         onDelete: (id: number, series?: boolean) => void;
         onEdit: (task: Task) => void;
-        onEventClick?: (event: CalendarEvent) => void;
+        onEventClick?: (event: CalendarItem) => void;
+        onToggleCalendarTask?: (taskListId: string, taskId: string, completed: boolean) => void;
     }
 
-    let { tasks, events, onToggle, onDelete, onEdit, onEventClick }: Props = $props();
+    let { tasks, calItems, onToggle, onDelete, onEdit, onEventClick, onToggleCalendarTask }: Props = $props();
 
     let confirmDeleteId = $state<number | null>(null);
 
@@ -36,7 +37,7 @@
     // Returns "HH:MM" in local time for sorting, or null for all-day / undated items (sort last).
     function timeKey(item: Item): string | null {
         if (item.kind === 'task') return item.data.due_time;
-        if (item.data.is_all_day) return null;
+        if (item.data.is_all_day || !item.data.start) return null;
         const d = new Date(item.data.start);
         return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
@@ -85,7 +86,7 @@
             }
         }
 
-        for (const e of events) {
+        for (const e of calItems) {
             if (!e.start) continue;
             const item: Item = { kind: 'event', data: e };
             const key = eventDateKey(e);
@@ -253,28 +254,72 @@
                                 {/if}
                             </li>
                         {:else}
-                            {@const event = item.data}
-                            <li class="flex items-center gap-3 rounded-lg px-3 py-2.5">
-                                <div class="relative flex-shrink-0">
-                                    <CalendarIcon class="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
-                                    <div class="absolute -bottom-1 -right-1">
-                                        <ProviderIcon provider={event.provider} />
-                                    </div>
-                                </div>
-                                {#if !event.is_all_day}
-                                    <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
-                                        {formatTime(timeKey(item) ?? '')}
-                                    </span>
-                                {:else}
+                            {@const calItem = item.data}
+                            {#if calItem.kind === 'task'}
+                                <li class="group/cal flex items-center gap-3 rounded-lg px-3 py-2.5">
+                                    <button
+                                        onclick={() => {
+                                            if (calItem.task_list_id)
+                                                onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
+                                        }}
+                                        class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
+                                               {calItem.is_completed
+                                            ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
+                                            : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
+                                        aria-label="Toggle {calItem.title}"
+                                    >
+                                        {#if calItem.is_completed}
+                                            <Check class="icon-xs text-[var(--bg)]" />
+                                        {/if}
+                                    </button>
                                     <span class="w-14 flex-shrink-0"></span>
-                                {/if}
-                                <button
-                                    onclick={() => onEventClick?.(event)}
-                                    class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
-                                >
-                                    <span class="type-body block truncate text-[var(--text-1)]">{event.title}</span>
-                                </button>
-                            </li>
+                                    <div class="flex min-w-0 flex-1 items-center gap-2">
+                                        <span
+                                            class="type-body truncate
+                                                   {calItem.is_completed ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                        >
+                                            {calItem.title}
+                                        </span>
+                                        <div class="flex-shrink-0">
+                                            <ProviderIcon provider={calItem.provider} />
+                                        </div>
+                                    </div>
+                                    {#if calItem.html_link}
+                                        <a
+                                            href={calItem.html_link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="flex-shrink-0 text-[var(--text-3)] opacity-0 transition hover:text-[var(--accent)] group-hover/cal:opacity-100"
+                                            aria-label="Open in Google Tasks"
+                                            onclick={(e) => e.stopPropagation()}
+                                        >
+                                            <ExternalLink class="icon-sm" />
+                                        </a>
+                                    {/if}
+                                </li>
+                            {:else}
+                                <li class="flex items-center gap-3 rounded-lg px-3 py-2.5">
+                                    <div class="relative flex-shrink-0">
+                                        <CalendarIcon class="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+                                        <div class="absolute -bottom-1 -right-1">
+                                            <ProviderIcon provider={calItem.provider} />
+                                        </div>
+                                    </div>
+                                    {#if !calItem.is_all_day}
+                                        <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
+                                            {formatTime(timeKey(item) ?? '')}
+                                        </span>
+                                    {:else}
+                                        <span class="w-14 flex-shrink-0"></span>
+                                    {/if}
+                                    <button
+                                        onclick={() => onEventClick?.(calItem)}
+                                        class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
+                                    >
+                                        <span class="type-body block truncate text-[var(--text-1)]">{calItem.title}</span>
+                                    </button>
+                                </li>
+                            {/if}
                         {/if}
                     {/each}
                 </ul>

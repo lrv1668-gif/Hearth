@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Calendar.v3;
+using Google.Apis.Tasks.v1;
 
 namespace Calendar.Providers.Google;
 
@@ -9,7 +10,11 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
 {
     public const string ProviderKey = "google";
 
-    private static readonly string[] Scopes = [CalendarService.Scope.CalendarReadonly];
+    private static readonly string[] Scopes =
+    [
+        CalendarService.Scope.CalendarReadonly,
+        TasksService.Scope.Tasks,
+    ];
 
     // State tokens expire after 10 minutes (mirrors Spotify pattern).
     private readonly ConcurrentDictionary<string, DateTimeOffset> _pendingStates = new();

@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { CalendarEvent } from '$lib/api';
+    import type { CalendarItem } from '$lib/api';
     import { formatTime, providerLabel } from '$lib/utils';
-    import { CalendarDays, MapPin, Plug, TextAlignStart, X } from '@lucide/svelte';
+    import { CalendarDays, ExternalLink, MapPin, Plug, TextAlignStart, X } from '@lucide/svelte';
 
     interface Props {
-        event: CalendarEvent | null;
+        event: CalendarItem | null;
         onClose: () => void;
     }
 
@@ -18,7 +18,8 @@
         else if (dialog.open) dialog.close();
     });
 
-    function formatDateRange(e: CalendarEvent): string {
+    function formatDateRange(e: CalendarItem): string {
+        if (!e.start) return 'No date';
         if (e.is_all_day) {
             const [y, m, d] = e.start.split('-').map(Number);
             return new Date(y, m - 1, d).toLocaleDateString('en-US', {
@@ -29,7 +30,7 @@
             });
         }
         const start = new Date(e.start);
-        const end = new Date(e.end);
+        const end = e.end ? new Date(e.end) : start;
         const datePart = start.toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'long',
@@ -84,9 +85,21 @@
                 </div>
             {/if}
 
-            <div class="flex items-center gap-2">
-                <Plug class="icon-sm text-[var(--text-2)]" />
-                <p class="type-body text-[var(--text-2)]">{providerLabel(event.provider)}</p>
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <Plug class="icon-sm text-[var(--text-2)]" />
+                    <p class="type-body text-[var(--text-2)]">{providerLabel(event.provider)}</p>
+                </div>
+                {#if event.html_link}
+                    <a
+                        href={event.html_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="type-label flex items-center gap-1 text-[var(--accent)] transition-opacity hover:opacity-70"
+                    >
+                        Open <ExternalLink class="icon-xs" />
+                    </a>
+                {/if}
             </div>
         </div>
     {/if}

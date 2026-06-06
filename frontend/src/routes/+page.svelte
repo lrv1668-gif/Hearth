@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { Task, CalendarEvent } from '$lib/api';
+    import type { Task, CalendarItem } from '$lib/api';
     import { onMount } from 'svelte';
     import { taskStore, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore.svelte.ts';
-    import { calendarStore } from '$lib/stores/CalendarStore.svelte.ts';
+    import { calendarStore, toggleCalendarTask } from '$lib/stores/CalendarStore.svelte.ts';
     import { loadWeather } from '$lib/stores/WeatherStore.svelte.ts';
     import { kioskStore } from '$lib/stores/KioskStore.svelte.ts';
     import UpcomingTasksWidget from '$lib/components/widgets/UpcomingTasksWidget.svelte';
@@ -26,7 +26,7 @@
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
-    let selectedEvent = $state<CalendarEvent | null>(null);
+    let selectedEvent = $state<CalendarItem | null>(null);
 
     const isMobile = new MediaQuery('(max-width: 800px)');
 
@@ -57,11 +57,12 @@
         <WidgetContainer title="Agenda">
             <UpcomingTasksWidget
                 tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
-                events={calendarStore.events}
+                calItems={calendarStore.items}
                 onToggle={toggleTask}
                 onDelete={removeTask}
                 onEdit={openEditTask}
-                onEventClick={(e) => (selectedEvent = e)}
+                onEventClick={(e) => e.kind === 'event' && (selectedEvent = e)}
+                onToggleCalendarTask={toggleCalendarTask}
             />
         </WidgetContainer>
     {:else if id === 'countdowns'}

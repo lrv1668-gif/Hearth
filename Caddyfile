@@ -17,7 +17,7 @@
     handle /calendar/google* {
         reverse_proxy calendar:8087
     }
-    handle /calendar/events* {
+    handle /calendar/items* {
         reverse_proxy calendar:8087
     }
     handle /quote* {
