@@ -21,7 +21,11 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
 
     public string GenerateAuthUrl(string state)
     {
-        _pendingStates[state] = DateTimeOffset.UtcNow.AddMinutes(10);
+        var now = DateTimeOffset.UtcNow;
+        foreach (var key in _pendingStates.Where(kv => kv.Value < now).Select(kv => kv.Key).ToList())
+            _pendingStates.TryRemove(key, out _);
+
+        _pendingStates[state] = now.AddMinutes(10);
         var flow    = BuildFlow();
         var request = flow.CreateAuthorizationCodeRequest(config["GOOGLE_REDIRECT_URI"]!);
         request.State = state;

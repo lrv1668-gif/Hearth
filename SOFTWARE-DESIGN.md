@@ -141,7 +141,8 @@ public record CalendarItem(
     string? CalendarName,
     string Provider,       // "google"
     bool? IsCompleted,     // null for events; true/false for tasks
-    string? TaskListId     // null for events; required for toggle endpoint
+    string? TaskListId,    // null for events; required for toggle endpoint
+    string? HtmlLink       // direct URL to view in provider (event page or tasks.google.com)
 );
 ```
 
@@ -156,7 +157,7 @@ Each data type has its own store file in `src/lib/stores/`:
 | File | State | Init |
 |---|---|---|
 | `TaskStore.svelte.ts` | `tasks: Task[]` | `loadTasks()` on layout mount |
-| `CalendarStore.svelte.ts` | `events: CalendarEvent[]`, `googleConnected: boolean` | `loadCalendarStatus()` + `loadCalendarEvents()` on layout mount |
+| `CalendarStore.svelte.ts` | `items: CalendarItem[]`, `googleConnected: boolean` | `loadCalendarStatus()` + `loadCalendarItems()` on layout mount |
 | `SpotifyStore.svelte.ts` | `nowPlaying: NowPlaying \| null \| undefined` | On demand |
 | `SettingsStore.svelte.ts` | Widget config, theme, RSS feeds | localStorage |
 | `ThemeStore.svelte.ts` | `theme: ThemeId` | `initTheme()` on layout mount |
@@ -170,7 +171,7 @@ Each data type has its own store file in `src/lib/stores/`:
 ```typescript
 export type Item =
     | { kind: 'task';  data: Task }
-    | { kind: 'event'; data: CalendarEvent };
+    | { kind: 'event'; data: CalendarItem };
 ```
 
 ### Key utility functions (`utils.ts`)
@@ -184,4 +185,4 @@ Defined in two places (both must be updated together):
 1. `src/themes.css` — CSS custom property blocks `[data-theme="id"] { ... }`
 2. `src/lib/constants/themes.ts` — `themes` array
 
-Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`
+Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`

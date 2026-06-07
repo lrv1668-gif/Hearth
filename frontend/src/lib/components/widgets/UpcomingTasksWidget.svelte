@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task, CalendarItem, Item } from '$lib/api';
-    import { formatTime, eventDateKey } from '$lib/utils';
+    import { formatTime, eventDateKey, stripHtml } from '$lib/utils';
     import { Calendar as CalendarIcon, Check, ExternalLink, RefreshCw, X } from '@lucide/svelte';
     import ProviderIcon from '$lib/components/ProviderIcon.svelte';
 
@@ -257,32 +257,37 @@
                             {@const calItem = item.data}
                             {#if calItem.kind === 'task'}
                                 <li class="group/cal flex items-center gap-3 rounded-lg px-3 py-2.5">
-                                    <button
-                                        onclick={() => {
-                                            if (calItem.task_list_id)
-                                                onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
-                                        }}
-                                        class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
-                                               {calItem.is_completed
-                                            ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
-                                            : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
-                                        aria-label="Toggle {calItem.title}"
-                                    >
-                                        {#if calItem.is_completed}
-                                            <Check class="icon-xs text-[var(--bg)]" />
-                                        {/if}
-                                    </button>
+                                    <div class="relative flex-shrink-0">
+                                        <button
+                                            onclick={() => {
+                                                if (calItem.task_list_id)
+                                                    onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
+                                            }}
+                                            class="flex h-4 w-4 items-center justify-center rounded border transition-colors
+                                                   {calItem.is_completed
+                                                ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
+                                                : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
+                                            aria-label="Toggle {calItem.title}"
+                                        >
+                                            {#if calItem.is_completed}
+                                                <Check class="icon-xs text-[var(--bg)]" />
+                                            {/if}
+                                        </button>
+                                        <div class="absolute -bottom-1 -right-1">
+                                            <ProviderIcon provider={calItem.provider} />
+                                        </div>
+                                    </div>
                                     <span class="w-14 flex-shrink-0"></span>
-                                    <div class="flex min-w-0 flex-1 items-center gap-2">
+                                    <div class="min-w-0 flex-1">
                                         <span
-                                            class="type-body truncate
+                                            class="type-body block truncate
                                                    {calItem.is_completed ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
                                         >
                                             {calItem.title}
                                         </span>
-                                        <div class="flex-shrink-0">
-                                            <ProviderIcon provider={calItem.provider} />
-                                        </div>
+                                        {#if calItem.description}
+                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">{calItem.description}</p>
+                                        {/if}
                                     </div>
                                     {#if calItem.html_link}
                                         <a
@@ -317,6 +322,9 @@
                                         class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
                                     >
                                         <span class="type-body block truncate text-[var(--text-1)]">{calItem.title}</span>
+                                        {#if calItem.description}
+                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">{stripHtml(calItem.description)}</p>
+                                        {/if}
                                     </button>
                                 </li>
                             {/if}

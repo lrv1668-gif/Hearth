@@ -1,4 +1,4 @@
-using calendar.Extensions;
+using Calendar.Extensions;
 using DotNetEnv;
 
 Env.Load();

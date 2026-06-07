@@ -46,29 +46,16 @@ public sealed class GoogleCalendarProvider(
             return [];
         }
 
-        // 3. Refresh if within 30s of expiry
-        var accessToken = token.AccessToken;
-        if (token.ExpiresAt <= DateTimeOffset.UtcNow + TokenRefreshBuffer)
+        // 3. Refresh if near expiry, then build API clients
+        string accessToken;
+        try
         {
-            try
-            {
-                var flow       = authService.BuildFlow();
-                var tokenResp  = new TokenResponse { AccessToken = token.AccessToken, RefreshToken = token.RefreshToken };
-                var credential = new UserCredential(flow, "user", tokenResp);
-
-                if (await credential.RefreshTokenAsync(ct))
-                {
-                    var newRefresh = credential.Token.RefreshToken ?? token.RefreshToken;
-                    var newExpiry  = DateTimeOffset.UtcNow.AddSeconds(credential.Token.ExpiresInSeconds ?? 3600);
-                    store.SaveToken(Key, credential.Token.AccessToken, newRefresh, newExpiry);
-                    accessToken = credential.Token.AccessToken;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Google token refresh failed; returning empty items. Will retry next request.");
-                return [];
-            }
+            accessToken = await EnsureFreshAccessTokenAsync(token, ct);
+        }
+        catch
+        {
+            logger.LogWarning("Google token refresh failed; returning empty items. Will retry next request.");
+            return [];
         }
 
         var initializer = new BaseClientService.Initializer
@@ -102,30 +89,7 @@ public sealed class GoogleCalendarProvider(
             return;
         }
 
-        // Refresh if needed
-        var accessToken = token.AccessToken;
-        if (token.ExpiresAt <= DateTimeOffset.UtcNow + TokenRefreshBuffer)
-        {
-            try
-            {
-                var flow       = authService.BuildFlow();
-                var tokenResp  = new TokenResponse { AccessToken = token.AccessToken, RefreshToken = token.RefreshToken };
-                var credential = new UserCredential(flow, "user", tokenResp);
-
-                if (await credential.RefreshTokenAsync(ct))
-                {
-                    var newRefresh = credential.Token.RefreshToken ?? token.RefreshToken;
-                    var newExpiry  = DateTimeOffset.UtcNow.AddSeconds(credential.Token.ExpiresInSeconds ?? 3600);
-                    store.SaveToken(Key, credential.Token.AccessToken, newRefresh, newExpiry);
-                    accessToken = credential.Token.AccessToken;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Google token refresh failed before task update.");
-                throw;
-            }
-        }
+        var accessToken = await EnsureFreshAccessTokenAsync(token, ct);
 
         var svc  = new TasksService(new BaseClientService.Initializer
         {
@@ -140,6 +104,26 @@ public sealed class GoogleCalendarProvider(
 
         // Invalidate cache so next /calendar/items re-fetches from Google
         store.InvalidateItemsCache(Key);
+    }
+
+    private async Task<string> EnsureFreshAccessTokenAsync(CalendarToken token, CancellationToken ct)
+    {
+        if (token.ExpiresAt > DateTimeOffset.UtcNow + TokenRefreshBuffer)
+            return token.AccessToken;
+
+        var flow       = authService.BuildFlow();
+        var tokenResp  = new TokenResponse { AccessToken = token.AccessToken, RefreshToken = token.RefreshToken };
+        var credential = new UserCredential(flow, "user", tokenResp);
+
+        if (await credential.RefreshTokenAsync(ct))
+        {
+            var newRefresh = credential.Token.RefreshToken ?? token.RefreshToken;
+            var newExpiry  = DateTimeOffset.UtcNow.AddSeconds(credential.Token.ExpiresInSeconds ?? 3600);
+            store.SaveToken(Key, credential.Token.AccessToken, newRefresh, newExpiry);
+            return credential.Token.AccessToken;
+        }
+
+        return token.AccessToken;
     }
 
     private async Task<List<CalendarItem>> FetchCalendarEventsAsync(

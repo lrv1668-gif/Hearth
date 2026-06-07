@@ -2,6 +2,7 @@
     import type { CalendarItem } from '$lib/api';
     import { formatTime, providerLabel } from '$lib/utils';
     import { CalendarDays, ExternalLink, MapPin, Plug, TextAlignStart, X } from '@lucide/svelte';
+    import DOMPurify from 'dompurify';
 
     interface Props {
         event: CalendarItem | null;
@@ -9,6 +10,10 @@
     }
 
     let { event, onClose }: Props = $props();
+
+    const safeDescription = $derived(
+        event?.description ? DOMPurify.sanitize(event.description) : ''
+    );
 
     let dialog = $state<HTMLDialogElement | null>(null);
 
@@ -80,7 +85,7 @@
                 <div class="flex min-w-0 items-start gap-2">
                     <TextAlignStart class="icon-sm mt-0.5 flex-shrink-0 text-[var(--text-1)]" />
                     <p class="event-description type-body min-w-0 whitespace-pre-line text-[var(--text-1)]">
-                        {@html event.description}
+                        {@html safeDescription}
                     </p>
                 </div>
             {/if}

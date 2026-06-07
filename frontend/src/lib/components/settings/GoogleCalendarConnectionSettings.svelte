@@ -1,10 +1,18 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { CalendarDays } from '@lucide/svelte';
-    import { calendarStore, loadCalendarStatus } from '$lib/stores/CalendarStore.svelte.ts';
+    import { CalendarDays, RefreshCw } from '@lucide/svelte';
+    import { calendarStore, loadCalendarStatus, refreshCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
     import { api } from '$lib/api';
 
     onMount(() => loadCalendarStatus());
+
+    let refreshing = $state(false);
+
+    async function handleRefresh() {
+        refreshing = true;
+        await refreshCalendarItems();
+        refreshing = false;
+    }
 
     async function handleDisconnect() {
         await api.calendar.googleDisconnect();
@@ -28,6 +36,15 @@
             {#if calendarStore.googleConnected}
                 <div class="flex flex-col items-center gap-2 sm:flex-row">
                     <span class="type-body text-[var(--text-1)]">Connected</span>
+                    <button
+                        onclick={handleRefresh}
+                        disabled={refreshing}
+                        class="type-body flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text-1)] transition-colors hover:border-[var(--text-2)] disabled:opacity-50"
+                        aria-label="Refresh calendar data"
+                    >
+                        <RefreshCw class="icon-xs {refreshing ? 'animate-spin' : ''}" />
+                        {refreshing ? 'Refreshing…' : 'Refresh'}
+                    </button>
                     <button
                         onclick={handleDisconnect}
                         class="type-body rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text-1)] transition-colors hover:border-[var(--text-2)] hover:text-[var(--text-1)]"

@@ -3,7 +3,7 @@ using Calendar.Providers;
 using Calendar.Providers.Google;
 using Calendar.Records;
 
-namespace calendar.Extensions;
+namespace Calendar.Extensions;
 
 public static class WebApplicationExtensions
 {
@@ -79,6 +79,19 @@ public static class WebApplicationExtensions
 
             var all = await Task.WhenAll(fetches);
             return Results.Ok(all.SelectMany(e => e).ToList());
+        });
+
+        // POST /calendar/google/refresh — invalidates the items cache so the next /calendar/items
+        // fetches directly from Google rather than serving the 5-minute cached result.
+        app.MapPost("/calendar/google/refresh", (
+            GoogleCalendarProvider provider,
+            CalendarStore store) =>
+        {
+            if (!provider.IsAuthenticated)
+                return Results.Unauthorized();
+
+            store.InvalidateItemsCache(GoogleAuthService.ProviderKey);
+            return Results.NoContent();
         });
 
         // PATCH /calendar/google/tasks/{taskListId}/{taskId}

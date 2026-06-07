@@ -19,6 +19,11 @@ export async function loadCalendarItems(): Promise<void> {
     calendarStore.items = await api.calendar.items();
 }
 
+export async function refreshCalendarItems(): Promise<void> {
+    await api.calendar.refreshCache();
+    await loadCalendarItems();
+}
+
 export async function toggleCalendarTask(
     taskListId: string,
     taskId: string,

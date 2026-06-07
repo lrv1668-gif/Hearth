@@ -306,7 +306,7 @@
                                         }}
                                         class="type-label text-[var(--text-3)] transition-colors hover:text-[var(--text-1)]"
                                     >
-                                        +{dayItems.length - 3} more
+                                        +{dayItems.length - 4} more
                                     </button>
                                 </li>
                             {/if}

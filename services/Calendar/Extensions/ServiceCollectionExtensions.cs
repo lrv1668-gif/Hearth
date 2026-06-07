@@ -5,7 +5,7 @@ using Calendar.Providers.Google;
 using Data;
 using Data.Abstractions;
 
-namespace calendar.Extensions;
+namespace Calendar.Extensions;
 
 public static class ServiceCollectionExtensions
 {

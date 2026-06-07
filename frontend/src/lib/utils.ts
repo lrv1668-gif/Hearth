@@ -13,6 +13,10 @@
  * Timed events: ISO string with timezone offset → new Date() converts to local time
  * correctly in all browsers, so dateKey arithmetic is safe.
  */
+export function stripHtml(html: string): string {
+    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 export function providerLabel(provider: string): string {
     if (provider === 'google') return 'Google Calendar';
     return provider;

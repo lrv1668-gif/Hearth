@@ -172,6 +172,11 @@ class ApiClient {
 
         toggleTask: (taskListId: string, taskId: string, completed: boolean): Promise<boolean> =>
             this.patch(`/calendar/google/tasks/${taskListId}/${taskId}`, { completed }),
+
+        refreshCache: async (): Promise<boolean> => {
+            const res = await fetch('/calendar/google/refresh', { method: 'POST' });
+            return res.ok;
+        },
     };
 
     readonly photos = {

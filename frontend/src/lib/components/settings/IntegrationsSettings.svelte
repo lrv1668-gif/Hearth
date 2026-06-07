@@ -18,6 +18,7 @@
 
     async function handleCalendarDisconnect() {
         await api.calendar.googleDisconnect();
+        calendarStore.items = [];
         await loadCalendarStatus();
     }
 
