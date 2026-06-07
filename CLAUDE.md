@@ -46,6 +46,11 @@ Caddyfile
 
 ## Conventions
 
+### Verification Commands
+
+- Type-check frontend: `cd frontend && npx svelte-check --tsconfig ./tsconfig.json`
+- Build a backend service: `cd services && dotnet build <Service>/<Service>.csproj`
+
 ### Backend (C# / ASP.NET Core)
 
 - `Program.cs` in each service registers the concrete `Database` as `IDatabase` keyed by service name: `AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath))`
@@ -60,6 +65,8 @@ Caddyfile
 - Svelte components use Svelte 5 runes: `$state`, `$derived`, `$effect`, `$props`, `{@render}`
 - API calls live in `frontend/src/lib/api.ts` — all paths are relative (e.g. `/tasks`)
 - Each data type has its own store file: `TaskStore.ts`, `SpotifyStore.ts`, etc. — never combine into a shared `stores.ts`
+- `ApiClient` in `api.ts` has `post<T>(url, body)` for JSON POST — don't add overloads; inline `fetch()` directly for body-less POST calls
+- `{@html}` with any external content (e.g. calendar descriptions) must use `DOMPurify.sanitize()` first — `dompurify` is installed in `frontend/`
 
 ### Themes
 
