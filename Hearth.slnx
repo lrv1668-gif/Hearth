@@ -10,6 +10,12 @@
     <Project Path="services/Rss/Rss.csproj" />
 
     <Project Path="services/Quote/Quote.csproj" />
+
+    <Project Path="services/Tasks.Tests/Tasks.Tests.csproj" />
+    <Project Path="services/Weather.Tests/Weather.Tests.csproj" />
+    <Project Path="services/Rss.Tests/Rss.Tests.csproj" />
+    <Project Path="services/Photos.Tests/Photos.Tests.csproj" />
+    <Project Path="services/Spotify.Tests/Spotify.Tests.csproj" />
     <Project Path="services/Quote.Tests/Quote.Tests.csproj" />
   </Folder>
 </Solution>

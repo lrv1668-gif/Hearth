@@ -200,7 +200,7 @@ namespace Tasks
                 GenerateInstances(s.SeriesId, s.Tail, s.Unit, s.Interval, s.Days, s.EndDate);
         }
 
-        private static DateTime ComputeNextDue(DateTime current, string unit, int interval, string? days)
+        internal static DateTime ComputeNextDue(DateTime current, string unit, int interval, string? days)
         {
             return unit switch
             {
@@ -211,7 +211,7 @@ namespace Tasks
             };
         }
 
-        private static DateTime NextMatchingWeekday(DateTime from, string days)
+        internal static DateTime NextMatchingWeekday(DateTime from, string days)
         {
             var targets = days.Split(',')
                 .Select(d => d.Trim() switch

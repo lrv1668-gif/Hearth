@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Globalization;
 using Data.Abstractions;
 
 namespace Weather;
@@ -32,7 +33,11 @@ public sealed class WeatherStore([FromKeyedServices("weather")] IDatabase db)
 
     public static bool IsStale(WeatherCache cache)
     {
-        if (!DateTime.TryParse(cache.FetchedAt, out var fetched)) return true;
+        // Parse with RoundtripKind so the stored UTC ("...Z") timestamp keeps Kind=Utc.
+        // Default TryParse converts it to local time, which skews the comparison against
+        // DateTime.UtcNow by the machine's UTC offset (cache reads as perpetually stale).
+        if (!DateTime.TryParse(cache.FetchedAt, CultureInfo.InvariantCulture,
+                DateTimeStyles.RoundtripKind, out var fetched)) return true;
         return (DateTime.UtcNow - fetched).TotalMinutes > 30;
     }
 
