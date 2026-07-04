@@ -57,7 +57,7 @@
                         class="group flex flex-col gap-0.5 border-l-2 border-transparent py-2 pl-3 transition-colors first:pt-1 last:pb-0 hover:border-[var(--accent)]"
                     >
                         <p class="type-body text-[var(--text-1)] transition-colors group-hover:text-[var(--accent)]">
-                            {@html article.title}
+                            {article.title}
                         </p>
                         <span class="type-label text-[var(--text-3)]">
                             <span class="font-medium text-[var(--text-2)]">{article.feed_title}</span>
