@@ -18,9 +18,10 @@ public sealed class RssFetcher(HttpClient http)
             var entries = doc.Descendants(Atom + "entry").ToList();
             if (entries.Count > 0)
             {
-                var feedTitle = doc.Descendants(Atom + "title").FirstOrDefault()?.Value ?? url;
+                var feedTitle = TitleSanitizer.ToPlainText(
+                    doc.Descendants(Atom + "title").FirstOrDefault()?.Value ?? url);
                 var articles = entries.Select(e => new ArticleItem(
-                    e.Element(Atom + "title")?.Value ?? "",
+                    TitleSanitizer.ToPlainText(e.Element(Atom + "title")?.Value),
                     e.Elements(Atom + "link")
                         .FirstOrDefault(l => l.Attribute("rel")?.Value != "self")
                         ?.Attribute("href")?.Value ?? "",
@@ -30,9 +31,10 @@ public sealed class RssFetcher(HttpClient http)
             }
 
             // RSS 2.0 fallback
-            var channelTitle = doc.Descendants("channel").FirstOrDefault()?.Element("title")?.Value ?? url;
+            var channelTitle = TitleSanitizer.ToPlainText(
+                doc.Descendants("channel").FirstOrDefault()?.Element("title")?.Value ?? url);
             var rssArticles = doc.Descendants("item").Select(item => new ArticleItem(
-                item.Element("title")?.Value ?? "",
+                TitleSanitizer.ToPlainText(item.Element("title")?.Value),
                 item.Element("link")?.Value ?? "",
                 item.Element("description")?.Value,
                 item.Element("pubDate")?.Value));

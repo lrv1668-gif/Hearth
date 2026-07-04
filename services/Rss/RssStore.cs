@@ -46,10 +46,12 @@ public sealed class RssStore([FromKeyedServices("rss")] IDatabase db)
         return (DateTime.UtcNow - dt).TotalMinutes > 30;
     }
 
+    // Titles are sanitized again on the read path because rows cached before
+    // sanitization existed (or by an older version) may still hold raw HTML.
     public string? GetFeedTitle(string feedUrl) =>
         db.QueryOne(
             "SELECT feed_title FROM rss_articles WHERE feed_url = $url LIMIT 1",
-            r => r.Field<string>("feed_title"),
+            r => TitleSanitizer.ToPlainText(r.Field<string>("feed_title")),
             cmd => cmd.AddParam("$url", feedUrl));
 
     public IEnumerable<ArticleItem> GetArticles(string feedUrl, int count) =>
@@ -82,7 +84,7 @@ public sealed class RssStore([FromKeyedServices("rss")] IDatabase db)
     }
 
     private static ArticleItem Map(DbDataReader r) =>
-        new(r.Field<string>("title")!,
+        new(TitleSanitizer.ToPlainText(r.Field<string>("title")),
             r.Field<string>("link")!,
             r.Field<string?>("description"),
             r.Field<string?>("published_at"));
