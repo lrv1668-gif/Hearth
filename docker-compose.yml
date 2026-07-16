@@ -56,6 +56,19 @@ services:
         volumes:
             - rss-data:/data
 
+    calendar:
+        build:
+            context: ./services
+            dockerfile: Calendar/Dockerfile
+        env_file:
+            - ./services/Calendar/.env
+        environment:
+            - DB_PATH=/data/calendar.db
+            - ASPNETCORE_HTTP_PORTS=8087
+            - FRONTEND_URL=http://localhost
+        volumes:
+            - calendar-data:/data
+
     quote:
         build:
             context: ./services
@@ -71,6 +84,7 @@ services:
             - weather
             - photos
             - rss
+            - calendar
             - quote
 
     caddy:
@@ -88,6 +102,7 @@ services:
             - weather
             - photos
             - rss
+            - calendar
             - quote
 
 volumes:
@@ -96,4 +111,5 @@ volumes:
     weather-data:
     photos-data:
     rss-data:
+    calendar-data:
     caddy-data:
