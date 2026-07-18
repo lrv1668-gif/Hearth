@@ -11,6 +11,7 @@ export default defineConfig({
             '/photos': process.env.PHOTOS_URL ?? 'http://localhost:8084',
             '/rss': process.env.RSS_URL ?? 'http://localhost:8085',
             '/quote': process.env.QUOTE_URL ?? 'http://localhost:8086',
+            '/birds': process.env.BIRDS_URL ?? 'http://localhost:8088',
             '/calendar/google': process.env.CALENDAR_URL ?? 'http://localhost:8087',
             '/calendar/items': process.env.CALENDAR_URL ?? 'http://localhost:8087',
         },
