@@ -11,6 +11,7 @@
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
     import NewsFeedWidget from '$lib/components/widgets/NewsFeedWidget.svelte';
     import DailyQuoteWidget from '$lib/components/widgets/DailyQuoteWidget.svelte';
+    import DayArcWidget from '$lib/components/widgets/DayArcWidget.svelte';
     import WeatherWidget from '$lib/components/widgets/WeatherWidget.svelte';
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import EventDetailModal from '$lib/components/modals/EventDetailModal.svelte';
@@ -80,6 +81,10 @@
     {:else if id === 'daily-quote'}
         <WidgetContainer title="Daily Quote" associatedWidgetId="daily-quote">
             <DailyQuoteWidget />
+        </WidgetContainer>
+    {:else if id === 'day-arc'}
+        <WidgetContainer title="Today's Arc" associatedWidgetId="day-arc">
+            <DayArcWidget />
         </WidgetContainer>
     {/if}
 {/snippet}
