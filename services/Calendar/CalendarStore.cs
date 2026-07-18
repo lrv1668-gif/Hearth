@@ -50,7 +50,7 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db)
         });
 
     public (string Json, DateTimeOffset CachedAt)? LoadItemsCache(string provider) =>
-        db.QueryOne(
+        db.QueryOne<(string Json, DateTimeOffset CachedAt)?>(
             "SELECT items_json, cached_at FROM calendar_items_cache WHERE provider = $p",
             r => (r.Field<string>("items_json")!, DateTimeOffset.Parse(r.Field<string>("cached_at")!)),
             c => c.AddParam("$p", provider));

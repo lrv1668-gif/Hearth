@@ -18,5 +18,6 @@
     <Project Path="services/Photos.Tests/Photos.Tests.csproj" />
     <Project Path="services/Spotify.Tests/Spotify.Tests.csproj" />
     <Project Path="services/Quote.Tests/Quote.Tests.csproj" />
+    <Project Path="services/Calendar.Tests/Calendar.Tests.csproj" />
   </Folder>
 </Solution>
