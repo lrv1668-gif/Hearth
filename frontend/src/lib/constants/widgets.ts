@@ -35,6 +35,25 @@ export const DEFAULT_WIDGET_COLUMNS: { left: AllWidgetId[]; right: AllWidgetId[]
     right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'daily-quote', 'birds'],
 };
 
+// Services whose env-var readiness is reported by GET /<service>/health.
+// envPath is shown in settings hints so users know where to add the missing vars.
+export const healthServices = {
+    weather: { envPath: 'src/Weather/.env' },
+    birds: { envPath: 'src/Birds/.env' },
+    photos: { envPath: 'src/Photos/.env' },
+    spotify: { envPath: 'src/Spotify/.env' },
+    calendar: { envPath: 'src/Calendar/.env' },
+} as const;
+
+export type HealthService = keyof typeof healthServices;
+
+// Toggleable widgets whose backing service needs env config before they can work.
+// Day-arc also uses weather but degrades gracefully, so it stays ungated.
+export const widgetHealthService: Partial<Record<WidgetId, HealthService>> = {
+    weather: 'weather',
+    birds: 'birds',
+};
+
 // Items always visible in the header and footer — not configurable.
 export const fixedHeaderWidgets = [{ label: 'Time & Date' }, { label: 'Current Conditions' }] as const;
 

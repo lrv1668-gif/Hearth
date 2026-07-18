@@ -133,6 +133,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 - Scheduled display refresh: configurable cadence, full refresh only in v1
 - First-run setup flow via local web UI
 - Local-network web UI with Home, Tasks, Plants, Settings screens
+- Graceful partial setup: widgets whose backing service is missing its env vars (API keys, coordinates) cannot be enabled in Settings — the toggle is disabled with a hint naming the missing variable and `.env` file; already-enabled widgets can always be turned off
 
 ### Phase 2 — The Home
 

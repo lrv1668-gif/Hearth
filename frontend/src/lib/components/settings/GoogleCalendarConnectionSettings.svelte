@@ -2,11 +2,14 @@
     import { onMount } from 'svelte';
     import { CalendarDays, RefreshCw } from '@lucide/svelte';
     import { calendarStore, loadCalendarStatus, refreshCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
+    import { serviceBlocked, serviceHint } from '$lib/stores/HealthStore.svelte.ts';
     import { api } from '$lib/api';
 
     onMount(() => loadCalendarStatus());
 
     let refreshing = $state(false);
+
+    const connectBlocked = $derived(!calendarStore.googleConnected && serviceBlocked('calendar'));
 
     async function handleRefresh() {
         refreshing = true;
@@ -31,6 +34,9 @@
             <p class="type-label text-[var(--text-2)]">
                 {calendarStore.googleConnected ? 'Connected — events and tasks are syncing.' : 'Not connected.'}
             </p>
+            {#if connectBlocked && serviceHint('calendar')}
+                <p class="type-label text-[var(--text-3)]">{serviceHint('calendar')}</p>
+            {/if}
         </div>
         <div class="flex items-center gap-3">
             {#if calendarStore.googleConnected}
@@ -52,6 +58,12 @@
                         Disconnect
                     </button>
                 </div>
+            {:else if connectBlocked}
+                <span
+                    class="type-body cursor-not-allowed rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text-3)] opacity-50"
+                >
+                    Connect
+                </span>
             {:else}
                 <a
                     href="/calendar/google/auth"

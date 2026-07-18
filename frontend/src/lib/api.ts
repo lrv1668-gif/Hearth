@@ -140,6 +140,11 @@ export interface CalendarItem {
 // kind: 'task' = internal Hearth task; kind: 'event' = external calendar item (CalendarItem.kind determines event vs task).
 export type Item = { kind: 'task'; data: Task } | { kind: 'event'; data: CalendarItem };
 
+export interface ServiceHealthResponse {
+    configured: boolean;
+    missing: string[];
+}
+
 // ---- Client ----
 
 class ApiClient {
@@ -230,6 +235,11 @@ class ApiClient {
         },
 
         delete: (id: string): Promise<boolean> => this.del(`/photos/uploads/${id}`),
+    };
+
+    readonly health = {
+        check: (service: 'weather' | 'birds' | 'photos' | 'spotify' | 'calendar'): Promise<ServiceHealthResponse | null> =>
+            this.get<ServiceHealthResponse>(`/${service}/health`),
     };
 
     private async get<T>(url: string): Promise<T | null> {

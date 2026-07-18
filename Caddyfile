@@ -17,6 +17,9 @@
     handle /calendar/google* {
         reverse_proxy calendar:8087
     }
+    handle /calendar/health {
+        reverse_proxy calendar:8087
+    }
     handle /calendar/items* {
         reverse_proxy calendar:8087
     }

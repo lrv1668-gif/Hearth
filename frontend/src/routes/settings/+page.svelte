@@ -14,6 +14,7 @@
     import SpotifyConnectionSettings from '$lib/components/settings/SpotifyConnectionSettings.svelte';
     import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
+    import { loadHealth } from '$lib/stores/HealthStore.svelte.ts';
 
     type SectionId = 'display' | 'schedule' | 'ambient' | 'connections' | 'frame' | 'about';
 
@@ -48,6 +49,12 @@
 
     let active = $state<SectionId>('display');
     const section = $derived(content[active]);
+
+    // Re-check service readiness each time a gated tab is opened, so adding an
+    // env var + restarting a service is picked up without a full page reload.
+    $effect(() => {
+        if (active === 'schedule' || active === 'ambient' || active === 'connections') loadHealth();
+    });
 </script>
 
 <svelte:head>

@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { toggleableWidgets, fixedHeaderWidgets, fixedFooterWidgets } from '$lib/constants/widgets';
+    import { toggleableWidgets, fixedHeaderWidgets, fixedFooterWidgets, widgetHealthService } from '$lib/constants/widgets';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+    import { serviceBlocked, serviceHint } from '$lib/stores/HealthStore.svelte.ts';
     import Toggle from '$lib/components/Toggle.svelte';
 </script>
 
@@ -8,17 +9,20 @@
     <!-- Configurable widgets -->
     <div class="flex flex-col gap-2">
         {#each toggleableWidgets as widget}
-            <label class="flex cursor-pointer items-center gap-3">
+            {@const service = widgetHealthService[widget.id]}
+            {@const checked =
+                settings.widgetColumns.left.includes(widget.id) || settings.widgetColumns.right.includes(widget.id)}
+            {@const blocked = service !== undefined && serviceBlocked(service) && !checked}
+            <label class="flex items-center gap-3 {blocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}">
                 <div class="mt-0.5 shrink-0">
-                    <Toggle
-                        checked={settings.widgetColumns.left.includes(widget.id) ||
-                            settings.widgetColumns.right.includes(widget.id)}
-                        onchange={() => settings.toggleWidget(widget.id)}
-                    />
+                    <Toggle {checked} disabled={blocked} onchange={() => settings.toggleWidget(widget.id)} />
                 </div>
                 <div>
                     <p class="type-body select-none text-[var(--text-1)]">{widget.label}</p>
                     <p class="type-label select-none text-[var(--text-2)]">{widget.description}</p>
+                    {#if blocked && service !== undefined && serviceHint(service)}
+                        <p class="type-label select-none text-[var(--text-3)]">{serviceHint(service)}</p>
+                    {/if}
                 </div>
             </label>
         {/each}

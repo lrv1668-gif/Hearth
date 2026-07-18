@@ -10,11 +10,30 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForCalendar(this WebApplication app)
     {
         app.Services.GetRequiredService<CalendarStore>().Migrate();
+
+        var health = GetHealth(app.Configuration);
+        if (health.Configured)
+            app.Logger.LogInformation("Calendar configured — GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI set");
+        else
+            app.Logger.LogWarning(
+                "Calendar not configured — missing {Missing}; /calendar/google/auth will return 503 until set in src/Calendar/.env",
+                string.Join(", ", health.Missing));
+
         app.AddCalendarEndpoints();
     }
 
+    private static HealthResponse GetHealth(IConfiguration config) =>
+        Health.Evaluate(
+            ("GOOGLE_CLIENT_ID", config["GOOGLE_CLIENT_ID"]),
+            ("GOOGLE_CLIENT_SECRET", config["GOOGLE_CLIENT_SECRET"]),
+            ("GOOGLE_REDIRECT_URI", config["GOOGLE_REDIRECT_URI"]));
+
     private static void AddCalendarEndpoints(this WebApplication app)
     {
+        // GET /calendar/health → { configured, missing[] } — env readiness, distinct from
+        // /calendar/google/status which reports OAuth-connected state.
+        app.MapGet("/calendar/health", (IConfiguration config) => Results.Ok(GetHealth(config)));
+
         // GET /calendar/google/auth
         // Validates required env vars (CLAUDE.md: LogError + 503 if any missing).
         // Generates CSRF state token (10-min expiry), redirects to Google consent page.

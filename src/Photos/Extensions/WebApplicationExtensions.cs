@@ -1,3 +1,5 @@
+using Photos.Records;
+
 namespace Photos.Extensions;
 
 public static class WebApplicationExtensions
@@ -6,11 +8,24 @@ public static class WebApplicationExtensions
 
     public static void InitializeWebAppForPhotos(this WebApplication app)
     {
+        var health = GetHealth(app.Configuration);
+        if (health.Configured)
+            app.Logger.LogInformation("Photos configured — UNSPLASH_ACCESS_KEY set");
+        else
+            app.Logger.LogWarning(
+                "Photos not configured — missing {Missing}; /photos/random (unsplash) will return 503 until set in src/Photos/.env. Local uploads still work.",
+                string.Join(", ", health.Missing));
+
         app.AddPhotoEndpoints();
     }
 
+    private static HealthResponse GetHealth(IConfiguration config) =>
+        Health.Evaluate(("UNSPLASH_ACCESS_KEY", config["UNSPLASH_ACCESS_KEY"]));
+
     private static void AddPhotoEndpoints(this WebApplication app)
     {
+        app.MapGet("/photos/health", (IConfiguration config) => Results.Ok(GetHealth(config)));
+
         app.MapGet("/photos/sources", (IServiceProvider sp) =>
         {
             var available = KnownSources
@@ -23,9 +38,16 @@ public static class WebApplicationExtensions
             string? source,
             string? orientation,
             string? query,
-            IServiceProvider sp) =>
+            IServiceProvider sp,
+            IConfiguration config) =>
         {
             var key = source ?? "unsplash";
+            if (key == "unsplash" && !GetHealth(config).Configured)
+            {
+                app.Logger.LogError("UNSPLASH_ACCESS_KEY must be set. Update the .env file to add your Unsplash access key.");
+                return Results.Json(new { error = "photos not configured" }, statusCode: 503);
+            }
+
             var provider = sp.GetKeyedService<IPhotoSource>(key);
             if (provider is null)
                 return Results.BadRequest(new { error = $"unknown source: {key}" });

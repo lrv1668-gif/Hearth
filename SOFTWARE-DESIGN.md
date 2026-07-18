@@ -35,25 +35,29 @@ services.AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath));
 
 ## Backend Services
 
+### Service health / readiness
+
+Every env-dependent service (Weather, Photos, Spotify, Calendar, Birds) exposes `GET /<service>/health` → `{ configured: bool, missing: string[] }`, reporting which required env vars are unset (names only, never values). Each service has a pure `Health.Evaluate` helper (`src/<Service>/Health.cs`) shared by the endpoint and a one-time startup log: `LogInformation` when configured, `LogWarning` naming the missing vars and the resulting 503 behavior when not. Data endpoints keep the per-request `LogError` + 503 guard. The frontend `HealthStore` polls these endpoints when a gated settings tab opens and disables widget toggles / Connect buttons for unconfigured services (enabling is blocked; disabling always works). Calendar's `/calendar/health` has its own explicit route in `Caddyfile` and the Vite dev proxy (the service's other routes are `/calendar/google*` and `/calendar/items*`).
+
 ### Tasks (port 8081)
 
 CRUD for tasks with due dates, recurrence, assignees, and countdown events. No external API.
 
 ### Spotify (port 8083)
 
-OAuth 2.0 integration with Spotify Web API. Surfaces currently-playing track for the Now Playing widget. Tokens persisted in SQLite; auto-refreshed on each `now-playing` request via `AuthorizationCodeAuthenticator`.
+OAuth 2.0 integration with Spotify Web API. Surfaces currently-playing track for the Now Playing widget. Tokens persisted in SQLite; auto-refreshed on each `now-playing` request via `AuthorizationCodeAuthenticator`. `GET /spotify/auth` returns `503` when env vars are missing; `GET /spotify/health` reports readiness.
 
 **Env vars:** `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`
 
 ### Weather (port 8082)
 
-Fetches current conditions and 7-day forecast from Open-Meteo. Cached in SQLite with a configurable TTL.
+Fetches current conditions and 7-day forecast from Open-Meteo. Cached in SQLite with a configurable TTL. `GET /weather/health` reports readiness.
 
 **Env vars:** `LATITUDE`, `LONGITUDE`, `WEATHER_UNIT`
 
 ### Photos (port 8084)
 
-Serves random photos from Unsplash API or user-uploaded local photos. Uploaded files stored on a Docker volume.
+Serves random photos from Unsplash API or user-uploaded local photos. Uploaded files stored on a Docker volume. `GET /photos/random` returns `503` when `UNSPLASH_ACCESS_KEY` is missing and the unsplash source is requested (local uploads work keyless); `GET /photos/health` reports readiness.
 
 **Env vars:** `UNSPLASH_ACCESS_KEY`
 
@@ -67,7 +71,7 @@ Fetches recent and notable bird observations near the configured coordinates fro
 
 **Env vars:** `EBIRD_API_KEY` (free at https://ebird.org/api/keygen), `LATITUDE`, `LONGITUDE`, `BIRDS_RADIUS_KM` (optional, default 15)
 
-**Endpoint:** `GET /birds/recent` → `BirdSighting[]` (`503` when env vars missing, `502` when eBird is unreachable)
+**Endpoints:** `GET /birds/recent` → `BirdSighting[]` (`503` when env vars missing, `502` when eBird is unreachable); `GET /birds/health` → readiness
 
 ### Calendar (port 8087)
 
@@ -115,6 +119,7 @@ CREATE TABLE IF NOT EXISTS calendar_items_cache (
 
 | Method | Path | Description |
 |---|---|---|
+| `GET` | `/calendar/health` | `{ configured, missing[] }` — env readiness (distinct from OAuth status) |
 | `GET` | `/calendar/google/auth` | Validate env vars, generate CSRF state, redirect to Google |
 | `GET` | `/calendar/google/callback` | Validate state, exchange code for tokens, redirect to frontend |
 | `GET` | `/calendar/google/status` | `{ authenticated: bool }` |
@@ -176,6 +181,7 @@ Each data type has its own store file in `src/lib/stores/`:
 | `RssFeedStore.svelte.ts` | `groups: RssFeedGroup[]` | On demand |
 | `DailyQuoteStore.svelte.ts` | `quote: ZenQuote \| null` | On demand, once per day |
 | `BirdsStore.svelte.ts` | `sightings: BirdSighting[]`, `error: boolean` | On demand (widget mount) |
+| `HealthStore.svelte.ts` | `services: Record<HealthService, ServiceHealth>` (configured / unconfigured / unreachable / unknown) | `loadHealth()` when a gated settings tab opens |
 
 ### Discriminated union for mixed task/event lists
 

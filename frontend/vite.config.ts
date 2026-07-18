@@ -14,6 +14,7 @@ export default defineConfig({
             '/birds': process.env.BIRDS_URL ?? 'http://localhost:8088',
             '/calendar/google': process.env.CALENDAR_URL ?? 'http://localhost:8087',
             '/calendar/items': process.env.CALENDAR_URL ?? 'http://localhost:8087',
+            '/calendar/health': process.env.CALENDAR_URL ?? 'http://localhost:8087',
         },
         hmr: process.env.HMR_CLIENT_PORT ? { clientPort: parseInt(process.env.HMR_CLIENT_PORT) } : undefined,
     },

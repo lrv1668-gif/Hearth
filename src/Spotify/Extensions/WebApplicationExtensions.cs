@@ -10,15 +10,39 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForSpotify(this WebApplication app)
     {
         app.Services.GetRequiredService<SpotifyStore>().Migrate();
+
+        var health = GetHealth(app.Configuration);
+        if (health.Configured)
+            app.Logger.LogInformation("Spotify configured — SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI set");
+        else
+            app.Logger.LogWarning(
+                "Spotify not configured — missing {Missing}; /spotify/auth will return 503 until set in src/Spotify/.env",
+                string.Join(", ", health.Missing));
+
         app.AddSpotifyEndpoints();
     }
+
+    private static HealthResponse GetHealth(IConfiguration config) =>
+        Health.Evaluate(
+            ("SPOTIFY_CLIENT_ID", config["SPOTIFY_CLIENT_ID"]),
+            ("SPOTIFY_CLIENT_SECRET", config["SPOTIFY_CLIENT_SECRET"]),
+            ("SPOTIFY_REDIRECT_URI", config["SPOTIFY_REDIRECT_URI"]));
 
     private static void AddSpotifyEndpoints(this WebApplication app)
     {
         var pendingStates = new ConcurrentDictionary<string, DateTimeOffset>();
 
+        app.MapGet("/spotify/health", (IConfiguration config) => Results.Ok(GetHealth(config)));
+
         app.MapGet("/spotify/auth", (IConfiguration config) =>
         {
+            if (!GetHealth(config).Configured)
+            {
+                app.Logger.LogError(
+                    "SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REDIRECT_URI must be set. Update the .env file to add your Spotify app credentials.");
+                return Results.Json(new { error = "spotify not configured" }, statusCode: 503);
+            }
+
             var state = Guid.NewGuid().ToString("N");
             pendingStates[state] = DateTimeOffset.UtcNow.AddMinutes(10);
 

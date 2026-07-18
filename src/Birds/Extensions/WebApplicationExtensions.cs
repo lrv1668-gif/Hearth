@@ -9,11 +9,28 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForBirds(this WebApplication app)
     {
         app.Services.GetRequiredService<BirdsStore>().Migrate();
+
+        var health = GetHealth(app.Configuration);
+        if (health.Configured)
+            app.Logger.LogInformation("Birds configured — EBIRD_API_KEY, LATITUDE, LONGITUDE set");
+        else
+            app.Logger.LogWarning(
+                "Birds not configured — missing {Missing}; /birds endpoints will return 503 until set in src/Birds/.env",
+                string.Join(", ", health.Missing));
+
         app.AddBirdsEndpoints();
     }
 
+    private static HealthResponse GetHealth(IConfiguration config) =>
+        Health.Evaluate(
+            ("EBIRD_API_KEY", config["EBIRD_API_KEY"]),
+            ("LATITUDE", config["LATITUDE"]),
+            ("LONGITUDE", config["LONGITUDE"]));
+
     private static void AddBirdsEndpoints(this WebApplication app)
     {
+        app.MapGet("/birds/health", (IConfiguration config) => Results.Ok(GetHealth(config)));
+
         app.MapGet("/birds/recent", async (BirdsStore store, BirdsFetcher fetcher, IConfiguration config) =>
         {
             var apiKey = config["EBIRD_API_KEY"];

@@ -9,11 +9,25 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForWeather(this WebApplication app)
     {
         app.Services.GetRequiredService<WeatherStore>().Migrate();
+
+        var health = GetHealth(app.Configuration);
+        if (health.Configured)
+            app.Logger.LogInformation("Weather configured — LATITUDE, LONGITUDE set");
+        else
+            app.Logger.LogWarning(
+                "Weather not configured — missing {Missing}; /weather endpoints will return 503 until set in src/Weather/.env",
+                string.Join(", ", health.Missing));
+
         app.AddWeatherEndpoints();
     }
 
+    private static HealthResponse GetHealth(IConfiguration config) =>
+        Health.Evaluate(("LATITUDE", config["LATITUDE"]), ("LONGITUDE", config["LONGITUDE"]));
+
     private static void AddWeatherEndpoints(this WebApplication app)
     {
+        app.MapGet("/weather/health", (IConfiguration config) => Results.Ok(GetHealth(config)));
+
         app.MapGet("/weather/current", async (WeatherStore store, WeatherFetcher fetcher, IConfiguration config) =>
         {
             var lat = config["LATITUDE"];

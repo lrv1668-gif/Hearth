@@ -2,11 +2,13 @@
     import { onMount } from 'svelte';
     import { Disc3 } from '@lucide/svelte';
     import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
+    import { serviceBlocked, serviceHint } from '$lib/stores/HealthStore.svelte.ts';
     import { api } from '$lib/api';
 
     onMount(() => refreshNowPlaying());
 
     const spotifyConnected = $derived(spotifyStore.nowPlaying !== undefined);
+    const connectBlocked = $derived(!spotifyConnected && serviceBlocked('spotify'));
 
     async function handleDisconnect() {
         await api.spotify.disconnect();
@@ -24,6 +26,9 @@
             <p class="type-label text-[var(--text-2)]">
                 {spotifyConnected ? 'Connected — now playing data is live.' : 'Not connected.'}
             </p>
+            {#if connectBlocked && serviceHint('spotify')}
+                <p class="type-label text-[var(--text-3)]">{serviceHint('spotify')}</p>
+            {/if}
         </div>
         <div class="flex items-center gap-3">
             {#if spotifyConnected}
@@ -36,6 +41,12 @@
                         Disconnect
                     </button>
                 </div>
+            {:else if connectBlocked}
+                <span
+                    class="type-body cursor-not-allowed rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text-3)] opacity-50"
+                >
+                    Connect
+                </span>
             {:else}
                 <a
                     href="/spotify/auth"
