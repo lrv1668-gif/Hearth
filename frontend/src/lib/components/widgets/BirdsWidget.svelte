@@ -19,11 +19,20 @@
 
         if (daysAgo <= 0) return 'today';
         if (daysAgo === 1) return 'yesterday';
-        return observed.toLocaleDateString(undefined, { weekday: 'long' });
+        return observed.toLocaleDateString(undefined, { weekday: 'short' });
     }
 
     function distanceLabel(mi: number): string {
-        return mi < 0.1 ? 'right here' : `${mi} mi away`;
+        return mi < 0.1 ? 'here' : `${mi} mi`;
+    }
+
+    // eBird location names are often verbose — full street addresses
+    // ("123 Main St, Springfield, IL, US") or hotspot paths with subsites
+    // ("Riverside Park--North Meadow (restricted access)"). Keep only the
+    // most specific segment, without trailing parentheticals.
+    function shortLocation(loc: string): string {
+        const specific = loc.split('--').pop() ?? loc;
+        return specific.split(',')[0].replace(/\s*\(.*\)\s*$/, '').trim();
     }
 </script>
 
@@ -48,8 +57,8 @@
                                 <span class="type-caption text-[var(--accent)]">rare</span>
                             {/if}
                         </p>
-                        <p class="type-label truncate text-[var(--text-3)]">
-                            {sighting.location} · {distanceLabel(sighting.distance_mi)} · {dayLabel(
+                        <p class="type-label truncate text-[var(--text-3)]" title={sighting.location}>
+                            {shortLocation(sighting.location)} · {distanceLabel(sighting.distance_mi)} · {dayLabel(
                                 sighting.observed_at
                             )}
                         </p>
