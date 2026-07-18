@@ -8,6 +8,9 @@ export const fontThemes = [
     { id: 'source-serif', label: 'Quill', tag: 'Serif' },
     { id: 'space-grotesk', label: 'Air', tag: 'Grotesk' },
     { id: 'roboto-slab', label: 'Press', tag: 'Slab' },
+    { id: 'lora', label: 'Book', tag: 'Serif' },
+    { id: 'manrope', label: 'Crisp', tag: 'Sans' },
+    { id: 'fraunces', label: 'Vintage', tag: 'Display' },
 ] as const;
 
 export type FontTheme = (typeof fontThemes)[number];

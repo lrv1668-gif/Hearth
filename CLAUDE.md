@@ -90,7 +90,7 @@ Typography presets, orthogonal to color themes. Defined in two places — both m
 1. `frontend/src/fonts.css` — one `[data-font="id"]` block per preset (source of truth: `--font-family`, `--weight-regular/medium/semibold/bold`, `--font-scale`). Keep selectors bare `[data-font]` (never `html[data-font]`) — `FontThemePicker.svelte` reuses the blocks on its preview buttons. Keep `--font-scale` within 0.95–1.08 (e-paper caption legibility floor).
 2. `frontend/src/lib/constants/fontThemes.ts` — entry in the `fontThemes` array (picker metadata only)
 
-Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`. Families are self-hosted `@fontsource-variable/*` packages (devDependencies) — no CDN fonts.
+Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`, `lora`, `manrope`, `fraunces`. Families are self-hosted `@fontsource-variable/*` packages (devDependencies) — no CDN fonts.
 
 Tailwind's `fontWeight` scale is redefined to the weight vars, so text styling must use `.type-*` size classes plus `font-medium`/`font-semibold`/`font-bold` — never raw `text-sm`-style size utilities or numeric `font-[...]` weights.
 
