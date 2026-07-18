@@ -3,7 +3,7 @@ using Data;
 using Data.Abstractions;
 using Tasks;
 
-namespace tasks.Extensions;
+namespace Tasks.Extensions;
 
 public static class ServiceCollectionExtensions
 {

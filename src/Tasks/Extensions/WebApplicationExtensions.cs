@@ -1,7 +1,7 @@
 using Tasks;
 using Tasks.Records;
 
-namespace tasks.Extensions;
+namespace Tasks.Extensions;
 
 public static class WebApplicationExtensions
 {

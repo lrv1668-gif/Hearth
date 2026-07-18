@@ -3,7 +3,7 @@ using Data;
 using Data.Abstractions;
 using Spotify;
 
-namespace spotify.Extensions;
+namespace Spotify.Extensions;
 
 public static class ServiceCollectionExtensions
 {

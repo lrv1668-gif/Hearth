@@ -3,7 +3,7 @@ using Spotify;
 using Spotify.Records;
 using SpotifyAPI.Web;
 
-namespace spotify.Extensions;
+namespace Spotify.Extensions;
 
 public static class WebApplicationExtensions
 {

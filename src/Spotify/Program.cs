@@ -1,4 +1,4 @@
-using spotify.Extensions;
+using Spotify.Extensions;
 using DotNetEnv;
 
 Env.Load();
