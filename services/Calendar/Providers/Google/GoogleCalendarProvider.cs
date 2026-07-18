@@ -106,9 +106,12 @@ public sealed class GoogleCalendarProvider(
         store.InvalidateItemsCache(Key);
     }
 
+    internal static bool NeedsTokenRefresh(DateTimeOffset expiresAt, DateTimeOffset now) =>
+        expiresAt <= now + TokenRefreshBuffer;
+
     private async Task<string> EnsureFreshAccessTokenAsync(CalendarToken token, CancellationToken ct)
     {
-        if (token.ExpiresAt > DateTimeOffset.UtcNow + TokenRefreshBuffer)
+        if (!NeedsTokenRefresh(token.ExpiresAt, DateTimeOffset.UtcNow))
             return token.AccessToken;
 
         var flow       = authService.BuildFlow();
@@ -204,7 +207,7 @@ public sealed class GoogleCalendarProvider(
         }
     }
 
-    private static List<CalendarItem> MapCalendarEvents(IList<Event> items)
+    internal static List<CalendarItem> MapCalendarEvents(IList<Event> items)
     {
         var result = new List<CalendarItem>(items.Count);
         foreach (var e in items)
@@ -235,7 +238,7 @@ public sealed class GoogleCalendarProvider(
         return result;
     }
 
-    private static List<CalendarItem> MapGoogleTasks(
+    internal static List<CalendarItem> MapGoogleTasks(
         IList<GTask> tasks, string taskListId)
     {
         var result = new List<CalendarItem>(tasks.Count);

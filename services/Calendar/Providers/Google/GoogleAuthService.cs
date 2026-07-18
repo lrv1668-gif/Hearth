@@ -6,7 +6,7 @@ using Google.Apis.Tasks.v1;
 
 namespace Calendar.Providers.Google;
 
-public sealed class GoogleAuthService(CalendarStore store, IConfiguration config)
+public sealed class GoogleAuthService(CalendarStore store, IConfiguration config, TimeProvider timeProvider)
 {
     public const string ProviderKey = "google";
 
@@ -21,7 +21,7 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
 
     public string GenerateAuthUrl(string state)
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = timeProvider.GetUtcNow();
         foreach (var key in _pendingStates.Where(kv => kv.Value < now).Select(kv => kv.Key).ToList())
             _pendingStates.TryRemove(key, out _);
 
@@ -37,7 +37,7 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
     public bool ValidateAndConsumeState(string state)
     {
         if (!_pendingStates.TryRemove(state, out var expiry)) return false;
-        return expiry >= DateTimeOffset.UtcNow;
+        return expiry >= timeProvider.GetUtcNow();
     }
 
     public async Task HandleCallbackAsync(string code, CancellationToken ct = default)

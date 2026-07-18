@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         var dbPath = Environment.GetEnvironmentVariable("DB_PATH") ?? "calendar.db";
 
         services.AddKeyedSingleton<IDatabase>("calendar", (_, _) => new Database(dbPath));
+        services.AddSingleton(TimeProvider.System);
         services.AddSingleton<CalendarStore>();
         services.AddSingleton<GoogleAuthService>();
         services.AddSingleton<GoogleCalendarProvider>();
