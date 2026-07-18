@@ -136,6 +136,23 @@ export const themes = [
         },
     },
     {
+        id: 'olive',
+        label: 'Olive',
+        fill: '#eae7d4',
+        stroke: '#8a9054',
+        group: 'Color',
+        colors: {
+            bg: '#f4f3e6',
+            surface: '#eae7d4',
+            surfaceHi: '#ded9c0',
+            border: '#c2bc9c',
+            text1: '#262a12',
+            text2: '#6a7038',
+            text3: '#8a9054',
+            accent: '#262a12',
+        },
+    },
+    {
         id: 'plum',
         label: 'Plum',
         fill: '#261118',

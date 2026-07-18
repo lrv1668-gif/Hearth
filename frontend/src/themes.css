@@ -295,6 +295,27 @@
     }
 }
 
+[data-theme='olive'] {
+    /* Olive — warm yellow-green light. Olive groves, dried herbs, sun-baked hills. */
+    --bg: #f4f3e6;
+    --surface: #eae7d4;
+    --surface-hi: #ded9c0;
+    --border: #c2bc9c;
+    --text-1: #262a12;
+    --text-2: #6a7038;
+    --text-3: #8a9054;
+    --text-4: #a8ac78;
+    --done: #a8ac78;
+    --done-bg: #a8ac78;
+    --accent: #262a12;
+    --accent-hi: #343a1a;
+    --accent-fg: #f4f3e6;
+
+    input {
+        color-scheme: light;
+    }
+}
+
 [data-theme='sky'] {
     /* Sky — soft blue light. Open sky, whitewashed walls, calm water. */
     --bg: #eaf1f8;

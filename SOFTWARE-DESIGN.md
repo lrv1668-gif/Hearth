@@ -185,4 +185,4 @@ Defined in two places (both must be updated together):
 1. `src/themes.css` — CSS custom property blocks `[data-theme="id"] { ... }`
 2. `src/lib/constants/themes.ts` — `themes` array
 
-Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`
+Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`, `olive`
