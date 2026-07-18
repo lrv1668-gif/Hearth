@@ -30,11 +30,12 @@ public sealed class WeatherFetcher(HttpClient http)
     {
         var url = $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
-                  $"&current=temperature_2m,weather_code,wind_speed_10m" +
+                  $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index" +
                   $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset" +
                   $"&temperature_unit=fahrenheit&wind_speed_unit=mph" +
                   $"&timezone=auto&forecast_days=7";
-        
+
+        var aqiTask = FetchUsAqiAsync(latitude, longitude);
         using var response = await http.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
@@ -45,9 +46,12 @@ public sealed class WeatherFetcher(HttpClient http)
         var tempF   = current.GetProperty("temperature_2m").GetDouble();
         var wCode   = current.GetProperty("weather_code").GetInt32();
         var windMph = current.GetProperty("wind_speed_10m").GetDouble();
+        double? uvIndex = current.TryGetProperty("uv_index", out var uvEl)
+            && uvEl.ValueKind == JsonValueKind.Number ? uvEl.GetDouble() : null;
         var fetchedAt = DateTime.UtcNow.ToString("o");
 
-        var currentResponse = new CurrentWeatherResponse(tempF, wCode, Describe(wCode), windMph, fetchedAt);
+        var currentResponse = new CurrentWeatherResponse(
+            tempF, wCode, Describe(wCode), windMph, fetchedAt, uvIndex, await aqiTask);
 
         var daily       = root.GetProperty("daily");
         var dates       = daily.GetProperty("time");
@@ -72,5 +76,27 @@ public sealed class WeatherFetcher(HttpClient http)
         }
 
         return (currentResponse, forecast);
+    }
+
+    // Air quality lives on a separate Open-Meteo host that can fail independently of the
+    // forecast API — a missing AQI must never fail the whole weather fetch.
+    private async Task<int?> FetchUsAqiAsync(double latitude, double longitude)
+    {
+        try
+        {
+            var url = $"https://air-quality-api.open-meteo.com/v1/air-quality" +
+                      $"?latitude={latitude}&longitude={longitude}&current=us_aqi";
+
+            using var response = await http.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var aqi = doc.RootElement.GetProperty("current").GetProperty("us_aqi");
+            return aqi.ValueKind == JsonValueKind.Number ? (int)Math.Round(aqi.GetDouble()) : null;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            return null;
+        }
     }
 }

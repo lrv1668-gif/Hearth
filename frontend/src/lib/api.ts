@@ -59,6 +59,8 @@ export interface CurrentWeather {
     description: string;
     wind_mph: number;
     fetched_at: string;
+    uv_index: number | null;
+    us_aqi: number | null;
 }
 
 export interface ForecastDay {

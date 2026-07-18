@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Cloud, CloudRain, CloudSnow, Sun, Sunrise, Sunset, Wind, Zap } from '@lucide/svelte';
+    import { Cloud, CloudRain, CloudSnow, Leaf, Sun, SunMedium, Sunrise, Sunset, Wind, Zap } from '@lucide/svelte';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
 
     function weatherIcon(code: number) {
@@ -62,6 +62,16 @@
                     </span>
                     <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
                         <Sunset class="icon-sm" />{formatSunTime(weatherStore.forecast[0].sunset)}
+                    </span>
+                {/if}
+                {#if weatherStore.current.uv_index != null}
+                    <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
+                        <SunMedium class="icon-sm" />UV {Math.round(weatherStore.current.uv_index)}
+                    </span>
+                {/if}
+                {#if weatherStore.current.us_aqi != null}
+                    <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
+                        <Leaf class="icon-sm" />AQI {weatherStore.current.us_aqi}
                     </span>
                 {/if}
                 <span class="flex items-center gap-1">

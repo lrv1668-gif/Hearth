@@ -5,5 +5,7 @@ public record CurrentWeatherResponse(
     int WeatherCode,
     string Description,
     double WindMph,
-    string FetchedAt
+    string FetchedAt,
+    double? UvIndex = null,
+    int? UsAqi = null
 );

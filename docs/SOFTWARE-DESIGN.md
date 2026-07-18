@@ -194,6 +194,8 @@ Both endpoints return `503` with `{ "error": "location not configured" }` if `LA
 
 The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise` and `sunset` as ISO strings. `WeatherWidget.svelte` displays today's sunrise/sunset from `forecast[0]`.
 
+`/weather/current` also returns nullable `uv_index` (from the same forecast call) and `us_aqi` (US Air Quality Index, fetched in parallel from Open-Meteo's separate keyless endpoint at `air-quality-api.open-meteo.com`). An air-quality fetch failure degrades to `null` rather than failing the request; both values are cached in `current_json` under the same 30-minute TTL. `WeatherWidget.svelte` hides the UV/AQI metrics when they are `null`.
+
 ### Environment variables
 
 | Variable                | Required | Description                                       |
