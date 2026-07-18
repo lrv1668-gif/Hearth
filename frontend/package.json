@@ -13,6 +13,11 @@
         "format:check": "prettier --check ."
     },
     "devDependencies": {
+        "@fontsource-variable/inter": "^5.2.8",
+        "@fontsource-variable/nunito": "^5.2.7",
+        "@fontsource-variable/roboto-slab": "^5.2.8",
+        "@fontsource-variable/source-serif-4": "^5.2.9",
+        "@fontsource-variable/space-grotesk": "^5.2.10",
         "@sveltejs/adapter-node": "^5.2.0",
         "@sveltejs/kit": "^2.16.0",
         "@sveltejs/vite-plugin-svelte": "^5.0.0",

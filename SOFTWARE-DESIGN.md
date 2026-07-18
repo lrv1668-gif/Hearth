@@ -171,6 +171,8 @@ Each data type has its own store file in `src/lib/stores/`:
 | `SpotifyStore.svelte.ts` | `nowPlaying: NowPlaying \| null \| undefined` | On demand |
 | `SettingsStore.svelte.ts` | Widget config, theme, RSS feeds | localStorage |
 | `ThemeStore.svelte.ts` | `theme: ThemeId` | `initTheme()` on layout mount |
+| `FontThemeStore.svelte.ts` | `fontTheme: FontThemeId` | `initFontTheme()` on layout mount |
+| `FontSizeStore.svelte.ts` | `scale: number` (0.9–1.3) | `initFontSize()` on layout mount |
 | `RssFeedStore.svelte.ts` | `groups: RssFeedGroup[]` | On demand |
 | `DailyQuoteStore.svelte.ts` | `quote: ZenQuote \| null` | On demand, once per day |
 | `BirdsStore.svelte.ts` | `sightings: BirdSighting[]`, `error: boolean` | On demand (widget mount) |
@@ -197,3 +199,17 @@ Defined in two places (both must be updated together):
 2. `src/lib/constants/themes.ts` — `themes` array
 
 Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`, `olive`
+
+### Font themes
+
+Named typography presets, orthogonal to color themes. Each preset bundles a font family (self-hosted `@fontsource-variable` packages), four semantic weights (`--weight-regular/medium/semibold/bold` — Tailwind's `font-medium/semibold/bold` resolve to these vars via `tailwind.config.js`), and a size multiplier (`--font-scale`, folded into every `--font-*`/`--icon-*` clamp in `app.css`).
+
+Defined in two places (both must be updated together):
+1. `src/fonts.css` — `@fontsource` imports plus one `[data-font="id"] { ... }` block per preset (source of truth for stacks, weights, scale). Selectors stay bare `[data-font]` — `FontThemePicker.svelte` sets `data-font` on its preview buttons so the same blocks style the previews.
+2. `src/lib/constants/fontThemes.ts` — `fontThemes` array (picker metadata only: `id`, `label`, `tag`)
+
+Applied as `data-font` on `<html>` by `FontThemeStore.svelte.ts` (localStorage key `hearth-font`).
+
+Separately, a user size slider in Settings (`FontSizeSlider.svelte`) sets `--font-user-scale` (0.9–1.3) as an inline style on `<html>` via `FontSizeStore.svelte.ts` (localStorage key `hearth-font-size`). `app.css` composes both into `--scale: calc(var(--font-scale) * var(--font-user-scale))`, which every `--font-*`/`--icon-*` clamp multiplies by.
+
+Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`

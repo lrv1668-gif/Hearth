@@ -1,4 +1,5 @@
 @import './themes.css';
+@import './fonts.css';
 
 @tailwind base;
 @tailwind components;
@@ -10,19 +11,25 @@ html {
 
 /* ── Typography & icon scale ─────────────────────────────────────────────── */
 /* clamp(min, preferred-vw, max) — scales smoothly from mobile (~375px)
-   to the 13.3" e-paper target (1200px wide, ~150 PPI).                      */
+   to the 13.3" e-paper target (1200px wide, ~150 PPI).
+   Every term multiplies by --scale: the font theme's optical correction
+   (--font-scale) × the user's size-slider choice (--font-user-scale), both
+   from fonts.css. The `, 1` fallbacks keep the clamps valid if either var
+   is ever missing.                                                          */
 :root {
-    --font-display: clamp(2rem, 3vw, 4.5rem); /* date number, temperature  */
-    --font-title: clamp(1.125rem, 1.65vw, 1.875rem); /* headings, logo            */
-    --font-subtitle: clamp(1rem, 1.25vw, 1.5rem); /* subtitles, section labels */
-    --font-body: clamp(0.875rem, 1vw, 1.25rem); /* task text, form inputs    */
-    --font-label: clamp(0.6875rem, 0.8vw, 1rem); /* nav links, tags, caps     */
-    --font-caption: clamp(0.5625rem, 0.65vw, 0.875rem); /* mobile nav, tiny labels */
+    --scale: calc(var(--font-scale, 1) * var(--font-user-scale, 1));
 
-    --icon-lg: clamp(20px, 2vw, 28px); /* nav icons, main weather icon  */
-    --icon-md: clamp(14px, 1.5vw, 22px); /* forecast, music, chevrons     */
-    --icon-sm: clamp(12px, 1.2vw, 18px); /* close buttons, sun/wind row   */
-    --icon-xs: clamp(10px, 0.9vw, 14px); /* recurrence, tiny inline icons */
+    --font-display: clamp(calc(2rem * var(--scale)), calc(3vw * var(--scale)), calc(4.5rem * var(--scale))); /* date number, temperature  */
+    --font-title: clamp(calc(1.125rem * var(--scale)), calc(1.65vw * var(--scale)), calc(1.875rem * var(--scale))); /* headings, logo            */
+    --font-subtitle: clamp(calc(1rem * var(--scale)), calc(1.25vw * var(--scale)), calc(1.5rem * var(--scale))); /* subtitles, section labels */
+    --font-body: clamp(calc(0.875rem * var(--scale)), calc(1vw * var(--scale)), calc(1.25rem * var(--scale))); /* task text, form inputs    */
+    --font-label: clamp(calc(0.6875rem * var(--scale)), calc(0.8vw * var(--scale)), calc(1rem * var(--scale))); /* nav links, tags, caps     */
+    --font-caption: clamp(calc(0.5625rem * var(--scale)), calc(0.65vw * var(--scale)), calc(0.875rem * var(--scale))); /* mobile nav, tiny labels */
+
+    --icon-lg: clamp(calc(20px * var(--scale)), calc(2vw * var(--scale)), calc(28px * var(--scale))); /* nav icons, main weather icon  */
+    --icon-md: clamp(calc(14px * var(--scale)), calc(1.5vw * var(--scale)), calc(22px * var(--scale))); /* forecast, music, chevrons     */
+    --icon-sm: clamp(calc(12px * var(--scale)), calc(1.2vw * var(--scale)), calc(18px * var(--scale))); /* close buttons, sun/wind row   */
+    --icon-xs: clamp(calc(10px * var(--scale)), calc(0.9vw * var(--scale)), calc(14px * var(--scale))); /* recurrence, tiny inline icons */
 }
 
 /* ── Semantic type utilities ─────────────────────────────────────────────── */

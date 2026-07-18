@@ -1,0 +1,95 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/nunito';
+@import '@fontsource-variable/source-serif-4';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/roboto-slab';
+
+/* ── Font themes ─────────────────────────────────────────────────────────── */
+/* Each [data-font] block is a complete preset: family stack, the four semantic
+   weights, and a size multiplier. Keep --font-scale within 0.95–1.08 — below
+   that, caption text drops under ~8.5px and dithers on the e-paper frame.
+   Selectors must stay bare [data-font='id'] (never html[data-font]):
+   FontThemePicker.svelte puts data-font on its preview buttons so these same
+   blocks style the previews.                                                 */
+
+:root {
+    /* Tailwind preflight sans stack — pre-init render matches today's look */
+    --font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --font-scale: 1;
+    /* User-chosen size from the settings slider — FontSizeStore sets it as an
+       inline style on <html>. Composes with the per-preset --font-scale. */
+    --font-user-scale: 1;
+}
+
+/* Applies the preset to <html> once the store sets data-font, and to picker previews */
+[data-font] {
+    font-family: var(--font-family);
+    font-weight: var(--weight-regular);
+}
+
+[data-font='inter'] {
+    --font-family: 'Inter Variable', system-ui, sans-serif;
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --font-scale: 1;
+}
+
+[data-font='system'] {
+    /* No bundled font — the :root preflight stack. Weights pinned to hundreds:
+       system fonts have no variable axis, so off-scale values would synthesize. */
+    --font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --font-scale: 1;
+}
+
+[data-font='nunito'] {
+    /* Optically light at a given weight — bump upper tiers to keep hierarchy */
+    --font-family: 'Nunito Variable', system-ui, sans-serif;
+    --weight-regular: 400;
+    --weight-medium: 550;
+    --weight-semibold: 650;
+    --weight-bold: 750;
+    --font-scale: 1.02;
+}
+
+[data-font='source-serif'] {
+    /* Serif hairlines dither on e-paper — nudge regular up; serif reads
+       optically smaller at equal rem, hence the scale correction */
+    --font-family: 'Source Serif 4 Variable', Georgia, serif;
+    --weight-regular: 420;
+    --weight-medium: 520;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --font-scale: 1.03;
+}
+
+[data-font='space-grotesk'] {
+    /* Airy voice — 350 is the e-paper dither floor, don't go lighter */
+    --font-family: 'Space Grotesk Variable', system-ui, sans-serif;
+    --weight-regular: 350;
+    --weight-medium: 450;
+    --weight-semibold: 550;
+    --weight-bold: 650;
+    --font-scale: 1;
+}
+
+[data-font='roboto-slab'] {
+    /* Sturdy end of the range — 750 ceiling avoids ink-blob at 150 PPI */
+    --font-family: 'Roboto Slab Variable', Georgia, serif;
+    --weight-regular: 450;
+    --weight-medium: 550;
+    --weight-semibold: 650;
+    --weight-bold: 750;
+    --font-scale: 0.98;
+}

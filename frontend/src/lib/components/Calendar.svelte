@@ -176,7 +176,7 @@
         <button
             onclick={onNewTask}
             class="type-label flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1
-             text-xs font-medium text-[var(--accent-fg)]
+             font-medium text-[var(--accent-fg)]
              transition-colors hover:bg-[var(--accent-hi)]"
         >
             <Plus class="icon-md" />

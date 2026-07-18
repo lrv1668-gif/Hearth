@@ -2,6 +2,8 @@
     import { Monitor, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
     import Toggle from '$lib/components/Toggle.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
+    import FontThemePicker from '$lib/components/settings/FontThemePicker.svelte';
+    import FontSizeSlider from '$lib/components/settings/FontSizeSlider.svelte';
     import AmbientSourceSettings from '$lib/components/settings/AmbientSourceSettings.svelte';
     import AmbientCadenceSettings from '$lib/components/settings/AmbientCadenceSettings.svelte';
     import AmbientCategorySettings from '$lib/components/settings/AmbientCategorySettings.svelte';
@@ -16,7 +18,7 @@
     type SectionId = 'display' | 'schedule' | 'ambient' | 'connections' | 'frame' | 'about';
 
     const sections = [
-        { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · color mode', icon: Monitor },
+        { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · type', icon: Monitor },
         { id: 'schedule' as SectionId, label: 'Schedule', subtitle: 'Widgets · layout', icon: LayoutList },
         { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · cadence & source', icon: Image },
         { id: 'connections' as SectionId, label: 'Connections', subtitle: 'Spotify · calendar', icon: Plug },
@@ -130,7 +132,23 @@
                 </p>
                 <ThemePicker />
             {/snippet}
-            {@render card('', '', themeContent)}
+            {#snippet fontContent()}
+                <p class="type-body mb-4 font-medium text-[var(--text-1)]">Type</p>
+                <p class="type-label mb-4 text-[var(--text-2)]">
+                    Each font theme sets typeface, weight, and size. Click to preview — applies
+                    instantly.
+                </p>
+                <FontThemePicker />
+                <p class="type-body mb-1 mt-6 font-medium text-[var(--text-1)]">Size</p>
+                <p class="type-label mb-4 text-[var(--text-2)]">
+                    Scales all text and icons across the dashboard.
+                </p>
+                <FontSizeSlider />
+            {/snippet}
+            <div class="flex flex-col gap-4">
+                {@render card('', '', themeContent)}
+                {@render card('', '', fontContent)}
+            </div>
         {:else if active === 'ambient'}
             {#snippet source()}<AmbientSourceSettings />{/snippet}
             {#snippet cadence()}<AmbientCadenceSettings />{/snippet}

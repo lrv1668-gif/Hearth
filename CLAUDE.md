@@ -82,6 +82,19 @@ Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`
 
 Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme` (for native inputs).
 
+### Font Themes
+
+Typography presets, orthogonal to color themes. Defined in two places — both must be updated together:
+
+1. `frontend/src/fonts.css` — one `[data-font="id"]` block per preset (source of truth: `--font-family`, `--weight-regular/medium/semibold/bold`, `--font-scale`). Keep selectors bare `[data-font]` (never `html[data-font]`) — `FontThemePicker.svelte` reuses the blocks on its preview buttons. Keep `--font-scale` within 0.95–1.08 (e-paper caption legibility floor).
+2. `frontend/src/lib/constants/fontThemes.ts` — entry in the `fontThemes` array (picker metadata only)
+
+Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`. Families are self-hosted `@fontsource-variable/*` packages (devDependencies) — no CDN fonts.
+
+Tailwind's `fontWeight` scale is redefined to the weight vars, so text styling must use `.type-*` size classes plus `font-medium`/`font-semibold`/`font-bold` — never raw `text-sm`-style size utilities or numeric `font-[...]` weights.
+
+A separate user size slider (`FontSizeStore.svelte.ts`, localStorage `hearth-font-size`) sets `--font-user-scale` (0.9–1.3) inline on `<html>`; `app.css` multiplies every size clamp by `--scale` = preset `--font-scale` × `--font-user-scale`.
+
 ### Testing (xUnit)
 
 - Each service that gets tests has a matching `<Service>.Tests/` project in `services/`
