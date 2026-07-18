@@ -13,6 +13,8 @@ Browser
         ├── /photos*   → Photos     :8084
         ├── /rss*      → Rss        :8085
         ├── /calendar* → Calendar   :8087
+        ├── /quote*    → Quote      :8086
+        ├── /birds*    → Birds      :8088
         └── /*         → Frontend   :3000
 ```
 
@@ -58,6 +60,14 @@ Serves random photos from Unsplash API or user-uploaded local photos. Uploaded f
 ### Rss (port 8085)
 
 Fetches and parses RSS/Atom feeds on demand. No persistent cache — feeds are fetched per request with HTTP conditional requests.
+
+### Birds (port 8088)
+
+Fetches recent and notable bird observations near the configured coordinates from the eBird API v2, merges them (one sighting per species, most recent wins, notable species flagged), and caches the result in SQLite for 60 minutes. Distance from home is computed with the haversine formula and served in miles.
+
+**Env vars:** `EBIRD_API_KEY` (free at https://ebird.org/api/keygen), `LATITUDE`, `LONGITUDE`, `BIRDS_RADIUS_KM` (optional, default 15)
+
+**Endpoint:** `GET /birds/recent` → `BirdSighting[]` (`503` when env vars missing, `502` when eBird is unreachable)
 
 ### Calendar (port 8087)
 
@@ -163,6 +173,7 @@ Each data type has its own store file in `src/lib/stores/`:
 | `ThemeStore.svelte.ts` | `theme: ThemeId` | `initTheme()` on layout mount |
 | `RssFeedStore.svelte.ts` | `groups: RssFeedGroup[]` | On demand |
 | `DailyQuoteStore.svelte.ts` | `quote: ZenQuote \| null` | On demand, once per day |
+| `BirdsStore.svelte.ts` | `sightings: BirdSighting[]`, `error: boolean` | On demand (widget mount) |
 
 ### Discriminated union for mixed task/event lists
 

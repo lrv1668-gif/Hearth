@@ -11,6 +11,7 @@
     <Project Path="services/Calendar/Calendar.csproj" />
 
     <Project Path="services/Quote/Quote.csproj" />
+    <Project Path="services/Birds/Birds.csproj" />
 
     <Project Path="services/Tasks.Tests/Tasks.Tests.csproj" />
     <Project Path="services/Weather.Tests/Weather.Tests.csproj" />
@@ -19,5 +20,6 @@
     <Project Path="services/Spotify.Tests/Spotify.Tests.csproj" />
     <Project Path="services/Quote.Tests/Quote.Tests.csproj" />
     <Project Path="services/Calendar.Tests/Calendar.Tests.csproj" />
+    <Project Path="services/Birds.Tests/Birds.Tests.csproj" />
   </Folder>
 </Solution>

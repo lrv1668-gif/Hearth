@@ -94,6 +94,17 @@ export interface BatchFileResult {
     photo: UploadedPhoto | null;
 }
 
+export interface BirdSighting {
+    species_code: string;
+    common_name: string;
+    scientific_name: string;
+    location: string;
+    observed_at: string; // "YYYY-MM-DD HH:MM" in the observation's local time
+    count: number | null;
+    distance_mi: number;
+    is_notable: boolean;
+}
+
 export interface RssArticle {
     title: string;
     link: string;
@@ -159,6 +170,10 @@ class ApiClient {
         current: (): Promise<CurrentWeather | null> => this.get<CurrentWeather>('/weather/current'),
 
         forecast: (): Promise<ForecastDay[]> => this.get<ForecastDay[]>('/weather/forecast').then((r) => r ?? []),
+    };
+
+    readonly birds = {
+        recent: (): Promise<BirdSighting[] | null> => this.get<BirdSighting[]>('/birds/recent'),
     };
 
     readonly calendar = {
