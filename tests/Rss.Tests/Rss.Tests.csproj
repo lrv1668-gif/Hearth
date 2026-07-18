@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tasks\Tasks.csproj" />
-    <ProjectReference Include="..\Data\Data.csproj" />
+    <ProjectReference Include="..\..\src\Rss\Rss.csproj" />
+    <ProjectReference Include="..\..\src\Data\Data.csproj" />
   </ItemGroup>
 
 </Project>

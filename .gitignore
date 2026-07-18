@@ -7,13 +7,15 @@ frontend/.env.*
 !frontend/.env.example
 
 # Backend (.NET)
-services/**/bin/
-services/**/obj/
-services/**/*.db
-services/**/*.db-shm
-services/**/*.db-wal
-services/**/*.lscache
-services/**/.env
+src/**/bin/
+src/**/obj/
+src/**/*.db
+src/**/*.db-shm
+src/**/*.db-wal
+src/**/*.lscache
+src/**/.env
+tests/**/bin/
+tests/**/obj/
 
 # OS / editor
 .DS_Store

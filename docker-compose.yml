@@ -1,7 +1,7 @@
 services:
     tasks:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Tasks/Dockerfile
         environment:
             - DB_PATH=/data/tasks.db
@@ -11,10 +11,10 @@ services:
 
     spotify:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Spotify/Dockerfile
         env_file:
-            - ./services/Spotify/.env
+            - ./src/Spotify/.env
         environment:
             - DB_PATH=/data/spotify.db
             - ASPNETCORE_HTTP_PORTS=8083
@@ -24,10 +24,10 @@ services:
 
     weather:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Weather/Dockerfile
         env_file:
-            - ./services/Weather/.env
+            - ./src/Weather/.env
         environment:
             - DB_PATH=/data/weather.db
             - ASPNETCORE_HTTP_PORTS=8082
@@ -36,10 +36,10 @@ services:
 
     photos:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Photos/Dockerfile
         env_file:
-            - ./services/Photos/.env
+            - ./src/Photos/.env
         environment:
             - DATA_PATH=/data
             - ASPNETCORE_HTTP_PORTS=8084
@@ -48,7 +48,7 @@ services:
 
     rss:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Rss/Dockerfile
         environment:
             - DB_PATH=/data/rss.db
@@ -58,10 +58,10 @@ services:
 
     calendar:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Calendar/Dockerfile
         env_file:
-            - ./services/Calendar/.env
+            - ./src/Calendar/.env
         environment:
             - DB_PATH=/data/calendar.db
             - ASPNETCORE_HTTP_PORTS=8087
@@ -71,17 +71,17 @@ services:
 
     quote:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Quote/Dockerfile
         environment:
             - ASPNETCORE_HTTP_PORTS=8086
 
     birds:
         build:
-            context: ./services
+            context: ./src
             dockerfile: Birds/Dockerfile
         env_file:
-            - ./services/Birds/.env
+            - ./src/Birds/.env
         environment:
             - DB_PATH=/data/birds.db
             - ASPNETCORE_HTTP_PORTS=8088

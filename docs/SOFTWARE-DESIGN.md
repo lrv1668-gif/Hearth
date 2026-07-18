@@ -94,7 +94,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 
 ## Shared Libraries
 
-Two shared projects live under `services/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
+Two shared projects live under `src/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
 
 | Project             | Responsibility                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -205,7 +205,7 @@ The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise
 | `DB_PATH`               | No       | Path to SQLite cache file (default: `weather.db`) |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8082` in Docker                           |
 
-Place these in `services/Weather/.env`. Docker Compose loads the file via `env_file`; for local `dotnet run`, `DotNetEnv` loads the same file before `CreateBuilder`.
+Place these in `src/Weather/.env`. Docker Compose loads the file via `env_file`; for local `dotnet run`, `DotNetEnv` loads the same file before `CreateBuilder`.
 
 ## Spotify Service
 
@@ -223,7 +223,7 @@ The `spotify` service handles OAuth 2.0 authorization with Spotify and exposes n
 
 ### Environment variables
 
-Stored in `services/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_file` in `docker-compose.yml`):
+Stored in `src/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_file` in `docker-compose.yml`):
 
 | Variable                | Required | Description                                                                                                                                        |
 | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -281,7 +281,7 @@ Query param `query` (default: `nature`) is forwarded to the Unsplash random phot
 
 ### Environment variables
 
-Stored in `services/Photos/.env`:
+Stored in `src/Photos/.env`:
 
 | Variable                | Required | Description                                      |
 | ----------------------- | -------- | ------------------------------------------------ |

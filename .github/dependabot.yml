@@ -9,10 +9,11 @@ updates:
       npm-minor-patch:
         update-types: ["minor", "patch"]
 
-  # .NET NuGet packages — wildcard covers every service and test project
+  # .NET NuGet packages — wildcards cover every service and test project
   - package-ecosystem: "nuget"
     directories:
-      - "/services/*"
+      - "/src/*"
+      - "/tests/*"
     schedule:
       interval: "weekly"
     groups:
@@ -23,7 +24,7 @@ updates:
   - package-ecosystem: "docker"
     directories:
       - "/frontend"
-      - "/services/*"
+      - "/src/*"
     schedule:
       interval: "weekly"
 

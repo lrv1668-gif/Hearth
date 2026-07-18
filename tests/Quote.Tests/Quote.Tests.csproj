@@ -16,6 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Birds\Birds.csproj" />
+    <ProjectReference Include="..\..\src\Quote\Quote.csproj" />
   </ItemGroup>
 </Project>

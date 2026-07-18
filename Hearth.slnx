@@ -1,25 +1,26 @@
 <Solution>
-  <Folder Name="/services/">
-    <Project Path="services/Data.Abstractions/Data.Abstractions.csproj" />
-    <Project Path="services/Data/Data.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Data.Abstractions/Data.Abstractions.csproj" />
+    <Project Path="src/Data/Data.csproj" />
 
-    <Project Path="services/Tasks/Tasks.csproj" />
-    <Project Path="services/Photos/Photos.csproj" />
-    <Project Path="services/Spotify/Spotify.csproj" />
-    <Project Path="services/Weather/Weather.csproj" />
-    <Project Path="services/Rss/Rss.csproj" />
-    <Project Path="services/Calendar/Calendar.csproj" />
+    <Project Path="src/Tasks/Tasks.csproj" />
+    <Project Path="src/Photos/Photos.csproj" />
+    <Project Path="src/Spotify/Spotify.csproj" />
+    <Project Path="src/Weather/Weather.csproj" />
+    <Project Path="src/Rss/Rss.csproj" />
+    <Project Path="src/Calendar/Calendar.csproj" />
 
-    <Project Path="services/Quote/Quote.csproj" />
-    <Project Path="services/Birds/Birds.csproj" />
-
-    <Project Path="services/Tasks.Tests/Tasks.Tests.csproj" />
-    <Project Path="services/Weather.Tests/Weather.Tests.csproj" />
-    <Project Path="services/Rss.Tests/Rss.Tests.csproj" />
-    <Project Path="services/Photos.Tests/Photos.Tests.csproj" />
-    <Project Path="services/Spotify.Tests/Spotify.Tests.csproj" />
-    <Project Path="services/Quote.Tests/Quote.Tests.csproj" />
-    <Project Path="services/Calendar.Tests/Calendar.Tests.csproj" />
-    <Project Path="services/Birds.Tests/Birds.Tests.csproj" />
+    <Project Path="src/Quote/Quote.csproj" />
+    <Project Path="src/Birds/Birds.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tasks.Tests/Tasks.Tests.csproj" />
+    <Project Path="tests/Weather.Tests/Weather.Tests.csproj" />
+    <Project Path="tests/Rss.Tests/Rss.Tests.csproj" />
+    <Project Path="tests/Photos.Tests/Photos.Tests.csproj" />
+    <Project Path="tests/Spotify.Tests/Spotify.Tests.csproj" />
+    <Project Path="tests/Quote.Tests/Quote.Tests.csproj" />
+    <Project Path="tests/Calendar.Tests/Calendar.Tests.csproj" />
+    <Project Path="tests/Birds.Tests/Birds.Tests.csproj" />
   </Folder>
 </Solution>
