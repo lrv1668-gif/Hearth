@@ -10,8 +10,8 @@ Keep documentation in sync with code at all times:
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
 - When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and the theme list below.
 - When a new service needs environment variables, create `services/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
-- When adding a new backend service: add it to `docker-compose.yml`, `Caddyfile`, and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency.
-- Each frontend data type gets its own `<Type>Store.ts` file — do not combine stores.
+- When adding a new backend service: add it to `docker-compose.yml`, `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency.
+- Each frontend data type gets its own `<Type>Store.svelte.ts` file (the `.svelte.ts` suffix is required for runes) — do not combine stores.
 - Use `[FromKeyedServices("key")]` to inject `IDatabase` into stores — never inject the concrete `Database` class.
 
 ## Project Overview
@@ -39,6 +39,7 @@ services/
   Rss/                       # ASP.NET Core 10 Minimal API, port 8085 — RSS/Atom feed fetch + cache
   Quote/                     # ASP.NET Core 10 Minimal API, port 8086 — ZenQuotes daily quote + cache
   Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache
+  Birds/                     # ASP.NET Core 10 Minimal API, port 8088 — eBird nearby sightings + cache
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 Caddyfile
@@ -50,6 +51,8 @@ Caddyfile
 
 - Type-check frontend: `cd frontend && npx svelte-check --tsconfig ./tsconfig.json`
 - Build a backend service: `cd services && dotnet build <Service>/<Service>.csproj`
+- Run a service's tests: `cd services && dotnet test <Service>.Tests/<Service>.Tests.csproj`
+- Run the app locally: `docker compose up --build` (dev overrides in `docker-compose.override.yml` expose service ports on localhost), then `cd frontend && npm run dev` for a hot-reloading frontend — Vite's dev proxy in `frontend/vite.config.ts` forwards `/tasks`, `/weather`, etc. to those ports
 
 ### Backend (C# / ASP.NET Core)
 
@@ -64,7 +67,7 @@ Caddyfile
 
 - Svelte components use Svelte 5 runes: `$state`, `$derived`, `$effect`, `$props`, `{@render}`
 - API calls live in `frontend/src/lib/api.ts` — all paths are relative (e.g. `/tasks`)
-- Each data type has its own store file: `TaskStore.ts`, `SpotifyStore.ts`, etc. — never combine into a shared `stores.ts`
+- Each data type has its own store file: `TaskStore.svelte.ts`, `SpotifyStore.svelte.ts`, etc. — never combine into a shared `stores.ts`
 - `ApiClient` in `api.ts` has `post<T>(url, body)` for JSON POST — don't add overloads; inline `fetch()` directly for body-less POST calls
 - `{@html}` with any external content (e.g. calendar descriptions) must use `DOMPurify.sanitize()` first — `dompurify` is installed in `frontend/`
 

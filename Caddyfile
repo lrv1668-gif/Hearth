@@ -23,6 +23,9 @@
     handle /quote* {
         reverse_proxy quote:8086
     }
+    handle /birds* {
+        reverse_proxy birds:8088
+    }
     handle {
         reverse_proxy frontend:3000
     }

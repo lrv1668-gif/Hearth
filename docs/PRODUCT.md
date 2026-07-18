@@ -144,6 +144,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 
 - Music: show what's playing on Spotify (track, artist) in Daily mode
 - Household calendar: pull from Google/Apple Calendar, show next 2–3 events
+- Birds nearby: recent bird sightings around the home from eBird — the frame quietly reflects the living world outside the window; rare sightings gently highlighted
 - Gentle notifications: surface urgent items (weather alert, plant critically overdue) as a temporary overlay before reverting to Ambient
 
 ### Phase 4 — The Soul

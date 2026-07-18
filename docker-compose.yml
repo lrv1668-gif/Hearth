@@ -76,6 +76,18 @@ services:
         environment:
             - ASPNETCORE_HTTP_PORTS=8086
 
+    birds:
+        build:
+            context: ./services
+            dockerfile: Birds/Dockerfile
+        env_file:
+            - ./services/Birds/.env
+        environment:
+            - DB_PATH=/data/birds.db
+            - ASPNETCORE_HTTP_PORTS=8088
+        volumes:
+            - birds-data:/data
+
     frontend:
         build: ./frontend
         depends_on:
@@ -86,6 +98,7 @@ services:
             - rss
             - calendar
             - quote
+            - birds
 
     caddy:
         image: caddy:2
@@ -104,6 +117,7 @@ services:
             - rss
             - calendar
             - quote
+            - birds
 
 volumes:
     tasks-data:
@@ -112,4 +126,5 @@ volumes:
     photos-data:
     rss-data:
     calendar-data:
+    birds-data:
     caddy-data:

@@ -4,7 +4,12 @@ export const toggleableWidgets = [
     { id: 'moon-phase', label: 'Moon Phase', description: 'Current lunar phase and next major phase' },
     { id: 'rss-feeds', label: "Today's News", description: 'Latest articles from your RSS feeds' },
     { id: 'daily-quote', label: 'Daily Quote', description: 'An inspiring quote that changes each day' },
-    { id: 'day-arc', label: "Today's Arc", description: 'The shape of today — daylight, golden hour, and what is ahead' },
+    {
+        id: 'day-arc',
+        label: "Today's Arc",
+        description: 'The shape of today — daylight, golden hour, and what is ahead',
+    },
+    { id: 'birds', label: 'Birds Nearby', description: 'Recent bird sightings around your location, from eBird' },
 ] as const;
 
 export type WidgetId = (typeof toggleableWidgets)[number]['id'];
@@ -20,22 +25,17 @@ export const allWidgets = [
     { id: 'rss-feeds', label: "Today's News" },
     { id: 'daily-quote', label: 'Daily Quote' },
     { id: 'day-arc', label: "Today's Arc" },
+    { id: 'birds', label: 'Birds Nearby' },
 ] as const;
 
 export type AllWidgetId = (typeof allWidgets)[number]['id'];
 
 export const DEFAULT_WIDGET_COLUMNS: { left: AllWidgetId[]; right: AllWidgetId[] } = {
     left: ['day-arc', 'upcoming-tasks'],
-    right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'daily-quote'],
+    right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'daily-quote', 'birds'],
 };
 
 // Items always visible in the header and footer — not configurable.
-export const fixedHeaderWidgets = [
-    { label: 'Time & Date' },
-    { label: 'Current Conditions' },
-] as const;
+export const fixedHeaderWidgets = [{ label: 'Time & Date' }, { label: 'Current Conditions' }] as const;
 
-export const fixedFooterWidgets = [
-    { label: 'Now Playing' },
-    { label: 'Refresh Time' },
-] as const;
+export const fixedFooterWidgets = [{ label: 'Now Playing' }, { label: 'Refresh Time' }] as const;
