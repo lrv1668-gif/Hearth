@@ -10,6 +10,7 @@
     import WidgetVisibilitySettings from '$lib/components/settings/WidgetVisibilitySettings.svelte';
     import WidgetLayoutSettings from '$lib/components/settings/WidgetLayoutSettings.svelte';
     import SpotifyConnectionSettings from '$lib/components/settings/SpotifyConnectionSettings.svelte';
+    import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
 
     type SectionId = 'display' | 'schedule' | 'ambient' | 'connections' | 'frame' | 'about';
@@ -149,8 +150,12 @@
                 {/if}
             </div>
         {:else if active === 'connections'}
-            {#snippet connectionsContent()}<SpotifyConnectionSettings />{/snippet}
-            {@render card('', '', connectionsContent)}
+            {#snippet spotifyContent()}<SpotifyConnectionSettings />{/snippet}
+            {#snippet calendarContent()}<GoogleCalendarConnectionSettings />{/snippet}
+            <div class="flex flex-col gap-4">
+                {@render card('Music', 'Show your currently playing track in the Now Playing widget.', spotifyContent)}
+                {@render card('Calendar', 'Sync events to the calendar and upcoming views.', calendarContent)}
+            </div>
         {:else if active === 'frame'}
             {#snippet kioskContent()}
                 <label class="flex cursor-pointer items-center gap-3">

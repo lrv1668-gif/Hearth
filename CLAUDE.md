@@ -38,12 +38,18 @@ services/
   Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache
   Rss/                       # ASP.NET Core 10 Minimal API, port 8085 — RSS/Atom feed fetch + cache
   Quote/                     # ASP.NET Core 10 Minimal API, port 8086 — ZenQuotes daily quote + cache
+  Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 Caddyfile
 ```
 
 ## Conventions
+
+### Verification Commands
+
+- Type-check frontend: `cd frontend && npx svelte-check --tsconfig ./tsconfig.json`
+- Build a backend service: `cd services && dotnet build <Service>/<Service>.csproj`
 
 ### Backend (C# / ASP.NET Core)
 
@@ -59,6 +65,8 @@ Caddyfile
 - Svelte components use Svelte 5 runes: `$state`, `$derived`, `$effect`, `$props`, `{@render}`
 - API calls live in `frontend/src/lib/api.ts` — all paths are relative (e.g. `/tasks`)
 - Each data type has its own store file: `TaskStore.ts`, `SpotifyStore.ts`, etc. — never combine into a shared `stores.ts`
+- `ApiClient` in `api.ts` has `post<T>(url, body)` for JSON POST — don't add overloads; inline `fetch()` directly for body-less POST calls
+- `{@html}` with any external content (e.g. calendar descriptions) must use `DOMPurify.sanitize()` first — `dompurify` is installed in `frontend/`
 
 ### Themes
 

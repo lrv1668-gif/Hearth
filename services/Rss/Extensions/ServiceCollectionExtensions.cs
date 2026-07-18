@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
 
         services.AddKeyedSingleton<IDatabase>("rss", (_, _) => new Database(dbPath));
         services.AddSingleton<RssStore>();
+        services.AddSingleton<FeedUrlValidator>();
         services.AddHttpClient<RssFetcher>();
 
         services.AddCors(opts =>

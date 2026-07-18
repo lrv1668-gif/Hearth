@@ -12,10 +12,19 @@ public static class WebApplicationExtensions
 
     private static void AddRssEndpoints(this WebApplication app)
     {
-        app.MapGet("/rss/articles", async (RssStore store, RssFetcher fetcher, string[]? url, int count = 10) =>
+        app.MapGet("/rss/articles", async (RssStore store, RssFetcher fetcher, FeedUrlValidator validator, string[]? url, int count = 10) =>
         {
             if (url is null || url.Length == 0)
                 return Results.Ok(Array.Empty<FeedGroup>());
+
+            foreach (var feedUrl in url)
+            {
+                if (!await validator.IsAllowedAsync(feedUrl))
+                {
+                    app.Logger.LogError("Rejected disallowed RSS feed URL: {Url}", feedUrl);
+                    return Results.BadRequest(new { error = $"invalid or disallowed feed url: {feedUrl}" });
+                }
+            }
 
             var groups = new List<FeedGroup>();
 

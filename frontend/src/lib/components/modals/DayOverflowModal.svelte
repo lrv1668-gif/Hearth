@@ -1,16 +1,18 @@
 <script lang="ts">
-    import type { Task } from '$lib/api';
-    import { formatTime } from '$lib/utils';
-    import { X } from '@lucide/svelte';
+    import type { Task, CalendarItem, Item } from '$lib/api';
+    import { formatTime, providerLabel } from '$lib/utils';
+    import { Calendar as CalendarIcon, X } from '@lucide/svelte';
 
     interface Props {
         dayKey?: string | null;
-        tasks: Task[];
+        items: Item[];
         onToggle: (task: Task) => void;
         onEdit: (task: Task) => void;
+        onEventClick?: (event: CalendarItem) => void;
+        onToggleCalendarTask?: (taskListId: string, taskId: string, completed: boolean) => void;
     }
 
-    let { dayKey = $bindable(null), tasks, onToggle, onEdit }: Props = $props();
+    let { dayKey = $bindable(null), items, onToggle, onEdit, onEventClick, onToggleCalendarTask }: Props = $props();
 
     let dialog = $state<HTMLDialogElement | null>(null);
 
@@ -54,28 +56,73 @@
                 </button>
             </div>
             <ul class="space-y-2">
-                {#each tasks as task (task.id)}
-                    <li class="flex min-w-0 items-center gap-2">
-                        <button
-                            onclick={() => onToggle(task)}
-                            class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
-                               {task.done ? 'bg-[var(--done-bg)]' : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
-                            aria-label="Toggle {task.title}"
-                        ></button>
-                        <button
-                            onclick={() => {
-                                onEdit(task);
-                                close();
-                            }}
-                            class="type-body min-w-0 flex-1 truncate text-left transition-colors hover:underline
-                               {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
-                        >
-                            {#if task.due_time}
-                                <span class="type-label mr-1 text-[var(--text-3)]">{formatTime(task.due_time)}</span>
-                            {/if}
-                            {task.title}
-                        </button>
-                    </li>
+                {#each items as item (item.kind === 'task' ? `t-${item.data.id}` : `e-${item.data.id}`)}
+                    {#if item.kind === 'task'}
+                        {@const task = item.data}
+                        <li class="flex min-w-0 items-center gap-2">
+                            <button
+                                onclick={() => onToggle(task)}
+                                class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
+                                   {task.done ? 'bg-[var(--done-bg)]' : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
+                                aria-label="Toggle {task.title}"
+                            ></button>
+                            <button
+                                onclick={() => {
+                                    onEdit(task);
+                                    close();
+                                }}
+                                class="type-body min-w-0 flex-1 truncate text-left transition-colors hover:underline
+                                   {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                            >
+                                {#if task.due_time}
+                                    <span class="type-label mr-1 text-[var(--text-3)]"
+                                        >{formatTime(task.due_time)}</span
+                                    >
+                                {/if}
+                                {task.title}
+                            </button>
+                        </li>
+                    {:else}
+                        {@const calItem = item.data}
+                        {#if calItem.kind === 'task'}
+                            <li class="flex min-w-0 items-center gap-2">
+                                <button
+                                    onclick={() => {
+                                        if (calItem.task_list_id)
+                                            onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
+                                    }}
+                                    class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
+                                           {calItem.is_completed ? 'bg-[var(--done-bg)]' : 'bg-[var(--accent)] hover:opacity-80'}"
+                                    aria-label="Toggle {calItem.title}"
+                                ></button>
+                                <span
+                                    class="type-body min-w-0 flex-1 truncate
+                                           {calItem.is_completed ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                >
+                                    {calItem.title}
+                                </span>
+                                <span class="type-label flex-shrink-0 text-[var(--text-3)]">{providerLabel(calItem.provider)}</span>
+                            </li>
+                        {:else}
+                            <li class="flex min-w-0 items-center gap-2">
+                                <CalendarIcon class="h-2 w-2 flex-shrink-0 text-[var(--accent)]" aria-hidden="true" />
+                                <button
+                                    onclick={() => { close(); onEventClick?.(calItem); }}
+                                    class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
+                                >
+                                    <span class="type-body block truncate text-[var(--text-1)]">
+                                        {#if !calItem.is_all_day && calItem.start}
+                                            <span class="type-label mr-1 text-[var(--text-3)]">
+                                                {formatTime(calItem.start.slice(11, 16))}
+                                            </span>
+                                        {/if}
+                                        {calItem.title}
+                                    </span>
+                                    <span class="type-label text-[var(--text-3)]">{providerLabel(calItem.provider)}</span>
+                                </button>
+                            </li>
+                        {/if}
+                    {/if}
                 {/each}
             </ul>
         </div>
