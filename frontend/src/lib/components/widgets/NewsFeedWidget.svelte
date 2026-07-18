@@ -24,10 +24,23 @@
     );
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
+    let listEl = $state<HTMLDivElement | null>(null);
     let atBottom = $state(false);
 
     onMount(() => {
         loadPromise = loadRssArticles();
+    });
+
+    function updateAtBottom() {
+        if (!listEl) return;
+        atBottom = listEl.scrollTop + listEl.clientHeight >= listEl.scrollHeight - 1;
+    }
+
+    // Recheck when the list renders or its contents change, so the fade only
+    // shows when there actually is more to scroll to.
+    $effect(() => {
+        flatArticles;
+        updateAtBottom();
     });
 </script>
 
@@ -43,11 +56,9 @@
     {:else}
         <div class="relative">
             <div
+                bind:this={listEl}
                 class="scroll-thin flex max-h-[min(25vh,320px)] flex-col overflow-y-auto"
-                onscroll={(e) => {
-                    const el = e.currentTarget as HTMLDivElement;
-                    atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-                }}
+                onscroll={updateAtBottom}
             >
                 {#each flatArticles as article}
                     <a
