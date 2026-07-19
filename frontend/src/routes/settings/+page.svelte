@@ -135,14 +135,11 @@
             {#snippet fontContent()}
                 <p class="type-body mb-4 font-medium text-[var(--text-1)]">Type</p>
                 <p class="type-label mb-4 text-[var(--text-2)]">
-                    Each font theme sets typeface, weight, and size. Click to preview — applies
-                    instantly.
+                    Each font theme sets typeface, weight, and size. Click to preview — applies instantly.
                 </p>
                 <FontThemePicker />
                 <p class="type-body mb-1 mt-6 font-medium text-[var(--text-1)]">Size</p>
-                <p class="type-label mb-4 text-[var(--text-2)]">
-                    Scales all text and icons across the dashboard.
-                </p>
+                <p class="type-label mb-4 text-[var(--text-2)]">Scales all text and icons across the dashboard.</p>
                 <FontSizeSlider />
             {/snippet}
             <div class="flex flex-col gap-4">

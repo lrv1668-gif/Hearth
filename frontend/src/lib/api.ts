@@ -121,19 +121,19 @@ export interface RssFeedGroup {
 }
 
 export interface CalendarItem {
-    kind: 'event' | 'task';  // "event" = Google Calendar event; "task" = Google Task
+    kind: 'event' | 'task'; // "event" = Google Calendar event; "task" = Google Task
     id: string;
     title: string;
     description?: string | null;
     location?: string | null;
-    start?: string | null;   // ISO 8601 with offset, "YYYY-MM-DD" for all-day/tasks, or null (undated task)
-    end?: string | null;     // null for tasks
+    start?: string | null; // ISO 8601 with offset, "YYYY-MM-DD" for all-day/tasks, or null (undated task)
+    end?: string | null; // null for tasks
     is_all_day: boolean;
     calendar_name?: string | null;
-    provider: string;        // "google"
-    is_completed?: boolean | null;  // null for events; true/false for tasks
-    task_list_id?: string | null;   // null for events; required for toggle endpoint
-    html_link?: string | null;      // direct URL to view in provider
+    provider: string; // "google"
+    is_completed?: boolean | null; // null for events; true/false for tasks
+    task_list_id?: string | null; // null for events; required for toggle endpoint
+    html_link?: string | null; // direct URL to view in provider
 }
 
 // Discriminated union shared by Calendar.svelte, DayOverflowModal.svelte, and UpcomingTasksWidget.svelte.
@@ -179,13 +179,11 @@ class ApiClient {
     };
 
     readonly calendar = {
-        googleStatus: (): Promise<{ authenticated: boolean } | null> =>
-            this.get('/calendar/google/status'),
+        googleStatus: (): Promise<{ authenticated: boolean } | null> => this.get('/calendar/google/status'),
 
         googleDisconnect: (): Promise<boolean> => this.del('/calendar/google/auth'),
 
-        items: (): Promise<CalendarItem[]> =>
-            this.get<CalendarItem[]>('/calendar/items').then((r) => r ?? []),
+        items: (): Promise<CalendarItem[]> => this.get<CalendarItem[]>('/calendar/items').then((r) => r ?? []),
 
         toggleTask: (taskListId: string, taskId: string, completed: boolean): Promise<boolean> =>
             this.patch(`/calendar/google/tasks/${taskListId}/${taskId}`, { completed }),

@@ -34,9 +34,7 @@
         <div class="flex flex-row items-center gap-2">
             <Settings class="icon-sm" />
             {#if spotifyConnected}
-                <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">
-                    Spotify connected
-                </p>
+                <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">Spotify connected</p>
                 <button
                     onclick={handleSpotifyDisconnect}
                     class="type-label text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"

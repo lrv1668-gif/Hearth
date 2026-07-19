@@ -75,8 +75,7 @@
                                    {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
                             >
                                 {#if task.due_time}
-                                    <span class="type-label mr-1 text-[var(--text-3)]"
-                                        >{formatTime(task.due_time)}</span
+                                    <span class="type-label mr-1 text-[var(--text-3)]">{formatTime(task.due_time)}</span
                                     >
                                 {/if}
                                 {task.title}
@@ -89,25 +88,38 @@
                                 <button
                                     onclick={() => {
                                         if (calItem.task_list_id)
-                                            onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
+                                            onToggleCalendarTask?.(
+                                                calItem.task_list_id,
+                                                calItem.id,
+                                                !calItem.is_completed
+                                            );
                                     }}
                                     class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
-                                           {calItem.is_completed ? 'bg-[var(--done-bg)]' : 'bg-[var(--accent)] hover:opacity-80'}"
+                                           {calItem.is_completed
+                                        ? 'bg-[var(--done-bg)]'
+                                        : 'bg-[var(--accent)] hover:opacity-80'}"
                                     aria-label="Toggle {calItem.title}"
                                 ></button>
                                 <span
                                     class="type-body min-w-0 flex-1 truncate
-                                           {calItem.is_completed ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                           {calItem.is_completed
+                                        ? 'text-[var(--done)] line-through'
+                                        : 'text-[var(--text-1)]'}"
                                 >
                                     {calItem.title}
                                 </span>
-                                <span class="type-label flex-shrink-0 text-[var(--text-3)]">{providerLabel(calItem.provider)}</span>
+                                <span class="type-label flex-shrink-0 text-[var(--text-3)]"
+                                    >{providerLabel(calItem.provider)}</span
+                                >
                             </li>
                         {:else}
                             <li class="flex min-w-0 items-center gap-2">
                                 <CalendarIcon class="h-2 w-2 flex-shrink-0 text-[var(--accent)]" aria-hidden="true" />
                                 <button
-                                    onclick={() => { close(); onEventClick?.(calItem); }}
+                                    onclick={() => {
+                                        close();
+                                        onEventClick?.(calItem);
+                                    }}
                                     class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
                                 >
                                     <span class="type-body block truncate text-[var(--text-1)]">
@@ -118,7 +130,9 @@
                                         {/if}
                                         {calItem.title}
                                     </span>
-                                    <span class="type-label text-[var(--text-3)]">{providerLabel(calItem.provider)}</span>
+                                    <span class="type-label text-[var(--text-3)]"
+                                        >{providerLabel(calItem.provider)}</span
+                                    >
                                 </button>
                             </li>
                         {/if}

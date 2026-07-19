@@ -27,7 +27,17 @@
         onToggleCalendarTask?: (taskListId: string, taskId: string, completed: boolean) => void;
     }
 
-    let { tasks, calItems, onToggle, onDelete, onNewTask, onEdit, onDateClick, onEventClick, onToggleCalendarTask }: Props = $props();
+    let {
+        tasks,
+        calItems,
+        onToggle,
+        onDelete,
+        onNewTask,
+        onEdit,
+        onDateClick,
+        onEventClick,
+        onToggleCalendarTask,
+    }: Props = $props();
     const today = new Date();
 
     function dateKey(d: Date): string {
@@ -263,15 +273,23 @@
                                             onclick={(e) => {
                                                 e.stopPropagation();
                                                 if (calItem.task_list_id)
-                                                    onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
+                                                    onToggleCalendarTask?.(
+                                                        calItem.task_list_id,
+                                                        calItem.id,
+                                                        !calItem.is_completed
+                                                    );
                                             }}
                                             class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
-                                               {calItem.is_completed ? 'bg-[var(--done-bg)]' : 'bg-[var(--accent)] hover:opacity-80'}"
+                                               {calItem.is_completed
+                                                ? 'bg-[var(--done-bg)]'
+                                                : 'bg-[var(--accent)] hover:opacity-80'}"
                                             aria-label="Toggle {calItem.title}"
                                         ></button>
                                         <span
                                             class="type-label min-w-0 truncate
-                                                   {calItem.is_completed ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                                   {calItem.is_completed
+                                                ? 'text-[var(--done)] line-through'
+                                                : 'text-[var(--text-1)]'}"
                                         >
                                             {calItem.title}
                                         </span>
@@ -317,7 +335,14 @@
         {/each}
     </div>
 
-    <DayOverflowModal bind:dayKey={overflowDayKey} items={overflowItems} {onToggle} {onEdit} {onEventClick} {onToggleCalendarTask} />
+    <DayOverflowModal
+        bind:dayKey={overflowDayKey}
+        items={overflowItems}
+        {onToggle}
+        {onEdit}
+        {onEventClick}
+        {onToggleCalendarTask}
+    />
 
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}

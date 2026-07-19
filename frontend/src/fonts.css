@@ -17,8 +17,9 @@
 
 :root {
     /* Tailwind preflight sans stack — pre-init render matches today's look */
-    --font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-family:
+        ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
     --weight-regular: 400;
     --weight-medium: 500;
     --weight-semibold: 600;
@@ -47,8 +48,9 @@
 [data-font='system'] {
     /* No bundled font — the :root preflight stack. Weights pinned to hundreds:
        system fonts have no variable axis, so off-scale values would synthesize. */
-    --font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-family:
+        ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
     --weight-regular: 400;
     --weight-medium: 500;
     --weight-semibold: 600;

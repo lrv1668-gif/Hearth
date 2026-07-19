@@ -35,8 +35,6 @@
             editingTask = null;
         }
     }
-
-
 </script>
 
 <svelte:head>

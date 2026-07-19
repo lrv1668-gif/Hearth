@@ -11,9 +11,7 @@
 
     let { event, onClose }: Props = $props();
 
-    const safeDescription = $derived(
-        event?.description ? DOMPurify.sanitize(event.description) : ''
-    );
+    const safeDescription = $derived(event?.description ? DOMPurify.sanitize(event.description) : '');
 
     let dialog = $state<HTMLDialogElement | null>(null);
 

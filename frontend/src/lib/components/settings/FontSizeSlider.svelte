@@ -1,10 +1,5 @@
 <script lang="ts">
-    import {
-        fontSizeStore,
-        setFontSize,
-        MIN_FONT_SCALE,
-        MAX_FONT_SCALE,
-    } from '$lib/stores/FontSizeStore.svelte.ts';
+    import { fontSizeStore, setFontSize, MIN_FONT_SCALE, MAX_FONT_SCALE } from '$lib/stores/FontSizeStore.svelte.ts';
 
     function scrollParentOf(el: HTMLElement): Element {
         let node = el.parentElement;
