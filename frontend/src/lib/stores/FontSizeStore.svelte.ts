@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 
-export const MIN_FONT_SCALE = 0.9;
-export const MAX_FONT_SCALE = 1.3;
+export const MIN_FONT_SCALE = 0.8;
+export const MAX_FONT_SCALE = 1.5;
 const DEFAULT_FONT_SCALE = 1;
 
 function isValidFontScale(value: number): boolean {

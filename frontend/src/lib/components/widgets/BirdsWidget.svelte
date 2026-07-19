@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Bird } from '@lucide/svelte';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
     import { birdsStore, loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
 
@@ -46,7 +45,10 @@
     // most specific segment, without trailing parentheticals.
     function shortLocation(loc: string): string {
         const specific = loc.split('--').pop() ?? loc;
-        return specific.split(',')[0].replace(/\s*\(.*\)\s*$/, '').trim();
+        return specific
+            .split(',')[0]
+            .replace(/\s*\(.*\)\s*$/, '')
+            .trim();
     }
 </script>
 
@@ -65,11 +67,6 @@
                 <ul class="flex flex-col gap-2.5">
                     {#each birdsStore.sightings as sighting (sighting.species_code)}
                         <li class="flex items-start gap-2.5">
-                            <Bird
-                                class="icon-sm mt-1 flex-shrink-0 {sighting.is_notable
-                                    ? 'text-[var(--accent)]'
-                                    : 'text-[var(--text-3)]'}"
-                            />
                             <div class="flex min-w-0 flex-col">
                                 <p class="type-body text-[var(--text-1)]">
                                     {sighting.common_name}
