@@ -14,7 +14,8 @@ services:
             context: ./src
             dockerfile: Spotify/Dockerfile
         env_file:
-            - ./src/Spotify/.env
+            - path: ./src/Spotify/.env
+              required: false
         environment:
             - DB_PATH=/data/spotify.db
             - ASPNETCORE_HTTP_PORTS=8083
@@ -27,7 +28,8 @@ services:
             context: ./src
             dockerfile: Weather/Dockerfile
         env_file:
-            - ./src/Weather/.env
+            - path: ./src/Weather/.env
+              required: false
         environment:
             - DB_PATH=/data/weather.db
             - ASPNETCORE_HTTP_PORTS=8082
@@ -39,7 +41,8 @@ services:
             context: ./src
             dockerfile: Photos/Dockerfile
         env_file:
-            - ./src/Photos/.env
+            - path: ./src/Photos/.env
+              required: false
         environment:
             - DATA_PATH=/data
             - ASPNETCORE_HTTP_PORTS=8084
@@ -61,7 +64,8 @@ services:
             context: ./src
             dockerfile: Calendar/Dockerfile
         env_file:
-            - ./src/Calendar/.env
+            - path: ./src/Calendar/.env
+              required: false
         environment:
             - DB_PATH=/data/calendar.db
             - ASPNETCORE_HTTP_PORTS=8087
@@ -81,7 +85,8 @@ services:
             context: ./src
             dockerfile: Birds/Dockerfile
         env_file:
-            - ./src/Birds/.env
+            - path: ./src/Birds/.env
+              required: false
         environment:
             - DB_PATH=/data/birds.db
             - ASPNETCORE_HTTP_PORTS=8088
