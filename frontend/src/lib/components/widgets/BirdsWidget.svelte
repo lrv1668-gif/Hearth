@@ -36,7 +36,7 @@
     }
 
     function distanceLabel(mi: number): string {
-        return mi < 0.1 ? 'here' : `${mi} mi`;
+        return mi < 0.1 ? 'here' : `${mi} miles`;
     }
 
     // eBird location names are often verbose — full street addresses
@@ -74,11 +74,15 @@
                                         <span class="type-caption text-[var(--accent)]">rare</span>
                                     {/if}
                                 </p>
-                                <p class="type-label truncate text-[var(--text-3)]" title={sighting.location}>
-                                    {shortLocation(sighting.location)} · {distanceLabel(sighting.distance_mi)} · {dayLabel(
-                                        sighting.observed_at
-                                    )}
-                                </p>
+                                <div
+                                    class="type-label flex gap-2 truncate text-[var(--text-2)]"
+                                    title={sighting.location}
+                                >
+                                    <p>{shortLocation(sighting.location)}</p>
+                                    <p class="text-[var(--text-3)]">
+                                        {distanceLabel(sighting.distance_mi)}, {dayLabel(sighting.observed_at)}
+                                    </p>
+                                </div>
                             </div>
                         </li>
                     {/each}

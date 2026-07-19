@@ -123,12 +123,12 @@
         </div>
 
         <div class="flex items-baseline justify-between gap-2">
-            <span class="type-label flex items-center gap-1 text-[var(--text-3)]">
+            <span class="type-label flex items-center gap-1 text-[var(--text-2)]">
                 <Sunrise class="icon-xs" />
                 {clock(sunrise)}
             </span>
-            <span class="type-label text-[var(--text-4)]">{daylightLabel}</span>
-            <span class="type-label flex items-center gap-1 text-[var(--text-3)]">
+            <span class="type-label text-[var(--text-2)]">{daylightLabel}</span>
+            <span class="type-label flex items-center gap-1 text-[var(--text-2)]">
                 {clock(sunset)}
                 <Sunset class="icon-xs" />
             </span>

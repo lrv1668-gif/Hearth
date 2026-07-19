@@ -55,7 +55,7 @@
                 {/each}
             </div>
 
-            <div class="type-label flex items-center gap-2">
+            <div class="type-label flex items-center gap-2 text-[var(--text-2)]">
                 {#if weatherStore.forecast[0]?.sunrise}
                     <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
                         <Sunrise class="icon-sm" />{formatSunTime(weatherStore.forecast[0].sunrise)}
