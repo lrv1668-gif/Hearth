@@ -95,7 +95,7 @@ The web UI (phone browser, no app install) has four screens:
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
-The `/settings` route is implemented and currently houses the theme picker, the font theme picker (typography presets: typeface, weight, and size), and ambient mode configuration (photo cadence, categories, attribution toggle). Additional settings will move here as features are built out.
+The `/settings` route is implemented and currently houses the theme picker, the font theme picker (typography presets: typeface, weight, and size), and ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions). Additional settings will move here as features are built out.
 
 All screens are usable one-handed on a phone. No dense forms.
 

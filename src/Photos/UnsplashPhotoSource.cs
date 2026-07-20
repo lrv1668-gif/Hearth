@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Extensions.Caching.Memory;
 using Photos.Records;
 
@@ -20,7 +21,9 @@ public sealed class UnsplashPhotoSource(
             return null;
         }
 
-        var query = ctx.Query ?? "nature";
+        // Southern hemisphere flips the season mapping; LATITUDE is optional and defaults to northern.
+        var isNorthern = !double.TryParse(config["LATITUDE"], NumberStyles.Float, CultureInfo.InvariantCulture, out var lat) || lat >= 0;
+        var query = SeasonalQuery.Expand(ctx.Query ?? "nature", DateOnly.FromDateTime(DateTime.UtcNow), isNorthern);
         var orientation = ctx.Orientation;
         var cacheKey = $"unsplash:{query}:{orientation}";
 

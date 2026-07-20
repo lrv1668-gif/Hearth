@@ -87,6 +87,7 @@ export interface UploadedPhoto {
     id: string;
     url: string;
     thumb_url: string;
+    caption: string | null;
 }
 
 export interface BatchFileResult {
@@ -268,6 +269,9 @@ class ApiClient {
         },
 
         delete: (id: string): Promise<boolean> => this.del(`/photos/uploads/${id}`),
+
+        setCaption: (id: string, caption: string | null): Promise<boolean> =>
+            this.patch(`/photos/uploads/${id}`, { caption }),
     };
 
     private async get<T>(url: string): Promise<T | null> {

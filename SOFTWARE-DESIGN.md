@@ -54,9 +54,9 @@ Fetches current conditions and 7-day forecast from Open-Meteo. Cached in SQLite 
 
 ### Photos (port 8084)
 
-Serves random photos from Unsplash API or user-uploaded local photos. Uploaded files stored on a Docker volume.
+Serves random photos from Unsplash API or user-uploaded local photos. Uploaded files stored on a Docker volume, with optional per-photo captions persisted to `captions.json` alongside them. A `seasonal` category token in the query is expanded server-side into a season-appropriate Unsplash search term (hemisphere from `LATITUDE`).
 
-**Env vars:** `UNSPLASH_ACCESS_KEY`
+**Env vars:** `UNSPLASH_ACCESS_KEY`, `LATITUDE` (optional — seasonal category hemisphere)
 
 ### Rss (port 8085)
 

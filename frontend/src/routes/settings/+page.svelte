@@ -152,15 +152,24 @@
             {#snippet categories()}<AmbientCategorySettings />{/snippet}
             {#snippet localPhotos()}<LocalPhotosSettings />{/snippet}
             <div class="flex flex-col gap-4">
-                {@render card('Photo source', 'Choose between curated Unsplash photos or your own uploads.', source)}
-                {@render card('Cadence', 'How often photos cycle in ambient mode.', cadence)}
-                {#if settings.photoSource === 'unsplash'}
+                {@render card(
+                    'Photo source',
+                    'Choose curated Unsplash photos, your own uploads, or a mix of both.',
+                    source
+                )}
+                {@render card(
+                    'Cadence & motion',
+                    'How often photos cycle — with a slower pace at night — and whether they drift.',
+                    cadence
+                )}
+                {#if settings.photoSource === 'unsplash' || settings.photoSource === 'both'}
                     {@render card(
                         'Categories & attribution',
                         'Filter by category and control photographer attribution.',
                         categories
                     )}
-                {:else if settings.photoSource === 'local'}
+                {/if}
+                {#if settings.photoSource === 'local' || settings.photoSource === 'both'}
                     {@render card('My photos', 'Upload and manage your local photo collection.', localPhotos)}
                 {/if}
             </div>

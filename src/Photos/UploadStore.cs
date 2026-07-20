@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
+using System.Text.Json;
 using SkiaSharp;
 
 namespace Photos;
@@ -14,13 +15,23 @@ public sealed class UploadStore
     private const int WebpQuality = 85;
 
     private readonly string _uploadsDir;
+    private readonly string _captionsPath;
     private readonly ConcurrentDictionary<string, UploadedPhoto> _index = new();
+    private readonly ConcurrentDictionary<string, string> _captions = new();
+    private readonly Lock _captionsFileLock = new();
 
     public UploadStore(IConfiguration config)
     {
         var dataPath = config["DATA_PATH"] ?? "/data";
         _uploadsDir = Path.Combine(dataPath, "uploads");
         Directory.CreateDirectory(_uploadsDir);
+
+        _captionsPath = Path.Combine(dataPath, "captions.json");
+        if (File.Exists(_captionsPath))
+        {
+            var stored = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(_captionsPath));
+            foreach (var (id, caption) in stored ?? []) _captions[id] = caption;
+        }
 
         foreach (var file in Directory.EnumerateFiles(_uploadsDir))
         {
@@ -84,7 +95,29 @@ public sealed class UploadStore
         if (!_index.TryRemove(id, out _)) return false;
         TryDelete(Path.Combine(_uploadsDir, $"{id}.webp"));
         TryDelete(Path.Combine(_uploadsDir, $"{id}_thumb.webp"));
+        if (_captions.TryRemove(id, out _)) PersistCaptions();
         return true;
+    }
+
+    public bool SetCaption(string id, string? caption)
+    {
+        if (!_index.ContainsKey(id)) return false;
+
+        caption = string.IsNullOrWhiteSpace(caption) ? null : caption.Trim();
+        if (caption is null) _captions.TryRemove(id, out _);
+        else _captions[id] = caption;
+
+        _index[id] = MakeRecord(id);
+        PersistCaptions();
+        return true;
+    }
+
+    private void PersistCaptions()
+    {
+        lock (_captionsFileLock)
+        {
+            File.WriteAllText(_captionsPath, JsonSerializer.Serialize(_captions.ToDictionary()));
+        }
     }
 
     public string GetFilePath(string filename) => Path.Combine(_uploadsDir, filename);
@@ -108,7 +141,7 @@ public sealed class UploadStore
     private static string UrlFor(string filename) => $"/photos/files/{filename}";
 
     private UploadedPhoto MakeRecord(string id) =>
-        new(id, UrlFor($"{id}.webp"), UrlFor($"{id}_thumb.webp"));
+        new(id, UrlFor($"{id}.webp"), UrlFor($"{id}_thumb.webp"), _captions.GetValueOrDefault(id));
 
     private static void TryDelete(string path)
     {
@@ -116,6 +149,6 @@ public sealed class UploadStore
     }
 }
 
-public record UploadedPhoto(string Id, string Url, string ThumbUrl);
+public record UploadedPhoto(string Id, string Url, string ThumbUrl, string? Caption);
 
 public record BatchFileResult(string FileName, string Status, string? Error, UploadedPhoto? Photo);

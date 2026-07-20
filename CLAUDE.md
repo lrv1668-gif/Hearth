@@ -35,7 +35,7 @@ src/                         # Backend API + shared-library projects
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
   Spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
-  Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache
+  Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache, local uploads + captions, seasonal query expansion
   Rss/                       # ASP.NET Core 10 Minimal API, port 8085 — RSS/Atom feed fetch + cache
   Quote/                     # ASP.NET Core 10 Minimal API, port 8086 — ZenQuotes daily quote + cache
   Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache

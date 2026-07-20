@@ -9,9 +9,17 @@ export const cadenceOptions = [
     { label: '2hr', value: 7200 },
 ];
 
+// null = same cadence as daytime
+export const nightCadenceOptions: { label: string; value: number | null }[] = [
+    { label: 'Same as day', value: null },
+    ...cadenceOptions,
+];
+
 export const categoryOptions: { id: PhotoCategory; label: string }[] = [
     { id: 'nature', label: 'Nature' },
     { id: 'architecture', label: 'Architecture' },
     { id: 'interiors', label: 'Interiors' },
     { id: 'abstract', label: 'Abstract art' },
+    // Expanded by the Photos service into a season-appropriate query
+    { id: 'seasonal', label: 'Seasonal' },
 ];

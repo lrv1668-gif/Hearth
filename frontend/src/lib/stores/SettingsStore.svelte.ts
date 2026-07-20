@@ -12,6 +12,8 @@ const STORAGE_KEY = 'hearth-settings';
 
 class SettingsStore {
     cadenceSeconds = $state(120);
+    nightCadenceSeconds = $state<number | null>(null); // null = same as day
+    ambientMotion = $state(true);
     photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);
     photoSource = $state<PhotoSource>('unsplash');
     showAttribution = $state(true);
@@ -92,6 +94,8 @@ if (browser) {
                 STORAGE_KEY,
                 JSON.stringify({
                     cadenceSeconds: settings.cadenceSeconds,
+                    nightCadenceSeconds: settings.nightCadenceSeconds,
+                    ambientMotion: settings.ambientMotion,
                     photoCategories: settings.photoCategories,
                     photoSource: settings.photoSource,
                     showAttribution: settings.showAttribution,

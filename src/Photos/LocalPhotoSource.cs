@@ -12,6 +12,6 @@ public sealed class LocalPhotoSource(UploadStore uploads) : IPhotoSource
             return Task.FromResult<PhotoResponse?>(null);
 
         return Task.FromResult<PhotoResponse?>(
-            new PhotoResponse(photo!.Id, photo.Url, photo.ThumbUrl, null, null, null, "local"));
+            new PhotoResponse(photo!.Id, photo.Url, photo.ThumbUrl, photo.Caption, null, null, "local"));
     }
 }

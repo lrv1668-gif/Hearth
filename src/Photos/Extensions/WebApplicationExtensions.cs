@@ -1,5 +1,7 @@
 namespace Photos.Extensions;
 
+public record CaptionUpdate(string? Caption);
+
 public static class WebApplicationExtensions
 {
     private static readonly string[] KnownSources = ["unsplash", "local"];
@@ -75,9 +77,12 @@ public static class WebApplicationExtensions
 
         app.MapGet("/photos/uploads", (UploadStore uploads) =>
         {
-            var list = uploads.List().Select(p => new { p.Id, p.Url, p.ThumbUrl });
+            var list = uploads.List().Select(p => new { p.Id, p.Url, p.ThumbUrl, p.Caption });
             return Results.Ok(list);
         });
+
+        app.MapPatch("/photos/uploads/{id}", (string id, CaptionUpdate update, UploadStore uploads) =>
+            uploads.SetCaption(id, update.Caption) ? Results.NoContent() : Results.NotFound());
 
         app.MapDelete("/photos/uploads/{id}", (string id, UploadStore uploads) =>
             uploads.Delete(id) ? Results.NoContent() : Results.NotFound());
