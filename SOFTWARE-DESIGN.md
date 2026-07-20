@@ -15,6 +15,7 @@ Browser
         ├── /calendar* → Calendar   :8087
         ├── /quote*    → Quote      :8086
         ├── /birds*    → Birds      :8088
+        ├── /almanac*  → Almanac    :8089
         └── /*         → Frontend   :3000
 ```
 
@@ -68,6 +69,21 @@ Fetches recent and notable bird observations near the configured coordinates fro
 **Env vars:** `EBIRD_API_KEY` (free at https://ebird.org/api/keygen), `LATITUDE`, `LONGITUDE`, `BIRDS_RADIUS_KM` (optional, default 15)
 
 **Endpoint:** `GET /birds/recent` → `BirdSighting[]` (`503` when env vars missing, `502` when eBird is unreachable)
+
+### Almanac (port 8089)
+
+Computes seasonal facts entirely locally — no external API, no SQLite (stateless, so it has no `Data`/`Data.Abstractions` reference and no Docker volume). The response always contains the pinned **season** section plus at most **two rotating slots**, filled in priority order (daylight → timely frost → note); unfilled or bumped sections are `null`:
+
+- **Season** (always present) — name, Early/Mid/Late label, day-of-season, progress, and countdown to the next equinox/solstice, from a hardcoded table of solstice/equinox UTC instants (2024–2040) in `SeasonCalculator`. Hemisphere derived from the sign of `LATITUDE` (northern when unset).
+- **Daylight** — trend (min/day gained or lost over the past week), drift vs. the most recent solstice, and the single next wall-clock milestone ("Last 8 pm sunset · Aug 13") from the NOAA sunrise/sunset algorithm in `SolarCalculator`. `null` when coordinates are unset.
+- **Frost** — countdown to the next of the user's typical first/last frost dates. Only claims a slot when ≤ 42 days away (bumping the note); `null` when unset or not yet timely.
+- **Note** — curated phenology/in-season sentence keyed by half-month (`PhenologyData`, temperate Northern Hemisphere; `null` for southern installs).
+
+Unlike Weather, missing coordinates do **not** produce a `503` — the endpoint logs an error at startup and returns `200` with `daylight: null`, because season and note are date-only.
+
+**Env vars (all optional):** `LATITUDE`, `LONGITUDE`, `TZ` (IANA zone for wall-clock milestones; defaults to system zone), `FIRST_FROST` / `LAST_FROST` (`MM-DD`)
+
+**Endpoint:** `GET /almanac` → `{ season, daylight | null, frost | null, note | null }`
 
 ### Calendar (port 8087)
 

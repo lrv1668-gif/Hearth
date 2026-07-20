@@ -129,6 +129,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 - Moon phase: front-end computed lunar phase with phase name, illumination %, SVG visualization, and countdown to the next major phase
 - Today's arc: an ambient ribbon showing the shape of the day — night, daylight, golden hours, solar noon — with today's events and timed tasks as quiet marks and a dot for "now"
 - News feeds: user-configured RSS/Atom feeds with a configurable article count
+- Almanac: where we are in the year — season progress with equinox/solstice countdown pinned, plus two rotating one-line facts chosen by timeliness: daylight trend with the next milestone ("Last 8 pm sunset · Aug 13"), first/last frost countdown (only when ≤6 weeks out), or a curated seasonal note; computed entirely locally, no external API
 - Color/B&W mode toggle: switchable on demand or by schedule
 - Scheduled display refresh: configurable cadence, full refresh only in v1
 - First-run setup flow via local web UI

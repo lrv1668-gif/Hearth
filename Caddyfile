@@ -26,6 +26,9 @@
     handle /birds* {
         reverse_proxy birds:8088
     }
+    handle /almanac* {
+        reverse_proxy almanac:8089
+    }
     handle {
         reverse_proxy frontend:3000
     }

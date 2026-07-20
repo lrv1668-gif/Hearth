@@ -40,6 +40,7 @@ src/                         # Backend API + shared-library projects
   Quote/                     # ASP.NET Core 10 Minimal API, port 8086 — ZenQuotes daily quote + cache
   Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache
   Birds/                     # ASP.NET Core 10 Minimal API, port 8088 — eBird nearby sightings + cache
+  Almanac/                   # ASP.NET Core 10 Minimal API, port 8089 — season/daylight/frost facts, computed locally (no DB)
 tests/                       # xUnit test projects — <Service>.Tests/
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose

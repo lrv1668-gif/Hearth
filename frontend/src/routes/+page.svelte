@@ -13,6 +13,7 @@
     import DailyQuoteWidget from '$lib/components/widgets/DailyQuoteWidget.svelte';
     import DayArcWidget from '$lib/components/widgets/DayArcWidget.svelte';
     import BirdsWidget from '$lib/components/widgets/BirdsWidget.svelte';
+    import AlmanacWidget from '$lib/components/widgets/AlmanacWidget.svelte';
     import WeatherWidget from '$lib/components/widgets/WeatherWidget.svelte';
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import EventDetailModal from '$lib/components/modals/EventDetailModal.svelte';
@@ -90,6 +91,10 @@
     {:else if id === 'birds'}
         <WidgetContainer title="Birds Nearby" associatedWidgetId="birds">
             <BirdsWidget />
+        </WidgetContainer>
+    {:else if id === 'almanac'}
+        <WidgetContainer title="Almanac" associatedWidgetId="almanac">
+            <AlmanacWidget />
         </WidgetContainer>
     {/if}
 {/snippet}

@@ -88,6 +88,15 @@ services:
         volumes:
             - birds-data:/data
 
+    almanac:
+        build:
+            context: ./src
+            dockerfile: Almanac/Dockerfile
+        env_file:
+            - ./src/Almanac/.env
+        environment:
+            - ASPNETCORE_HTTP_PORTS=8089
+
     frontend:
         build: ./frontend
         depends_on:
@@ -99,6 +108,7 @@ services:
             - calendar
             - quote
             - birds
+            - almanac
 
     caddy:
         image: caddy:2
@@ -118,6 +128,7 @@ services:
             - calendar
             - quote
             - birds
+            - almanac
 
 volumes:
     tasks-data:
