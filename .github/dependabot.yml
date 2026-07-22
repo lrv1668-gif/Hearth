@@ -8,6 +8,12 @@ updates:
     groups:
       npm-minor-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # TypeScript 7 isn't yet supported by @sveltejs/kit's peer deps (even on
+      # the unreleased v3 line, which still caps at ^6.0.0) — bumping breaks
+      # `npm ci` with an ERESOLVE conflict. Revisit once SvelteKit allows it.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   # .NET NuGet packages — wildcards cover every service and test project
   - package-ecosystem: "nuget"
