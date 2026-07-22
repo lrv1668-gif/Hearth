@@ -20,7 +20,7 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 
 ## Tech Stack
 
-- **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v3 + Lucide Svelte (`@lucide/svelte`), built with Vite
+- **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v4 + Lucide Svelte (`@lucide/svelte`), built with Vite
 - **Services:** .NET 10, ASP.NET Core Minimal APIs, SQLite (isolated to `src/Data` — service projects do not reference `Microsoft.Data.Sqlite` directly)
 - **Proxy:** Caddy 2
 - **Infra:** Docker Compose

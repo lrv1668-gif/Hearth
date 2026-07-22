@@ -6,11 +6,11 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ## Frontend
 
-### SvelteKit 2 + Svelte 5 + Tailwind CSS v3 + Lucide Svelte
+### SvelteKit 2 + Svelte 5 + Tailwind CSS v4 + Lucide Svelte
 
 - Lightweight runtime, well-suited for an always-on ambient display
 - Svelte 5 runes syntax (`$state`, `$effect`, `$props`, `$derived`) for fine-grained reactivity
-- Tailwind v3 for utility-first styling with a muted, theme-switchable palette
+- Tailwind v4 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
 - API calls are centralised in `frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
 - In development, Vite proxies `/tasks` → `$TASKS_URL`, `/spotify` → `$SPOTIFY_URL`, `/weather` → `$WEATHER_URL`, and `/photos` → `$PHOTOS_URL`; in production, Caddy handles the same routing

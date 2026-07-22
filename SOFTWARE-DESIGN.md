@@ -218,7 +218,7 @@ Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`
 
 ### Font themes
 
-Named typography presets, orthogonal to color themes. Each preset bundles a font family (self-hosted `@fontsource-variable` packages), four semantic weights (`--weight-regular/medium/semibold/bold` — Tailwind's `font-medium/semibold/bold` resolve to these vars via `tailwind.config.js`), and a size multiplier (`--font-scale`, folded into every `--font-*`/`--icon-*` clamp in `app.css`).
+Named typography presets, orthogonal to color themes. Each preset bundles a font family (self-hosted `@fontsource-variable` packages), four semantic weights (`--weight-regular/medium/semibold/bold` — Tailwind's `font-medium/semibold/bold` resolve to these vars via the `@theme` block in `app.css`), and a size multiplier (`--font-scale`, folded into every `--font-*`/`--icon-*` clamp in `app.css`).
 
 Defined in two places (both must be updated together):
 1. `src/fonts.css` — `@fontsource` imports plus one `[data-font="id"] { ... }` block per preset (source of truth for stacks, weights, scale). Selectors stay bare `[data-font]` — `FontThemePicker.svelte` sets `data-font` on its preview buttons so the same blocks style the previews.

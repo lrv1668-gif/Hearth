@@ -103,7 +103,7 @@ Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localh
 
 | Layer     | Technology                                              |
 |-----------|---------------------------------------------------------|
-| Frontend  | SvelteKit 2, Svelte 5 (runes), Tailwind CSS v3, Lucide Svelte |
+| Frontend  | SvelteKit 2, Svelte 5 (runes), Tailwind CSS v4, Lucide Svelte |
 | Backend   | .NET 10, ASP.NET Core Minimal APIs, SQLite              |
 | Proxy     | Caddy 2                                                 |
 | Infra     | Docker Compose                                          |
