@@ -19,6 +19,13 @@ html {
     background-color: var(--bg);
 }
 
+/* Tailwind Preflight's `* { margin: 0 }` is author-origin, so it beats the
+   UA stylesheet's `dialog:modal { margin: auto }` regardless of specificity —
+   without this, <dialog> loses its default centering. */
+dialog:modal {
+    margin: auto;
+}
+
 /* ── Typography & icon scale ─────────────────────────────────────────────── */
 /* clamp(min, preferred-vw, max) — scales smoothly from mobile (~375px)
    to the 13.3" e-paper target (1200px wide, ~150 PPI).
