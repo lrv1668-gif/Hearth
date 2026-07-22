@@ -32,6 +32,27 @@ public sealed class QuoteFetcherTests
     }
 
     [Fact]
+    public async Task FetchAsync_MultipleQuotes_ReturnsFirst()
+    {
+        var fetcher = MakeFetcher("""[{"q":"First","a":"Alice"},{"q":"Second","a":"Bob"}]""");
+        var result = await fetcher.FetchAsync();
+        Assert.NotNull(result);
+        Assert.Equal("First", result.Q);
+        Assert.Equal("Alice", result.A);
+    }
+
+    [Fact]
+    public async Task FetchAsync_NetworkFailure_ReturnsNull()
+    {
+        var http = new HttpClient(new ThrowingHttpMessageHandler());
+        var fetcher = new QuoteFetcher(http);
+
+        var result = await fetcher.FetchAsync();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task FetchAsync_HttpError_ReturnsNull()
     {
         var fetcher = MakeFetcher("", HttpStatusCode.ServiceUnavailable);

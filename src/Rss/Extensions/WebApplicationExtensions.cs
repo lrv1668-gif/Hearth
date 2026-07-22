@@ -17,22 +17,20 @@ public static class WebApplicationExtensions
             if (url is null || url.Length == 0)
                 return Results.Ok(Array.Empty<FeedGroup>());
 
-            foreach (var feedUrl in url)
-            {
-                if (!await validator.IsAllowedAsync(feedUrl))
-                {
-                    app.Logger.LogError("Rejected disallowed RSS feed URL: {Url}", feedUrl);
-                    return Results.BadRequest(new { error = $"invalid or disallowed feed url: {feedUrl}" });
-                }
-            }
-
             var groups = new List<FeedGroup>();
 
             foreach (var feedUrl in url)
             {
+                var pinnedAddress = await validator.ResolvePinnedAddressAsync(feedUrl);
+                if (pinnedAddress is null)
+                {
+                    app.Logger.LogError("Rejected disallowed RSS feed URL: {Url}", feedUrl);
+                    return Results.BadRequest(new { error = $"invalid or disallowed feed url: {feedUrl}" });
+                }
+
                 if (store.IsStale(feedUrl))
                 {
-                    var result = await fetcher.FetchAsync(feedUrl);
+                    var result = await fetcher.FetchAsync(feedUrl, pinnedAddress);
                     if (result is not null)
                         store.CacheArticles(feedUrl, result.Value.FeedTitle, result.Value.Articles);
                     else

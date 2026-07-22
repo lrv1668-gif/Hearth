@@ -17,17 +17,29 @@ public sealed class FeedUrlValidator(Func<string, Task<IPAddress[]>>? resolveHos
     /// Returns true only for absolute http/https URLs whose host resolves
     /// exclusively to publicly routable IP addresses.
     /// </summary>
-    public async Task<bool> IsAllowedAsync(string url)
+    public async Task<bool> IsAllowedAsync(string url) =>
+        await ResolvePinnedAddressAsync(url) is not null;
+
+    /// <summary>
+    /// Resolves the host of an absolute http/https URL and returns the first
+    /// resolved address if every resolved address is publicly routable, or
+    /// null if the URL is disallowed. Callers should connect using the
+    /// returned address (rather than re-resolving the host) so the address
+    /// that was validated is the one actually fetched — otherwise a DNS
+    /// answer that changes between validation and fetch (DNS rebinding)
+    /// could bypass this check.
+    /// </summary>
+    public async Task<IPAddress?> ResolvePinnedAddressAsync(string url)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            return false;
+            return null;
 
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-            return false;
+            return null;
 
         var host = uri.DnsSafeHost;
         if (string.IsNullOrEmpty(host))
-            return false;
+            return null;
 
         IPAddress[] addresses;
         if (IPAddress.TryParse(host, out var literal))
@@ -42,12 +54,12 @@ public sealed class FeedUrlValidator(Func<string, Task<IPAddress[]>>? resolveHos
             }
             catch
             {
-                return false;
+                return null;
             }
         }
 
         // Every resolved address must be public; a single non-public record is enough to reject.
-        return addresses.Length > 0 && addresses.All(IsPublicAddress);
+        return addresses.Length > 0 && addresses.All(IsPublicAddress) ? addresses[0] : null;
     }
 
     internal static bool IsPublicAddress(IPAddress ip)

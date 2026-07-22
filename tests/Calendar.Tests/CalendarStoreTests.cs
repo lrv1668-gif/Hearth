@@ -8,7 +8,7 @@ public sealed class CalendarStoreTests
 {
     private static CalendarStore Migrated(TempDatabase tmp)
     {
-        var store = new CalendarStore(tmp.Db);
+        var store = new CalendarStore(tmp.Db, TestDataProtection.Provider);
         store.Migrate();
         return store;
     }
@@ -17,7 +17,7 @@ public sealed class CalendarStoreTests
     public void Migrate_CalledTwice_DoesNotThrow()
     {
         using var tmp = new TempDatabase();
-        var store = new CalendarStore(tmp.Db);
+        var store = new CalendarStore(tmp.Db, TestDataProtection.Provider);
 
         store.Migrate();
         store.Migrate();
@@ -176,6 +176,21 @@ public sealed class CalendarStoreTests
         var store = Migrated(tmp);
 
         store.Clear("google");
+    }
+
+    [Fact]
+    public void LoadToken_LegacyPlaintextRow_ReturnsNullInsteadOfThrowing()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        // Simulate a row written before token encryption was introduced.
+        tmp.Db.NonQuery("""
+            INSERT OR REPLACE INTO calendar_tokens (provider, access_token, refresh_token, expires_at)
+            VALUES ('google', 'plaintext-access', 'plaintext-refresh', $expires_at)
+            """, cmd => cmd.AddParam("$expires_at", DateTimeOffset.UtcNow.ToString("o")));
+
+        Assert.Null(store.LoadToken("google"));
     }
 
     [Fact]

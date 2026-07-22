@@ -11,6 +11,7 @@ public static class ServiceCollectionExtensions
     public static void AddServicesForCalendar(this IServiceCollection services)
     {
         services.AddSqliteDatabase("calendar", "calendar.db");
+        services.AddHearthDataProtection("calendar");
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<CalendarStore>();
         services.AddSingleton<GoogleAuthService>();

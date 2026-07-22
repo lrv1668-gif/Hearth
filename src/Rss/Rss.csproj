@@ -7,4 +7,7 @@
     <ProjectReference Include="..\Data\Data.csproj" />
     <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Rss.Tests" />
+  </ItemGroup>
 </Project>

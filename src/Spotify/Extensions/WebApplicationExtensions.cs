@@ -23,7 +23,7 @@ public static class WebApplicationExtensions
             if (config.RequireOrFail(
                     app.Logger,
                     _ => Results.Json(new { error = "spotify not configured" }, statusCode: 503),
-                    "SPOTIFY_REDIRECT_URI", "SPOTIFY_CLIENT_ID") is { } configError)
+                    "SPOTIFY_REDIRECT_URI", "SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET") is { } configError)
             {
                 return configError;
             }
@@ -53,7 +53,7 @@ public static class WebApplicationExtensions
             if (config.RequireOrFail(
                     app.Logger,
                     _ => Results.Json(new { error = "spotify not configured" }, statusCode: 503),
-                    "SPOTIFY_REDIRECT_URI") is { } configError)
+                    "SPOTIFY_REDIRECT_URI", "SPOTIFY_CLIENT_SECRET") is { } configError)
             {
                 return configError;
             }

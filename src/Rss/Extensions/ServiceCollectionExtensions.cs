@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
         services.AddSqliteDatabase("rss", "rss.db");
         services.AddSingleton<RssStore>();
         services.AddSingleton<FeedUrlValidator>();
-        services.AddHttpClient<RssFetcher>();
+        services.AddSingleton<RssFetcher>();
 
         services.AddHearthWebDefaults();
     }

@@ -16,7 +16,7 @@ public sealed class GoogleCalendarProviderTests
 
     private static (GoogleCalendarProvider Provider, CalendarStore Store) MakeProvider(TempDatabase db)
     {
-        var store = new CalendarStore(db.Db);
+        var store = new CalendarStore(db.Db, TestDataProtection.Provider);
         store.Migrate();
 
         var config = new ConfigurationBuilder()

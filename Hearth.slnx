@@ -16,6 +16,8 @@
     <Project Path="src/Almanac/Almanac.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Data.Tests/Data.Tests.csproj" />
+    <Project Path="tests/ServiceDefaults.Tests/ServiceDefaults.Tests.csproj" />
     <Project Path="tests/Tasks.Tests/Tasks.Tests.csproj" />
     <Project Path="tests/Weather.Tests/Weather.Tests.csproj" />
     <Project Path="tests/Rss.Tests/Rss.Tests.csproj" />

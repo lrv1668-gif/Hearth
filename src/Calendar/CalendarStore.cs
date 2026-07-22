@@ -1,10 +1,14 @@
 using System.Data.Common;
+using System.Security.Cryptography;
 using Data.Abstractions;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Calendar;
 
-public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db)
+public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db, IDataProtectionProvider dpProvider)
 {
+    private readonly IDataProtector _protector = dpProvider.CreateProtector("Calendar.Tokens.v1");
+
     public void Migrate()
     {
         db.NonQuery("""
@@ -44,8 +48,8 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db)
             """, cmd =>
         {
             cmd.AddParam("$provider", provider);
-            cmd.AddParam("$access_token", accessToken);
-            cmd.AddParam("$refresh_token", refreshToken);
+            cmd.AddParam("$access_token", _protector.Protect(accessToken));
+            cmd.AddParam("$refresh_token", _protector.Protect(refreshToken));
             cmd.AddParam("$expires_at", expiresAt.ToString("o"));
         });
 
@@ -84,11 +88,22 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db)
             c => c.AddParam("$p", provider));
     }
 
-    private static CalendarToken MapToken(DbDataReader r) =>
-        new(
-            r.Field<string>("access_token")!,
-            r.Field<string>("refresh_token")!,
-            DateTimeOffset.Parse(r.Field<string>("expires_at")!));
+    // Rows written before token encryption was introduced won't decrypt — treat
+    // them as absent so callers fall back to re-auth instead of a 500.
+    private CalendarToken? MapToken(DbDataReader r)
+    {
+        try
+        {
+            return new CalendarToken(
+                _protector.Unprotect(r.Field<string>("access_token")!),
+                _protector.Unprotect(r.Field<string>("refresh_token")!),
+                DateTimeOffset.Parse(r.Field<string>("expires_at")!));
+        }
+        catch (CryptographicException)
+        {
+            return null;
+        }
+    }
 }
 
 public record CalendarToken(string AccessToken, string RefreshToken, DateTimeOffset ExpiresAt);

@@ -28,7 +28,11 @@ public sealed class RssStore([FromKeyedServices("rss")] IDatabase db)
             "ALTER TABLE rss_articles ADD COLUMN feed_title TEXT NOT NULL DEFAULT ''",
         })
         {
-            try { db.NonQuery(col); } catch { /* column already exists */ }
+            try { db.NonQuery(col); }
+            catch (DbException ex) when (ex.Message.Contains("duplicate column name", StringComparison.OrdinalIgnoreCase))
+            {
+                // column already exists from a previous run
+            }
         }
     }
 

@@ -21,8 +21,7 @@ public static class WebApplicationExtensions
                 quote = await fetcher.FetchAsync();
                 if (quote is not null)
                 {
-                    var expiry = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1)
-                        .ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+                    var expiry = QuoteCacheExpiry.NextMidnightUtc(DateTime.UtcNow);
                     cache.Set(CacheKey, quote, new MemoryCacheEntryOptions { AbsoluteExpiration = expiry });
                 }
                 else

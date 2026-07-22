@@ -31,7 +31,11 @@ namespace Tasks
                 "ALTER TABLE lu_tasks ADD COLUMN is_countdown BIT NOT NULL DEFAULT 0",
             })
             {
-                try { db.NonQuery(col); } catch { /* column already exists */ }
+                try { db.NonQuery(col); }
+                catch (DbException ex) when (ex.Message.Contains("duplicate column name", StringComparison.OrdinalIgnoreCase))
+                {
+                    // column already exists from a previous run
+                }
             }
 
             // Canonicalize existing recurring rows that pre-date series support

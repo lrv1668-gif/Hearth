@@ -1,5 +1,6 @@
 using System.Net;
-using Rss.Tests.Helpers;
+using System.Net.Sockets;
+using System.Text;
 using Xunit;
 
 namespace Rss.Tests;
@@ -35,23 +36,13 @@ public sealed class RssFetcherTests
     </rss>
     """;
 
-    private static RssFetcher MakeFetcher(string body, HttpStatusCode status = HttpStatusCode.OK)
-    {
-        var handler = new FakeHttpMessageHandler(body, status);
-        var http = new HttpClient(handler);
-        return new RssFetcher(http);
-    }
-
     [Fact]
-    public async Task FetchAsync_AtomFeed_ParsesTitleAndEntries()
+    public void ParseFeed_AtomFeed_ParsesTitleAndEntries()
     {
-        var fetcher = MakeFetcher(AtomFeed);
+        var (feedTitle, articles) = RssFetcher.ParseFeed("https://example.com/feed", AtomFeed);
 
-        var result = await fetcher.FetchAsync("https://example.com/feed");
-
-        Assert.NotNull(result);
-        Assert.Equal("Example Atom", result!.Value.FeedTitle);
-        var article = Assert.Single(result.Value.Articles);
+        Assert.Equal("Example Atom", feedTitle);
+        var article = Assert.Single(articles);
         Assert.Equal("First Post", article.Title);
         // The self link must be skipped in favour of the alternate link.
         Assert.Equal("https://example.com/1", article.Link);
@@ -60,22 +51,19 @@ public sealed class RssFetcherTests
     }
 
     [Fact]
-    public async Task FetchAsync_Rss2Feed_ParsesChannelAndItems()
+    public void ParseFeed_Rss2Feed_ParsesChannelAndItems()
     {
-        var fetcher = MakeFetcher(Rss2Feed);
+        var (feedTitle, articles) = RssFetcher.ParseFeed("https://example.com/feed", Rss2Feed);
 
-        var result = await fetcher.FetchAsync("https://example.com/feed");
-
-        Assert.NotNull(result);
-        Assert.Equal("Example RSS", result!.Value.FeedTitle);
-        var article = Assert.Single(result.Value.Articles);
+        Assert.Equal("Example RSS", feedTitle);
+        var article = Assert.Single(articles);
         Assert.Equal("Item One", article.Title);
         Assert.Equal("https://example.com/a", article.Link);
         Assert.Equal("Desc A", article.Description);
     }
 
     [Fact]
-    public async Task FetchAsync_AtomEntryMissingOptionalFields_DefaultsToEmpty()
+    public void ParseFeed_AtomEntryMissingOptionalFields_DefaultsToEmpty()
     {
         const string feed = """
         <?xml version="1.0" encoding="utf-8"?>
@@ -84,12 +72,10 @@ public sealed class RssFetcherTests
           <entry><title>Only Title</title></entry>
         </feed>
         """;
-        var fetcher = MakeFetcher(feed);
 
-        var result = await fetcher.FetchAsync("https://example.com/feed");
+        var (_, articles) = RssFetcher.ParseFeed("https://example.com/feed", feed);
 
-        Assert.NotNull(result);
-        var article = Assert.Single(result!.Value.Articles);
+        var article = Assert.Single(articles);
         Assert.Equal("Only Title", article.Title);
         Assert.Equal("", article.Link);
         Assert.Null(article.Description);
@@ -97,18 +83,59 @@ public sealed class RssFetcherTests
     }
 
     [Fact]
-    public async Task FetchAsync_MalformedXml_ReturnsNull()
+    public void ParseFeed_MalformedXml_Throws()
     {
-        var fetcher = MakeFetcher("not-xml <broken");
-
-        Assert.Null(await fetcher.FetchAsync("https://example.com/feed"));
+        Assert.ThrowsAny<Exception>(() => RssFetcher.ParseFeed("https://example.com/feed", "not-xml <broken"));
     }
 
     [Fact]
-    public async Task FetchAsync_HttpError_ReturnsNull()
+    public async Task FetchAsync_ConnectionRefused_ReturnsNull()
     {
-        var fetcher = MakeFetcher("", HttpStatusCode.ServiceUnavailable);
+        var fetcher = new RssFetcher();
 
-        Assert.Null(await fetcher.FetchAsync("https://example.com/feed"));
+        // Port 1 (tcpmux) on loopback: nothing listens there, so the connect fails
+        // immediately (refused) instead of hanging on a timeout.
+        var result = await fetcher.FetchAsync("https://example.com:1/feed", IPAddress.Loopback);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task FetchAsync_PinnedAddressServesFeed_ConnectsAndParsesResponse()
+    {
+        // Exercises the actual ConnectCallback/socket wiring end-to-end (not just ParseFeed):
+        // the URL's host is a domain that doesn't resolve here, but FetchAsync must connect to
+        // the pinned loopback address rather than the host, and still parse what comes back.
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        var serverTask = Task.Run(async () =>
+        {
+            using var client = await listener.AcceptTcpClientAsync();
+            using var stream = client.GetStream();
+
+            using var reader = new StreamReader(stream, Encoding.ASCII, leaveOpen: true);
+            while (!string.IsNullOrEmpty(await reader.ReadLineAsync())) { } // drain request headers
+
+            var body = Encoding.UTF8.GetBytes(AtomFeed);
+            var header = Encoding.ASCII.GetBytes(
+                $"HTTP/1.1 200 OK\r\nContent-Type: application/xml\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n");
+            await stream.WriteAsync(header);
+            await stream.WriteAsync(body);
+        });
+
+        var fetcher = new RssFetcher();
+        var result = await fetcher
+            .FetchAsync("http://this-host-does-not-resolve.invalid:" + port + "/feed", IPAddress.Loopback)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        await serverTask.WaitAsync(TimeSpan.FromSeconds(5));
+        listener.Stop();
+
+        Assert.NotNull(result);
+        Assert.Equal("Example Atom", result!.Value.FeedTitle);
+        var article = Assert.Single(result.Value.Articles);
+        Assert.Equal("First Post", article.Title);
     }
 }

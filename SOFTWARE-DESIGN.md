@@ -25,7 +25,7 @@ Browser
 |---|---|
 | `Data.Abstractions` | `IDatabase` interface + `DbCommandExtensions` / `DbReaderExtensions`. No SQLite dependency. |
 | `Data` | `Database : IDatabase` backed by `Microsoft.Data.Sqlite`, plus the `AddSqliteDatabase(key, defaultDbFileName)` registration helper. |
-| `ServiceDefaults` | Framework-only (no SQLite) library referenced by all 9 services: `AddHearthWebDefaults()` (CORS + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, and the `ConfigRequirement` helpers for validating required env vars. |
+| `ServiceDefaults` | Framework-only (no SQLite) library referenced by all 9 services: `AddHearthWebDefaults()` (CORS + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, the `ConfigRequirement` helpers for validating required env vars, and `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`). |
 
 Services reference `Data.Abstractions`/`Data` in their `.csproj` and inject `IDatabase` via `[FromKeyedServices("key")]`. The 6 SQLite-backed services register it with one call in `ServiceCollectionExtensions.cs`:
 
@@ -45,7 +45,7 @@ CRUD for tasks with due dates, recurrence, assignees, and countdown events. No e
 
 ### Spotify (port 8083)
 
-OAuth 2.0 integration with Spotify Web API. Surfaces currently-playing track for the Now Playing widget. Tokens persisted in SQLite; auto-refreshed on each `now-playing` request via `AuthorizationCodeAuthenticator`.
+OAuth 2.0 integration with Spotify Web API. Surfaces currently-playing track for the Now Playing widget. Tokens encrypted at rest (via `ServiceDefaults.AddHearthDataProtection`) before being persisted in SQLite; auto-refreshed on each `now-playing` request via `AuthorizationCodeAuthenticator`. A row that fails to decrypt (e.g. written before encryption was introduced) is treated as absent, forcing re-auth.
 
 **Env vars:** `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`
 
@@ -63,7 +63,7 @@ Serves random photos from Unsplash API or user-uploaded local photos. Uploaded f
 
 ### Rss (port 8085)
 
-Fetches and parses RSS/Atom feeds on demand. No persistent cache — feeds are fetched per request with HTTP conditional requests.
+Fetches and parses RSS/Atom feeds on demand. No persistent cache — feeds are fetched per request with HTTP conditional requests. `FeedUrlValidator` resolves and validates each feed URL's host as publicly routable before fetching; `RssFetcher` connects to that resolved address directly (rather than re-resolving the host) so a DNS answer that changes between validation and fetch can't bypass the check (DNS rebinding).
 
 ### Birds (port 8088)
 
@@ -112,6 +112,8 @@ public interface ICalendarProvider
 `/calendar/items` injects `IEnumerable<ICalendarProvider>` and fans out across all authenticated providers. Adding a second provider requires implementing `ICalendarProvider` and registering it with `services.AddSingleton<ICalendarProvider>(...)`.
 
 #### SQLite schema
+
+`access_token`/`refresh_token` are encrypted at rest (via `ServiceDefaults.AddHearthDataProtection`) before being written — the columns remain `TEXT` but hold protected payloads, not plaintext. A row that fails to decrypt is treated as absent, forcing re-auth.
 
 ```sql
 -- One row per provider
