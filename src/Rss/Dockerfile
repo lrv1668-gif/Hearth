@@ -1,11 +1,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /app
+COPY Directory.Build.props Directory.Packages.props ./
 COPY Data.Abstractions/Data.Abstractions.csproj Data.Abstractions/
 COPY Data/Data.csproj Data/
+COPY ServiceDefaults/ServiceDefaults.csproj ServiceDefaults/
 COPY Rss/Rss.csproj Rss/
 RUN dotnet restore Rss/Rss.csproj
 COPY Data.Abstractions/ Data.Abstractions/
 COPY Data/ Data/
+COPY ServiceDefaults/ ServiceDefaults/
 COPY Rss/ Rss/
 RUN dotnet publish Rss/Rss.csproj -c Release -o /out
 

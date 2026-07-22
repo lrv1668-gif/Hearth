@@ -1,11 +1,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /app
+COPY Directory.Build.props Directory.Packages.props ./
 COPY Data.Abstractions/Data.Abstractions.csproj Data.Abstractions/
 COPY Data/Data.csproj Data/
+COPY ServiceDefaults/ServiceDefaults.csproj ServiceDefaults/
 COPY Tasks/Tasks.csproj Tasks/
 RUN dotnet restore Tasks/Tasks.csproj
 COPY Data.Abstractions/ Data.Abstractions/
 COPY Data/ Data/
+COPY ServiceDefaults/ ServiceDefaults/
 COPY Tasks/ Tasks/
 RUN dotnet publish Tasks/Tasks.csproj -c Release -o /out
 

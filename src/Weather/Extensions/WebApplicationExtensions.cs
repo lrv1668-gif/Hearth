@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ServiceDefaults;
 using Weather;
 using Weather.Records;
 
@@ -16,20 +17,24 @@ public static class WebApplicationExtensions
     {
         app.MapGet("/weather/current", async (WeatherStore store, WeatherFetcher fetcher, IConfiguration config) =>
         {
-            var lat = config["LATITUDE"];
-            var lon = config["LONGITUDE"];
-            if (string.IsNullOrEmpty(lat) || string.IsNullOrEmpty(lon))
+            if (config.RequireOrFail(
+                    app.Logger,
+                    _ => Results.Json(new { error = "location not configured" }, statusCode: 503),
+                    "LATITUDE", "LONGITUDE") is { } configError)
             {
-                app.Logger.LogError("LATITUDE and LONGITUDE must be set. Update the .env file to add your coordinates.");
-                return Results.Json(new { error = "location not configured" }, statusCode: 503);
+                return configError;
             }
+
+            // RequireOrFail above guarantees these are present.
+            var lat = config["LATITUDE"]!;
+            var lon = config["LONGITUDE"]!;
 
             var cache = store.Load();
             if (cache is not null && !WeatherStore.IsStale(cache))
             {
                 var cached = JsonSerializer.Deserialize<CurrentWeatherResponse>(
                     cache.CurrentJson,
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+                    HearthJson.SnakeCaseLower);
                 return Results.Ok(cached);
             }
 
@@ -39,8 +44,8 @@ public static class WebApplicationExtensions
                     double.Parse(lat), double.Parse(lon));
 
                 store.Save(
-                    JsonSerializer.Serialize(current, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }),
-                    JsonSerializer.Serialize(forecast, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }));
+                    JsonSerializer.Serialize(current, HearthJson.SnakeCaseLower),
+                    JsonSerializer.Serialize(forecast, HearthJson.SnakeCaseLower));
 
                 return Results.Ok(current);
             }
@@ -53,20 +58,24 @@ public static class WebApplicationExtensions
 
         app.MapGet("/weather/forecast", async (WeatherStore store, WeatherFetcher fetcher, IConfiguration config) =>
         {
-            var lat = config["LATITUDE"];
-            var lon = config["LONGITUDE"];
-            if (string.IsNullOrEmpty(lat) || string.IsNullOrEmpty(lon))
+            if (config.RequireOrFail(
+                    app.Logger,
+                    _ => Results.Json(new { error = "location not configured" }, statusCode: 503),
+                    "LATITUDE", "LONGITUDE") is { } configError)
             {
-                app.Logger.LogError("LATITUDE and LONGITUDE must be set. Update the .env file to add your coordinates.");
-                return Results.Json(new { error = "location not configured" }, statusCode: 503);
+                return configError;
             }
+
+            // RequireOrFail above guarantees these are present.
+            var lat = config["LATITUDE"]!;
+            var lon = config["LONGITUDE"]!;
 
             var cache = store.Load();
             if (cache is not null && !WeatherStore.IsStale(cache))
             {
                 var cached = JsonSerializer.Deserialize<List<ForecastDayResponse>>(
                     cache.ForecastJson,
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+                    HearthJson.SnakeCaseLower);
                 return Results.Ok(cached);
             }
 
@@ -76,8 +85,8 @@ public static class WebApplicationExtensions
                     double.Parse(lat), double.Parse(lon));
 
                 store.Save(
-                    JsonSerializer.Serialize(current, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }),
-                    JsonSerializer.Serialize(forecast, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }));
+                    JsonSerializer.Serialize(current, HearthJson.SnakeCaseLower),
+                    JsonSerializer.Serialize(forecast, HearthJson.SnakeCaseLower));
 
                 return Results.Ok(forecast);
             }

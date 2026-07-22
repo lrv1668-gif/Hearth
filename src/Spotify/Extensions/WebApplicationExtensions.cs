@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using ServiceDefaults;
 using Spotify;
 using Spotify.Records;
 using SpotifyAPI.Web;
@@ -19,9 +20,18 @@ public static class WebApplicationExtensions
 
         app.MapGet("/spotify/auth", (IConfiguration config) =>
         {
+            if (config.RequireOrFail(
+                    app.Logger,
+                    _ => Results.Json(new { error = "spotify not configured" }, statusCode: 503),
+                    "SPOTIFY_REDIRECT_URI", "SPOTIFY_CLIENT_ID") is { } configError)
+            {
+                return configError;
+            }
+
             var state = Guid.NewGuid().ToString("N");
             pendingStates[state] = DateTimeOffset.UtcNow.AddMinutes(10);
 
+            // RequireOrFail above guarantees these are present.
             var loginRequest = new LoginRequest(
                 new Uri(config["SPOTIFY_REDIRECT_URI"]!),
                 config["SPOTIFY_CLIENT_ID"]!,
@@ -40,9 +50,18 @@ public static class WebApplicationExtensions
             SpotifyClientService clientService,
             IConfiguration config) =>
         {
+            if (config.RequireOrFail(
+                    app.Logger,
+                    _ => Results.Json(new { error = "spotify not configured" }, statusCode: 503),
+                    "SPOTIFY_REDIRECT_URI") is { } configError)
+            {
+                return configError;
+            }
+
             if (!pendingStates.TryRemove(state, out var expiry) || expiry < DateTimeOffset.UtcNow)
                 return Results.BadRequest("invalid or expired state");
 
+            // RequireOrFail above guarantees this is present.
             await clientService.SaveTokensFromCode(code, config["SPOTIFY_REDIRECT_URI"]!);
 
             var frontendUrl = config["FRONTEND_URL"] ?? "/";

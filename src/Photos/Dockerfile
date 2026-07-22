@@ -1,7 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /app
+COPY Directory.Build.props Directory.Packages.props ./
+COPY ServiceDefaults/ServiceDefaults.csproj ServiceDefaults/
 COPY Photos/Photos.csproj Photos/
 RUN dotnet restore Photos/Photos.csproj
+COPY ServiceDefaults/ ServiceDefaults/
 COPY Photos/ Photos/
 RUN dotnet publish Photos/Photos.csproj -c Release -o /out
 

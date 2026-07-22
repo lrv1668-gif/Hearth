@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ServiceDefaults;
 using Birds;
 using Birds.Records;
 
@@ -16,22 +17,25 @@ public static class WebApplicationExtensions
     {
         app.MapGet("/birds/recent", async (BirdsStore store, BirdsFetcher fetcher, IConfiguration config) =>
         {
-            var apiKey = config["EBIRD_API_KEY"];
-            var lat = config["LATITUDE"];
-            var lon = config["LONGITUDE"];
-            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(lat) || string.IsNullOrEmpty(lon))
+            if (config.RequireOrFail(
+                    app.Logger,
+                    _ => Results.Json(new { error = "birds not configured" }, statusCode: 503),
+                    "EBIRD_API_KEY", "LATITUDE", "LONGITUDE") is { } configError)
             {
-                app.Logger.LogError(
-                    "EBIRD_API_KEY, LATITUDE, and LONGITUDE must be set. Update the .env file to add your eBird API key (free at https://ebird.org/api/keygen) and coordinates.");
-                return Results.Json(new { error = "birds not configured" }, statusCode: 503);
+                return configError;
             }
+
+            // RequireOrFail above guarantees these are present.
+            var apiKey = config["EBIRD_API_KEY"]!;
+            var lat = config["LATITUDE"]!;
+            var lon = config["LONGITUDE"]!;
 
             var cache = store.Load();
             if (cache is not null && !BirdsStore.IsStale(cache))
             {
                 var cached = JsonSerializer.Deserialize<List<BirdSighting>>(
                     cache.SightingsJson,
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+                    HearthJson.SnakeCaseLower);
                 return Results.Ok(cached);
             }
 
@@ -43,7 +47,7 @@ public static class WebApplicationExtensions
 
                 store.Save(JsonSerializer.Serialize(
                     sightings,
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }));
+                    HearthJson.SnakeCaseLower));
 
                 return Results.Ok(sightings);
             }

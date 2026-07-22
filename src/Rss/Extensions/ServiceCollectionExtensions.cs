@@ -1,6 +1,5 @@
-using System.Text.Json;
-using Data;
-using Data.Abstractions;
+using Data.Extensions;
+using ServiceDefaults;
 
 namespace Rss.Extensions;
 
@@ -8,16 +7,11 @@ public static class ServiceCollectionExtensions
 {
     public static void AddServicesForRss(this IServiceCollection services)
     {
-        var dbPath = Environment.GetEnvironmentVariable("DB_PATH") ?? "rss.db";
-
-        services.AddKeyedSingleton<IDatabase>("rss", (_, _) => new Database(dbPath));
+        services.AddSqliteDatabase("rss", "rss.db");
         services.AddSingleton<RssStore>();
         services.AddSingleton<FeedUrlValidator>();
         services.AddHttpClient<RssFetcher>();
 
-        services.AddCors(opts =>
-            opts.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
-        services.ConfigureHttpJsonOptions(opts =>
-            opts.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower);
+        services.AddHearthWebDefaults();
     }
 }

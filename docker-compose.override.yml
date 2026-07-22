@@ -1,4 +1,8 @@
 services:
+  tasks:
+    ports:
+      - "127.0.0.1:8081:8081"
+
   spotify:
     ports:
       - "127.0.0.1:8083:8083"
@@ -6,6 +10,10 @@ services:
   weather:
     ports:
       - "127.0.0.1:8082:8082"
+
+  photos:
+    ports:
+      - "127.0.0.1:8084:8084"
 
   rss:
     ports:

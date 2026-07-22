@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Data.Abstractions/Data.Abstractions.csproj" />
     <Project Path="src/Data/Data.csproj" />
+    <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" />
 
     <Project Path="src/Tasks/Tasks.csproj" />
     <Project Path="src/Photos/Photos.csproj" />

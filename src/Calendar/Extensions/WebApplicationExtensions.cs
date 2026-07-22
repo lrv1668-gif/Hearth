@@ -2,6 +2,7 @@ using Calendar;
 using Calendar.Providers;
 using Calendar.Providers.Google;
 using Calendar.Records;
+using ServiceDefaults;
 
 namespace Calendar.Extensions;
 
@@ -23,13 +24,12 @@ public static class WebApplicationExtensions
             IConfiguration config,
             ILogger<GoogleCalendarProvider> logger) =>
         {
-            foreach (var varName in new[] { "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI" })
+            if (config.RequireOrFail(
+                    logger,
+                    missing => Results.Problem(statusCode: 503, detail: $"{missing[0]} not configured"),
+                    "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI") is { } configError)
             {
-                if (string.IsNullOrWhiteSpace(config[varName]))
-                {
-                    logger.LogError("{Var} is not set. Configure it in services/Calendar/.env", varName);
-                    return Results.Problem(statusCode: 503, detail: $"{varName} not configured");
-                }
+                return configError;
             }
 
             var state = Guid.NewGuid().ToString("N");

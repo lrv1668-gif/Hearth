@@ -10,7 +10,7 @@ Keep documentation in sync with code at all times:
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
 - When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and the theme list below.
 - When a new service needs environment variables, create `src/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
-- When adding a new backend service: add it to `docker-compose.yml`, `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency.
+- When adding a new backend service: add it to `docker-compose.yml`, `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency. Reference `ServiceDefaults` and call `AddHearthWebDefaults()` in `ServiceCollectionExtensions.cs` — every service does this, including services with no database.
 - Each frontend data type gets its own `<Type>Store.svelte.ts` file (the `.svelte.ts` suffix is required for runes) — do not combine stores.
 - Use `[FromKeyedServices("key")]` to inject `IDatabase` into stores — never inject the concrete `Database` class.
 
@@ -31,7 +31,8 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 frontend/                    # SvelteKit app
 src/                         # Backend API + shared-library projects
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
-  Data/                      # SQLite implementation of IDatabase
+  Data/                      # SQLite implementation of IDatabase + AddSqliteDatabase() registration helper
+  ServiceDefaults/           # Shared CORS/JSON defaults (AddHearthWebDefaults) + ConfigRequirement env-var validation — referenced by every service
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
   Spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
@@ -58,9 +59,10 @@ Caddyfile
 
 ### Backend (C# / ASP.NET Core)
 
-- `Program.cs` in each service registers the concrete `Database` as `IDatabase` keyed by service name: `AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath))`
+- New database-backed services register `IDatabase` with `services.AddSqliteDatabase("key", "service.db")` (from `Data`) in `ServiceCollectionExtensions.cs`, which reads `DB_PATH` and does the keyed registration — never call `AddKeyedSingleton<IDatabase>` directly
 - Service stores (e.g. `TaskStore`) inject `IDatabase` via `[FromKeyedServices("key")]` — never a concrete `Database` or SQLite types directly
-- New database-backed services: reference `Data.Abstractions` for `IDatabase`, reference `Data` only in `Program.cs` for the concrete registration; never add `Microsoft.Data.Sqlite` as a direct dependency
+- New database-backed services: reference `Data.Abstractions` for `IDatabase`, reference `Data` for the concrete registration; never add `Microsoft.Data.Sqlite` as a direct dependency
+- `TargetFramework`/`Nullable`/`ImplicitUsings` and all NuGet package versions are centralized in `src/Directory.Build.props` + `src/Directory.Packages.props` (and the `tests/` equivalents) — new `.csproj` files should not redeclare them; add new packages as a version-less `<PackageReference Include="..." />` plus a matching `<PackageVersion>` entry in the relevant `Directory.Packages.props`
 - JSON uses snake_case naming (`JsonNamingPolicy.SnakeCaseLower`) — keep record property names PascalCase in C#
 - Each service owns its SQLite file at `DB_PATH` (env var, defaults to `<service>.db`)
 - Log a `LogError` when a required environment variable is missing, before returning a 503

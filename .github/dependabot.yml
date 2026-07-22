@@ -24,10 +24,13 @@ updates:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
 
-  # .NET NuGet packages — wildcards cover every service and test project
+  # .NET NuGet packages — wildcards cover every service and test project;
+  # /src and /tests themselves cover the central Directory.Packages.props files
   - package-ecosystem: "nuget"
     directories:
+      - "/src"
       - "/src/*"
+      - "/tests"
       - "/tests/*"
     schedule:
       interval: "weekly"

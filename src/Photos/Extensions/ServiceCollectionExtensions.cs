@@ -1,5 +1,5 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Http.Features;
+using ServiceDefaults;
 
 namespace Photos.Extensions;
 
@@ -16,9 +16,6 @@ public static class ServiceCollectionExtensions
 
         services.Configure<FormOptions>(o => o.MultipartBodyLengthLimit = 200L * 1024 * 1024);
 
-        services.AddCors(opts =>
-            opts.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
-        services.ConfigureHttpJsonOptions(opts =>
-            opts.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower);
+        services.AddHearthWebDefaults();
     }
 }

@@ -24,13 +24,16 @@ Browser
 | Project | Purpose |
 |---|---|
 | `Data.Abstractions` | `IDatabase` interface + `DbCommandExtensions` / `DbReaderExtensions`. No SQLite dependency. |
-| `Data` | `Database : IDatabase` backed by `Microsoft.Data.Sqlite`. Referenced only in `Program.cs` of each service. |
+| `Data` | `Database : IDatabase` backed by `Microsoft.Data.Sqlite`, plus the `AddSqliteDatabase(key, defaultDbFileName)` registration helper. |
+| `ServiceDefaults` | Framework-only (no SQLite) library referenced by all 9 services: `AddHearthWebDefaults()` (CORS + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, and the `ConfigRequirement` helpers for validating required env vars. |
 
-Services reference `Data.Abstractions` in their `.csproj` and inject `IDatabase` via `[FromKeyedServices("key")]`. The concrete `Database` is registered once in `Program.cs`:
+Services reference `Data.Abstractions`/`Data` in their `.csproj` and inject `IDatabase` via `[FromKeyedServices("key")]`. The 6 SQLite-backed services register it with one call in `ServiceCollectionExtensions.cs`:
 
 ```csharp
-services.AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath));
+services.AddSqliteDatabase("key", "service.db");
 ```
+
+Every service's `ServiceCollectionExtensions.cs` also calls `services.AddHearthWebDefaults();` once, replacing the CORS + JSON setup that used to be repeated per service.
 
 ---
 

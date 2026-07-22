@@ -94,20 +94,29 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 
 ## Shared Libraries
 
-Two shared projects live under `src/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
+Three shared projects live under `src/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
 
 | Project             | Responsibility                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
-| `Data`              | `Database` — the concrete SQLite implementation of `IDatabase`; the only project that references `Microsoft.Data.Sqlite`        |
+| `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton. The only project that references `Microsoft.Data.Sqlite`. |
+| `ServiceDefaults`   | Framework-only (no SQLite) library referenced by **all 9** services, including the 3 with no database. Provides `AddHearthWebDefaults()` (CORS `AllowAnyOrigin/Method/Header` + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, and `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars. |
 
 Service projects follow this pattern:
 
 - Reference `Data.Abstractions` for the `IDatabase` type used in stores and handlers
-- Reference `Data` in `Program.cs` only, to register the concrete implementation: `AddKeyedSingleton<IDatabase>("key", (_, _) => new Database(dbPath))`
+- Reference `Data` for the 6 SQLite-backed services, calling `services.AddSqliteDatabase("key", "service.db")` once in `ServiceCollectionExtensions.cs`
+- Reference `ServiceDefaults` and call `services.AddHearthWebDefaults()` once in `ServiceCollectionExtensions.cs`
 - Never reference `Microsoft.Data.Sqlite` directly
 
-JSON responses use `JsonNamingPolicy.SnakeCaseLower` so property names match frontend conventions (e.g. `created_at`, `due_date`).
+JSON responses use `JsonNamingPolicy.SnakeCaseLower` (via `HearthJson.SnakeCaseLower` / `AddHearthWebDefaults()`) so property names match frontend conventions (e.g. `created_at`, `due_date`).
+
+### Required env var validation
+
+Endpoints that depend on config (API keys, coordinates, OAuth secrets) validate with `ConfigRequirement`:
+
+- `config.RequireOrFail(logger, respond, "VAR1", "VAR2")` — logs the missing vars, and if any are missing, returns the `IResult` built by the caller's `respond` factory (each service keeps its own response shape — e.g. Weather/Birds/Spotify return `Results.Json(new { error = ... }, statusCode: 503)`, Calendar returns `Results.Problem(...)`)
+- `config.WarnIfMissing(logger, message, "VAR1", "VAR2")` — logs only, never fails the request; used by Almanac, where missing coordinates degrade the response (`daylight: null`) rather than failing it
 
 ## Tasks Service
 

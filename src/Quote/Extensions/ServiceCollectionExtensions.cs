@@ -1,4 +1,4 @@
-using System.Text.Json;
+using ServiceDefaults;
 
 namespace Quote.Extensions;
 
@@ -9,9 +9,6 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
         services.AddHttpClient<QuoteFetcher>();
 
-        services.AddCors(opts =>
-            opts.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
-        services.ConfigureHttpJsonOptions(opts =>
-            opts.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower);
+        services.AddHearthWebDefaults();
     }
 }
