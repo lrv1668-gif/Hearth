@@ -17,16 +17,16 @@
                     />
                 </div>
                 <div>
-                    <p class="type-body select-none text-[var(--text-1)]">{widget.label}</p>
-                    <p class="type-label select-none text-[var(--text-2)]">{widget.description}</p>
+                    <p class="type-body text-(--text-1) select-none">{widget.label}</p>
+                    <p class="type-label text-(--text-2) select-none">{widget.description}</p>
                 </div>
             </label>
         {/each}
     </div>
 
     <!-- Fixed widgets -->
-    <div class="border-t border-[var(--border)] pt-4">
-        <p class="type-label mb-3 font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">Always shown</p>
+    <div class="border-t border-(--border) pt-4">
+        <p class="type-label mb-3 font-semibold tracking-[0.12em] text-(--text-3) uppercase">Always shown</p>
         <div class="flex flex-col gap-2">
             {#each fixedHeaderWidgets as w}
                 <div class="flex items-center gap-3 opacity-50">
@@ -34,8 +34,8 @@
                         <Toggle checked={true} onchange={() => {}} />
                     </div>
                     <div>
-                        <p class="type-body select-none text-[var(--text-1)]">{w.label}</p>
-                        <p class="type-label select-none text-[var(--text-2)]">Fixed in the dashboard header</p>
+                        <p class="type-body text-(--text-1) select-none">{w.label}</p>
+                        <p class="type-label text-(--text-2) select-none">Fixed in the dashboard header</p>
                     </div>
                 </div>
             {/each}
@@ -45,8 +45,8 @@
                         <Toggle checked={true} onchange={() => {}} />
                     </div>
                     <div>
-                        <p class="type-body select-none text-[var(--text-1)]">{w.label}</p>
-                        <p class="type-label select-none text-[var(--text-2)]">Fixed in the dashboard footer</p>
+                        <p class="type-body text-(--text-1) select-none">{w.label}</p>
+                        <p class="type-label text-(--text-2) select-none">Fixed in the dashboard footer</p>
                     </div>
                 </div>
             {/each}

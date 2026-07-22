@@ -55,22 +55,20 @@
 </svelte:head>
 
 <!-- Mobile: fixed bottom tab bar (above the global nav) -->
-<div class="fixed bottom-16 left-0 right-0 z-20 bg-[var(--bg)] lg:hidden">
+<div class="fixed right-0 bottom-16 left-0 z-20 bg-(--bg) lg:hidden">
     <!-- Right-edge fade hints at scrollable overflow -->
     <div
-        class="pointer-events-none absolute right-0 top-0 z-10 h-full w-10 bg-gradient-to-l from-[var(--bg)] to-transparent"
+        class="pointer-events-none absolute top-0 right-0 z-10 h-full w-10 bg-gradient-to-l from-(--bg) to-transparent"
     ></div>
     <nav
-        class="flex justify-center gap-2 overflow-x-auto border-t-2 border-[var(--border)] px-2 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        class="flex [scrollbar-width:none] justify-center gap-2 overflow-x-auto border-t-2 border-(--border) px-2 py-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
         {#each sections as s}
             {@const isActive = active === s.id}
             <button
                 onclick={() => (active = s.id)}
                 class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors
-                    {isActive
-                    ? 'bg-[var(--surface-hi)] text-[var(--text-1)]'
-                    : 'text-[var(--text-2)] hover:text-[var(--text-1)]'}"
+                    {isActive ? 'bg-(--surface-hi) text-(--text-1)' : 'text-(--text-2) hover:text-(--text-1)'}"
             >
                 <s.icon class="icon-sm shrink-0" />
                 <span class="type-label whitespace-nowrap">{s.label}</span>
@@ -81,22 +79,20 @@
 
 <div class="flex min-h-0 flex-1 flex-col overflow-hidden lg:grid lg:grid-cols-[280px_1fr]">
     <!-- Desktop: sidebar -->
-    <aside
-        class="hidden flex-col gap-1 overflow-y-auto border-r-2 border-[var(--border)] bg-[var(--bg)] px-3 py-4 lg:flex"
-    >
+    <aside class="hidden flex-col gap-1 overflow-y-auto border-r-2 border-(--border) bg-(--bg) px-3 py-4 lg:flex">
         {#each sections as s}
             {@const isActive = active === s.id}
             <button
                 onclick={() => (active = s.id)}
                 class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors
                     {isActive
-                    ? 'bg-[var(--surface-hi)] text-[var(--text-1)]'
-                    : 'text-[var(--text-1)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]'}"
+                    ? 'bg-(--surface-hi) text-(--text-1)'
+                    : 'text-(--text-1) hover:bg-(--surface) hover:text-(--text-1)'}"
             >
-                <s.icon class="icon-md shrink-0 {isActive ? 'text-[var(--accent)]' : 'text-[var(--text-1)]'}" />
+                <s.icon class="icon-md shrink-0 {isActive ? 'text-(--accent)' : 'text-(--text-1)'}" />
                 <div class="min-w-0 flex-1">
-                    <p class="type-body font-medium leading-tight">{s.label}</p>
-                    <p class="type-label leading-tight text-[var(--text-2)]">{s.subtitle}</p>
+                    <p class="type-body leading-tight font-medium">{s.label}</p>
+                    <p class="type-label leading-tight text-(--text-2)">{s.subtitle}</p>
                 </div>
             </button>
         {/each}
@@ -104,13 +100,13 @@
 
     <!-- Content -->
     <main class="min-h-0 flex-1 overflow-y-auto px-6 py-6 pb-20 lg:px-10 lg:py-8 lg:pb-8">
-        <h1 class="type-title mb-2 font-semibold text-[var(--text-1)]">{section.heading}</h1>
-        <p class="type-body mb-6 text-[var(--text-2)]">{section.description}</p>
+        <h1 class="type-title mb-2 font-semibold text-(--text-1)">{section.heading}</h1>
+        <p class="type-body mb-6 text-(--text-2)">{section.description}</p>
 
         {#snippet card(title: string, description: string, children: import('svelte').Snippet)}
-            <div class="rounded-xl border-2 border-[var(--border)] bg-[var(--surface)] p-6">
-                {#if title}<p class="type-subtitle mb-1 font-medium text-[var(--text-1)]">{title}</p>{/if}
-                {#if description}<p class="type-body mb-4 text-[var(--text-2)]">{description}</p>{/if}
+            <div class="rounded-xl border-2 border-(--border) bg-(--surface) p-6">
+                {#if title}<p class="type-subtitle mb-1 font-medium text-(--text-1)">{title}</p>{/if}
+                {#if description}<p class="type-body mb-4 text-(--text-2)">{description}</p>{/if}
                 {@render children()}
             </div>
         {/snippet}
@@ -126,20 +122,20 @@
             </div>
         {:else if active === 'display'}
             {#snippet themeContent()}
-                <p class="type-body mb-4 font-medium text-[var(--text-1)]">Theme</p>
-                <p class="type-label mb-4 text-[var(--text-2)]">
+                <p class="type-body mb-4 font-medium text-(--text-1)">Theme</p>
+                <p class="type-label mb-4 text-(--text-2)">
                     Each theme is a complete colour set. Click to preview — applies instantly.
                 </p>
                 <ThemePicker />
             {/snippet}
             {#snippet fontContent()}
-                <p class="type-body mb-4 font-medium text-[var(--text-1)]">Type</p>
-                <p class="type-label mb-4 text-[var(--text-2)]">
+                <p class="type-body mb-4 font-medium text-(--text-1)">Type</p>
+                <p class="type-label mb-4 text-(--text-2)">
                     Each font theme sets typeface, weight, and size. Click to preview — applies instantly.
                 </p>
                 <FontThemePicker />
-                <p class="type-body mb-1 mt-6 font-medium text-[var(--text-1)]">Size</p>
-                <p class="type-label mb-4 text-[var(--text-2)]">Scales all text and icons across the dashboard.</p>
+                <p class="type-body mt-6 mb-1 font-medium text-(--text-1)">Size</p>
+                <p class="type-label mb-4 text-(--text-2)">Scales all text and icons across the dashboard.</p>
                 <FontSizeSlider />
             {/snippet}
             <div class="flex flex-col gap-4">
@@ -190,22 +186,19 @@
                         />
                     </div>
                     <div>
-                        <p class="type-body select-none text-[var(--text-1)]">Kiosk Mode</p>
-                        <p class="type-label select-none text-[var(--text-2)]">
+                        <p class="type-body text-(--text-1) select-none">Kiosk Mode</p>
+                        <p class="type-label text-(--text-2) select-none">
                             Hides the navigation bar and shows the time, date, and weather header. Best for always-on
                             wall displays. Can also be activated with <code class="font-mono">?kiosk=1</code> in the URL.
                         </p>
                     </div>
                 </label>
                 {#if settings.kioskMode}
-                    <div class="mt-4 border-t border-[var(--border)] pt-4">
-                        <a
-                            href="/"
-                            class="type-label inline-flex items-center gap-1.5 text-[var(--accent)] hover:underline"
-                        >
+                    <div class="mt-4 border-t border-(--border) pt-4">
+                        <a href="/" class="type-label inline-flex items-center gap-1.5 text-(--accent) hover:underline">
                             Go to Schedule →
                         </a>
-                        <p class="type-label mt-0.5 text-[var(--text-3)]">
+                        <p class="type-label mt-0.5 text-(--text-3)">
                             The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.
                         </p>
                     </div>
@@ -213,7 +206,7 @@
             {/snippet}
             {@render card('Display mode', 'Control how Hearth presents on this device.', kioskContent)}
         {:else}
-            {#snippet comingSoon()}<p class="type-body text-[var(--text-1)]">Coming soon.</p>{/snippet}
+            {#snippet comingSoon()}<p class="type-body text-(--text-1)">Coming soon.</p>{/snippet}
             {@render card('', '', comingSoon)}
         {/if}
     </main>

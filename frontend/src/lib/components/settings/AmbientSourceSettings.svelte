@@ -24,8 +24,8 @@
             onclick={() => (settings.photoSource = src)}
             class="type-label rounded-full border px-4 py-1.5 tracking-wide transition-colors
                 {settings.photoSource === src
-                ? 'pointer-events-none border-[var(--text-1)] bg-[var(--text-1)] text-[var(--bg)]'
-                : 'border-[var(--border)] text-[var(--text-1)] hover:border-[var(--text-2)] hover:bg-[var(--surface-hi)]'}"
+                ? 'pointer-events-none border-(--text-1) bg-(--text-1) text-(--bg)'
+                : 'border-(--border) text-(--text-1) hover:border-(--text-2) hover:bg-(--surface-hi)'}"
         >
             {sourceLabels[src] ?? src}
         </button>

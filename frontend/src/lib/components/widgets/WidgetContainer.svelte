@@ -23,7 +23,7 @@ NOTE:If no widget ID is passed, then this widget will default to being displayed
 {#if !associatedWidgetId || settings.enabledWidgets.includes(associatedWidgetId)}
     <div class="min-w-0">
         <h2
-            class="type-body mb-3 border-b border-[var(--border)] pb-2 font-bold uppercase tracking-[0.12em] text-[var(--text-1)]"
+            class="type-body mb-3 border-b border-(--border) pb-2 font-bold tracking-[0.12em] text-(--text-1) uppercase"
         >
             {title}
         </h2>

@@ -34,20 +34,18 @@
         <div class="flex flex-row items-center gap-2">
             <Settings class="icon-sm" />
             {#if spotifyConnected}
-                <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">Spotify connected</p>
+                <p class="type-label border-r border-r-(--text-3) pr-2 text-(--text-1)">Spotify connected</p>
                 <button
                     onclick={handleSpotifyDisconnect}
-                    class="type-label text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
+                    class="type-label text-(--text-2) transition-colors hover:text-(--text-1)"
                 >
                     Disconnect
                 </button>
             {:else}
-                <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">
-                    Spotify disconnected
-                </p>
+                <p class="type-label border-r border-r-(--text-3) pr-2 text-(--text-1)">Spotify disconnected</p>
                 <a
                     href="/spotify/auth"
-                    class="type-label inline-flex items-center gap-1 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
+                    class="type-label inline-flex items-center gap-1 text-(--text-2) transition-colors hover:text-(--text-1)"
                 >
                     Connect
                 </a>
@@ -63,22 +61,18 @@
         <div class="flex flex-row items-center gap-2">
             <Settings class="icon-sm" />
             {#if calendarStore.googleConnected}
-                <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">
-                    Google Calendar connected
-                </p>
+                <p class="type-label border-r border-r-(--text-3) pr-2 text-(--text-1)">Google Calendar connected</p>
                 <button
                     onclick={handleCalendarDisconnect}
-                    class="type-label text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
+                    class="type-label text-(--text-2) transition-colors hover:text-(--text-1)"
                 >
                     Disconnect
                 </button>
             {:else}
-                <p class="type-label border-r border-r-[var(--text-3)] pr-2 text-[var(--text-1)]">
-                    Google Calendar disconnected
-                </p>
+                <p class="type-label border-r border-r-(--text-3) pr-2 text-(--text-1)">Google Calendar disconnected</p>
                 <a
                     href="/calendar/google/auth"
-                    class="type-label inline-flex items-center gap-1 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
+                    class="type-label inline-flex items-center gap-1 text-(--text-2) transition-colors hover:text-(--text-1)"
                 >
                     Connect
                 </a>

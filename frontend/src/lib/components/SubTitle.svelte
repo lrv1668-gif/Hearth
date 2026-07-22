@@ -8,9 +8,9 @@
 </script>
 
 <div class="mb-4">
-    <p class="type-body uppercase tracking-widest text-[var(--text-1)]">{subTitleText}</p>
+    <p class="type-body tracking-widest text-(--text-1) uppercase">{subTitleText}</p>
 
     {#if subTitleDescription}
-        <p class="type-label text-[var(--text-2)]">{subTitleDescription}</p>
+        <p class="type-label text-(--text-2)">{subTitleDescription}</p>
     {/if}
 </div>

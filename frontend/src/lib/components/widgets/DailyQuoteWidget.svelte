@@ -12,13 +12,13 @@
 
 <SkeletonLoader promise={loadPromise}>
     {#if dailyQuoteStore.error || !dailyQuoteStore.quote}
-        <p class="type-body text-[var(--text-2)]">Quote unavailable.</p>
+        <p class="type-body text-(--text-2)">Quote unavailable.</p>
     {:else}
         <div class="flex flex-col gap-3">
-            <p class="type-body italic leading-relaxed text-[var(--text-1)]">
+            <p class="type-body leading-relaxed text-(--text-1) italic">
                 "{dailyQuoteStore.quote.q}"
             </p>
-            <p class="type-label text-[var(--text-2)]">— {dailyQuoteStore.quote.a}</p>
+            <p class="type-label text-(--text-2)">— {dailyQuoteStore.quote.a}</p>
         </div>
     {/if}
 </SkeletonLoader>

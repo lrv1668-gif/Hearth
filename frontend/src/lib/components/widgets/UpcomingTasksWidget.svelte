@@ -137,16 +137,14 @@
 </script>
 
 {#if groups.length === 0}
-    <p class="type-body py-4 text-center text-[var(--text-2)]">Nothing scheduled.</p>
+    <p class="type-body py-4 text-center text-(--text-2)">Nothing scheduled.</p>
 {:else}
     <div class="space-y-4">
         {#each groups as group (group.key)}
             <div class="space-y-1">
                 <div class="">
                     <div class="flex items-center gap-3">
-                        <h2
-                            class="type-label whitespace-nowrap font-semibold uppercase tracking-wider text-[var(--text-2)]"
-                        >
+                        <h2 class="type-label font-semibold tracking-wider whitespace-nowrap text-(--text-2) uppercase">
                             {group.label}
                         </h2>
                     </div>
@@ -160,17 +158,17 @@
                                     onclick={() => onToggle(task)}
                                     class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
                            {task.done
-                                        ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
-                                        : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
+                                        ? 'border-(--done-bg) bg-(--done-bg)'
+                                        : 'border-(--text-3) hover:border-(--text-1)'}"
                                     aria-label="Toggle {task.title}"
                                 >
                                     {#if task.done}
-                                        <Check class="icon-xs text-[var(--bg)]" />
+                                        <Check class="icon-xs text-(--bg)" />
                                     {/if}
                                 </button>
 
                                 {#if task.due_time}
-                                    <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
+                                    <span class="type-label w-14 flex-shrink-0 text-(--text-2) tabular-nums">
                                         {formatTime(task.due_time)}
                                     </span>
                                 {:else}
@@ -184,22 +182,20 @@
                                     <div class="flex min-w-0 items-center gap-2">
                                         <span
                                             class="type-body truncate transition-colors
-                                                   {task.done
-                                                ? 'text-[var(--done)] line-through'
-                                                : 'text-[var(--text-1)]'}"
+                                                   {task.done ? 'text-(--done) line-through' : 'text-(--text-1)'}"
                                         >
                                             {task.title}
                                         </span>
                                         {#if task.assignee}
                                             <span
-                                                class="type-label flex-shrink-0 rounded bg-[var(--surface-hi)] px-1.5 py-0.5 text-[var(--text-2)]"
+                                                class="type-label flex-shrink-0 rounded bg-(--surface-hi) px-1.5 py-0.5 text-(--text-2)"
                                             >
                                                 {task.assignee}
                                             </span>
                                         {/if}
                                         {#if task.recurrence_unit}
                                             <span
-                                                class="type-label flex flex-shrink-0 items-center gap-0.5 text-[var(--text-2)]"
+                                                class="type-label flex flex-shrink-0 items-center gap-0.5 text-(--text-2)"
                                             >
                                                 <RefreshCw class="icon-xs" />
                                                 {recurrenceLabel(task)}
@@ -207,7 +203,7 @@
                                         {/if}
                                     </div>
                                     {#if task.description}
-                                        <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
+                                        <p class="type-label mt-0.5 truncate text-(--text-2)">
                                             {task.description}
                                         </p>
                                     {/if}
@@ -220,7 +216,7 @@
                                                 onDelete(task.id);
                                                 confirmDeleteId = null;
                                             }}
-                                            class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
+                                            class="type-label rounded bg-(--surface-hi) px-2 py-0.5 text-(--text-2) transition hover:text-(--text-1)"
                                         >
                                             Just this
                                         </button>
@@ -229,13 +225,13 @@
                                                 onDelete(task.id, true);
                                                 confirmDeleteId = null;
                                             }}
-                                            class="type-label rounded bg-[var(--surface-hi)] px-2 py-0.5 text-[var(--text-2)] transition hover:text-[var(--text-1)]"
+                                            class="type-label rounded bg-(--surface-hi) px-2 py-0.5 text-(--text-2) transition hover:text-(--text-1)"
                                         >
                                             All future
                                         </button>
                                         <button
                                             onclick={() => (confirmDeleteId = null)}
-                                            class="text-[var(--text-4)] transition hover:text-[var(--text-2)]"
+                                            class="text-(--text-4) transition hover:text-(--text-2)"
                                             aria-label="Cancel"
                                         >
                                             <X class="icon-sm" />
@@ -250,7 +246,7 @@
                                                 onDelete(task.id);
                                             }
                                         }}
-                                        class="flex-shrink-0 text-[var(--text-3)] opacity-0 transition hover:text-[var(--text-1)] group-hover/row:opacity-100"
+                                        class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/row:opacity-100 hover:text-(--text-1)"
                                         aria-label="Delete {task.title}"
                                     >
                                         <X class="icon-md" />
@@ -273,15 +269,15 @@
                                             }}
                                             class="flex h-4 w-4 items-center justify-center rounded border transition-colors
                                                    {calItem.is_completed
-                                                ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
-                                                : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
+                                                ? 'border-(--done-bg) bg-(--done-bg)'
+                                                : 'border-(--text-3) hover:border-(--text-1)'}"
                                             aria-label="Toggle {calItem.title}"
                                         >
                                             {#if calItem.is_completed}
-                                                <Check class="icon-xs text-[var(--bg)]" />
+                                                <Check class="icon-xs text-(--bg)" />
                                             {/if}
                                         </button>
-                                        <div class="absolute -bottom-1 -right-1">
+                                        <div class="absolute -right-1 -bottom-1">
                                             <ProviderIcon provider={calItem.provider} />
                                         </div>
                                     </div>
@@ -290,13 +286,13 @@
                                         <span
                                             class="type-body block truncate
                                                    {calItem.is_completed
-                                                ? 'text-[var(--done)] line-through'
-                                                : 'text-[var(--text-1)]'}"
+                                                ? 'text-(--done) line-through'
+                                                : 'text-(--text-1)'}"
                                         >
                                             {calItem.title}
                                         </span>
                                         {#if calItem.description}
-                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
+                                            <p class="type-label mt-0.5 truncate text-(--text-2)">
                                                 {calItem.description}
                                             </p>
                                         {/if}
@@ -306,7 +302,7 @@
                                             href={calItem.html_link}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="flex-shrink-0 text-[var(--text-3)] opacity-0 transition hover:text-[var(--accent)] group-hover/cal:opacity-100"
+                                            class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/cal:opacity-100 hover:text-(--accent)"
                                             aria-label="Open in Google Tasks"
                                             onclick={(e) => e.stopPropagation()}
                                         >
@@ -317,13 +313,13 @@
                             {:else}
                                 <li class="flex items-center gap-3 rounded-lg px-3 py-2.5">
                                     <div class="relative flex-shrink-0">
-                                        <CalendarIcon class="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
-                                        <div class="absolute -bottom-1 -right-1">
+                                        <CalendarIcon class="h-4 w-4 text-(--accent)" aria-hidden="true" />
+                                        <div class="absolute -right-1 -bottom-1">
                                             <ProviderIcon provider={calItem.provider} />
                                         </div>
                                     </div>
                                     {#if !calItem.is_all_day}
-                                        <span class="type-label w-14 flex-shrink-0 tabular-nums text-[var(--text-2)]">
+                                        <span class="type-label w-14 flex-shrink-0 text-(--text-2) tabular-nums">
                                             {formatTime(timeKey(item) ?? '')}
                                         </span>
                                     {:else}
@@ -333,11 +329,9 @@
                                         onclick={() => onEventClick?.(calItem)}
                                         class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
                                     >
-                                        <span class="type-body block truncate text-[var(--text-1)]"
-                                            >{calItem.title}</span
-                                        >
+                                        <span class="type-body block truncate text-(--text-1)">{calItem.title}</span>
                                         {#if calItem.description}
-                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
+                                            <p class="type-label mt-0.5 truncate text-(--text-2)">
                                                 {stripHtml(calItem.description)}
                                             </p>
                                         {/if}

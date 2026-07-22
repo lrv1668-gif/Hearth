@@ -24,7 +24,7 @@
 </script>
 
 <div class="flex items-center gap-4">
-    <span aria-hidden="true" class="type-label text-[var(--text-3)]">A</span>
+    <span aria-hidden="true" class="type-label text-(--text-3)">A</span>
     <input
         type="range"
         min={MIN_FONT_SCALE}
@@ -33,10 +33,10 @@
         value={fontSizeStore.scale}
         oninput={handleInput}
         aria-label="Text size"
-        class="h-1 flex-1 cursor-pointer accent-[var(--accent)]"
+        class="h-1 flex-1 cursor-pointer accent-(--accent)"
     />
-    <span aria-hidden="true" class="type-subtitle text-[var(--text-3)]">A</span>
-    <span class="type-label w-12 text-right tabular-nums text-[var(--text-2)]">
+    <span aria-hidden="true" class="type-subtitle text-(--text-3)">A</span>
+    <span class="type-label w-12 text-right text-(--text-2) tabular-nums">
         {Math.round(fontSizeStore.scale * 100)}%
     </span>
 </div>

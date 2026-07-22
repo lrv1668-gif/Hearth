@@ -59,8 +59,6 @@
         return [...eventMarks, ...taskMarks].sort((a, b) => a.at.getTime() - b.at.getTime());
     });
 
-    const nextMark = $derived(marks.find((m) => m.at > now) ?? null);
-
     const daylightLabel = $derived.by(() => {
         if (!sunrise || !sunset) return '';
         const minutes = Math.round((sunset.getTime() - sunrise.getTime()) / 60_000);
@@ -73,33 +71,33 @@
 </script>
 
 {#if !sunrise || !sunset || !goldenStart || !morningGoldenEnd}
-    <p class="type-label text-[var(--text-3)]">Sun times unavailable — set up the Weather service.</p>
+    <p class="type-label text-(--text-3)">Sun times unavailable — set up the Weather service.</p>
 {:else}
     <div class="flex flex-col gap-2">
         <div class="relative h-8">
             <!-- night track -->
-            <div class="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--surface-hi)]"></div>
+            <div class="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--surface-hi)"></div>
 
             <!-- daylight band -->
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--border)]"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--border)"
                 style="left: {pct(sunrise)}%; width: {pct(sunset) - pct(sunrise)}%"
             ></div>
 
             <!-- golden hour bands -->
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--accent)] opacity-40"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--accent) opacity-40"
                 style="left: {pct(sunrise)}%; width: {pct(morningGoldenEnd) - pct(sunrise)}%"
             ></div>
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--accent)] opacity-40"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--accent) opacity-40"
                 style="left: {pct(goldenStart)}%; width: {pct(sunset) - pct(goldenStart)}%"
             ></div>
 
             <!-- solar noon tick -->
             {#if solarNoonPct !== null}
                 <div
-                    class="absolute top-1/2 h-3.5 w-px -translate-y-1/2 bg-[var(--text-4)]"
+                    class="absolute top-1/2 h-3.5 w-px -translate-y-1/2 bg-(--text-4)"
                     style="left: {solarNoonPct}%"
                 ></div>
             {/if}
@@ -108,8 +106,8 @@
             {#each marks as mark (mark.title + mark.at.getTime())}
                 <div
                     class="absolute top-0.5 h-1.5 w-1.5 rounded-full {mark.at < now
-                        ? 'bg-[var(--text-4)]'
-                        : 'bg-[var(--text-2)]'}"
+                        ? 'bg-(--text-4)'
+                        : 'bg-(--text-2)'}"
                     style="left: calc({pct(mark.at)}% - 3px)"
                     title="{mark.title} · {clock(mark.at)}"
                 ></div>
@@ -117,27 +115,21 @@
 
             <!-- now -->
             <div
-                class="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[var(--accent)] ring-2 ring-[var(--bg)]"
+                class="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-(--accent) ring-2 ring-(--bg)"
                 style="left: calc({pct(now)}% - 6px)"
             ></div>
         </div>
 
         <div class="flex items-baseline justify-between gap-2">
-            <span class="type-label flex items-center gap-1 text-[var(--text-2)]">
+            <span class="type-label flex items-center gap-1 text-(--text-2)">
                 <Sunrise class="icon-xs" />
                 {clock(sunrise)}
             </span>
-            <span class="type-label text-[var(--text-2)]">{daylightLabel}</span>
-            <span class="type-label flex items-center gap-1 text-[var(--text-2)]">
+            <span class="type-label text-(--text-2)">{daylightLabel}</span>
+            <span class="type-label flex items-center gap-1 text-(--text-2)">
                 {clock(sunset)}
                 <Sunset class="icon-xs" />
             </span>
         </div>
-
-        {#if nextMark}
-            <p class="type-label truncate text-[var(--text-2)]">
-                Next: {nextMark.title} · {clock(nextMark.at)}
-            </p>
-        {/if}
     </div>
 {/if}

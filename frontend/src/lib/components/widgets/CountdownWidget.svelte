@@ -33,7 +33,7 @@
 </script>
 
 {#if upcoming.length === 0}
-    <p class="type-body text-[var(--text-2)]">No countdowns added yet.</p>
+    <p class="type-body text-(--text-2)">No countdowns added yet.</p>
 {:else}
     <ul class="space-y-3">
         {#each upcoming as item (item.id)}
@@ -44,12 +44,12 @@
                 >
                     <div class="flex w-12 flex-shrink-0 flex-col items-end">
                         {#if item.days === 0}
-                            <span class="type-title font-bold leading-none text-[var(--accent)]">!</span>
+                            <span class="type-title leading-none font-bold text-(--accent)">!</span>
                         {:else}
-                            <span class="type-title font-bold tabular-nums leading-none text-[var(--text-1)]">
+                            <span class="type-title leading-none font-bold text-(--text-1) tabular-nums">
                                 {item.days}
                             </span>
-                            <span class="type-caption leading-none text-[var(--text-2)]">
+                            <span class="type-caption leading-none text-(--text-2)">
                                 {item.days === 1 ? 'day' : 'days'}
                             </span>
                         {/if}
@@ -57,13 +57,13 @@
 
                     <div class="min-w-0 flex-1">
                         {#if item.days === 0}
-                            <p class="type-label font-semibold uppercase tracking-widest text-[var(--accent)]">Today</p>
+                            <p class="type-label font-semibold tracking-widest text-(--accent) uppercase">Today</p>
                         {/if}
 
-                        <p class="type-body truncate leading-tight text-[var(--text-1)]">{item.title}</p>
+                        <p class="type-body truncate leading-tight text-(--text-1)">{item.title}</p>
 
                         {#if item.days !== 0}
-                            <p class="type-label text-left text-[var(--text-2)]">{formatDate(item.due_date!)}</p>
+                            <p class="type-label text-left text-(--text-2)">{formatDate(item.due_date!)}</p>
                         {/if}
                     </div>
                 </button>

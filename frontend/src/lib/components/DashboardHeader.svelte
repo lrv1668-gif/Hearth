@@ -25,21 +25,21 @@
     }
 </script>
 
-<div class="shrink-0 border-b border-[var(--border)] px-6 pb-2 md:px-8">
+<div class="shrink-0 border-b border-(--border) px-6 pb-2 md:px-8">
     <div class="flex justify-between">
         <div class="flex flex-col gap-2 sm:flex-row-reverse sm:items-end sm:pt-2">
-            <p class="type-body uppercase tracking-widest text-[var(--text-2)]">{date}</p>
-            <p class="type-display font-bold leading-none text-[var(--text-1)]">{time}</p>
+            <p class="type-body tracking-widest text-(--text-2) uppercase">{date}</p>
+            <p class="type-display leading-none font-bold text-(--text-1)">{time}</p>
         </div>
 
         {#if weatherStore.current}
             {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}
             <div class="flex items-end gap-2">
-                <WeatherIcon class="icon-lg flex-shrink-0 self-center text-[var(--text-2)]" />
-                <span class="type-display font-semibold leading-none text-[var(--text-1)]">
+                <WeatherIcon class="icon-lg flex-shrink-0 self-center text-(--text-2)" />
+                <span class="type-display leading-none font-semibold text-(--text-1)">
                     {Math.round(weatherStore.current.temperature_f)}°
                 </span>
-                <span class="type-body text-[var(--text-2)]">
+                <span class="type-body text-(--text-2)">
                     {weatherStore.current.description}
                 </span>
             </div>

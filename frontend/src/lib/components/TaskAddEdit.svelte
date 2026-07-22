@@ -153,22 +153,22 @@
             bind:value={newTitle}
             onkeydown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="Enter description..."
-            class="type-body flex-1 rounded-lg bg-[var(--surface)]
-             px-4 py-2.5 text-[var(--text-1)] placeholder-[var(--text-2)] outline-none
-             transition focus:ring-1 focus:ring-[var(--border)]"
+            class="type-body flex-1 rounded-lg bg-(--surface)
+             px-4 py-2.5 text-(--text-1) placeholder-(--text-2) transition
+             outline-none focus:ring-1 focus:ring-(--border)"
         />
         <input
             type="date"
             value={newDueDate}
             oninput={handleDateChange}
-            class="type-body rounded-lg bg-[var(--surface)] px-3 py-2.5 text-[var(--text-2)]
-             outline-none transition focus:ring-1 focus:ring-[var(--border)]"
+            class="type-body rounded-lg bg-(--surface) px-3 py-2.5 text-(--text-2)
+             transition outline-none focus:ring-1 focus:ring-(--border)"
         />
         <button
             type="submit"
             disabled={!!newDueDate && !allDay && !newDueTime}
-            class="type-body rounded-lg bg-[var(--accent)] px-4 py-2.5
-             font-medium text-[var(--accent-fg)] transition-colors hover:bg-[var(--accent-hi)]
+            class="type-body rounded-lg bg-(--accent) px-4 py-2.5
+             font-medium text-(--accent-fg) transition-colors hover:bg-(--accent-hi)
              disabled:cursor-not-allowed disabled:opacity-40"
         >
             {isEdit ? 'Save' : 'Add'}
@@ -179,7 +179,7 @@
     {#if newDueDate}
         <div class="flex items-center gap-3">
             <div class="flex-1"></div>
-            <label class="type-body flex cursor-pointer select-none items-center gap-2 text-[var(--text-2)]">
+            <label class="type-body flex cursor-pointer items-center gap-2 text-(--text-2) select-none">
                 <input
                     type="checkbox"
                     checked={allDay}
@@ -187,7 +187,7 @@
                         allDay = (e.target as HTMLInputElement).checked;
                         if (allDay) newDueTime = '';
                     }}
-                    class="cursor-pointer rounded accent-[var(--accent)]"
+                    class="cursor-pointer rounded accent-(--accent)"
                 />
                 All day
             </label>
@@ -196,8 +196,8 @@
                     type="time"
                     bind:value={newDueTime}
                     step="900"
-                    class="type-body rounded-lg bg-[var(--surface)] px-3 py-2 text-[var(--text-3)]
-                           outline-none transition focus:ring-1 focus:ring-[var(--border)]"
+                    class="type-body rounded-lg bg-(--surface) px-3 py-2 text-(--text-3)
+                           transition outline-none focus:ring-1 focus:ring-(--border)"
                 />
             {/if}
         </div>
@@ -207,7 +207,7 @@
     <button
         type="button"
         onclick={() => (showMore = !showMore)}
-        class="type-label flex items-center gap-1 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
+        class="type-label flex items-center gap-1 text-(--text-2) transition-colors hover:text-(--text-1)"
     >
         {#if showMore}<ChevronUp class="icon-sm" />{:else}
             <ChevronDown class="icon-sm" />{/if}
@@ -215,38 +215,36 @@
     </button>
 
     {#if showMore}
-        <div class="space-y-3 border-t border-[var(--border)] pt-1">
+        <div class="space-y-3 border-t border-(--border) pt-1">
             <!-- Description -->
             <textarea
                 bind:value={description}
                 placeholder="Description (optional)"
                 rows={2}
                 class="type-body mt-1 w-full resize-none
-                       rounded-lg bg-[var(--surface)] px-4 py-2.5 text-[var(--text-1)] placeholder-[var(--text-2)]
-                       outline-none transition focus:ring-1 focus:ring-[var(--border)]"
+                       rounded-lg bg-(--surface) px-4 py-2.5 text-(--text-1) placeholder-(--text-2)
+                       transition outline-none focus:ring-1 focus:ring-(--border)"
             ></textarea>
 
             <!-- Assignee -->
             <input
                 bind:value={assignee}
                 placeholder="Assign to (optional)"
-                class="type-body w-full rounded-lg bg-[var(--surface)]
-                       px-4 py-2.5 text-[var(--text-1)] placeholder-[var(--text-2)] outline-none
-                       transition focus:ring-1 focus:ring-[var(--border)]"
+                class="type-body w-full rounded-lg bg-(--surface)
+                       px-4 py-2.5 text-(--text-1) placeholder-(--text-2) transition
+                       outline-none focus:ring-1 focus:ring-(--border)"
             />
 
             <!-- Countdown toggle (add mode) / indicator (edit mode) -->
             {#if isEdit && task?.is_countdown}
-                <div class="type-body flex items-center gap-2 text-[var(--text-3)]">
+                <div class="type-body flex items-center gap-2 text-(--text-3)">
                     <Timer class="icon-sm" />
                     <span>Event countdown</span>
                 </div>
             {:else if !isEdit}
                 <label class="group flex cursor-pointer items-center gap-3">
-                    <input type="checkbox" bind:checked={isCountdown} class="h-4 w-4 accent-[var(--accent)]" />
-                    <span
-                        class="type-body select-none text-[var(--text-2)] transition-colors group-hover:text-[var(--text-1)]"
-                    >
+                    <input type="checkbox" bind:checked={isCountdown} class="h-4 w-4 accent-(--accent)" />
+                    <span class="type-body text-(--text-2) transition-colors select-none group-hover:text-(--text-1)">
                         Event countdown
                     </span>
                 </label>
@@ -254,14 +252,14 @@
 
             <!-- Recurrence -->
             {#if isEdit && task?.recurrence_unit}
-                <div class="type-body flex items-center gap-2 text-[var(--text-3)]">
+                <div class="type-body flex items-center gap-2 text-(--text-3)">
                     <RefreshCw class="icon-sm" />
                     <span>{recurrenceLabel(task)}</span>
-                    <span class="type-label text-[var(--text-4)]">(recurrence cannot be changed)</span>
+                    <span class="type-label text-(--text-4)">(recurrence cannot be changed)</span>
                 </div>
             {:else if !isEdit && !isCountdown}
                 <div class="space-y-2">
-                    <p class="type-label uppercase tracking-wide text-[var(--text-2)]">Repeat</p>
+                    <p class="type-label tracking-wide text-(--text-2) uppercase">Repeat</p>
                     <div class="flex flex-wrap gap-2">
                         {#each repeatOptions as opt}
                             <button
@@ -273,8 +271,8 @@
                                 }}
                                 class="type-label rounded-full px-3 py-1 transition-colors
                                        {recurrenceUnit === opt.unit && recurrenceInterval === opt.interval
-                                    ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
-                                    : 'bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--text-4)] hover:text-[var(--text-1)]'}"
+                                    ? 'bg-(--accent) text-(--accent-fg)'
+                                    : 'bg-(--surface) text-(--text-2) hover:bg-(--text-4) hover:text-(--text-1)'}"
                             >
                                 {opt.label}
                             </button>
@@ -289,8 +287,8 @@
                                     onclick={() => toggleDay(day)}
                                     class="type-label rounded px-2 py-1 transition-colors
                                            {recurrenceDays.includes(day)
-                                        ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
-                                        : 'bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--text-4)] hover:text-[var(--text-1)]'}"
+                                        ? 'bg-(--accent) text-(--accent-fg)'
+                                        : 'bg-(--surface) text-(--text-2) hover:bg-(--text-4) hover:text-(--text-1)'}"
                                 >
                                     {day}
                                 </button>
@@ -299,15 +297,15 @@
                     {/if}
 
                     {#if recurrenceUnit && recurrenceUnit !== 'week'}
-                        <div class="type-body flex items-center gap-2 text-[var(--text-2)]">
+                        <div class="type-body flex items-center gap-2 text-(--text-2)">
                             <span>Every</span>
                             <input
                                 type="number"
                                 bind:value={recurrenceInterval}
                                 min={1}
                                 max={365}
-                                class="type-body w-16 rounded-lg bg-[var(--surface)] px-3 py-1.5 text-center
-                                       text-[var(--text-2)] outline-none focus:ring-1 focus:ring-[var(--border)]"
+                                class="type-body w-16 rounded-lg bg-(--surface) px-3 py-1.5 text-center
+                                       text-(--text-2) outline-none focus:ring-1 focus:ring-(--border)"
                             />
                             <span
                                 >{recurrenceUnit === 'day'
@@ -319,25 +317,25 @@
                         </div>
                     {/if}
 
-                    <div class="type-body flex items-center gap-2 text-[var(--text-2)]">
+                    <div class="type-body flex items-center gap-2 text-(--text-2)">
                         <span>Ends on</span>
                         <input
                             type="date"
                             bind:value={recurrenceEndDate}
                             min={newDueDate || undefined}
-                            class="type-body rounded-lg bg-[var(--surface)] px-3 py-1.5 placeholder-[var(--text-2)]
-                                   outline-none transition focus:ring-1 focus:ring-[var(--border)]"
+                            class="type-body rounded-lg bg-(--surface) px-3 py-1.5 placeholder-(--text-2)
+                                   transition outline-none focus:ring-1 focus:ring-(--border)"
                         />
                         {#if recurrenceEndDate}
                             <button
                                 type="button"
                                 onclick={() => (recurrenceEndDate = '')}
-                                class="type-label text-[var(--text-2)] transition hover:text-[var(--text-1)]"
+                                class="type-label text-(--text-2) transition hover:text-(--text-1)"
                             >
                                 Clear
                             </button>
                         {:else}
-                            <span class="type-label text-[var(--text-2)]">optional</span>
+                            <span class="type-label text-(--text-2)">optional</span>
                         {/if}
                     </div>
                 </div>

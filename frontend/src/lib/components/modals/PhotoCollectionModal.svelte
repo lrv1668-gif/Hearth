@@ -99,23 +99,23 @@
     onclick={handleBackdropClick}
     class="w-full max-w-3xl bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
-    <div class="mx-4 flex max-h-[85vh] flex-col rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-xl">
+    <div class="mx-4 flex max-h-[85vh] flex-col rounded-xl border border-(--border) bg-(--bg) shadow-xl">
         <!-- Sticky header -->
-        <div class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-5 py-4">
+        <div class="flex shrink-0 items-center justify-between border-b border-(--border) px-5 py-4">
             <div>
-                <h2 class="text-[var(--text-1)]">Photo collection</h2>
-                <p class="type-label text-[var(--text-2)]">
+                <h2 class="text-(--text-1)">Photo collection</h2>
+                <p class="type-label text-(--text-2)">
                     {photos.length === 0 ? 'No photos yet' : `${photos.length} photo${photos.length === 1 ? '' : 's'}`}
                 </p>
             </div>
             <div class="flex items-center gap-2">
                 <label
-                    class="flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1.5 transition-colors hover:border-[var(--text-2)] hover:bg-[var(--surface-hi)] {uploading
+                    class="flex cursor-pointer items-center gap-2 rounded-full border border-(--border) px-3 py-1.5 transition-colors hover:border-(--text-2) hover:bg-(--surface-hi) {uploading
                         ? 'pointer-events-none opacity-50'
                         : ''}"
                 >
-                    <Upload class="h-3.5 w-3.5 text-[var(--text-1)]" />
-                    <span class="type-label text-[var(--text-1)]">{uploading ? uploadLabel : 'Add photos'}</span>
+                    <Upload class="h-3.5 w-3.5 text-(--text-1)" />
+                    <span class="type-label text-(--text-1)">{uploading ? uploadLabel : 'Add photos'}</span>
                     <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
@@ -127,7 +127,7 @@
                 </label>
                 <button
                     onclick={close}
-                    class="flex h-7 w-7 items-center justify-center text-[var(--text-3)] transition-colors hover:text-[var(--text-1)]"
+                    class="flex h-7 w-7 items-center justify-center text-(--text-3) transition-colors hover:text-(--text-1)"
                     aria-label="Close"
                 >
                     <X class="icon-md" />
@@ -136,20 +136,18 @@
         </div>
 
         {#if error}
-            <p class="type-label shrink-0 border-b border-[var(--border)] px-5 py-2.5 text-red-500">{error}</p>
+            <p class="type-label shrink-0 border-b border-(--border) px-5 py-2.5 text-red-500">{error}</p>
         {/if}
 
         <!-- Scrollable grid -->
         <div class="min-h-0 flex-1 overflow-y-auto p-5">
             {#if photos.length === 0}
-                <p class="type-label py-12 text-center text-[var(--text-3)]">
-                    No photos yet. Upload some to get started.
-                </p>
+                <p class="type-label py-12 text-center text-(--text-3)">No photos yet. Upload some to get started.</p>
             {:else}
                 <div class="grid grid-cols-3 gap-3">
                     {#each photos as p (p.id)}
                         <div class="flex flex-col gap-1">
-                            <div class="group relative aspect-square overflow-hidden rounded-lg bg-[var(--surface)]">
+                            <div class="group relative aspect-square overflow-hidden rounded-lg bg-(--surface)">
                                 <img
                                     src={p.thumb_url}
                                     alt={p.caption ?? ''}
@@ -157,7 +155,7 @@
                                 />
                                 <button
                                     onclick={() => handleDelete(p.id)}
-                                    class="absolute right-1.5 top-1.5 rounded-md bg-black/60 p-1.5 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100"
+                                    class="absolute top-1.5 right-1.5 rounded-md bg-black/60 p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
                                     aria-label="Delete photo"
                                 >
                                     <Trash2 class="h-3.5 w-3.5 text-white" />
@@ -169,7 +167,7 @@
                                 onchange={(e) => handleCaptionChange(p.id, e)}
                                 placeholder="Add a caption"
                                 aria-label="Photo caption"
-                                class="type-label w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-[var(--text-1)] transition-colors placeholder:text-[var(--text-3)] hover:border-[var(--border)] focus:border-[var(--border)] focus:outline-none"
+                                class="type-label w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-(--text-1) transition-colors placeholder:text-(--text-3) hover:border-(--border) focus:border-(--border) focus:outline-none"
                             />
                         </div>
                     {/each}

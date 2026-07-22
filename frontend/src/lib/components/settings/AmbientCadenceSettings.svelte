@@ -9,8 +9,8 @@
         {onclick}
         class="type-label rounded-full border px-4 py-1.5 tracking-wide transition-colors
             {selected
-            ? 'pointer-events-none border-[var(--text-1)] bg-[var(--text-1)] text-[var(--bg)]'
-            : 'border-[var(--border)] text-[var(--text-1)] hover:border-[var(--text-2)] hover:bg-[var(--surface-hi)]'}"
+            ? 'pointer-events-none border-(--text-1) bg-(--text-1) text-(--bg)'
+            : 'border-(--border) text-(--text-1) hover:border-(--text-2) hover:bg-(--surface-hi)'}"
     >
         {label}
     </button>
@@ -18,7 +18,7 @@
 
 <div class="space-y-5">
     <div>
-        <p class="type-label mb-2 text-[var(--text-2)]">Day</p>
+        <p class="type-label mb-2 text-(--text-2)">Day</p>
         <div class="flex flex-wrap gap-2">
             {#each cadenceOptions as opt}
                 {@render chip(
@@ -31,7 +31,7 @@
     </div>
 
     <div>
-        <p class="type-label mb-2 text-[var(--text-2)]">Night (10pm – 6am)</p>
+        <p class="type-label mb-2 text-(--text-2)">Night (10pm – 6am)</p>
         <div class="flex flex-wrap gap-2">
             {#each nightCadenceOptions as opt}
                 {@render chip(
@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <label class="flex cursor-pointer items-center gap-3 border-t border-[var(--border)] pt-4">
+    <label class="flex cursor-pointer items-center gap-3 border-t border-(--border) pt-4">
         <div class="shrink-0">
             <Toggle
                 checked={settings.ambientMotion}
@@ -51,8 +51,8 @@
             />
         </div>
         <div>
-            <p class="type-body select-none text-[var(--text-1)]">Motion</p>
-            <p class="type-label select-none text-[var(--text-2)]">
+            <p class="type-body text-(--text-1) select-none">Motion</p>
+            <p class="type-label text-(--text-2) select-none">
                 Slow pan and zoom across each photo. Turn off for e-ink displays.
             </p>
         </div>

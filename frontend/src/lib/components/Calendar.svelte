@@ -143,8 +143,8 @@
             disabled={isCurrentMonth}
             class="type-label flex items-center gap-1 rounded border px-2.5 py-1 tracking-wide transition-colors
              {isCurrentMonth
-                ? 'cursor-default border-[var(--border)] text-[var(--text-4)] opacity-50'
-                : 'border-[var(--border)] text-[var(--text-2)] hover:border-[var(--text-3)] hover:bg-[var(--surface)] hover:text-[var(--text-1)]'}"
+                ? 'cursor-default border-(--border) text-(--text-4) opacity-50'
+                : 'border-(--border) text-(--text-2) hover:border-(--text-3) hover:bg-(--surface) hover:text-(--text-1)'}"
         >
             {#if isCurrentMonth}
                 <ArrowDownToLine class="icon-sm" />
@@ -160,14 +160,14 @@
         <div class="flex items-center gap-1">
             <button
                 onclick={prevMonth}
-                class="p-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
+                class="p-1.5 text-(--text-2) transition-colors hover:text-(--text-1)"
                 aria-label="Previous month"
             >
                 <ChevronLeft class="icon-md" />
             </button>
             <button
                 onclick={nextMonth}
-                class="p-1.5 text-[var(--text-2)] transition-colors hover:text-[var(--text-1)]"
+                class="p-1.5 text-(--text-2) transition-colors hover:text-(--text-1)"
                 aria-label="Next month"
             >
                 <ChevronRight class="icon-md" />
@@ -175,7 +175,7 @@
         </div>
 
         <!-- Month + year -->
-        <h2 class="type-body select-none font-bold uppercase tracking-widest text-[var(--text-1)]">
+        <h2 class="type-body font-bold tracking-widest text-(--text-1) uppercase select-none">
             {MONTH_NAMES[viewMonth]}
             {viewYear}
         </h2>
@@ -185,25 +185,23 @@
         <!-- Far right: new task -->
         <button
             onclick={onNewTask}
-            class="type-label flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1
-             font-medium text-[var(--accent-fg)]
-             transition-colors hover:bg-[var(--accent-hi)]"
+            class="type-label flex items-center gap-1.5 rounded-lg bg-(--accent) px-3 py-1
+             font-medium text-(--accent-fg)
+             transition-colors hover:bg-(--accent-hi)"
         >
             <Plus class="icon-md" />
             New Task
         </button>
     </div>
 
-    <!-- Calendar grid — gap-px + bg-[var(--border)] creates hairline grid lines -->
+    <!-- Calendar grid — gap-px + bg-(--border) creates hairline grid lines -->
     <div
-        class="grid min-h-0 flex-1 grid-cols-7 gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)]"
+        class="grid min-h-0 flex-1 grid-cols-7 gap-px overflow-hidden rounded-lg border border-(--border) bg-(--border)"
         style="grid-template-rows: auto repeat({numWeeks}, 1fr)"
     >
         <!-- Day-of-week headers -->
         {#each DAY_NAMES as day}
-            <div
-                class="type-label bg-[var(--surface)] py-2.5 text-center font-semibold tracking-widest text-[var(--text-2)]"
-            >
+            <div class="type-label bg-(--surface) py-2.5 text-center font-semibold tracking-widest text-(--text-2)">
                 {day}
             </div>
         {/each}
@@ -225,15 +223,15 @@
                 class="flex h-full w-full flex-col items-start p-3 text-left
                   {day
                     ? isToday
-                        ? 'cursor-default bg-[var(--surface-hi)] ring-2 ring-inset ring-[var(--accent)] transition-colors hover:bg-[var(--surface-hi)]'
-                        : 'cursor-default bg-[var(--bg)] transition-colors hover:bg-[var(--surface)]'
-                    : 'pointer-events-none bg-[var(--surface)] opacity-60'}"
+                        ? 'cursor-default bg-(--surface-hi) ring-2 ring-(--accent) transition-colors ring-inset hover:bg-(--surface-hi)'
+                        : 'cursor-default bg-(--bg) transition-colors hover:bg-(--surface)'
+                    : 'pointer-events-none bg-(--surface) opacity-60'}"
                 aria-label={day ? `Add task on ${key}` : undefined}
             >
                 {#if day}
                     <span
                         class="type-label mb-1.5 block leading-none
-                               {isToday ? 'font-semibold text-[var(--text-1)]' : 'text-[var(--text-3)]'}"
+                               {isToday ? 'font-semibold text-(--text-1)' : 'text-(--text-3)'}"
                     >
                         {day}
                     </span>
@@ -248,7 +246,7 @@
                                             onToggle(task);
                                         }}
                                         class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
-                           {task.done ? 'bg-[var(--done-bg)]' : 'bg-[var(--text-3)] hover:bg-[var(--text-1)]'}"
+                           {task.done ? 'bg-(--done-bg)' : 'bg-(--text-3) hover:bg-(--text-1)'}"
                                         aria-label="Toggle {task.title}"
                                     ></button>
                                     <button
@@ -257,10 +255,10 @@
                                             onEdit(task);
                                         }}
                                         class="type-label min-w-0 truncate text-left transition-colors hover:underline
-                               {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                               {task.done ? 'text-(--done) line-through' : 'text-(--text-1)'}"
                                     >
                                         {#if task.due_time}
-                                            <span class="mr-0.5 text-[var(--text-3)]">{formatTime(task.due_time)}</span>
+                                            <span class="mr-0.5 text-(--text-3)">{formatTime(task.due_time)}</span>
                                         {/if}
                                         {task.title}
                                     </button>
@@ -281,21 +279,21 @@
                                             }}
                                             class="h-2 w-2 flex-shrink-0 rounded-full transition-colors
                                                {calItem.is_completed
-                                                ? 'bg-[var(--done-bg)]'
-                                                : 'bg-[var(--accent)] hover:opacity-80'}"
+                                                ? 'bg-(--done-bg)'
+                                                : 'bg-(--accent) hover:opacity-80'}"
                                             aria-label="Toggle {calItem.title}"
                                         ></button>
                                         <span
                                             class="type-label min-w-0 truncate
                                                    {calItem.is_completed
-                                                ? 'text-[var(--done)] line-through'
-                                                : 'text-[var(--text-1)]'}"
+                                                ? 'text-(--done) line-through'
+                                                : 'text-(--text-1)'}"
                                         >
                                             {calItem.title}
                                         </span>
                                     {:else}
                                         <CalendarIcon
-                                            class="h-2 w-2 flex-shrink-0 text-[var(--accent)]"
+                                            class="h-2 w-2 flex-shrink-0 text-(--accent)"
                                             aria-hidden="true"
                                         />
                                         <button
@@ -303,10 +301,10 @@
                                                 e.stopPropagation();
                                                 onEventClick?.(calItem);
                                             }}
-                                            class="type-label min-w-0 flex-1 truncate text-left text-[var(--text-1)] transition-opacity hover:opacity-70"
+                                            class="type-label min-w-0 flex-1 truncate text-left text-(--text-1) transition-opacity hover:opacity-70"
                                         >
                                             {#if !calItem.is_all_day && calItem.start}
-                                                <span class="mr-0.5 text-[var(--text-3)]">
+                                                <span class="mr-0.5 text-(--text-3)">
                                                     {formatTime(calItem.start.slice(11, 16))}
                                                 </span>
                                             {/if}
@@ -322,7 +320,7 @@
                                             e.stopPropagation();
                                             overflowDayKey = key;
                                         }}
-                                        class="type-label text-[var(--text-3)] transition-colors hover:text-[var(--text-1)]"
+                                        class="type-label text-(--text-3) transition-colors hover:text-(--text-1)"
                                     >
                                         +{dayItems.length - 4} more
                                     </button>
@@ -347,35 +345,33 @@
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}
         <div class="space-y-3">
-            <h3 class="type-label font-medium uppercase tracking-widest text-[var(--text-3)]">No due date</h3>
+            <h3 class="type-label font-medium tracking-widest text-(--text-3) uppercase">No due date</h3>
             <ul class="space-y-1.5">
                 {#each undatedTasks as task (task.id)}
-                    <li class="group flex items-center gap-3 rounded-lg bg-[var(--surface)] px-3 py-2.5">
+                    <li class="group flex items-center gap-3 rounded-lg bg-(--surface) px-3 py-2.5">
                         <button
                             onclick={() => onToggle(task)}
                             class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
-                     {task.done
-                                ? 'border-[var(--done-bg)] bg-[var(--done-bg)]'
-                                : 'border-[var(--text-3)] hover:border-[var(--text-1)]'}"
+                     {task.done ? 'border-(--done-bg) bg-(--done-bg)' : 'border-(--text-3) hover:border-(--text-1)'}"
                             aria-label="Toggle {task.title}"
                         >
                             {#if task.done}
-                                <Check class="text-[var(--bg)]" />
+                                <Check class="text-(--bg)" />
                             {/if}
                         </button>
 
                         <button
                             onclick={() => onEdit(task)}
                             class="type-body flex-1 text-left transition-colors hover:underline
-                         {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                         {task.done ? 'text-(--done) line-through' : 'text-(--text-1)'}"
                         >
                             {task.title}
                         </button>
 
                         <button
                             onclick={() => onDelete(task.id)}
-                            class="type-title leading-none text-[var(--text-4)] opacity-0
-                     transition hover:text-[var(--text-2)] group-hover:opacity-100"
+                            class="type-title leading-none text-(--text-4) opacity-0
+                     transition group-hover:opacity-100 hover:text-(--text-2)"
                             aria-label="Delete {task.title}"
                         >
                             <X />

@@ -25,12 +25,12 @@
     {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}
     <div class="space-y-3">
         <div class="flex items-center gap-3">
-            <WeatherIcon class="icon-lg flex-shrink-0 text-[var(--text-1)]" />
+            <WeatherIcon class="icon-lg flex-shrink-0 text-(--text-1)" />
             <div>
-                <span class="type-display font-semibold text-[var(--text-1)]">
+                <span class="type-display font-semibold text-(--text-1)">
                     {Math.round(weatherStore.current.temperature_f)}°F
                 </span>
-                <span class="type-body ml-2 text-[var(--text-2)]">{weatherStore.current.description}</span>
+                <span class="type-body ml-2 text-(--text-2)">{weatherStore.current.description}</span>
             </div>
         </div>
 
@@ -38,39 +38,37 @@
             <div class="flex gap-1 overflow-x-auto">
                 {#each weatherStore.forecast.slice(0, 5) as day (day.date)}
                     {@const ForecastIcon = weatherIcon(day.weather_code)}
-                    <div
-                        class="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg bg-[var(--surface)] px-1 py-2"
-                    >
-                        <span class="type-label w-full truncate text-center text-[var(--text-1)]">
+                    <div class="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg bg-(--surface) px-1 py-2">
+                        <span class="type-label w-full truncate text-center text-(--text-1)">
                             {new Date(`${day.date}T00:00`).toLocaleDateString('en-US', {
                                 weekday: 'short',
                             })}
                         </span>
-                        <ForecastIcon class="icon-md text-[var(--text-1)]" />
+                        <ForecastIcon class="icon-md text-(--text-1)" />
                         <div class="type-label flex items-center gap-1">
-                            <span class="text-[var(--text-1)]">{Math.round(day.temp_max_f)}°</span>
-                            <span class="text-[var(--text-2)]">{Math.round(day.temp_min_f)}°</span>
+                            <span class="text-(--text-1)">{Math.round(day.temp_max_f)}°</span>
+                            <span class="text-(--text-2)">{Math.round(day.temp_min_f)}°</span>
                         </div>
                     </div>
                 {/each}
             </div>
 
-            <div class="type-label flex items-center gap-2 text-[var(--text-2)]">
+            <div class="type-label flex items-center gap-2 text-(--text-2)">
                 {#if weatherStore.forecast[0]?.sunrise}
-                    <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
+                    <span class="flex items-center gap-1 border-r border-r-(--border) pr-2">
                         <Sunrise class="icon-sm" />{formatSunTime(weatherStore.forecast[0].sunrise)}
                     </span>
-                    <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
+                    <span class="flex items-center gap-1 border-r border-r-(--border) pr-2">
                         <Sunset class="icon-sm" />{formatSunTime(weatherStore.forecast[0].sunset)}
                     </span>
                 {/if}
                 {#if weatherStore.current.uv_index != null}
-                    <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
+                    <span class="flex items-center gap-1 border-r border-r-(--border) pr-2">
                         <SunMedium class="icon-sm" />UV {Math.round(weatherStore.current.uv_index)}
                     </span>
                 {/if}
                 {#if weatherStore.current.us_aqi != null}
-                    <span class="flex items-center gap-1 border-r border-r-[var(--border)] pr-2">
+                    <span class="flex items-center gap-1 border-r border-r-(--border) pr-2">
                         <Leaf class="icon-sm" />AQI {weatherStore.current.us_aqi}
                     </span>
                 {/if}

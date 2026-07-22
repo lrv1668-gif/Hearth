@@ -54,9 +54,9 @@
 
 <SkeletonLoader promise={loadPromise}>
     {#if birdsStore.error}
-        <p class="type-label text-[var(--text-3)]">Bird sightings unavailable.</p>
+        <p class="type-label text-(--text-3)">Bird sightings unavailable.</p>
     {:else if birdsStore.sightings.length === 0}
-        <p class="type-label text-[var(--text-3)]">No sightings reported nearby this week.</p>
+        <p class="type-label text-(--text-3)">No sightings reported nearby this week.</p>
     {:else}
         <div class="relative">
             <div
@@ -68,18 +68,15 @@
                     {#each birdsStore.sightings as sighting (sighting.species_code)}
                         <li class="flex items-start gap-2.5">
                             <div class="flex min-w-0 flex-col">
-                                <p class="type-body text-[var(--text-1)]">
+                                <p class="type-body text-(--text-1)">
                                     {sighting.common_name}
                                     {#if sighting.is_notable}
-                                        <span class="type-caption text-[var(--accent)]">rare</span>
+                                        <span class="type-caption text-(--accent)">rare</span>
                                     {/if}
                                 </p>
-                                <div
-                                    class="type-label flex gap-2 truncate text-[var(--text-2)]"
-                                    title={sighting.location}
-                                >
+                                <div class="type-label flex gap-2 truncate text-(--text-2)" title={sighting.location}>
                                     <p>{shortLocation(sighting.location)}</p>
-                                    <p class="text-[var(--text-3)]">
+                                    <p class="text-(--text-3)">
                                         {distanceLabel(sighting.distance_mi)}, {dayLabel(sighting.observed_at)}
                                     </p>
                                 </div>
@@ -90,7 +87,7 @@
             </div>
             {#if !atBottom}
                 <div
-                    class="pointer-events-none absolute bottom-0 left-0 right-0 h-8"
+                    class="pointer-events-none absolute right-0 bottom-0 left-0 h-8"
                     style="background: linear-gradient(to bottom, transparent, var(--bg))"
                 ></div>
             {/if}

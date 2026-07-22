@@ -60,7 +60,7 @@
 </script>
 
 <div class="space-y-3">
-    <p class="type-label text-[var(--text-2)]">
+    <p class="type-label text-(--text-2)">
         {photos.length === 0
             ? 'No photos in your collection.'
             : `${photos.length} photo${photos.length === 1 ? '' : 's'} in your collection`}
@@ -72,12 +72,12 @@
 
     <div class="flex flex-wrap gap-2">
         <label
-            class="flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-4 py-1.5 transition-colors hover:border-[var(--text-2)] hover:bg-[var(--surface-hi)] {uploading
+            class="flex cursor-pointer items-center gap-2 rounded-full border border-(--border) px-4 py-1.5 transition-colors hover:border-(--text-2) hover:bg-(--surface-hi) {uploading
                 ? 'pointer-events-none opacity-50'
                 : ''}"
         >
-            <ImageUp class="icon-sm text-[var(--text-1)]" />
-            <span class="type-label text-[var(--text-1)]">{uploading ? uploadLabel : 'Add photo'}</span>
+            <ImageUp class="icon-sm text-(--text-1)" />
+            <span class="type-label text-(--text-1)">{uploading ? uploadLabel : 'Add photo'}</span>
             <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -91,9 +91,9 @@
         {#if photos.length > 0}
             <button
                 onclick={() => (showModal = true)}
-                class="type-label flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-1.5 text-[var(--text-1)] transition-colors hover:border-[var(--text-2)] hover:bg-[var(--surface-hi)]"
+                class="type-label flex items-center gap-2 rounded-full border border-(--border) px-4 py-1.5 text-(--text-1) transition-colors hover:border-(--text-2) hover:bg-(--surface-hi)"
             >
-                <Images class="icon-sm text-[var(--text-1)]" />
+                <Images class="icon-sm text-(--text-1)" />
                 <span>Manage collection</span>
             </button>
         {/if}

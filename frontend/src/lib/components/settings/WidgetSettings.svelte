@@ -25,13 +25,13 @@
                             />
                         </div>
                         <div>
-                            <p class="type-body select-none text-[var(--text-1)]">{widget.label}</p>
-                            <p class="type-label select-none text-[var(--text-2)]">{widget.description}</p>
+                            <p class="type-body text-(--text-1) select-none">{widget.label}</p>
+                            <p class="type-label text-(--text-2) select-none">{widget.description}</p>
                         </div>
                     </label>
 
                     {#if widget.id === 'rss-feeds' && (settings.widgetColumns.left.includes('rss-feeds') || settings.widgetColumns.right.includes('rss-feeds'))}
-                        <div class="ml-12 border-l-2 border-l-[var(--border)] pl-4">
+                        <div class="ml-12 border-l-2 border-l-(--border) pl-4">
                             <FeedSettings />
                         </div>
                     {/if}
