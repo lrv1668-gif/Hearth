@@ -59,6 +59,8 @@ export interface CurrentWeather {
     description: string;
     wind_mph: number;
     fetched_at: string;
+    uv_index: number | null;
+    us_aqi: number | null;
 }
 
 export interface ForecastDay {
@@ -85,6 +87,7 @@ export interface UploadedPhoto {
     id: string;
     url: string;
     thumb_url: string;
+    caption: string | null;
 }
 
 export interface BatchFileResult {
@@ -105,6 +108,42 @@ export interface BirdSighting {
     is_notable: boolean;
 }
 
+export interface AlmanacSeason {
+    name: string; // "spring" | "summer" | "autumn" | "winter"
+    label: string; // "Early summer", "Midsummer", ...
+    day_of_season: number;
+    total_days: number;
+    progress: number; // 0–1
+    next_marker: string; // "Autumn equinox", ...
+    next_marker_date: string; // "YYYY-MM-DD"
+    days_until_marker: number;
+}
+
+export interface AlmanacMilestone {
+    label: string; // "Last 8 pm sunset", ...
+    date: string; // "YYYY-MM-DD"
+}
+
+export interface AlmanacDaylight {
+    trend_minutes_per_day: number; // negative = losing light; 0 = holding steady
+    drift_minutes: number; // vs. the nearest solstice extreme
+    drift_reference: string; // "longest day" | "shortest day"
+    milestones: AlmanacMilestone[];
+}
+
+export interface AlmanacFrost {
+    label: string; // "First frost" | "Last frost"
+    date: string; // "YYYY-MM-DD"
+    days_until: number;
+}
+
+export interface AlmanacResponse {
+    season: AlmanacSeason;
+    daylight: AlmanacDaylight | null; // null when the service has no coordinates
+    frost: AlmanacFrost | null; // null when frost dates are not configured
+    note: string | null; // seasonal phenology note; null for southern hemisphere
+}
+
 export interface RssArticle {
     title: string;
     link: string;
@@ -119,19 +158,19 @@ export interface RssFeedGroup {
 }
 
 export interface CalendarItem {
-    kind: 'event' | 'task';  // "event" = Google Calendar event; "task" = Google Task
+    kind: 'event' | 'task'; // "event" = Google Calendar event; "task" = Google Task
     id: string;
     title: string;
     description?: string | null;
     location?: string | null;
-    start?: string | null;   // ISO 8601 with offset, "YYYY-MM-DD" for all-day/tasks, or null (undated task)
-    end?: string | null;     // null for tasks
+    start?: string | null; // ISO 8601 with offset, "YYYY-MM-DD" for all-day/tasks, or null (undated task)
+    end?: string | null; // null for tasks
     is_all_day: boolean;
     calendar_name?: string | null;
-    provider: string;        // "google"
-    is_completed?: boolean | null;  // null for events; true/false for tasks
-    task_list_id?: string | null;   // null for events; required for toggle endpoint
-    html_link?: string | null;      // direct URL to view in provider
+    provider: string; // "google"
+    is_completed?: boolean | null; // null for events; true/false for tasks
+    task_list_id?: string | null; // null for events; required for toggle endpoint
+    html_link?: string | null; // direct URL to view in provider
 }
 
 // Discriminated union shared by Calendar.svelte, DayOverflowModal.svelte, and UpcomingTasksWidget.svelte.
@@ -176,14 +215,16 @@ class ApiClient {
         recent: (): Promise<BirdSighting[] | null> => this.get<BirdSighting[]>('/birds/recent'),
     };
 
+    readonly almanac = {
+        today: (): Promise<AlmanacResponse | null> => this.get<AlmanacResponse>('/almanac'),
+    };
+
     readonly calendar = {
-        googleStatus: (): Promise<{ authenticated: boolean } | null> =>
-            this.get('/calendar/google/status'),
+        googleStatus: (): Promise<{ authenticated: boolean } | null> => this.get('/calendar/google/status'),
 
         googleDisconnect: (): Promise<boolean> => this.del('/calendar/google/auth'),
 
-        items: (): Promise<CalendarItem[]> =>
-            this.get<CalendarItem[]>('/calendar/items').then((r) => r ?? []),
+        items: (): Promise<CalendarItem[]> => this.get<CalendarItem[]>('/calendar/items').then((r) => r ?? []),
 
         toggleTask: (taskListId: string, taskId: string, completed: boolean): Promise<boolean> =>
             this.patch(`/calendar/google/tasks/${taskListId}/${taskId}`, { completed }),
@@ -228,6 +269,9 @@ class ApiClient {
         },
 
         delete: (id: string): Promise<boolean> => this.del(`/photos/uploads/${id}`),
+
+        setCaption: (id: string, caption: string | null): Promise<boolean> =>
+            this.patch(`/photos/uploads/${id}`, { caption }),
     };
 
     private async get<T>(url: string): Promise<T | null> {

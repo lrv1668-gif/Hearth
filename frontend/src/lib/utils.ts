@@ -14,7 +14,10 @@
  * correctly in all browsers, so dateKey arithmetic is safe.
  */
 export function stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return html
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 export function providerLabel(provider: string): string {

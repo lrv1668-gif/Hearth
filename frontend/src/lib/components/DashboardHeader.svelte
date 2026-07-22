@@ -23,7 +23,6 @@
         if (code <= 86) return CloudSnow;
         return Zap;
     }
-
 </script>
 
 <div class="shrink-0 border-b border-[var(--border)] px-6 pb-2 md:px-8">

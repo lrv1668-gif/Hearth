@@ -11,9 +11,9 @@ Creates an xUnit test project for one Hearth backend service. Every test project
 
 | File | What changes |
 |------|-------------|
-| `services/<Service>.Tests/<Service>.Tests.csproj` | Create test project |
-| `services/<Service>.Tests/Helpers/FakeHttpMessageHandler.cs` | Create only if service uses HttpClient |
-| `services/<Service>.Tests/<Subject>Tests.cs` | Create test class(es) |
+| `tests/<Service>.Tests/<Service>.Tests.csproj` | Create test project |
+| `tests/<Service>.Tests/Helpers/FakeHttpMessageHandler.cs` | Create only if service uses HttpClient |
+| `tests/<Service>.Tests/<Subject>Tests.cs` | Create test class(es) |
 | `Hearth.slnx` | Add project entry |
 
 ---
@@ -22,7 +22,7 @@ Creates an xUnit test project for one Hearth backend service. Every test project
 
 Before writing any code, read the service source to understand its dependencies:
 
-1. Read `services/<Service>/Program.cs` — what's registered? What are the constructor deps?
+1. Read `src/<Service>/Program.cs` — what's registered? What are the constructor deps?
 2. Read the fetcher or store file — how many external dependencies? (`HttpClient`? `IDatabase`?)
 3. Identify testable units: pure functions, mapping logic, or methods with mockable deps
 
@@ -39,7 +39,7 @@ Before writing any code, read the service source to understand its dependencies:
 ## Step 1: Create the Test Project
 
 ```xml
-<!-- services/<Service>.Tests/<Service>.Tests.csproj -->
+<!-- tests/<Service>.Tests/<Service>.Tests.csproj -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -55,7 +55,7 @@ Before writing any code, read the service source to understand its dependencies:
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\<Service>\<Service>.csproj" />
+    <ProjectReference Include="..\..\src\<Service>\<Service>.csproj" />
   </ItemGroup>
 </Project>
 ```
@@ -69,7 +69,7 @@ Before writing any code, read the service source to understand its dependencies:
 Copy this helper verbatim. It's reusable across any HTTP-backed service test project.
 
 ```csharp
-// services/<Service>.Tests/Helpers/FakeHttpMessageHandler.cs
+// tests/<Service>.Tests/Helpers/FakeHttpMessageHandler.cs
 using System.Net;
 
 namespace <Service>.Tests.Helpers;
@@ -164,10 +164,10 @@ var store = new MyStore(db);
 
 ## Step 4: Add to Hearth.slnx
 
-Open `Hearth.slnx` and add the new project entry inside the `<Folder Name="/services/">` block, adjacent to the service it tests:
+Open `Hearth.slnx` and add the new project entry inside the `<Folder Name="/tests/">` block:
 
 ```xml
-<Project Path="services/<Service>.Tests/<Service>.Tests.csproj" />
+<Project Path="tests/<Service>.Tests/<Service>.Tests.csproj" />
 ```
 
 ---
@@ -191,8 +191,8 @@ Open `Hearth.slnx` and add the new project entry inside the `<Folder Name="/serv
 ## Running Tests
 
 ```bash
-cd services/<Service>.Tests
+cd tests/<Service>.Tests
 dotnet test
 # or from repo root:
-dotnet test services/<Service>.Tests
+dotnet test tests/<Service>.Tests
 ```

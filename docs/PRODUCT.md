@@ -95,7 +95,7 @@ The web UI (phone browser, no app install) has four screens:
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
-The `/settings` route is implemented and currently houses the theme picker, the font theme picker (typography presets: typeface, weight, and size), and ambient mode configuration (photo cadence, categories, attribution toggle). Additional settings will move here as features are built out.
+The `/settings` route is implemented and currently houses the theme picker, the font theme picker (typography presets: typeface, weight, and size), and ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions). Additional settings will move here as features are built out.
 
 All screens are usable one-handed on a phone. No dense forms.
 
@@ -129,6 +129,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 - Moon phase: front-end computed lunar phase with phase name, illumination %, SVG visualization, and countdown to the next major phase
 - Today's arc: an ambient ribbon showing the shape of the day — night, daylight, golden hours, solar noon — with today's events and timed tasks as quiet marks and a dot for "now"
 - News feeds: user-configured RSS/Atom feeds with a configurable article count
+- Almanac: where we are in the year — season progress with equinox/solstice countdown pinned, plus two rotating one-line facts chosen by timeliness: daylight trend with the next milestone ("Last 8 pm sunset · Aug 13"), first/last frost countdown (only when ≤6 weeks out), or a curated seasonal note; computed entirely locally, no external API
 - Color/B&W mode toggle: switchable on demand or by schedule
 - Scheduled display refresh: configurable cadence, full refresh only in v1
 - First-run setup flow via local web UI

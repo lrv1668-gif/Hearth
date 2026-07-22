@@ -6,13 +6,29 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      # Vite and vite-plugin-svelte have peer-dependency major versions locked
+      # to each other (and to svelte/@sveltejs/kit) — bump them together so a
+      # major-version PR for one never lands without its matching pair.
+      vite-sveltekit-toolchain:
+        patterns:
+          - "vite"
+          - "svelte"
+          - "svelte-check"
+          - "@sveltejs/*"
       npm-minor-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # TypeScript 7 isn't yet supported by @sveltejs/kit's peer deps (even on
+      # the unreleased v3 line, which still caps at ^6.0.0) — bumping breaks
+      # `npm ci` with an ERESOLVE conflict. Revisit once SvelteKit allows it.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
-  # .NET NuGet packages — wildcard covers every service and test project
+  # .NET NuGet packages — wildcards cover every service and test project
   - package-ecosystem: "nuget"
     directories:
-      - "/services/*"
+      - "/src/*"
+      - "/tests/*"
     schedule:
       interval: "weekly"
     groups:
@@ -23,7 +39,7 @@ updates:
   - package-ecosystem: "docker"
     directories:
       - "/frontend"
-      - "/services/*"
+      - "/src/*"
     schedule:
       interval: "weekly"
 

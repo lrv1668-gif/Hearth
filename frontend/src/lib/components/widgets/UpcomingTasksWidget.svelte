@@ -144,7 +144,9 @@
             <div class="space-y-1">
                 <div class="">
                     <div class="flex items-center gap-3">
-                        <h2 class="type-label whitespace-nowrap font-semibold uppercase tracking-wider text-[var(--text-2)]">
+                        <h2
+                            class="type-label whitespace-nowrap font-semibold uppercase tracking-wider text-[var(--text-2)]"
+                        >
                             {group.label}
                         </h2>
                     </div>
@@ -182,7 +184,9 @@
                                     <div class="flex min-w-0 items-center gap-2">
                                         <span
                                             class="type-body truncate transition-colors
-                                                   {task.done ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                                   {task.done
+                                                ? 'text-[var(--done)] line-through'
+                                                : 'text-[var(--text-1)]'}"
                                         >
                                             {task.title}
                                         </span>
@@ -261,7 +265,11 @@
                                         <button
                                             onclick={() => {
                                                 if (calItem.task_list_id)
-                                                    onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
+                                                    onToggleCalendarTask?.(
+                                                        calItem.task_list_id,
+                                                        calItem.id,
+                                                        !calItem.is_completed
+                                                    );
                                             }}
                                             class="flex h-4 w-4 items-center justify-center rounded border transition-colors
                                                    {calItem.is_completed
@@ -281,12 +289,16 @@
                                     <div class="min-w-0 flex-1">
                                         <span
                                             class="type-body block truncate
-                                                   {calItem.is_completed ? 'text-[var(--done)] line-through' : 'text-[var(--text-1)]'}"
+                                                   {calItem.is_completed
+                                                ? 'text-[var(--done)] line-through'
+                                                : 'text-[var(--text-1)]'}"
                                         >
                                             {calItem.title}
                                         </span>
                                         {#if calItem.description}
-                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">{calItem.description}</p>
+                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
+                                                {calItem.description}
+                                            </p>
                                         {/if}
                                     </div>
                                     {#if calItem.html_link}
@@ -321,9 +333,13 @@
                                         onclick={() => onEventClick?.(calItem)}
                                         class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
                                     >
-                                        <span class="type-body block truncate text-[var(--text-1)]">{calItem.title}</span>
+                                        <span class="type-body block truncate text-[var(--text-1)]"
+                                            >{calItem.title}</span
+                                        >
                                         {#if calItem.description}
-                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">{stripHtml(calItem.description)}</p>
+                                            <p class="type-label mt-0.5 truncate text-[var(--text-2)]">
+                                                {stripHtml(calItem.description)}
+                                            </p>
                                         {/if}
                                     </button>
                                 </li>

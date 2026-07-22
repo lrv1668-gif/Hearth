@@ -1,9 +1,19 @@
 @import './themes.css';
 @import './fonts.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Weights are themed — font-medium is var(--weight-medium) (set per font
+   theme in src/fonts.css), not literal 500. Resetting the namespace before
+   redefining just these four keeps un-themed weights like font-light out of
+   the codebase. */
+@theme {
+    --font-weight-*: initial;
+    --font-weight-normal: var(--weight-regular);
+    --font-weight-medium: var(--weight-medium);
+    --font-weight-semibold: var(--weight-semibold);
+    --font-weight-bold: var(--weight-bold);
+}
 
 html {
     background-color: var(--bg);
@@ -19,17 +29,57 @@ html {
 :root {
     --scale: calc(var(--font-scale, 1) * var(--font-user-scale, 1));
 
-    --font-display: clamp(calc(2rem * var(--scale)), calc(3vw * var(--scale)), calc(4.5rem * var(--scale))); /* date number, temperature  */
-    --font-title: clamp(calc(1.125rem * var(--scale)), calc(1.65vw * var(--scale)), calc(1.875rem * var(--scale))); /* headings, logo            */
-    --font-subtitle: clamp(calc(1rem * var(--scale)), calc(1.25vw * var(--scale)), calc(1.5rem * var(--scale))); /* subtitles, section labels */
-    --font-body: clamp(calc(0.875rem * var(--scale)), calc(1vw * var(--scale)), calc(1.25rem * var(--scale))); /* task text, form inputs    */
-    --font-label: clamp(calc(0.6875rem * var(--scale)), calc(0.8vw * var(--scale)), calc(1rem * var(--scale))); /* nav links, tags, caps     */
-    --font-caption: clamp(calc(0.5625rem * var(--scale)), calc(0.65vw * var(--scale)), calc(0.875rem * var(--scale))); /* mobile nav, tiny labels */
+    --font-display: clamp(
+        calc(2rem * var(--scale)),
+        calc(3vw * var(--scale)),
+        calc(4.5rem * var(--scale))
+    ); /* date number, temperature  */
+    --font-title: clamp(
+        calc(1.125rem * var(--scale)),
+        calc(1.65vw * var(--scale)),
+        calc(1.875rem * var(--scale))
+    ); /* headings, logo            */
+    --font-subtitle: clamp(
+        calc(1rem * var(--scale)),
+        calc(1.25vw * var(--scale)),
+        calc(1.5rem * var(--scale))
+    ); /* subtitles, section labels */
+    --font-body: clamp(
+        calc(0.875rem * var(--scale)),
+        calc(1vw * var(--scale)),
+        calc(1.25rem * var(--scale))
+    ); /* task text, form inputs    */
+    --font-label: clamp(
+        calc(0.6875rem * var(--scale)),
+        calc(0.8vw * var(--scale)),
+        calc(1rem * var(--scale))
+    ); /* nav links, tags, caps     */
+    --font-caption: clamp(
+        calc(0.5625rem * var(--scale)),
+        calc(0.65vw * var(--scale)),
+        calc(0.875rem * var(--scale))
+    ); /* mobile nav, tiny labels */
 
-    --icon-lg: clamp(calc(20px * var(--scale)), calc(2vw * var(--scale)), calc(28px * var(--scale))); /* nav icons, main weather icon  */
-    --icon-md: clamp(calc(14px * var(--scale)), calc(1.5vw * var(--scale)), calc(22px * var(--scale))); /* forecast, music, chevrons     */
-    --icon-sm: clamp(calc(12px * var(--scale)), calc(1.2vw * var(--scale)), calc(18px * var(--scale))); /* close buttons, sun/wind row   */
-    --icon-xs: clamp(calc(10px * var(--scale)), calc(0.9vw * var(--scale)), calc(14px * var(--scale))); /* recurrence, tiny inline icons */
+    --icon-lg: clamp(
+        calc(20px * var(--scale)),
+        calc(2vw * var(--scale)),
+        calc(28px * var(--scale))
+    ); /* nav icons, main weather icon  */
+    --icon-md: clamp(
+        calc(14px * var(--scale)),
+        calc(1.5vw * var(--scale)),
+        calc(22px * var(--scale))
+    ); /* forecast, music, chevrons     */
+    --icon-sm: clamp(
+        calc(12px * var(--scale)),
+        calc(1.2vw * var(--scale)),
+        calc(18px * var(--scale))
+    ); /* close buttons, sun/wind row   */
+    --icon-xs: clamp(
+        calc(10px * var(--scale)),
+        calc(0.9vw * var(--scale)),
+        calc(14px * var(--scale))
+    ); /* recurrence, tiny inline icons */
 }
 
 /* ── Semantic type utilities ─────────────────────────────────────────────── */

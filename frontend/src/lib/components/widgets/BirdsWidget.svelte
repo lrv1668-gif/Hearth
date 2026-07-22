@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Bird } from '@lucide/svelte';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
     import { birdsStore, loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
 
@@ -37,7 +36,7 @@
     }
 
     function distanceLabel(mi: number): string {
-        return mi < 0.1 ? 'here' : `${mi} mi`;
+        return mi < 0.1 ? 'here' : `${mi} miles`;
     }
 
     // eBird location names are often verbose — full street addresses
@@ -46,7 +45,10 @@
     // most specific segment, without trailing parentheticals.
     function shortLocation(loc: string): string {
         const specific = loc.split('--').pop() ?? loc;
-        return specific.split(',')[0].replace(/\s*\(.*\)\s*$/, '').trim();
+        return specific
+            .split(',')[0]
+            .replace(/\s*\(.*\)\s*$/, '')
+            .trim();
     }
 </script>
 
@@ -65,11 +67,6 @@
                 <ul class="flex flex-col gap-2.5">
                     {#each birdsStore.sightings as sighting (sighting.species_code)}
                         <li class="flex items-start gap-2.5">
-                            <Bird
-                                class="icon-sm mt-1 flex-shrink-0 {sighting.is_notable
-                                    ? 'text-[var(--accent)]'
-                                    : 'text-[var(--text-3)]'}"
-                            />
                             <div class="flex min-w-0 flex-col">
                                 <p class="type-body text-[var(--text-1)]">
                                     {sighting.common_name}
@@ -77,11 +74,15 @@
                                         <span class="type-caption text-[var(--accent)]">rare</span>
                                     {/if}
                                 </p>
-                                <p class="type-label truncate text-[var(--text-3)]" title={sighting.location}>
-                                    {shortLocation(sighting.location)} · {distanceLabel(sighting.distance_mi)} · {dayLabel(
-                                        sighting.observed_at
-                                    )}
-                                </p>
+                                <div
+                                    class="type-label flex gap-2 truncate text-[var(--text-2)]"
+                                    title={sighting.location}
+                                >
+                                    <p>{shortLocation(sighting.location)}</p>
+                                    <p class="text-[var(--text-3)]">
+                                        {distanceLabel(sighting.distance_mi)}, {dayLabel(sighting.observed_at)}
+                                    </p>
+                                </div>
                             </div>
                         </li>
                     {/each}

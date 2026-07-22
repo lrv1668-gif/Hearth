@@ -14,7 +14,7 @@
             subTitleDescription="Enable/disable widgets you want to appear on the Schedules page."
         />
         <div class="flex flex-col gap-2">
-            {#each toggleableWidgets as widget}
+            {#each toggleableWidgets.toSorted((a, b) => a.label.localeCompare(b.label)) as widget}
                 <div>
                     <label class="flex cursor-pointer items-center gap-3">
                         <div class="mt-0.5 shrink-0">

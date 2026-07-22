@@ -21,13 +21,13 @@ A calm, self-hosted home dashboard designed to look beautiful and recede into th
 
 Services that need secrets or location data use a per-service `.env` file. Create these before starting:
 
-**Weather** (`services/Weather/.env`):
+**Weather** (`src/Weather/.env`):
 ```
 LATITUDE=40.7128
 LONGITUDE=-74.0060
 ```
 
-**Spotify** (`services/Spotify/.env`):
+**Spotify** (`src/Spotify/.env`):
 ```
 SPOTIFY_CLIENT_ID=...
 SPOTIFY_CLIENT_SECRET=...
@@ -62,31 +62,31 @@ Run each piece in its own terminal:
 
 ```bash
 # Backend — tasks service
-cd services/Tasks
+cd src/Tasks
 dotnet run
 ```
 
 ```bash
-# Backend — weather service (requires services/Weather/.env with LATITUDE and LONGITUDE)
-cd services/Weather
+# Backend — weather service (requires src/Weather/.env with LATITUDE and LONGITUDE)
+cd src/Weather
 dotnet run
 ```
 
 ```bash
-# Backend — Spotify service (optional; requires services/Spotify/.env)
-cd services/Spotify
+# Backend — Spotify service (optional; requires src/Spotify/.env)
+cd src/Spotify
 dotnet run
 ```
 
 ```bash
-# Backend — Photos service (optional; requires services/Photos/.env with UNSPLASH_ACCESS_KEY)
-cd services/Photos
+# Backend — Photos service (optional; requires src/Photos/.env with UNSPLASH_ACCESS_KEY)
+cd src/Photos
 dotnet run
 ```
 
 ```bash
 # Backend — RSS service
-cd services/Rss
+cd src/Rss
 dotnet run
 ```
 
@@ -103,7 +103,7 @@ Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localh
 
 | Layer     | Technology                                              |
 |-----------|---------------------------------------------------------|
-| Frontend  | SvelteKit 2, Svelte 5 (runes), Tailwind CSS v3, Lucide Svelte |
+| Frontend  | SvelteKit 2, Svelte 5 (runes), Tailwind CSS v4, Lucide Svelte |
 | Backend   | .NET 10, ASP.NET Core Minimal APIs, SQLite              |
 | Proxy     | Caddy 2                                                 |
 | Infra     | Docker Compose                                          |

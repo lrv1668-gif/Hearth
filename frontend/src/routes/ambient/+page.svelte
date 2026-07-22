@@ -6,9 +6,16 @@
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import { MediaQuery } from 'svelte/reactivity';
 
+    const isPortrait = new MediaQuery('orientation: portrait');
+
+    // Ken Burns keyframes are declared -global- in the style block so they can be
+    // referenced from an inline style (Svelte would otherwise rename them).
+    const kenBurnsAnimations = ['kb-zoom-in', 'kb-zoom-out', 'kb-pan-left', 'kb-pan-right'];
+
     let photo = $state<Photo | null>(null);
     let loading = $state(true);
-    let interval: ReturnType<typeof setInterval>;
+    let motionStyle = $state('');
+    let timer: ReturnType<typeof setTimeout>;
 
     // Shuffle-and-cycle state for local photos
     let localQueue: UploadedPhoto[] = [];
@@ -39,26 +46,62 @@
             id: up.id,
             url: up.url,
             thumb_url: up.thumb_url,
-            description: null,
+            description: up.caption,
             photographer_name: null,
             unsplash_link: null,
             source: 'local',
         };
     }
 
-    async function advance() {
-        if (settings.photoSource === 'local') {
-            const next = nextLocalPhoto();
-            if (next) photo = next;
-        } else {
-            const isPortrait = new MediaQuery('orientation: portrait');
-            const next = await api.photos.random(
-                buildQuery(),
-                isPortrait.current ? 'portrait' : 'landscape',
-                settings.photoSource
-            );
-            if (next) photo = next;
+    function isNight(): boolean {
+        const hour = new Date().getHours();
+        return hour >= 22 || hour < 6;
+    }
+
+    function cadenceMs(): number {
+        const night = settings.nightCadenceSeconds;
+        const seconds = isNight() && night !== null ? night : settings.cadenceSeconds;
+        return seconds * 1000;
+    }
+
+    function preload(url: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => reject(new Error(`failed to load ${url}`));
+            img.src = url;
+        });
+    }
+
+    async function fetchNext(): Promise<Photo | null> {
+        let source = settings.photoSource;
+        if (source === 'both') {
+            source = localQueue.length > 0 && Math.random() < 0.5 ? 'local' : 'unsplash';
         }
+        if (source === 'local') return nextLocalPhoto();
+        return api.photos.random(buildQuery(), isPortrait.current ? 'portrait' : 'landscape', source);
+    }
+
+    async function advance() {
+        const next = await fetchNext();
+        if (!next || next.id === photo?.id) return;
+        try {
+            // Fully decode off-screen first so the crossfade never reveals a half-loaded image
+            await preload(next.url);
+            const animation = kenBurnsAnimations[Math.floor(Math.random() * kenBurnsAnimations.length)];
+            const duration = cadenceMs() / 1000 + 3;
+            motionStyle = `animation: ${animation} ${duration}s linear forwards;`;
+            photo = next;
+        } catch {
+            // Keep the current photo; the next cycle will try again
+        }
+    }
+
+    function scheduleNext() {
+        timer = setTimeout(async () => {
+            await advance();
+            scheduleNext();
+        }, cadenceMs());
     }
 
     function exit() {
@@ -66,9 +109,9 @@
     }
 
     onMount(async () => {
-        if (settings.photoSource === 'local') {
+        if (settings.photoSource === 'local' || settings.photoSource === 'both') {
             const uploads = await api.photos.list();
-            if (uploads.length === 0) {
+            if (uploads.length === 0 && settings.photoSource === 'local') {
                 goto('/settings');
                 return;
             }
@@ -78,10 +121,10 @@
 
         await advance();
         loading = false;
-        interval = setInterval(advance, settings.cadenceSeconds * 1000);
+        scheduleNext();
     });
 
-    onDestroy(() => clearInterval(interval));
+    onDestroy(() => clearTimeout(timer));
 </script>
 
 <svelte:window onkeydown={exit} />
@@ -93,7 +136,7 @@
     role="button"
     tabindex="0"
     aria-label="Exit ambient mode"
-    class="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center bg-black"
+    class="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center overflow-hidden bg-black"
 >
     {#if loading}
         <p class="type-body uppercase tracking-widest text-white/40">Loading…</p>
@@ -102,34 +145,81 @@
             <img
                 src={photo.url}
                 alt={photo.description ?? ''}
-                class="absolute inset-0 h-full w-full object-cover"
+                style={settings.ambientMotion ? motionStyle : ''}
+                class="absolute inset-0 h-full w-full object-cover will-change-transform"
                 in:fade={{ duration: 1500 }}
                 out:fade={{ duration: 1500 }}
             />
         {/key}
 
-        <!-- Attribution bar — Unsplash only -->
-        {#if settings.showAttribution && photo.source === 'unsplash'}
+        {@const showAttribution = photo.source === 'unsplash' && settings.showAttribution}
+        {@const showCaption = photo.source === 'local' && photo.description}
+        {#if showAttribution || showCaption}
             <div
-                class="absolute bottom-0 left-0 right-0 flex items-end justify-between bg-gradient-to-t from-black/60 to-transparent px-6 py-4"
+                class="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-6 bg-gradient-to-t from-black/60 to-transparent px-6 py-4"
             >
-                <p class="type-label text-white/70">
-                    Photo by
-                    <a
-                        href={photo.unsplash_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onclick={(e) => e.stopPropagation()}
-                        class="underline transition-colors hover:text-white"
-                    >
-                        {photo.photographer_name}
-                    </a>
-                    on Unsplash
-                </p>
-                <p class="type-label text-white/40">Click or press any key to exit</p>
+                {#if showAttribution}
+                    <p class="type-label text-white/70">
+                        Photo by
+                        <a
+                            href={photo.unsplash_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onclick={(e) => e.stopPropagation()}
+                            class="underline transition-colors hover:text-white"
+                        >
+                            {photo.photographer_name}
+                        </a>
+                        on Unsplash
+                    </p>
+                {:else}
+                    <p class="type-label text-white/70">{photo.description}</p>
+                {/if}
+                <p class="type-label shrink-0 text-white/40">Click or press any key to exit</p>
             </div>
         {/if}
     {:else}
         <p class="type-body uppercase tracking-widest text-white/40">No photos available</p>
     {/if}
 </div>
+
+<style>
+    @keyframes -global-kb-zoom-in {
+        from {
+            transform: scale(1);
+        }
+        to {
+            transform: scale(1.08);
+        }
+    }
+    @keyframes -global-kb-zoom-out {
+        from {
+            transform: scale(1.08);
+        }
+        to {
+            transform: scale(1);
+        }
+    }
+    @keyframes -global-kb-pan-left {
+        from {
+            transform: scale(1.06) translateX(1.5%);
+        }
+        to {
+            transform: scale(1.06) translateX(-1.5%);
+        }
+    }
+    @keyframes -global-kb-pan-right {
+        from {
+            transform: scale(1.06) translateX(-1.5%);
+        }
+        to {
+            transform: scale(1.06) translateX(1.5%);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        img {
+            animation: none !important;
+        }
+    }
+</style>

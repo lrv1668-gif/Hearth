@@ -9,7 +9,7 @@ Keep documentation in sync with code at all times:
 - When a new service is added or changed, update `SOFTWARE-DESIGN.md` and the directory structure below.
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
 - When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and the theme list below.
-- When a new service needs environment variables, create `services/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
+- When a new service needs environment variables, create `src/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
 - When adding a new backend service: add it to `docker-compose.yml`, `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency.
 - Each frontend data type gets its own `<Type>Store.svelte.ts` file (the `.svelte.ts` suffix is required for runes) — do not combine stores.
 - Use `[FromKeyedServices("key")]` to inject `IDatabase` into stores — never inject the concrete `Database` class.
@@ -20,8 +20,8 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 
 ## Tech Stack
 
-- **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v3 + Lucide Svelte (`@lucide/svelte`), built with Vite
-- **Services:** .NET 10, ASP.NET Core Minimal APIs, SQLite (isolated to `services/Data` — service projects do not reference `Microsoft.Data.Sqlite` directly)
+- **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v4 + Lucide Svelte (`@lucide/svelte`), built with Vite
+- **Services:** .NET 10, ASP.NET Core Minimal APIs, SQLite (isolated to `src/Data` — service projects do not reference `Microsoft.Data.Sqlite` directly)
 - **Proxy:** Caddy 2
 - **Infra:** Docker Compose
 
@@ -29,17 +29,19 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 
 ```text
 frontend/                    # SvelteKit app
-services/
+src/                         # Backend API + shared-library projects
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
   Data/                      # SQLite implementation of IDatabase
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
   Spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
-  Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache
+  Photos/                    # ASP.NET Core 10 Minimal API, port 8084 — Unsplash photo fetch + cache, local uploads + captions, seasonal query expansion
   Rss/                       # ASP.NET Core 10 Minimal API, port 8085 — RSS/Atom feed fetch + cache
   Quote/                     # ASP.NET Core 10 Minimal API, port 8086 — ZenQuotes daily quote + cache
   Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache
   Birds/                     # ASP.NET Core 10 Minimal API, port 8088 — eBird nearby sightings + cache
+  Almanac/                   # ASP.NET Core 10 Minimal API, port 8089 — season/daylight/frost facts, computed locally (no DB)
+tests/                       # xUnit test projects — <Service>.Tests/
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 Caddyfile
@@ -50,8 +52,8 @@ Caddyfile
 ### Verification Commands
 
 - Type-check frontend: `cd frontend && npx svelte-check --tsconfig ./tsconfig.json`
-- Build a backend service: `cd services && dotnet build <Service>/<Service>.csproj`
-- Run a service's tests: `cd services && dotnet test <Service>.Tests/<Service>.Tests.csproj`
+- Build a backend service: `dotnet build src/<Service>/<Service>.csproj`
+- Run a service's tests: `dotnet test tests/<Service>.Tests/<Service>.Tests.csproj`
 - Run the app locally: `docker compose up --build` (dev overrides in `docker-compose.override.yml` expose service ports on localhost), then `cd frontend && npm run dev` for a hot-reloading frontend — Vite's dev proxy in `frontend/vite.config.ts` forwards `/tasks`, `/weather`, etc. to those ports
 
 ### Backend (C# / ASP.NET Core)
@@ -89,7 +91,7 @@ Typography presets, orthogonal to color themes. Defined in two places — both m
 1. `frontend/src/fonts.css` — one `[data-font="id"]` block per preset (source of truth: `--font-family`, `--weight-regular/medium/semibold/bold`, `--font-scale`). Keep selectors bare `[data-font]` (never `html[data-font]`) — `FontThemePicker.svelte` reuses the blocks on its preview buttons. Keep `--font-scale` within 0.95–1.08 (e-paper caption legibility floor).
 2. `frontend/src/lib/constants/fontThemes.ts` — entry in the `fontThemes` array (picker metadata only)
 
-Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`. Families are self-hosted `@fontsource-variable/*` packages (devDependencies) — no CDN fonts.
+Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`, `lora`, `manrope`, `fraunces`. Families are self-hosted `@fontsource-variable/*` packages (devDependencies) — no CDN fonts.
 
 Tailwind's `fontWeight` scale is redefined to the weight vars, so text styling must use `.type-*` size classes plus `font-medium`/`font-semibold`/`font-bold` — never raw `text-sm`-style size utilities or numeric `font-[...]` weights.
 
@@ -97,7 +99,7 @@ A separate user size slider (`FontSizeStore.svelte.ts`, localStorage `hearth-fon
 
 ### Testing (xUnit)
 
-- Each service that gets tests has a matching `<Service>.Tests/` project in `services/`
+- Each service that gets tests has a matching `<Service>.Tests/` project in `tests/`
 - Test projects use `Microsoft.NET.Sdk` (not `Microsoft.NET.Sdk.Web`)
 - HTTP-backed services use a `FakeHttpMessageHandler` test helper (see `Quote.Tests/Helpers/`)
 - Test method naming: `Method_Scenario_ExpectedOutcome`

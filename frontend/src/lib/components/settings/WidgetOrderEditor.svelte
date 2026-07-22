@@ -79,9 +79,17 @@
     }
 </script>
 
-<div bind:this={containerEl} role="presentation" class:cursor-col-resize={dragging} onpointermove={onDrag} onpointerup={endDrag}>
+<div
+    bind:this={containerEl}
+    role="presentation"
+    class:cursor-col-resize={dragging}
+    onpointermove={onDrag}
+    onpointerup={endDrag}
+>
     <!-- Fixed header strip -->
-    <div class="mb-1 flex items-center gap-2 rounded border border-dashed border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+    <div
+        class="mb-1 flex items-center gap-2 rounded border border-dashed border-[var(--border)] bg-[var(--surface)] px-3 py-2"
+    >
         <Lock class="icon-xs shrink-0 text-[var(--text-3)]" />
         <span class="type-label text-[var(--text-3)]">Header —</span>
         {#each fixedHeaderWidgets as w}
@@ -138,7 +146,9 @@
     </div>
 
     <!-- Fixed footer strip -->
-    <div class="flex items-center gap-2 rounded border border-dashed border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+    <div
+        class="flex items-center gap-2 rounded border border-dashed border-[var(--border)] bg-[var(--surface)] px-3 py-2"
+    >
         <Lock class="icon-xs shrink-0 text-[var(--text-3)]" />
         <span class="type-label text-[var(--text-3)]">Footer —</span>
         {#each fixedFooterWidgets as w}

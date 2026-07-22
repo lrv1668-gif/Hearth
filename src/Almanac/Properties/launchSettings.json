@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Almanac": {
+      "commandName": "Project",
+      "applicationUrl": "https://localhost:8089"
+    }
+  }
+}

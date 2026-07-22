@@ -15,6 +15,7 @@ Browser
         ├── /calendar* → Calendar   :8087
         ├── /quote*    → Quote      :8086
         ├── /birds*    → Birds      :8088
+        ├── /almanac*  → Almanac    :8089
         └── /*         → Frontend   :3000
 ```
 
@@ -53,9 +54,9 @@ Fetches current conditions and 7-day forecast from Open-Meteo. Cached in SQLite 
 
 ### Photos (port 8084)
 
-Serves random photos from Unsplash API or user-uploaded local photos. Uploaded files stored on a Docker volume.
+Serves random photos from Unsplash API or user-uploaded local photos. Uploaded files stored on a Docker volume, with optional per-photo captions persisted to `captions.json` alongside them. A `seasonal` category token in the query is expanded server-side into a season-appropriate Unsplash search term (hemisphere from `LATITUDE`).
 
-**Env vars:** `UNSPLASH_ACCESS_KEY`
+**Env vars:** `UNSPLASH_ACCESS_KEY`, `LATITUDE` (optional — seasonal category hemisphere)
 
 ### Rss (port 8085)
 
@@ -68,6 +69,21 @@ Fetches recent and notable bird observations near the configured coordinates fro
 **Env vars:** `EBIRD_API_KEY` (free at https://ebird.org/api/keygen), `LATITUDE`, `LONGITUDE`, `BIRDS_RADIUS_KM` (optional, default 15)
 
 **Endpoint:** `GET /birds/recent` → `BirdSighting[]` (`503` when env vars missing, `502` when eBird is unreachable)
+
+### Almanac (port 8089)
+
+Computes seasonal facts entirely locally — no external API, no SQLite (stateless, so it has no `Data`/`Data.Abstractions` reference and no Docker volume). The response always contains the pinned **season** section plus at most **two rotating slots**, filled in priority order (daylight → timely frost → note); unfilled or bumped sections are `null`:
+
+- **Season** (always present) — name, Early/Mid/Late label, day-of-season, progress, and countdown to the next equinox/solstice, from a hardcoded table of solstice/equinox UTC instants (2024–2040) in `SeasonCalculator`. Hemisphere derived from the sign of `LATITUDE` (northern when unset).
+- **Daylight** — trend (min/day gained or lost over the past week), drift vs. the most recent solstice, and the single next wall-clock milestone ("Last 8 pm sunset · Aug 13") from the NOAA sunrise/sunset algorithm in `SolarCalculator`. `null` when coordinates are unset.
+- **Frost** — countdown to the next of the user's typical first/last frost dates. Only claims a slot when ≤ 42 days away (bumping the note); `null` when unset or not yet timely.
+- **Note** — curated phenology/in-season sentence keyed by half-month (`PhenologyData`, temperate Northern Hemisphere; `null` for southern installs).
+
+Unlike Weather, missing coordinates do **not** produce a `503` — the endpoint logs an error at startup and returns `200` with `daylight: null`, because season and note are date-only.
+
+**Env vars (all optional):** `LATITUDE`, `LONGITUDE`, `TZ` (IANA zone for wall-clock milestones; defaults to system zone), `FIRST_FROST` / `LAST_FROST` (`MM-DD`)
+
+**Endpoint:** `GET /almanac` → `{ season, daylight | null, frost | null, note | null }`
 
 ### Calendar (port 8087)
 
@@ -202,7 +218,7 @@ Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`
 
 ### Font themes
 
-Named typography presets, orthogonal to color themes. Each preset bundles a font family (self-hosted `@fontsource-variable` packages), four semantic weights (`--weight-regular/medium/semibold/bold` — Tailwind's `font-medium/semibold/bold` resolve to these vars via `tailwind.config.js`), and a size multiplier (`--font-scale`, folded into every `--font-*`/`--icon-*` clamp in `app.css`).
+Named typography presets, orthogonal to color themes. Each preset bundles a font family (self-hosted `@fontsource-variable` packages), four semantic weights (`--weight-regular/medium/semibold/bold` — Tailwind's `font-medium/semibold/bold` resolve to these vars via the `@theme` block in `app.css`), and a size multiplier (`--font-scale`, folded into every `--font-*`/`--icon-*` clamp in `app.css`).
 
 Defined in two places (both must be updated together):
 1. `src/fonts.css` — `@fontsource` imports plus one `[data-font="id"] { ... }` block per preset (source of truth for stacks, weights, scale). Selectors stay bare `[data-font]` — `FontThemePicker.svelte` sets `data-font` on its preview buttons so the same blocks style the previews.
@@ -212,4 +228,4 @@ Applied as `data-font` on `<html>` by `FontThemeStore.svelte.ts` (localStorage k
 
 Separately, a user size slider in Settings (`FontSizeSlider.svelte`) sets `--font-user-scale` (0.9–1.3) as an inline style on `<html>` via `FontSizeStore.svelte.ts` (localStorage key `hearth-font-size`). `app.css` composes both into `--scale: calc(var(--font-scale) * var(--font-user-scale))`, which every `--font-*`/`--icon-*` clamp multiplies by.
 
-Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`
+Current font themes: `inter` (default), `system`, `nunito`, `source-serif`, `space-grotesk`, `roboto-slab`, `lora`, `manrope`, `fraunces`

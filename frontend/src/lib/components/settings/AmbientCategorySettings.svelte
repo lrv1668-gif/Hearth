@@ -9,7 +9,7 @@
         <p class="type-body font-medium text-[var(--text-1)]">Categories</p>
         <p class="type-label text-[var(--text-2)]">Filter photos by category. Leave all off to show everything.</p>
         <div class="mt-1 flex flex-col gap-2">
-            {#each categoryOptions as cat}
+            {#each categoryOptions.toSorted((a, b) => a.label.localeCompare(b.label)) as cat}
                 <label class="flex cursor-pointer items-center gap-3">
                     <Toggle
                         checked={settings.photoCategories.includes(cat.id)}

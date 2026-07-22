@@ -6,11 +6,11 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ## Frontend
 
-### SvelteKit 2 + Svelte 5 + Tailwind CSS v3 + Lucide Svelte
+### SvelteKit 2 + Svelte 5 + Tailwind CSS v4 + Lucide Svelte
 
 - Lightweight runtime, well-suited for an always-on ambient display
 - Svelte 5 runes syntax (`$state`, `$effect`, `$props`, `$derived`) for fine-grained reactivity
-- Tailwind v3 for utility-first styling with a muted, theme-switchable palette
+- Tailwind v4 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
 - API calls are centralised in `frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
 - In development, Vite proxies `/tasks` → `$TASKS_URL`, `/spotify` → `$SPOTIFY_URL`, `/weather` → `$WEATHER_URL`, and `/photos` → `$PHOTOS_URL`; in production, Caddy handles the same routing
@@ -94,7 +94,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 
 ## Shared Libraries
 
-Two shared projects live under `services/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
+Two shared projects live under `src/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
 
 | Project             | Responsibility                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -194,6 +194,8 @@ Both endpoints return `503` with `{ "error": "location not configured" }` if `LA
 
 The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise` and `sunset` as ISO strings. `WeatherWidget.svelte` displays today's sunrise/sunset from `forecast[0]`.
 
+`/weather/current` also returns nullable `uv_index` (from the same forecast call) and `us_aqi` (US Air Quality Index, fetched in parallel from Open-Meteo's separate keyless endpoint at `air-quality-api.open-meteo.com`). An air-quality fetch failure degrades to `null` rather than failing the request; both values are cached in `current_json` under the same 30-minute TTL. `WeatherWidget.svelte` hides the UV/AQI metrics when they are `null`.
+
 ### Environment variables
 
 | Variable                | Required | Description                                       |
@@ -203,7 +205,7 @@ The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise
 | `DB_PATH`               | No       | Path to SQLite cache file (default: `weather.db`) |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8082` in Docker                           |
 
-Place these in `services/Weather/.env`. Docker Compose loads the file via `env_file`; for local `dotnet run`, `DotNetEnv` loads the same file before `CreateBuilder`.
+Place these in `src/Weather/.env`. Docker Compose loads the file via `env_file`; for local `dotnet run`, `DotNetEnv` loads the same file before `CreateBuilder`.
 
 ## Spotify Service
 
@@ -221,7 +223,7 @@ The `spotify` service handles OAuth 2.0 authorization with Spotify and exposes n
 
 ### Environment variables
 
-Stored in `services/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_file` in `docker-compose.yml`):
+Stored in `src/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_file` in `docker-compose.yml`):
 
 | Variable                | Required | Description                                                                                                                                        |
 | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -279,7 +281,7 @@ Query param `query` (default: `nature`) is forwarded to the Unsplash random phot
 
 ### Environment variables
 
-Stored in `services/Photos/.env`:
+Stored in `src/Photos/.env`:
 
 | Variable                | Required | Description                                      |
 | ----------------------- | -------- | ------------------------------------------------ |

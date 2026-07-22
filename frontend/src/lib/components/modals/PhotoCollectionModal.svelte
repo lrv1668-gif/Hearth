@@ -7,9 +7,10 @@
         photos?: UploadedPhoto[];
         onUploaded?: (photo: UploadedPhoto) => void;
         onDeleted?: (id: string) => void;
+        onCaptioned?: (id: string, caption: string | null) => void;
     }
 
-    let { open = $bindable(false), photos = [], onUploaded, onDeleted }: Props = $props();
+    let { open = $bindable(false), photos = [], onUploaded, onDeleted, onCaptioned }: Props = $props();
 
     let dialog = $state<HTMLDialogElement | null>(null);
     let uploading = $state(false);
@@ -82,6 +83,13 @@
         const ok = await api.photos.delete(id);
         if (ok) onDeleted?.(id);
     }
+
+    async function handleCaptionChange(id: string, e: Event) {
+        const value = (e.target as HTMLInputElement).value.trim();
+        const caption = value === '' ? null : value;
+        const ok = await api.photos.setCaption(id, caption);
+        if (ok) onCaptioned?.(id, caption);
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -140,15 +148,29 @@
             {:else}
                 <div class="grid grid-cols-3 gap-3">
                     {#each photos as p (p.id)}
-                        <div class="group relative aspect-square overflow-hidden rounded-lg bg-[var(--surface)]">
-                            <img src={p.thumb_url} alt="" class="absolute inset-0 h-full w-full object-cover" />
-                            <button
-                                onclick={() => handleDelete(p.id)}
-                                class="absolute right-1.5 top-1.5 rounded-md bg-black/60 p-1.5 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100"
-                                aria-label="Delete photo"
-                            >
-                                <Trash2 class="h-3.5 w-3.5 text-white" />
-                            </button>
+                        <div class="flex flex-col gap-1">
+                            <div class="group relative aspect-square overflow-hidden rounded-lg bg-[var(--surface)]">
+                                <img
+                                    src={p.thumb_url}
+                                    alt={p.caption ?? ''}
+                                    class="absolute inset-0 h-full w-full object-cover"
+                                />
+                                <button
+                                    onclick={() => handleDelete(p.id)}
+                                    class="absolute right-1.5 top-1.5 rounded-md bg-black/60 p-1.5 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100"
+                                    aria-label="Delete photo"
+                                >
+                                    <Trash2 class="h-3.5 w-3.5 text-white" />
+                                </button>
+                            </div>
+                            <input
+                                type="text"
+                                value={p.caption ?? ''}
+                                onchange={(e) => handleCaptionChange(p.id, e)}
+                                placeholder="Add a caption"
+                                aria-label="Photo caption"
+                                class="type-label w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-[var(--text-1)] transition-colors placeholder:text-[var(--text-3)] hover:border-[var(--border)] focus:border-[var(--border)] focus:outline-none"
+                            />
                         </div>
                     {/each}
                 </div>

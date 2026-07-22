@@ -23,6 +23,10 @@ services:
     ports:
       - "127.0.0.1:8088:8088"
 
+  almanac:
+    ports:
+      - "127.0.0.1:8089:8089"
+
   frontend:
     build:
       context: ./frontend
@@ -36,6 +40,7 @@ services:
       - CALENDAR_URL=http://calendar:8087
       - QUOTE_URL=http://quote:8086
       - BIRDS_URL=http://birds:8088
+      - ALMANAC_URL=http://almanac:8089
       - HMR_CLIENT_PORT=80
     develop:
       watch:

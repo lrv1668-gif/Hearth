@@ -105,4 +105,5 @@
     {photos}
     onUploaded={(p) => (photos = [...photos, p])}
     onDeleted={(id) => (photos = photos.filter((p) => p.id !== id))}
+    onCaptioned={(id, caption) => (photos = photos.map((p) => (p.id === id ? { ...p, caption } : p)))}
 />

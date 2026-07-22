@@ -7,7 +7,7 @@
 <div class="flex flex-col gap-5">
     <!-- Configurable widgets -->
     <div class="flex flex-col gap-2">
-        {#each toggleableWidgets as widget}
+        {#each toggleableWidgets.toSorted((a, b) => a.label.localeCompare(b.label)) as widget}
             <label class="flex cursor-pointer items-center gap-3">
                 <div class="mt-0.5 shrink-0">
                     <Toggle

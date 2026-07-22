@@ -221,8 +221,8 @@
                 bind:value={description}
                 placeholder="Description (optional)"
                 rows={2}
-                class="mt-1 w-full resize-none rounded-lg
-                       bg-[var(--surface)] px-4 py-2.5 type-body text-[var(--text-1)] placeholder-[var(--text-2)]
+                class="type-body mt-1 w-full resize-none
+                       rounded-lg bg-[var(--surface)] px-4 py-2.5 text-[var(--text-1)] placeholder-[var(--text-2)]
                        outline-none transition focus:ring-1 focus:ring-[var(--border)]"
             ></textarea>
 
@@ -230,8 +230,8 @@
             <input
                 bind:value={assignee}
                 placeholder="Assign to (optional)"
-                class="w-full rounded-lg bg-[var(--surface)] px-4
-                       py-2.5 type-body text-[var(--text-1)] placeholder-[var(--text-2)] outline-none
+                class="type-body w-full rounded-lg bg-[var(--surface)]
+                       px-4 py-2.5 text-[var(--text-1)] placeholder-[var(--text-2)] outline-none
                        transition focus:ring-1 focus:ring-[var(--border)]"
             />
 
@@ -319,7 +319,7 @@
                         </div>
                     {/if}
 
-                    <div class="flex items-center gap-2 type-body text-[var(--text-2)]">
+                    <div class="type-body flex items-center gap-2 text-[var(--text-2)]">
                         <span>Ends on</span>
                         <input
                             type="date"

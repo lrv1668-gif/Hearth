@@ -3,6 +3,9 @@
 @import '@fontsource-variable/source-serif-4';
 @import '@fontsource-variable/space-grotesk';
 @import '@fontsource-variable/roboto-slab';
+@import '@fontsource-variable/lora';
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/fraunces';
 
 /* ── Font themes ─────────────────────────────────────────────────────────── */
 /* Each [data-font] block is a complete preset: family stack, the four semantic
@@ -14,8 +17,9 @@
 
 :root {
     /* Tailwind preflight sans stack — pre-init render matches today's look */
-    --font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-family:
+        ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
     --weight-regular: 400;
     --weight-medium: 500;
     --weight-semibold: 600;
@@ -44,8 +48,9 @@
 [data-font='system'] {
     /* No bundled font — the :root preflight stack. Weights pinned to hundreds:
        system fonts have no variable axis, so off-scale values would synthesize. */
-    --font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-family:
+        ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
     --weight-regular: 400;
     --weight-medium: 500;
     --weight-semibold: 600;
@@ -92,4 +97,33 @@
     --weight-semibold: 650;
     --weight-bold: 750;
     --font-scale: 0.98;
+}
+
+[data-font='lora'] {
+    /* Same hairline nudge as source-serif; serif reads optically smaller */
+    --font-family: 'Lora Variable', Georgia, serif;
+    --weight-regular: 420;
+    --weight-medium: 520;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --font-scale: 1.02;
+}
+
+[data-font='manrope'] {
+    --font-family: 'Manrope Variable', system-ui, sans-serif;
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --font-scale: 1;
+}
+
+[data-font='fraunces'] {
+    /* Display serif with fine details — keep off the light end of the axis */
+    --font-family: 'Fraunces Variable', Georgia, serif;
+    --weight-regular: 420;
+    --weight-medium: 520;
+    --weight-semibold: 620;
+    --weight-bold: 720;
+    --font-scale: 1.02;
 }
