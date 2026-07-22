@@ -99,6 +99,13 @@ npm run dev
 
 Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, and `/rss` → `http://localhost:8085`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
+## Running the Published Images
+
+Prefer not to clone the repo or build anything yourself? Hearth publishes
+container images for each service on GitHub Container Registry. See
+[`docs/SELF-HOSTING.md`](docs/SELF-HOSTING.md) for a complete setup guide
+using [`docker-compose.ghcr.yml`](docker-compose.ghcr.yml).
+
 ## Tech Stack
 
 | Layer     | Technology                                              |
@@ -109,3 +116,7 @@ Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localh
 | Infra     | Docker Compose                                          |
 
 See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for architecture decisions and [`docs/PRODUCT.md`](docs/PRODUCT.md) for the product vision.
+
+## License
+
+[MIT](LICENSE)

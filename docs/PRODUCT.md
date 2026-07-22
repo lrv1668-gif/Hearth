@@ -161,7 +161,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 2. **E-paper is the right call.** No glowing screen. No disturbing the room. Looks like something that belongs on a wall.
 3. **Color and B&W are both first-class.** Switch the whole aesthetic of the frame based on mood, time of day, or preference — without changing any content.
 4. **The phone is the remote.** Any family member can add a task, update the grocery list, or trigger a refresh from their phone — no app install, just the local web UI.
-5. **It's self-hosted but not hard.** One command to start. Runs entirely on the Pi 5. No subscriptions, no cloud lock-in.
+5. **It's self-hosted but not hard.** One command to start. Runs entirely on the Pi 5. No subscriptions, no cloud lock-in. While Hearth is built around one household's Pi 5, published container images (see [`docs/SELF-HOSTING.md`](SELF-HOSTING.md)) let other households run their own instance too — each self-hoster supplies their own location and third-party API credentials.
 6. **Updates feel considered, not reactive.** The scheduled refresh cadence makes Hearth feel like a thoughtful daily artifact rather than a noisy feed.
 
 ---

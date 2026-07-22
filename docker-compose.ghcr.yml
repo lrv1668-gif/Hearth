@@ -1,8 +1,6 @@
 services:
     tasks:
-        build:
-            context: ./src
-            dockerfile: Tasks/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-tasks:${HEARTH_VERSION:-latest}
         environment:
             - DB_PATH=/data/tasks.db
             - ASPNETCORE_HTTP_PORTS=8081
@@ -10,11 +8,9 @@ services:
             - tasks-data:/data
 
     spotify:
-        build:
-            context: ./src
-            dockerfile: Spotify/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-spotify:${HEARTH_VERSION:-latest}
         env_file:
-            - ./src/Spotify/.env
+            - ./spotify.env
         environment:
             - DB_PATH=/data/spotify.db
             - ASPNETCORE_HTTP_PORTS=8083
@@ -23,11 +19,9 @@ services:
             - spotify-data:/data
 
     weather:
-        build:
-            context: ./src
-            dockerfile: Weather/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-weather:${HEARTH_VERSION:-latest}
         env_file:
-            - ./src/Weather/.env
+            - ./weather.env
         environment:
             - DB_PATH=/data/weather.db
             - ASPNETCORE_HTTP_PORTS=8082
@@ -35,11 +29,9 @@ services:
             - weather-data:/data
 
     photos:
-        build:
-            context: ./src
-            dockerfile: Photos/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-photos:${HEARTH_VERSION:-latest}
         env_file:
-            - ./src/Photos/.env
+            - ./photos.env
         environment:
             - DATA_PATH=/data
             - ASPNETCORE_HTTP_PORTS=8084
@@ -47,9 +39,7 @@ services:
             - photos-data:/data
 
     rss:
-        build:
-            context: ./src
-            dockerfile: Rss/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-rss:${HEARTH_VERSION:-latest}
         environment:
             - DB_PATH=/data/rss.db
             - ASPNETCORE_HTTP_PORTS=8085
@@ -57,11 +47,9 @@ services:
             - rss-data:/data
 
     calendar:
-        build:
-            context: ./src
-            dockerfile: Calendar/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-calendar:${HEARTH_VERSION:-latest}
         env_file:
-            - ./src/Calendar/.env
+            - ./calendar.env
         environment:
             - DB_PATH=/data/calendar.db
             - ASPNETCORE_HTTP_PORTS=8087
@@ -70,18 +58,14 @@ services:
             - calendar-data:/data
 
     quote:
-        build:
-            context: ./src
-            dockerfile: Quote/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-quote:${HEARTH_VERSION:-latest}
         environment:
             - ASPNETCORE_HTTP_PORTS=8086
 
     birds:
-        build:
-            context: ./src
-            dockerfile: Birds/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-birds:${HEARTH_VERSION:-latest}
         env_file:
-            - ./src/Birds/.env
+            - ./birds.env
         environment:
             - DB_PATH=/data/birds.db
             - ASPNETCORE_HTTP_PORTS=8088
@@ -89,16 +73,14 @@ services:
             - birds-data:/data
 
     almanac:
-        build:
-            context: ./src
-            dockerfile: Almanac/Dockerfile
+        image: ghcr.io/lrv1668-gif/hearth-almanac:${HEARTH_VERSION:-latest}
         env_file:
-            - ./src/Almanac/.env
+            - ./almanac.env
         environment:
             - ASPNETCORE_HTTP_PORTS=8089
 
     frontend:
-        build: ./frontend
+        image: ghcr.io/lrv1668-gif/hearth-frontend:${HEARTH_VERSION:-latest}
         depends_on:
             - tasks
             - spotify
