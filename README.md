@@ -1,12 +1,12 @@
 # Hearth
 
-A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, music, and daily tasks. The long-term target is an always-on e-paper frame (Raspberry Pi).
+A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing, news, a daily quote, and nearby bird sightings. The long-term target is an always-on e-paper frame (Raspberry Pi).
 
 ## Pages
 
 | Route | What it shows |
 |-------|---------------|
-| `/` | Schedule — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing |
+| `/` | Schedule — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing, calendar agenda, news feed, daily quote, day arc, nearby bird sightings, almanac facts |
 | `/calendar` | Month grid with per-day task lists and a detail modal |
 | `/ambient` | Fullscreen photo slideshow at a configurable cadence |
 | `/settings` | Theme picker, photo cadence and categories, attribution toggle |
@@ -34,7 +34,32 @@ SPOTIFY_CLIENT_SECRET=...
 SPOTIFY_REDIRECT_URI=http://127.0.0.1:8083/spotify/callback
 ```
 
-See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for full details on each service's variables.
+**Calendar** (`src/Calendar/.env`):
+```
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=http://127.0.0.1:8087/calendar/google/callback
+```
+
+**Birds** (`src/Birds/.env`):
+```
+EBIRD_API_KEY=...
+LATITUDE=40.7128
+LONGITUDE=-74.0060
+```
+
+**Almanac** (`src/Almanac/.env`):
+```
+LATITUDE=40.7128
+LONGITUDE=-74.0060
+TZ=America/New_York
+FIRST_FROST=10-15
+LAST_FROST=04-15
+```
+
+Photos, Quote, RSS, and Tasks don't require a `.env` file (Photos needs `UNSPLASH_ACCESS_KEY` only if you want live photo fetching instead of local uploads).
+
+See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for architecture and endpoint details — note it doesn't yet cover Calendar, Birds, or Almanac.
 
 ## Running in Docker
 
@@ -91,13 +116,37 @@ dotnet run
 ```
 
 ```bash
+# Backend — Calendar service (optional; requires src/Calendar/.env)
+cd src/Calendar
+dotnet run
+```
+
+```bash
+# Backend — Quote service
+cd src/Quote
+dotnet run
+```
+
+```bash
+# Backend — Birds service (optional; requires src/Birds/.env with EBIRD_API_KEY, LATITUDE, LONGITUDE)
+cd src/Birds
+dotnet run
+```
+
+```bash
+# Backend — Almanac service (optional; requires src/Almanac/.env with LATITUDE, LONGITUDE, TZ, FIRST_FROST, LAST_FROST)
+cd src/Almanac
+dotnet run
+```
+
+```bash
 # Frontend
 cd frontend
 npm install   # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, and `/rss` → `http://localhost:8085`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
+Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, `/rss` → `http://localhost:8085`, `/quote` → `http://localhost:8086`, `/calendar` → `http://localhost:8087`, `/birds` → `http://localhost:8088`, and `/almanac` → `http://localhost:8089`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
 ## Tech Stack
 
