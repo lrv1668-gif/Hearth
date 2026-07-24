@@ -24,7 +24,7 @@
                  transition-colors hover:text-(--text-1)
                  aria-[current=page]:font-semibold aria-[current=page]:text-(--text-1)"
             >
-                Schedule
+                Dashboard
             </a>
             <a
                 href="/calendar"
@@ -68,7 +68,7 @@
            transition-colors hover:text-(--text-1) aria-[current=page]:text-(--text-1)"
     >
         <LayoutList class="icon-lg" />
-        <span class="type-caption tracking-wide uppercase">Schedule</span>
+        <span class="type-caption tracking-wide uppercase">Dashboard</span>
     </a>
     <a
         href="/calendar"

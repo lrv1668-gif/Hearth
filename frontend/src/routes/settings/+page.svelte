@@ -15,11 +15,11 @@
     import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
 
-    type SectionId = 'display' | 'schedule' | 'ambient' | 'connections' | 'frame' | 'about';
+    type SectionId = 'display' | 'dashboard' | 'ambient' | 'connections' | 'frame' | 'about';
 
     const sections = [
         { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · type', icon: Monitor },
-        { id: 'schedule' as SectionId, label: 'Schedule', subtitle: 'Widgets · layout', icon: LayoutList },
+        { id: 'dashboard' as SectionId, label: 'Dashboard', subtitle: 'Widgets · layout', icon: LayoutList },
         { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · cadence & source', icon: Image },
         { id: 'connections' as SectionId, label: 'Connections', subtitle: 'Spotify · calendar', icon: Plug },
         { id: 'frame' as SectionId, label: 'Frame', subtitle: 'Kiosk · display mode', icon: Tv },
@@ -30,9 +30,9 @@
             heading: 'How Hearth looks',
             description: 'The theme drives every surface, type colour, and accent across the dashboard and the frame.',
         },
-        schedule: {
-            heading: 'Schedule & Widgets',
-            description: 'Manage which widgets appear and configure their layout on the schedule page.',
+        dashboard: {
+            heading: 'Dashboard & Widgets',
+            description: 'Manage which widgets appear and configure their layout on the dashboard page.',
         },
         ambient: {
             heading: 'Ambient Mode',
@@ -111,12 +111,12 @@
             </div>
         {/snippet}
 
-        {#if active === 'schedule'}
+        {#if active === 'dashboard'}
             {#snippet visibility()}<WidgetVisibilitySettings />{/snippet}
             {#snippet layout()}<WidgetLayoutSettings />{/snippet}
             {#snippet feeds()}<FeedSettings />{/snippet}
             <div class="flex flex-col gap-4">
-                {@render card('Visibility', 'Enable or disable widgets on the schedule page.', visibility)}
+                {@render card('Visibility', 'Enable or disable widgets on the dashboard page.', visibility)}
                 {@render card('Layout', 'Drag widgets between columns and adjust the column width ratio.', layout)}
                 {@render card('News Feeds', 'Manage RSS feeds and how many articles to show.', feeds)}
             </div>
@@ -196,7 +196,7 @@
                 {#if settings.kioskMode}
                     <div class="mt-4 border-t border-(--border) pt-4">
                         <a href="/" class="type-label inline-flex items-center gap-1.5 text-(--accent) hover:underline">
-                            Go to Schedule →
+                            Go to Dashboard →
                         </a>
                         <p class="type-label mt-0.5 text-(--text-3)">
                             The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.

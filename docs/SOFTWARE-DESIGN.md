@@ -19,7 +19,7 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 | Route       | Description                                                                               |
 | ----------- | ----------------------------------------------------------------------------------------- |
-| `/`         | Schedule — configurable widget columns (tasks, weather, countdowns, moon phase, news, quote) |
+| `/`         | Dashboard — configurable widget columns (tasks, weather, countdowns, moon phase, news, quote) |
 | `/calendar` | Calendar view with month grid and per-day task overflow modal                             |
 | `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                          |
 | `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, widget visibility  |
@@ -163,7 +163,7 @@ Weekly recurrences may additionally specify `recurrence_days` (e.g. `"Mon,Wed,Fr
 
 ### Countdown Events
 
-Tasks with `is_countdown = 1` are one-off events tracked by time remaining rather than completion. They appear in a dedicated **Countdowns** widget on the schedule page showing the 5 nearest upcoming events sorted by days remaining, and are filtered out of the main upcoming-tasks list.
+Tasks with `is_countdown = 1` are one-off events tracked by time remaining rather than completion. They appear in a dedicated **Countdowns** widget on the dashboard page showing the 5 nearest upcoming events sorted by days remaining, and are filtered out of the main upcoming-tasks list.
 
 The `is_countdown` flag is set at creation time and cannot be changed after the fact. Countdown tasks and recurrence are mutually exclusive — the UI hides repeat options when "Event countdown" is checked.
 

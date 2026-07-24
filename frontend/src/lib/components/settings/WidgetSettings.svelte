@@ -11,7 +11,7 @@
     <div>
         <SubTitle
             subTitleText="Visibility"
-            subTitleDescription="Enable/disable widgets you want to appear on the Schedules page."
+            subTitleDescription="Enable/disable widgets you want to appear on the Dashboard page."
         />
         <div class="flex flex-col gap-2">
             {#each toggleableWidgets.toSorted((a, b) => a.label.localeCompare(b.label)) as widget}
@@ -42,7 +42,7 @@
     <div>
         <SubTitle
             subTitleText="Layout"
-            subTitleDescription="Drag widgets between columns to reorder them on the schedule page. Drag the middle slider to set what you
+            subTitleDescription="Drag widgets between columns to reorder them on the dashboard page. Drag the middle slider to set what you
                 want the column width to be."
         />
         <WidgetOrderEditor />

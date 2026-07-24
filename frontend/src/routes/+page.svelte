@@ -47,7 +47,7 @@
 </script>
 
 <svelte:head>
-    <title>Hearth — Schedule</title>
+    <title>Hearth — Dashboard</title>
 </svelte:head>
 
 <!-- When adding a new widget component, add it here to be rendered on this page. -->

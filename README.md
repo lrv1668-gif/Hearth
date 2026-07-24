@@ -6,7 +6,7 @@ A calm, self-hosted home dashboard designed to look beautiful and recede into th
 
 | Route | What it shows |
 |-------|---------------|
-| `/` | Schedule — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing, calendar agenda, news feed, daily quote, day arc, nearby bird sightings, almanac facts |
+| `/` | Dashboard — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing, calendar agenda, news feed, daily quote, day arc, nearby bird sightings, almanac facts |
 | `/calendar` | Month grid with per-day task lists and a detail modal |
 | `/ambient` | Fullscreen photo slideshow at a configurable cadence |
 | `/settings` | Theme picker, photo cadence and categories, attribution toggle |

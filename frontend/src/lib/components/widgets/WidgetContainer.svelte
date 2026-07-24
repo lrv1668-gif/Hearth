@@ -14,9 +14,9 @@
 
 <!--
 @component
-This is a widget container Component, used to display widgets on the Schedule page with shared styling. 
+This is a widget container Component, used to display widgets on the Dashboard page with shared styling.
 
-It contents a title, children content, and an associated widget ID to be rendered on the Schedule page.
+It contents a title, children content, and an associated widget ID to be rendered on the Dashboard page.
 
 NOTE:If no widget ID is passed, then this widget will default to being displayed.
 -->
