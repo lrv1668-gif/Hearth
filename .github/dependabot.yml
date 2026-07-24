@@ -35,6 +35,12 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      # SkiaSharp and its native-assets package are peer-locked to the same
+      # major version — bump them together so one never lands without the
+      # other. Listed before nuget-minor-patch so it claims major bumps too.
+      skiasharp:
+        patterns:
+          - "SkiaSharp*"
       nuget-minor-patch:
         update-types: ["minor", "patch"]
 
