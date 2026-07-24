@@ -79,6 +79,22 @@ public sealed class RssStoreTests
     }
 
     [Fact]
+    public void GetArticles_CachedRowHasUnsafeLinkScheme_ReturnsEmptyLink()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        // Simulates a row cached before link sanitization existed.
+        store.CacheArticles(Url, "Feed", new[]
+        {
+            new ArticleItem("a", "javascript:alert(document.cookie)", "desc a", "2026-06-01"),
+        });
+
+        var article = Assert.Single(store.GetArticles(Url, 10));
+        Assert.Equal("", article.Link);
+    }
+
+    [Fact]
     public void IsStale_NoCachedFeed_ReturnsTrue()
     {
         using var tmp = new TempDatabase();

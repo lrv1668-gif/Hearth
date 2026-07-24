@@ -83,6 +83,50 @@ public sealed class RssFetcherTests
     }
 
     [Fact]
+    public void ParseFeed_AtomLinkWithJavascriptScheme_ReturnsEmptyLink()
+    {
+        const string feed = """
+        <?xml version="1.0" encoding="utf-8"?>
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <title>Example Atom</title>
+          <entry>
+            <title>Malicious Post</title>
+            <link rel="alternate" href="javascript:alert(document.cookie)"/>
+            <summary>Summary</summary>
+          </entry>
+        </feed>
+        """;
+
+        var (_, articles) = RssFetcher.ParseFeed("https://example.com/feed", feed);
+
+        var article = Assert.Single(articles);
+        Assert.Equal("", article.Link);
+    }
+
+    [Fact]
+    public void ParseFeed_Rss2LinkWithJavascriptScheme_ReturnsEmptyLink()
+    {
+        const string feed = """
+        <?xml version="1.0"?>
+        <rss version="2.0">
+          <channel>
+            <title>Example RSS</title>
+            <item>
+              <title>Malicious Item</title>
+              <link>javascript:alert(document.cookie)</link>
+              <description>Desc</description>
+            </item>
+          </channel>
+        </rss>
+        """;
+
+        var (_, articles) = RssFetcher.ParseFeed("https://example.com/feed", feed);
+
+        var article = Assert.Single(articles);
+        Assert.Equal("", article.Link);
+    }
+
+    [Fact]
     public void ParseFeed_MalformedXml_Throws()
     {
         Assert.ThrowsAny<Exception>(() => RssFetcher.ParseFeed("https://example.com/feed", "not-xml <broken"));

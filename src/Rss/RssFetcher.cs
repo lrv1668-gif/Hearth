@@ -55,9 +55,9 @@ public sealed class RssFetcher
                 doc.Descendants(Atom + "title").FirstOrDefault()?.Value ?? url);
             var articles = entries.Select(e => new ArticleItem(
                 TitleSanitizer.ToPlainText(e.Element(Atom + "title")?.Value),
-                e.Elements(Atom + "link")
+                LinkSanitizer.ToSafeHref(e.Elements(Atom + "link")
                     .FirstOrDefault(l => l.Attribute("rel")?.Value != "self")
-                    ?.Attribute("href")?.Value ?? "",
+                    ?.Attribute("href")?.Value),
                 e.Element(Atom + "summary")?.Value ?? e.Element(Atom + "content")?.Value,
                 e.Element(Atom + "published")?.Value ?? e.Element(Atom + "updated")?.Value));
             return (feedTitle, articles);
@@ -68,7 +68,7 @@ public sealed class RssFetcher
             doc.Descendants("channel").FirstOrDefault()?.Element("title")?.Value ?? url);
         var rssArticles = doc.Descendants("item").Select(item => new ArticleItem(
             TitleSanitizer.ToPlainText(item.Element("title")?.Value),
-            item.Element("link")?.Value ?? "",
+            LinkSanitizer.ToSafeHref(item.Element("link")?.Value),
             item.Element("description")?.Value,
             item.Element("pubDate")?.Value));
         return (channelTitle, rssArticles);
