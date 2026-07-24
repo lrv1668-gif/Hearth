@@ -23,6 +23,15 @@ updates:
       # `npm ci` with an ERESOLVE conflict. Revisit once SvelteKit allows it.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # Vite major bumps aren't safe to automate: grouping vite with
+      # @sveltejs/* doesn't guarantee they land together (a vite 6->8 bump
+      # once shipped alone, breaking `npm ci` on the vite-plugin-svelte peer
+      # range), and even once paired correctly, vite 8's CSS pipeline can't
+      # resolve Tailwind v4's `@import "tailwindcss"` via @tailwindcss/postcss
+      # (ENOENT), with no newer tailwindcss/postcss release fixing it yet.
+      # Revisit once that's confirmed compatible; upgrade manually til then.
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
 
   # .NET NuGet packages — wildcards cover every service and test project;
   # /src and /tests themselves cover the central Directory.Packages.props files
