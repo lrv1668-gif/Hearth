@@ -12,8 +12,8 @@
     <!-- Explicit override: Microsoft.Data.Sqlite floors this at 2.1.11, which has a
          known high-severity vulnerability (GHSA-2m69-gcr7-jv3q) -->
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.4" />
-    <PackageVersion Include="SkiaSharp" Version="3.119.4" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.4" />
+    <PackageVersion Include="SkiaSharp" Version="4.150.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
     <PackageVersion Include="SpotifyAPI.Web" Version="7.4.2" />
   </ItemGroup>
 </Project>
