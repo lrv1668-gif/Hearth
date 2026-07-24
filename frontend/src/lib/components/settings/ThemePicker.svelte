@@ -44,7 +44,7 @@
                 class="flex items-center justify-between border-t px-4 py-2.5"
             >
                 <span style="color: {t.colors.text1};" class="type-label font-medium">{t.label}</span>
-                <span style="color: {t.colors.text3};" class="type-label uppercase tracking-widest">
+                <span style="color: {t.colors.text3};" class="type-label tracking-widest uppercase">
                     {t.group === 'Black & White' ? 'B&W' : 'Color'}
                 </span>
             </div>

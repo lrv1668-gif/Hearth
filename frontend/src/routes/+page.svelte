@@ -104,7 +104,7 @@
         <DashboardHeader />
     {/if}
 
-    <main class="mx-auto min-h-0 w-full max-w-7xl overflow-y-auto overflow-x-hidden px-6 py-6 md:px-8">
+    <main class="mx-auto min-h-0 w-full max-w-7xl overflow-x-hidden overflow-y-auto px-6 py-6 md:px-8">
         <div class="flex w-full gap-8">
             {#if !isMobile.current}
                 <div class="flex min-w-0 flex-col gap-4" style="flex: {settings.leftColumnWidth} 1 0%">

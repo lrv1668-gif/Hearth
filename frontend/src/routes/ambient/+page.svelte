@@ -139,7 +139,7 @@
     class="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center overflow-hidden bg-black"
 >
     {#if loading}
-        <p class="type-body uppercase tracking-widest text-white/40">Loading…</p>
+        <p class="type-body tracking-widest text-white/40 uppercase">Loading…</p>
     {:else if photo}
         {#key photo.id}
             <img
@@ -156,7 +156,7 @@
         {@const showCaption = photo.source === 'local' && photo.description}
         {#if showAttribution || showCaption}
             <div
-                class="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-6 bg-gradient-to-t from-black/60 to-transparent px-6 py-4"
+                class="absolute right-0 bottom-0 left-0 flex items-end justify-between gap-6 bg-gradient-to-t from-black/60 to-transparent px-6 py-4"
             >
                 {#if showAttribution}
                     <p class="type-label text-white/70">
@@ -179,7 +179,7 @@
             </div>
         {/if}
     {:else}
-        <p class="type-body uppercase tracking-widest text-white/40">No photos available</p>
+        <p class="type-body tracking-widest text-white/40 uppercase">No photos available</p>
     {/if}
 </div>
 
