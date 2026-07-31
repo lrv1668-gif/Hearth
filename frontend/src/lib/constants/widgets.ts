@@ -15,6 +15,7 @@ export const toggleableWidgets = [
         label: 'Almanac',
         description: 'Season progress, daylight trend, frost countdown, and seasonal notes',
     },
+    { id: 'plants', label: 'Plants', description: 'Track plant watering schedules' },
 ] as const;
 
 export type WidgetId = (typeof toggleableWidgets)[number]['id'];
@@ -32,12 +33,13 @@ export const allWidgets = [
     { id: 'day-arc', label: "Today's Arc" },
     { id: 'birds', label: 'Birds Nearby' },
     { id: 'almanac', label: 'Almanac' },
+    { id: 'plants', label: 'Plants' },
 ] as const;
 
 export type AllWidgetId = (typeof allWidgets)[number]['id'];
 
 export const DEFAULT_WIDGET_COLUMNS: { left: AllWidgetId[]; right: AllWidgetId[] } = {
-    left: ['day-arc', 'upcoming-tasks'],
+    left: ['day-arc', 'upcoming-tasks', 'plants'],
     right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'almanac', 'daily-quote', 'birds'],
 };
 

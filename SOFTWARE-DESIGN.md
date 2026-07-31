@@ -16,6 +16,7 @@ Browser
         ├── /quote*    → Quote      :8086
         ├── /birds*    → Birds      :8088
         ├── /almanac*  → Almanac    :8089
+        ├── /plants*   → Plants     :8090
         └── /*         → Frontend   :3000
 ```
 
@@ -25,9 +26,9 @@ Browser
 |---|---|
 | `Data.Abstractions` | `IDatabase` interface + `DbCommandExtensions` / `DbReaderExtensions`. No SQLite dependency. |
 | `Data` | `Database : IDatabase` backed by `Microsoft.Data.Sqlite`, plus the `AddSqliteDatabase(key, defaultDbFileName)` registration helper. |
-| `ServiceDefaults` | Framework-only (no SQLite) library referenced by all 9 services: `AddHearthWebDefaults()` (CORS + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, the `ConfigRequirement` helpers for validating required env vars, and `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`). |
+| `ServiceDefaults` | Framework-only (no SQLite) library referenced by all 10 services: `AddHearthWebDefaults()` (CORS + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, the `ConfigRequirement` helpers for validating required env vars, and `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`). |
 
-Services reference `Data.Abstractions`/`Data` in their `.csproj` and inject `IDatabase` via `[FromKeyedServices("key")]`. The 6 SQLite-backed services register it with one call in `ServiceCollectionExtensions.cs`:
+Services reference `Data.Abstractions`/`Data` in their `.csproj` and inject `IDatabase` via `[FromKeyedServices("key")]`. The 7 SQLite-backed services register it with one call in `ServiceCollectionExtensions.cs`:
 
 ```csharp
 services.AddSqliteDatabase("key", "service.db");
@@ -87,6 +88,37 @@ Unlike Weather, missing coordinates do **not** produce a `503` — the endpoint 
 **Env vars (all optional):** `LATITUDE`, `LONGITUDE`, `TZ` (IANA zone for wall-clock milestones; defaults to system zone), `FIRST_FROST` / `LAST_FROST` (`MM-DD`)
 
 **Endpoint:** `GET /almanac` → `{ season, daylight | null, frost | null, note | null }`
+
+### Plants (port 8090)
+
+CRUD for tracked houseplants with a watering interval. No external API, no env vars — pure CRUD like Tasks.
+
+`last_watered_at`/`next_watering_due`/`is_overdue` drive the "who needs water" question; per the repo's domain-logic-in-backend convention, `NextWateringDue`/`IsOverdue` are computed server-side in `PlantStore.Map()` on every read (`(LastWateredAt ?? CreatedAt) + WateringIntervalDays`, compared against today) rather than in the frontend. `List()` returns plants ordered most-overdue-first.
+
+The frontend also owns a `/plants` page (`routes/plants/+page.svelte`) at the same path prefix as the API. To avoid Caddy/Vite proxying a full-page navigation to `/plants` into the backend's JSON response, the collection endpoints live under `/plants/items` rather than bare `/plants` — the same split `Calendar` uses (`/calendar/items`) for the same reason. Both the Caddyfile and the Vite dev proxy match `/plants/*` (a required trailing slash), leaving the bare `/plants` path free for the frontend page.
+
+#### SQLite schema
+
+```sql
+CREATE TABLE IF NOT EXISTS lu_plants (
+    id                     INTEGER  PRIMARY KEY AUTOINCREMENT,
+    name                   TEXT     NOT NULL,
+    species                TEXT     NULL,
+    watering_interval_days INTEGER  NOT NULL,
+    last_watered_at        DATETIME NULL,
+    created_at             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/plants/items` | List all plants, most-overdue-first |
+| `POST` | `/plants/items` | Create a plant (`name`, `species?`, `watering_interval_days`) |
+| `PUT` | `/plants/{id}` | Update name/species/interval; `404` if missing |
+| `POST` | `/plants/{id}/water` | Set `last_watered_at` to now; `404` if missing |
+| `DELETE` | `/plants/{id}` | Delete a plant |
 
 ### Calendar (port 8087)
 
@@ -188,6 +220,7 @@ Each data type has its own store file in `src/lib/stores/`:
 | File | State | Init |
 |---|---|---|
 | `TaskStore.svelte.ts` | `tasks: Task[]` | `loadTasks()` on layout mount |
+| `PlantStore.svelte.ts` | `plants: Plant[]` | `loadPlants()` on layout mount |
 | `CalendarStore.svelte.ts` | `items: CalendarItem[]`, `googleConnected: boolean` | `loadCalendarStatus()` + `loadCalendarItems()` on layout mount |
 | `SpotifyStore.svelte.ts` | `nowPlaying: NowPlaying \| null \| undefined` | On demand |
 | `SettingsStore.svelte.ts` | Widget config, theme, RSS feeds | localStorage |

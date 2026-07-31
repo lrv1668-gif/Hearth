@@ -35,6 +35,10 @@ services:
     ports:
       - "127.0.0.1:8089:8089"
 
+  plants:
+    ports:
+      - "127.0.0.1:8090:8090"
+
   frontend:
     build:
       context: ./frontend
@@ -49,6 +53,7 @@ services:
       - QUOTE_URL=http://quote:8086
       - BIRDS_URL=http://birds:8088
       - ALMANAC_URL=http://almanac:8089
+      - PLANTS_URL=http://plants:8090
       - HMR_CLIENT_PORT=80
     develop:
       watch:

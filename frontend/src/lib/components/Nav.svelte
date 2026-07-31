@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CalendarDays, Image, LayoutList, Settings } from '@lucide/svelte';
+    import { CalendarDays, Image, LayoutList, Settings, Sprout } from '@lucide/svelte';
     import { page } from '$app/state';
     import { kioskStore } from '$lib/stores/KioskStore.svelte.ts';
 </script>
@@ -34,6 +34,15 @@
                  aria-[current=page]:font-semibold aria-[current=page]:text-(--text-1)"
             >
                 Calendar
+            </a>
+            <a
+                href="/plants"
+                aria-current={page.url.pathname === '/plants' ? 'page' : undefined}
+                class="type-label px-3 tracking-widest text-(--text-2) uppercase
+                 transition-colors hover:text-(--text-1)
+                 aria-[current=page]:font-semibold aria-[current=page]:text-(--text-1)"
+            >
+                Plants
             </a>
             <a
                 href="/ambient"
@@ -78,6 +87,15 @@
     >
         <CalendarDays class="icon-lg" />
         <span class="type-caption tracking-wide uppercase">Calendar</span>
+    </a>
+    <a
+        href="/plants"
+        aria-current={page.url.pathname === '/plants' ? 'page' : undefined}
+        class="flex flex-col items-center gap-0.5 px-4 py-1 text-(--text-3)
+           transition-colors hover:text-(--text-1) aria-[current=page]:text-(--text-1)"
+    >
+        <Sprout class="icon-lg" />
+        <span class="type-caption tracking-wide uppercase">Plants</span>
     </a>
     <a
         href="/ambient"

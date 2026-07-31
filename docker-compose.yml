@@ -97,6 +97,16 @@ services:
         environment:
             - ASPNETCORE_HTTP_PORTS=8089
 
+    plants:
+        build:
+            context: ./src
+            dockerfile: Plants/Dockerfile
+        environment:
+            - DB_PATH=/data/plants.db
+            - ASPNETCORE_HTTP_PORTS=8090
+        volumes:
+            - plants-data:/data
+
     frontend:
         build: ./frontend
         depends_on:
@@ -109,6 +119,7 @@ services:
             - quote
             - birds
             - almanac
+            - plants
 
     caddy:
         image: caddy:2
@@ -129,6 +140,7 @@ services:
             - quote
             - birds
             - almanac
+            - plants
 
 volumes:
     tasks-data:
@@ -138,4 +150,5 @@ volumes:
     rss-data:
     calendar-data:
     birds-data:
+    plants-data:
     caddy-data:

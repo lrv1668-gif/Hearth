@@ -39,6 +39,29 @@ export interface UpdateTaskInput {
     assignee?: string | null;
 }
 
+export interface Plant {
+    id: number;
+    name: string;
+    species: string | null;
+    watering_interval_days: number;
+    last_watered_at: string | null;
+    created_at: string;
+    next_watering_due: string;
+    is_overdue: boolean;
+}
+
+export interface CreatePlantInput {
+    name: string;
+    species?: string | null;
+    watering_interval_days: number;
+}
+
+export interface UpdatePlantInput {
+    name: string;
+    species?: string | null;
+    watering_interval_days: number;
+}
+
 export interface NowPlaying {
     title: string;
     artist: string;
@@ -189,6 +212,18 @@ class ApiClient {
 
         delete: (id: number, series = false): Promise<void> =>
             this.del(`/tasks/${id}${series ? '?series=true' : ''}`).then(() => {}),
+    };
+
+    readonly plants = {
+        list: (): Promise<Plant[]> => this.get<Plant[]>('/plants/items').then((r) => r ?? []),
+
+        create: (input: CreatePlantInput): Promise<Plant> => this.post<Plant>('/plants/items', input),
+
+        update: (id: number, input: UpdatePlantInput): Promise<Plant> => this.put<Plant>(`/plants/${id}`, input),
+
+        water: (id: number): Promise<Plant> => this.post<Plant>(`/plants/${id}/water`, {}),
+
+        delete: (id: number): Promise<void> => this.del(`/plants/${id}`).then(() => {}),
     };
 
     readonly spotify = {

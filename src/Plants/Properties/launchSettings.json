@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Plants": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:8090"
+    }
+  }
+}

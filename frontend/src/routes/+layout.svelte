@@ -3,6 +3,7 @@
     import { browser } from '$app/environment';
     import Nav from '$lib/components/Nav.svelte';
     import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
+    import { loadPlants } from '$lib/stores/PlantStore.svelte.ts';
     import { initTheme } from '$lib/stores/ThemeStore.svelte.ts';
     import { initFontTheme } from '$lib/stores/FontThemeStore.svelte.ts';
     import { initFontSize } from '$lib/stores/FontSizeStore.svelte.ts';
@@ -17,6 +18,7 @@
             initFontTheme();
             initFontSize();
             loadTasks();
+            loadPlants();
             loadCalendarStatus();
             loadCalendarItems(); // fire-and-forget; returns [] silently when not authenticated
             loaded = true;

@@ -42,6 +42,7 @@ src/                         # Backend API + shared-library projects
   Calendar/                  # ASP.NET Core 10 Minimal API, port 8087 — Google Calendar OAuth + events cache
   Birds/                     # ASP.NET Core 10 Minimal API, port 8088 — eBird nearby sightings + cache
   Almanac/                   # ASP.NET Core 10 Minimal API, port 8089 — season/daylight/frost facts, computed locally (no DB)
+  Plants/                    # ASP.NET Core 10 Minimal API, port 8090 — plant watering tracker, no external API
 tests/                       # xUnit test projects — <Service>.Tests/
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
