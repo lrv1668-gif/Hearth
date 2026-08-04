@@ -82,7 +82,7 @@ Themes are defined in two places — both must be updated together:
 1. `frontend/src/themes.css` — CSS custom property block `[data-theme="id"] { ... }`
 2. `frontend/src/lib/constants/themes.ts` — entry in the `themes` array
 
-Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`, `olive`
+Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`, `olive`, `amber`, `ember`
 
 Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme` (for native inputs).
 
