@@ -43,7 +43,7 @@
     "dependencies": {
         "@lucide/svelte": "^1.27.0",
         "@types/dompurify": "^3.2.0",
-        "dompurify": "^3.4.12",
+        "dompurify": "^3.4.13",
         "svelte-dnd-action": "^0.9.74"
     }
 }
