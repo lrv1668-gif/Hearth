@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
 import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
+import { DEFAULT_TRAIN_STOPS, type TrainStop } from '$lib/constants/trains';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
@@ -22,6 +23,7 @@ class SettingsStore {
     leftColumnWidth = $state(60);
     rssArticleCount = $state(5);
     rssFeeds = $state<RssFeed[]>(DEFAULT_RSS_FEEDS);
+    trainStops = $state<TrainStop[]>(DEFAULT_TRAIN_STOPS);
     kioskMode = $state(false);
 
     toggleCategory(cat: PhotoCategory) {
@@ -104,6 +106,7 @@ if (browser) {
                     leftColumnWidth: settings.leftColumnWidth,
                     rssArticleCount: settings.rssArticleCount,
                     rssFeeds: settings.rssFeeds,
+                    trainStops: settings.trainStops,
                     kioskMode: settings.kioskMode,
                 })
             );
@@ -121,4 +124,12 @@ export function subscribeToRssFeed(title: string, url: string) {
 
 export function unsubscribeFromRssFeed(title: string) {
     settings.rssFeeds = settings.rssFeeds.filter((rssFeed) => rssFeed.title != title);
+}
+
+export function subscribeToTrainStop(label: string, stopKey: string) {
+    settings.trainStops = [...settings.trainStops, { label, stopKey }];
+}
+
+export function unsubscribeFromTrainStop(stopKey: string) {
+    settings.trainStops = settings.trainStops.filter((stop) => stop.stopKey != stopKey);
 }

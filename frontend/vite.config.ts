@@ -17,6 +17,7 @@ export default defineConfig({
             '/quote': process.env.QUOTE_URL ?? 'http://localhost:8086',
             '/birds': process.env.BIRDS_URL ?? 'http://localhost:8088',
             '/almanac': process.env.ALMANAC_URL ?? 'http://localhost:8089',
+            '/trains': process.env.TRAINS_URL ?? 'http://localhost:8091',
             '/calendar/google': process.env.CALENDAR_URL ?? 'http://localhost:8087',
             '/calendar/items': process.env.CALENDAR_URL ?? 'http://localhost:8087',
         },

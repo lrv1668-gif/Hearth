@@ -14,6 +14,7 @@
     <Project Path="src/Quote/Quote.csproj" />
     <Project Path="src/Birds/Birds.csproj" />
     <Project Path="src/Almanac/Almanac.csproj" />
+    <Project Path="src/Trains/Trains.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Data.Tests/Data.Tests.csproj" />
@@ -27,5 +28,6 @@
     <Project Path="tests/Calendar.Tests/Calendar.Tests.csproj" />
     <Project Path="tests/Birds.Tests/Birds.Tests.csproj" />
     <Project Path="tests/Almanac.Tests/Almanac.Tests.csproj" />
+    <Project Path="tests/Trains.Tests/Trains.Tests.csproj" />
   </Folder>
 </Solution>

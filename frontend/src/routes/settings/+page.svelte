@@ -14,6 +14,7 @@
     import SpotifyConnectionSettings from '$lib/components/settings/SpotifyConnectionSettings.svelte';
     import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
+    import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
 
     type SectionId = 'display' | 'dashboard' | 'ambient' | 'connections' | 'frame' | 'about';
 
@@ -115,10 +116,12 @@
             {#snippet visibility()}<WidgetVisibilitySettings />{/snippet}
             {#snippet layout()}<WidgetLayoutSettings />{/snippet}
             {#snippet feeds()}<FeedSettings />{/snippet}
+            {#snippet trainStops()}<TrainStopSettings />{/snippet}
             <div class="flex flex-col gap-4">
                 {@render card('Visibility', 'Enable or disable widgets on the dashboard page.', visibility)}
                 {@render card('Layout', 'Drag widgets between columns and adjust the column width ratio.', layout)}
                 {@render card('News Feeds', 'Manage RSS feeds and how many articles to show.', feeds)}
+                {@render card('Trains & Buses', 'Manage the transit stops you want to see departures for.', trainStops)}
             </div>
         {:else if active === 'display'}
             {#snippet themeContent()}

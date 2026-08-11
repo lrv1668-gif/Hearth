@@ -15,6 +15,7 @@ export const toggleableWidgets = [
         label: 'Almanac',
         description: 'Season progress, daylight trend, frost countdown, and seasonal notes',
     },
+    { id: 'trains', label: 'Trains & Buses', description: 'Next departures at stops you configure, via Transitland' },
 ] as const;
 
 export type WidgetId = (typeof toggleableWidgets)[number]['id'];
@@ -32,13 +33,14 @@ export const allWidgets = [
     { id: 'day-arc', label: "Today's Arc" },
     { id: 'birds', label: 'Birds Nearby' },
     { id: 'almanac', label: 'Almanac' },
+    { id: 'trains', label: 'Trains & Buses' },
 ] as const;
 
 export type AllWidgetId = (typeof allWidgets)[number]['id'];
 
 export const DEFAULT_WIDGET_COLUMNS: { left: AllWidgetId[]; right: AllWidgetId[] } = {
     left: ['day-arc', 'upcoming-tasks'],
-    right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'almanac', 'daily-quote', 'birds'],
+    right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'almanac', 'daily-quote', 'birds', 'trains'],
 };
 
 // Items always visible in the header and footer — not configurable.

@@ -14,6 +14,7 @@
     import DayArcWidget from '$lib/components/widgets/DayArcWidget.svelte';
     import BirdsWidget from '$lib/components/widgets/BirdsWidget.svelte';
     import AlmanacWidget from '$lib/components/widgets/AlmanacWidget.svelte';
+    import TrainsWidget from '$lib/components/widgets/TrainsWidget.svelte';
     import WeatherWidget from '$lib/components/widgets/WeatherWidget.svelte';
     import WidgetContainer from '$lib/components/widgets/WidgetContainer.svelte';
     import EventDetailModal from '$lib/components/modals/EventDetailModal.svelte';
@@ -95,6 +96,10 @@
     {:else if id === 'almanac'}
         <WidgetContainer title="Almanac" associatedWidgetId="almanac">
             <AlmanacWidget />
+        </WidgetContainer>
+    {:else if id === 'trains'}
+        <WidgetContainer title="Trains & Buses" associatedWidgetId="trains">
+            <TrainsWidget />
         </WidgetContainer>
     {/if}
 {/snippet}

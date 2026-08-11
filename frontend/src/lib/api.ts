@@ -157,6 +157,23 @@ export interface RssFeedGroup {
     articles: RssArticle[];
 }
 
+export interface TrainDeparture {
+    route_short_name: string;
+    route_long_name: string | null;
+    route_type: number; // GTFS numeric mode: 0=tram,1=subway,2=rail,3=bus,4=ferry,...
+    mode: string; // human-readable mode derived from route_type, e.g. "bus", "rail"
+    headsign: string | null;
+    scheduled_departure: string | null;
+    estimated_departure: string | null;
+    is_realtime: boolean;
+}
+
+export interface StopDepartures {
+    stop_key: string;
+    stop_name: string | null;
+    departures: TrainDeparture[];
+}
+
 export interface CalendarItem {
     kind: 'event' | 'task'; // "event" = Google Calendar event; "task" = Google Task
     id: string;
@@ -320,6 +337,15 @@ export async function fetchRssArticles(urls: string[], count: number): Promise<R
     const params = new URLSearchParams({ count: String(count) });
     urls.forEach((url) => params.append('url', url));
     const res = await fetch(`/rss/articles?${params}`);
+    if (!res.ok) return [];
+    return res.json();
+}
+
+export async function fetchTrainDepartures(stopKeys: string[]): Promise<StopDepartures[]> {
+    if (stopKeys.length === 0) return [];
+    const params = new URLSearchParams();
+    stopKeys.forEach((key) => params.append('stop', key));
+    const res = await fetch(`/trains/departures?${params}`);
     if (!res.ok) return [];
     return res.json();
 }
