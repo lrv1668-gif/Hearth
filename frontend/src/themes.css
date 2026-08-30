@@ -336,3 +336,45 @@
         color-scheme: light;
     }
 }
+
+[data-theme='amber'] {
+    /* Amber — warm citrus light. Marmalade, autumn sun, glowing paper lanterns. */
+    --bg: #fdf4e8;
+    --surface: #f9e6cc;
+    --surface-hi: #f2d5a8;
+    --border: #dcb888;
+    --text-1: #3a2408;
+    --text-2: #b06a1c;
+    --text-3: #cc8838;
+    --text-4: #e0a860;
+    --done: #e0a860;
+    --done-bg: #e0a860;
+    --accent: #3a2408;
+    --accent-hi: #4e3010;
+    --accent-fg: #fdf4e8;
+
+    input {
+        color-scheme: light;
+    }
+}
+
+[data-theme='ember'] {
+    /* Ember — glowing dark orange. Campfire coals, autumn dusk, molten glass. */
+    --bg: #180f08;
+    --surface: #241708;
+    --surface-hi: #332008;
+    --border: #4a2f14;
+    --text-1: #f5ddc0;
+    --text-2: #d08840;
+    --text-3: #a0602c;
+    --text-4: #704420;
+    --done: #704420;
+    --done-bg: #a0602c;
+    --accent: #f5ddc0;
+    --accent-hi: #e8c8a0;
+    --accent-fg: #180f08;
+
+    input {
+        color-scheme: dark;
+    }
+}
