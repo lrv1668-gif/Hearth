@@ -50,7 +50,15 @@ public sealed class TrainsFetcher(HttpClient http)
                 routeLongName = route.TryGetProperty("route_long_name", out var rln) ? rln.GetString() : null;
             }
 
+            // GTFS stop_headsign is an optional per-stop override, rarely populated by feeds —
+            // trip_headsign (the rider-facing direction/destination for the whole trip, e.g.
+            // "Richmond") is what almost every agency actually sets, so fall back to it.
             var headsign = d.TryGetProperty("stop_headsign", out var hs) ? hs.GetString() : null;
+            if (string.IsNullOrEmpty(headsign) && trip.ValueKind == JsonValueKind.Object &&
+                trip.TryGetProperty("trip_headsign", out var th))
+            {
+                headsign = th.GetString();
+            }
             var scheduled = d.TryGetProperty("departure_time", out var dt) ? dt.GetString()
                 : d.TryGetProperty("arrival_time", out var at) ? at.GetString() : null;
 

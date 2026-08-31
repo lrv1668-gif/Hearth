@@ -133,3 +133,9 @@ export function subscribeToTrainStop(label: string, stopKey: string) {
 export function unsubscribeFromTrainStop(stopKey: string) {
     settings.trainStops = settings.trainStops.filter((stop) => stop.stopKey != stopKey);
 }
+
+export function updateTrainStopLineFilter(stopKey: string, lineFilter: string[] | undefined) {
+    settings.trainStops = settings.trainStops.map((stop) =>
+        stop.stopKey === stopKey ? { ...stop, lineFilter } : stop
+    );
+}

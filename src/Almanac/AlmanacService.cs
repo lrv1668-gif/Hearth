@@ -105,21 +105,20 @@ public class AlmanacService
             var current = SolarCalculator.SunTimesFor(date, lat, lon, _tz);
             if (current is null) break; // entering polar day/night — stop scanning
 
-            RecordTransition(found, "Last 8 pm sunset", "First 8 pm sunset",
+            RecordTransition(found, "Last 8pm sunset", "First 8pm sunset",
                 previous.Sunset.TimeOfDay >= EveningSunset, current.Sunset.TimeOfDay >= EveningSunset, date);
-            RecordTransition(found, "Last sunset before 5 pm", "First sunset before 5 pm",
+            RecordTransition(found, "Last sunset before 5pm", "First sunset before 5pm",
                 previous.Sunset.TimeOfDay < EarlySunset, current.Sunset.TimeOfDay < EarlySunset, date);
-            RecordTransition(found, "Last sunrise after 7 am", "First sunrise after 7 am",
+            RecordTransition(found, "Last sunrise after 7am", "First sunrise after 7am",
                 previous.Sunrise.TimeOfDay >= LateSunrise, current.Sunrise.TimeOfDay >= LateSunrise, date);
 
             previous = current;
         }
 
-        return found
+        return [.. found
             .OrderBy(m => m.Date)
             .Take(1)
-            .Select(m => new MilestoneInfo(m.Label, m.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)))
-            .ToList();
+            .Select(m => new MilestoneInfo(m.Label, m.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)))];
     }
 
     private static void RecordTransition(

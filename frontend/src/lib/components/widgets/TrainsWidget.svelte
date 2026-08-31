@@ -49,28 +49,72 @@
         return `${minutes} min`;
     }
 
-    interface DisplayDeparture {
+    // Renders one or more upcoming times for a single line as a compact list, e.g.
+    // "5, 20, 38 min" — the unit only appears once, after the last time.
+    function timesLabel(times: (number | null)[]): string {
+        const valid = times.filter((m): m is number => m !== null);
+        if (valid.length === 0) return '';
+        if (valid.length === 1) return minutesLabel(valid[0]);
+        const last = valid[valid.length - 1];
+        const rest = valid.slice(0, -1).map((m) => (m <= 0 ? 'due' : String(m)));
+        return `${rest.join(', ')}, ${minutesLabel(last)}`;
+    }
+
+    const MAX_TIMES_PER_LINE = 3;
+
+    function isBus(mode: string): boolean {
+        return mode === 'bus' || mode === 'trolleybus';
+    }
+
+    interface DisplayLine {
+        key: string;
         routeShortName: string;
         headsign: string | null;
         mode: string;
-        minutes: number | null;
+        times: (number | null)[];
     }
 
     const displayGroups = $derived(
-        trainsStore.groups.map((group) => ({
-            stopKey: group.stop_key,
-            label: stopLabel(group.stop_key, group.stop_name),
-            departures: group.departures
-                .map(
-                    (d): DisplayDeparture => ({
-                        routeShortName: d.route_short_name,
-                        headsign: d.headsign,
-                        mode: d.mode,
-                        minutes: minutesUntil(d.estimated_departure ?? d.scheduled_departure ?? ''),
-                    })
-                )
-                .sort((a, b) => (a.minutes ?? Infinity) - (b.minutes ?? Infinity)),
-        }))
+        trainsStore.groups.map((group) => {
+            const byLine = new Map<string, DisplayLine>();
+            for (const d of group.departures) {
+                const key = `${d.route_short_name}|${d.headsign ?? ''}|${d.mode}`;
+                let line = byLine.get(key);
+                if (!line) {
+                    line = { key, routeShortName: d.route_short_name, headsign: d.headsign, mode: d.mode, times: [] };
+                    byLine.set(key, line);
+                }
+                line.times.push(minutesUntil(d.estimated_departure ?? d.scheduled_departure ?? ''));
+            }
+            let lines = Array.from(byLine.values())
+                .map((line) => ({
+                    ...line,
+                    times: line.times.sort((a, b) => (a ?? Infinity) - (b ?? Infinity)).slice(0, MAX_TIMES_PER_LINE),
+                }))
+                .sort((a, b) => (a.times[0] ?? Infinity) - (b.times[0] ?? Infinity));
+
+            // An unset filter means "show all"; a set filter (even []) means "show only these" —
+            // [] is how the Settings "Deselect all" control hides every line for a stop.
+            const lineFilter = settings.trainStops.find((s) => s.stopKey === group.stop_key)?.lineFilter;
+            if (lineFilter) {
+                const allowed = new Set(lineFilter);
+                lines = lines.filter((line) => allowed.has(line.key));
+            }
+
+            // Cluster by mode (buses vs trains) while keeping each cluster soonest-first;
+            // whichever cluster has the single most urgent line leads the stop.
+            const trainLines = lines.filter((line) => !isBus(line.mode));
+            const busLines = lines.filter((line) => isBus(line.mode));
+            const trainSoonest = trainLines[0]?.times[0] ?? Infinity;
+            const busSoonest = busLines[0]?.times[0] ?? Infinity;
+            lines = trainSoonest <= busSoonest ? [...trainLines, ...busLines] : [...busLines, ...trainLines];
+
+            return {
+                stopKey: group.stop_key,
+                label: stopLabel(group.stop_key, group.stop_name),
+                lines,
+            };
+        })
     );
 </script>
 
@@ -83,7 +127,7 @@
                 Add a stop in Settings →
             </a>
         </div>
-    {:else if displayGroups.every((g) => g.departures.length === 0)}
+    {:else if displayGroups.every((g) => g.lines.length === 0)}
         <p class="type-label text-(--text-3)">No upcoming departures.</p>
     {:else}
         <div class="relative">
@@ -93,25 +137,26 @@
                 onscroll={updateAtBottom}
             >
                 {#each displayGroups as group (group.stopKey)}
-                    {#if group.departures.length > 0}
+                    {#if group.lines.length > 0}
                         <div class="flex flex-col gap-1.5">
                             <p class="type-label font-medium text-(--text-2)">{group.label}</p>
                             <ul class="flex flex-col gap-1.5">
-                                {#each group.departures as departure, i (i)}
+                                {#each group.lines as line (line.key)}
                                     <li class="flex items-center gap-2.5">
-                                        {#if departure.mode === 'bus' || departure.mode === 'trolleybus'}
+                                        {#if isBus(line.mode)}
                                             <Bus class="icon-sm shrink-0 text-(--text-3)" />
                                         {:else}
                                             <TrainFront class="icon-sm shrink-0 text-(--text-3)" />
                                         {/if}
                                         <p class="type-body min-w-0 flex-1 truncate text-(--text-1)">
-                                            <span class="font-medium">{departure.routeShortName}</span>
-                                            {#if departure.headsign}
-                                                <span class="text-(--text-2)">{departure.headsign}</span>
+                                            <span class="font-medium">{line.routeShortName}</span>
+                                            {#if line.headsign}
+                                                <span class="text-(--text-2)">→</span>
+                                                <span class="text-(--text-1)">{line.headsign}</span>
                                             {/if}
                                         </p>
                                         <span class="type-label shrink-0 text-(--text-2)">
-                                            {minutesLabel(departure.minutes)}
+                                            {timesLabel(line.times)}
                                         </span>
                                     </li>
                                 {/each}

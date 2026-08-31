@@ -36,6 +36,41 @@ public sealed class TrainsFetcherTests
     }
 
     [Fact]
+    public async Task FetchAsync_NoStopHeadsign_FallsBackToTripHeadsign()
+    {
+        // Most feeds (e.g. BART) never set the optional per-stop stop_headsign override,
+        // and only populate trip_headsign — that's the field riders actually see as "direction".
+        var fetcher = MakeFetcher("""
+            {"stops": [{"stop_name": "Fruitvale", "departures": [
+                {"departure_time": "17:05:00", "schedule_relationship": "SCHEDULED",
+                 "trip": {"trip_headsign": "Richmond", "route": {"route_type": 1, "route_short_name": "Orange-N"}}}
+            ]}]}
+            """);
+
+        var result = await fetcher.FetchAsync("key", "stop-key");
+
+        var departure = Assert.Single(result.Departures);
+        Assert.Equal("Richmond", departure.Headsign);
+    }
+
+    [Fact]
+    public async Task FetchAsync_StopHeadsignPresent_TakesPrecedenceOverTripHeadsign()
+    {
+        var fetcher = MakeFetcher("""
+            {"stops": [{"stop_name": "Union Station", "departures": [
+                {"stop_headsign": "Downtown Loop", "departure_time": "14:32:00",
+                 "schedule_relationship": "SCHEDULED",
+                 "trip": {"trip_headsign": "Downtown", "route": {"route_type": 3, "route_short_name": "15"}}}
+            ]}]}
+            """);
+
+        var result = await fetcher.FetchAsync("key", "stop-key");
+
+        var departure = Assert.Single(result.Departures);
+        Assert.Equal("Downtown Loop", departure.Headsign);
+    }
+
+    [Fact]
     public async Task FetchAsync_StaticScheduleRelationship_NotRealtimeAndNoEstimate()
     {
         var fetcher = MakeFetcher("""
