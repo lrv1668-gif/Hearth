@@ -44,7 +44,7 @@ public class AlmanacServiceTests
         Assert.Equal("longest day", response.Daylight.DriftReference);
         // Only the single next milestone is returned; Denver sunsets drop below 8 pm in mid-August.
         var milestone = Assert.Single(response.Daylight.Milestones);
-        Assert.Equal("Last 8 pm sunset", milestone.Label);
+        Assert.Equal("Last 8pm sunset", milestone.Label);
         Assert.StartsWith("2026-08-1", milestone.Date);
     }
 
