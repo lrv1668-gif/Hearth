@@ -12,7 +12,7 @@ Most home dashboards are designed like control panels — dense, utilitarian, al
 
 - **Language:** C#/.NET
 - **Architecture:** Microservice-oriented — each concern (weather, art, plants, tasks, display) is its own service
-- **Hardware:** Raspberry Pi 5+ connected to an 11–13" color e-paper display, housed inside a physical frame
+- **Hardware:** Split into two devices with independent power budgets — a **host** (anywhere on the LAN, runs the full Docker Compose stack) and a **frame client** (a minimal board mounted behind an 11–13" color e-paper display inside a physical frame, that only fetches a pre-rendered bitmap and pushes it to the panel). See `HARDWARE.md` for the recommended parts and the reasoning behind the split
 - **Web access:** Accessible via browser on desktop, tablet, and phone — but the e-paper frame is the primary experience, not a secondary one
 - **Local-first:** Core features require no cloud accounts. All state is stored on the Pi. External APIs (weather, Spotify, calendar) are optional enhancements.
 
@@ -187,9 +187,12 @@ Hearth's gap: **self-hosted + e-paper-native + beautiful + accessible to non-dev
 
 These need to be decided before or early in development:
 
-- **E-paper hardware module:** Which specific display and driver board? This determines the SPI interface, color palette (4-color vs. 7-color ACeP), resolution, and which C# library or native bindings to use.
-- **Physical input:** Does the frame have any physical controls (button, tap sensor, PIR motion sensor)? The "frame tap" concept mentioned in Phase 2 tasks requires this to be defined.
 - **Art in Daily Mode:** Current spec says no art in Daily Mode — the layout is full-frame structured content. Is this correct, or should there be a small art pane?
+
+### Resolved
+
+- **E-paper hardware module:** E Ink Spectra 6, 6-color, 1600×1200, SPI (e.g. Inkplate 13SPECTRA or Waveshare's 13.3" E-Paper HAT+). The frame client that drives it runs its own firmware/script (C/C++ on ESP32, or Python on a Pi Zero 2 W) rather than a C# library — see `HARDWARE.md`.
+- **Physical input:** None in v1. The phone-as-remote flow already covers every interaction described here; a button or sensor is deferred to a v2 enclosure once the render/display pipeline is proven, since it requires a hole in the enclosure decided ahead of time. See `HARDWARE.md`.
 
 ---
 
