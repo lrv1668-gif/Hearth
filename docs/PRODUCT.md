@@ -95,7 +95,7 @@ The web UI (phone browser, no app install) has four screens:
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
-The `/settings` route is implemented and currently houses the theme picker, the font theme picker (typography presets: typeface, weight, and size), and ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions). Additional settings will move here as features are built out.
+The `/settings` route is implemented and currently houses the theme picker, the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), and subscribed train/transit stops with per-line filtering. Additional settings will move here as features are built out.
 
 All screens are usable one-handed on a phone. No dense forms.
 
@@ -146,6 +146,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 - Music: show what's playing on Spotify (track, artist) in Daily mode
 - Household calendar: pull from Google/Apple Calendar, show next 2–3 events
 - Birds nearby: recent bird sightings around the home from eBird — the frame quietly reflects the living world outside the window; rare sightings gently highlighted
+- Nearby transit: upcoming departures for user-subscribed bus/train stops via Transitland, with per-line filtering so only the routes that matter to the household show up
 - Gentle notifications: surface urgent items (weather alert, plant critically overdue) as a temporary overlay before reverting to Ambient
 
 ### Phase 4 — The Soul

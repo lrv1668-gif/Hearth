@@ -1,15 +1,15 @@
 # Hearth
 
-A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing, news, a daily quote, and nearby bird sightings. The long-term target is an always-on e-paper frame (Raspberry Pi).
+A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing, news, a daily quote, nearby bird sightings, and nearby transit departures. The long-term target is an always-on e-paper frame (Raspberry Pi).
 
 ## Pages
 
 | Route | What it shows |
 |-------|---------------|
-| `/` | Dashboard — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing, calendar agenda, news feed, daily quote, day arc, nearby bird sightings, almanac facts |
+| `/` | Dashboard — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing, calendar agenda, news feed, daily quote, day arc, nearby bird sightings, almanac facts, nearby transit departures |
 | `/calendar` | Month grid with per-day task lists and a detail modal |
 | `/ambient` | Fullscreen photo slideshow at a configurable cadence |
-| `/settings` | Theme picker, photo cadence and categories, attribution toggle |
+| `/settings` | Theme picker, font theme picker, photo cadence and categories, attribution toggle, widget visibility and layout, integrations, subscribed train stops |
 
 ## Prerequisites
 
@@ -57,9 +57,14 @@ FIRST_FROST=10-15
 LAST_FROST=04-15
 ```
 
+**Trains** (`src/Trains/.env`):
+```
+TRANSITLAND_API_KEY=...
+```
+
 Photos, Quote, RSS, and Tasks don't require a `.env` file (Photos needs `UNSPLASH_ACCESS_KEY` only if you want live photo fetching instead of local uploads).
 
-See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for architecture and endpoint details — note it doesn't yet cover Calendar, Birds, or Almanac.
+See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for architecture and endpoint details.
 
 ## Running in Docker
 
@@ -140,13 +145,19 @@ dotnet run
 ```
 
 ```bash
+# Backend — Trains service (optional; requires src/Trains/.env with TRANSITLAND_API_KEY)
+cd src/Trains
+dotnet run
+```
+
+```bash
 # Frontend
 cd frontend
 npm install   # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, `/rss` → `http://localhost:8085`, `/quote` → `http://localhost:8086`, `/calendar` → `http://localhost:8087`, `/birds` → `http://localhost:8088`, and `/almanac` → `http://localhost:8089`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
+Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, `/rss` → `http://localhost:8085`, `/quote` → `http://localhost:8086`, `/calendar` → `http://localhost:8087`, `/birds` → `http://localhost:8088`, `/almanac` → `http://localhost:8089`, and `/trains` → `http://localhost:8091`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
 ## Tech Stack
 
