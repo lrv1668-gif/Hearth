@@ -14,13 +14,6 @@ public sealed class FeedUrlValidator(Func<string, Task<IPAddress[]>>? resolveHos
         resolveHost ?? (host => Dns.GetHostAddressesAsync(host));
 
     /// <summary>
-    /// Returns true only for absolute http/https URLs whose host resolves
-    /// exclusively to publicly routable IP addresses.
-    /// </summary>
-    public async Task<bool> IsAllowedAsync(string url) =>
-        await ResolvePinnedAddressAsync(url) is not null;
-
-    /// <summary>
     /// Resolves the host of an absolute http/https URL and returns the first
     /// resolved address if every resolved address is publicly routable, or
     /// null if the URL is disallowed. Callers should connect using the

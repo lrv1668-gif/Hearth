@@ -1,10 +1,7 @@
-export interface ZenQuote {
-    q: string;
-    a: string;
-}
+import { api, type Quote } from '$lib/api';
 
 class DailyQuoteStore {
-    quote = $state<ZenQuote | null>(null);
+    quote = $state<Quote | null>(null);
     error = $state(false);
 }
 
@@ -13,9 +10,9 @@ export const dailyQuoteStore = new DailyQuoteStore();
 export async function loadDailyQuote() {
     dailyQuoteStore.error = false;
     try {
-        const res = await fetch('/quote');
-        if (!res.ok) throw new Error('Failed to fetch');
-        dailyQuoteStore.quote = await res.json();
+        const quote = await api.quote.today();
+        if (!quote) throw new Error('Failed to fetch');
+        dailyQuoteStore.quote = quote;
     } catch {
         dailyQuoteStore.error = true;
     }

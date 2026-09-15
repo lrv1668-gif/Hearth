@@ -1,4 +1,6 @@
 using System.Net;
+using Hearth.TestUtilities;
+using Microsoft.Extensions.Logging.Abstractions;
 using Quote.Tests.Helpers;
 using Xunit;
 
@@ -10,7 +12,7 @@ public sealed class QuoteFetcherTests
     {
         var handler = new FakeHttpMessageHandler(json, status);
         var http = new HttpClient(handler);
-        return new QuoteFetcher(http);
+        return new QuoteFetcher(http, NullLogger<QuoteFetcher>.Instance);
     }
 
     [Fact]
@@ -45,7 +47,7 @@ public sealed class QuoteFetcherTests
     public async Task FetchAsync_NetworkFailure_ReturnsNull()
     {
         var http = new HttpClient(new ThrowingHttpMessageHandler());
-        var fetcher = new QuoteFetcher(http);
+        var fetcher = new QuoteFetcher(http, NullLogger<QuoteFetcher>.Instance);
 
         var result = await fetcher.FetchAsync();
 

@@ -1,5 +1,3 @@
-using System.Data.Common;
-using System.Globalization;
 using Data.Abstractions;
 
 namespace Trains;
@@ -20,13 +18,7 @@ public sealed class TrainsStore([FromKeyedServices("trains")] IDatabase db)
             "SELECT fetched_at FROM trains_cache WHERE stop_key = $stop_key",
             r => r.Field<string>("fetched_at"),
             cmd => cmd.AddParam("$stop_key", stopKey));
-
-        // Parse with RoundtripKind so the stored UTC ("...Z") timestamp keeps Kind=Utc.
-        // Default TryParse converts it to local time, which skews the comparison against
-        // DateTime.UtcNow by the machine's UTC offset (cache reads as perpetually stale).
-        if (fetchedAt is null || !DateTime.TryParse(fetchedAt, CultureInfo.InvariantCulture,
-                DateTimeStyles.RoundtripKind, out var fetched)) return true;
-        return (DateTime.UtcNow - fetched).TotalSeconds > 45;
+        return CacheFreshness.IsStale(fetchedAt, TimeSpan.FromSeconds(45));
     }
 
     public string? Load(string stopKey) =>

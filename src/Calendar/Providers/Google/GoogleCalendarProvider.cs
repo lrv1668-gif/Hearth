@@ -7,6 +7,7 @@ using Google.Apis.Services;
 using Google.Apis.Tasks.v1;
 using Calendar.Providers;
 using Calendar.Records;
+using ServiceDefaults;
 using GTask = Google.Apis.Tasks.v1.Data.Task;
 
 namespace Calendar.Providers.Google;
@@ -16,9 +17,6 @@ public sealed class GoogleCalendarProvider(
     GoogleAuthService authService,
     ILogger<GoogleCalendarProvider> logger) : ICalendarProvider
 {
-    private static readonly JsonSerializerOptions JsonOpts =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
-
     private const string Key = GoogleAuthService.ProviderKey;
     private static readonly TimeSpan CacheTtl           = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan TokenRefreshBuffer = TimeSpan.FromSeconds(30);
@@ -36,7 +34,7 @@ public sealed class GoogleCalendarProvider(
         // 1. Serve from cache if fresh
         var cached = store.LoadItemsCache(Key);
         if (cached is not null && DateTimeOffset.UtcNow - cached.Value.CachedAt < CacheTtl)
-            return JsonSerializer.Deserialize<List<CalendarItem>>(cached.Value.Json, JsonOpts) ?? [];
+            return JsonSerializer.Deserialize<List<CalendarItem>>(cached.Value.Json, HearthJson.SnakeCaseLower) ?? [];
 
         // 2. Load stored token
         var token = store.LoadToken(Key);
@@ -75,7 +73,7 @@ public sealed class GoogleCalendarProvider(
         items.AddRange(tasksTask.Result);
 
         // 5. Persist cache and return
-        store.SaveItemsCache(Key, JsonSerializer.Serialize(items, JsonOpts));
+        store.SaveItemsCache(Key, JsonSerializer.Serialize(items, HearthJson.SnakeCaseLower));
         return items;
     }
 

@@ -1,5 +1,5 @@
+using Hearth.TestUtilities;
 using Rss.Records;
-using Rss.Tests.Helpers;
 using Xunit;
 
 namespace Rss.Tests;

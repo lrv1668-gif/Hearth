@@ -49,8 +49,9 @@ export interface NowPlaying {
     is_playing: boolean;
 }
 
-export interface SpotifyStatus {
-    authenticated: boolean;
+export interface Quote {
+    q: string;
+    a: string;
 }
 
 export interface CurrentWeather {
@@ -209,9 +210,6 @@ class ApiClient {
     };
 
     readonly spotify = {
-        status: (): Promise<SpotifyStatus> =>
-            this.get<SpotifyStatus>('/spotify/status').then((r) => r ?? { authenticated: false }),
-
         disconnect: (): Promise<void> => this.del('/spotify/auth').then(() => {}),
 
         nowPlaying: async (): Promise<NowPlaying | null | undefined> => {
@@ -234,6 +232,10 @@ class ApiClient {
 
     readonly almanac = {
         today: (): Promise<AlmanacResponse | null> => this.get<AlmanacResponse>('/almanac'),
+    };
+
+    readonly quote = {
+        today: (): Promise<Quote | null> => this.get<Quote>('/quote'),
     };
 
     readonly calendar = {

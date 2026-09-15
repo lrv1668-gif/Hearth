@@ -31,7 +31,7 @@
 
         {#if weatherStore.current?.fetched_at}
             <div class="type-label flex flex-shrink-0 items-center gap-2 rounded-lg bg-(--surface) p-2">
-                <Monitor class="icon-sm text-(--text-2)]" />
+                <Monitor class="icon-sm text-(--text-2)" />
                 <p>Refreshed @ {formatRefreshed(weatherStore.current.fetched_at)}</p>
             </div>
         {/if}

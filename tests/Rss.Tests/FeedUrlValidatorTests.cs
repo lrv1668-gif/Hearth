@@ -18,9 +18,9 @@ public sealed class FeedUrlValidatorTests
     [InlineData("ftp://example.com/feed")]
     [InlineData("gopher://example.com/")]
     [InlineData("javascript:alert(1)")]
-    public async Task IsAllowedAsync_NonHttpScheme_ReturnsFalse(string url)
+    public async Task ResolvePinnedAddressAsync_NonHttpScheme_ReturnsNull(string url)
     {
-        Assert.False(await MakeValidator().IsAllowedAsync(url));
+        Assert.Null(await MakeValidator().ResolvePinnedAddressAsync(url));
     }
 
     [Theory]
@@ -29,9 +29,9 @@ public sealed class FeedUrlValidatorTests
     [InlineData("/relative/path")]
     [InlineData("example.com/feed")]
     [InlineData("http://")]
-    public async Task IsAllowedAsync_RelativeOrMalformedUrl_ReturnsFalse(string url)
+    public async Task ResolvePinnedAddressAsync_RelativeOrMalformedUrl_ReturnsNull(string url)
     {
-        Assert.False(await MakeValidator().IsAllowedAsync(url));
+        Assert.Null(await MakeValidator().ResolvePinnedAddressAsync(url));
     }
 
     [Theory]
@@ -47,9 +47,9 @@ public sealed class FeedUrlValidatorTests
     [InlineData("http://198.18.0.1/feed")]
     [InlineData("http://224.0.0.1/feed")]
     [InlineData("http://255.255.255.255/feed")]
-    public async Task IsAllowedAsync_LiteralPrivateOrReservedIpv4_ReturnsFalse(string url)
+    public async Task ResolvePinnedAddressAsync_LiteralPrivateOrReservedIpv4_ReturnsNull(string url)
     {
-        Assert.False(await MakeValidator().IsAllowedAsync(url));
+        Assert.Null(await MakeValidator().ResolvePinnedAddressAsync(url));
     }
 
     [Theory]
@@ -62,9 +62,9 @@ public sealed class FeedUrlValidatorTests
     [InlineData("http://[::ffff:127.0.0.1]/feed")]
     [InlineData("http://[::ffff:192.168.1.1]/feed")]
     [InlineData("http://[::ffff:169.254.169.254]/feed")]
-    public async Task IsAllowedAsync_LiteralNonPublicIpv6_ReturnsFalse(string url)
+    public async Task ResolvePinnedAddressAsync_LiteralNonPublicIpv6_ReturnsNull(string url)
     {
-        Assert.False(await MakeValidator().IsAllowedAsync(url));
+        Assert.Null(await MakeValidator().ResolvePinnedAddressAsync(url));
     }
 
     [Theory]
@@ -73,17 +73,19 @@ public sealed class FeedUrlValidatorTests
     [InlineData("http://172.15.0.1/feed")]
     [InlineData("http://172.32.0.1/feed")]
     [InlineData("https://[2606:2800:220:1:248:1893:25c8:1946]/feed")]
-    public async Task IsAllowedAsync_LiteralPublicIp_ReturnsTrue(string url)
+    public async Task ResolvePinnedAddressAsync_LiteralPublicIp_ReturnsAddress(string url)
     {
-        Assert.True(await MakeValidator().IsAllowedAsync(url));
+        Assert.NotNull(await MakeValidator().ResolvePinnedAddressAsync(url));
     }
 
     [Fact]
-    public async Task IsAllowedAsync_HostnameResolvesToPublicIp_ReturnsTrue()
+    public async Task ResolvePinnedAddressAsync_HostnameResolvesToPublicIp_ReturnsAddress()
     {
         var validator = MakeValidator("93.184.216.34");
 
-        Assert.True(await validator.IsAllowedAsync("https://example.com/feed"));
+        var result = await validator.ResolvePinnedAddressAsync("https://example.com/feed");
+
+        Assert.Equal(IPAddress.Parse("93.184.216.34"), result);
     }
 
     [Theory]
@@ -93,33 +95,33 @@ public sealed class FeedUrlValidatorTests
     [InlineData("192.168.0.10")]
     [InlineData("::1")]
     [InlineData("fd00::1")]
-    public async Task IsAllowedAsync_HostnameResolvesToNonPublicIp_ReturnsFalse(string resolvedIp)
+    public async Task ResolvePinnedAddressAsync_HostnameResolvesToNonPublicIp_ReturnsNull(string resolvedIp)
     {
         var validator = MakeValidator(resolvedIp);
 
-        Assert.False(await validator.IsAllowedAsync("https://evil.example.com/feed"));
+        Assert.Null(await validator.ResolvePinnedAddressAsync("https://evil.example.com/feed"));
     }
 
     [Fact]
-    public async Task IsAllowedAsync_HostnameResolvesToMixedPublicAndPrivateIps_ReturnsFalse()
+    public async Task ResolvePinnedAddressAsync_HostnameResolvesToMixedPublicAndPrivateIps_ReturnsNull()
     {
         // DNS rebinding style: one public record plus one internal record must still be rejected.
         var validator = MakeValidator("93.184.216.34", "192.168.1.1");
 
-        Assert.False(await validator.IsAllowedAsync("https://evil.example.com/feed"));
+        Assert.Null(await validator.ResolvePinnedAddressAsync("https://evil.example.com/feed"));
     }
 
     [Fact]
-    public async Task IsAllowedAsync_DnsResolutionFails_ReturnsFalse()
+    public async Task ResolvePinnedAddressAsync_DnsResolutionFails_ReturnsNull()
     {
-        Assert.False(await MakeValidator().IsAllowedAsync("https://does-not-resolve.example.com/feed"));
+        Assert.Null(await MakeValidator().ResolvePinnedAddressAsync("https://does-not-resolve.example.com/feed"));
     }
 
     [Fact]
-    public async Task IsAllowedAsync_DnsResolvesToNoAddresses_ReturnsFalse()
+    public async Task ResolvePinnedAddressAsync_DnsResolvesToNoAddresses_ReturnsNull()
     {
         var validator = new FeedUrlValidator(_ => Task.FromResult(Array.Empty<IPAddress>()));
 
-        Assert.False(await validator.IsAllowedAsync("https://empty.example.com/feed"));
+        Assert.Null(await validator.ResolvePinnedAddressAsync("https://empty.example.com/feed"));
     }
 }

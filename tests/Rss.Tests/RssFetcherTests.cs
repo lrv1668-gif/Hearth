@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Rss.Tests;
@@ -135,7 +136,7 @@ public sealed class RssFetcherTests
     [Fact]
     public async Task FetchAsync_ConnectionRefused_ReturnsNull()
     {
-        var fetcher = new RssFetcher();
+        var fetcher = new RssFetcher(NullLogger<RssFetcher>.Instance);
 
         // Port 1 (tcpmux) on loopback: nothing listens there, so the connect fails
         // immediately (refused) instead of hanging on a timeout.
@@ -169,7 +170,7 @@ public sealed class RssFetcherTests
             await stream.WriteAsync(body);
         });
 
-        var fetcher = new RssFetcher();
+        var fetcher = new RssFetcher(NullLogger<RssFetcher>.Instance);
         var result = await fetcher
             .FetchAsync("http://this-host-does-not-resolve.invalid:" + port + "/feed", IPAddress.Loopback)
             .WaitAsync(TimeSpan.FromSeconds(10));

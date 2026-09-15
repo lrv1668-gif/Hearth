@@ -33,8 +33,6 @@ public static class WebApplicationExtensions
                     var result = await fetcher.FetchAsync(feedUrl, pinnedAddress);
                     if (result is not null)
                         store.CacheArticles(feedUrl, result.Value.FeedTitle, result.Value.Articles);
-                    else
-                        app.Logger.LogError("Failed to fetch RSS feed: {Url}", feedUrl);
                 }
 
                 var articles = store.GetArticles(feedUrl, count).ToList();

@@ -1,5 +1,5 @@
 using System.Net;
-using Trains.Tests.Helpers;
+using Hearth.TestUtilities;
 using Xunit;
 
 namespace Trains.Tests;

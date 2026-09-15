@@ -11,5 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Trains\Trains.csproj" />
     <ProjectReference Include="..\..\src\Data\Data.csproj" />
+    <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 </Project>

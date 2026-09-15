@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Trains.Tests.Helpers;
+namespace Hearth.TestUtilities;
 
 public sealed class FakeHttpMessageHandler(string responseJson, HttpStatusCode status = HttpStatusCode.OK)
     : HttpMessageHandler

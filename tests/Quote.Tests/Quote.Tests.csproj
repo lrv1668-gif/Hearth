@@ -10,5 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Quote\Quote.csproj" />
+    <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 </Project>

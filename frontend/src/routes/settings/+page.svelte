@@ -10,7 +10,7 @@
     import LocalPhotosSettings from '$lib/components/settings/LocalPhotosSettings.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import WidgetVisibilitySettings from '$lib/components/settings/WidgetVisibilitySettings.svelte';
-    import WidgetLayoutSettings from '$lib/components/settings/WidgetLayoutSettings.svelte';
+    import WidgetOrderEditor from '$lib/components/settings/WidgetOrderEditor.svelte';
     import SpotifyConnectionSettings from '$lib/components/settings/SpotifyConnectionSettings.svelte';
     import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
@@ -114,7 +114,7 @@
 
         {#if active === 'dashboard'}
             {#snippet visibility()}<WidgetVisibilitySettings />{/snippet}
-            {#snippet layout()}<WidgetLayoutSettings />{/snippet}
+            {#snippet layout()}<WidgetOrderEditor />{/snippet}
             {#snippet feeds()}<FeedSettings />{/snippet}
             {#snippet trainStops()}<TrainStopSettings />{/snippet}
             <div class="flex flex-col gap-4">

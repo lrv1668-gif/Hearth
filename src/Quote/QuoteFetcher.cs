@@ -4,7 +4,7 @@ using Quote.Records;
 
 namespace Quote;
 
-public sealed class QuoteFetcher(HttpClient http)
+public sealed class QuoteFetcher(HttpClient http, ILogger<QuoteFetcher> logger)
 {
     private record ZenResponse(
         [property: JsonPropertyName("q")] string Q,
@@ -18,8 +18,9 @@ public sealed class QuoteFetcher(HttpClient http)
             var first = items?.FirstOrDefault();
             return first is null ? null : new QuoteItem(first.Q, first.A);
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Failed to fetch daily quote from ZenQuotes");
             return null;
         }
     }

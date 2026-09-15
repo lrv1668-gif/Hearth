@@ -112,8 +112,9 @@ public static class WebApplicationExtensions
                 await provider.SetTaskCompletedAsync(taskListId, taskId, body.Completed, ct);
                 return Results.NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                app.Logger.LogError(ex, "Failed to update task {TaskListId}/{TaskId} in Google Tasks", taskListId, taskId);
                 return Results.Problem(statusCode: 502, detail: "Failed to update task in Google Tasks.");
             }
         });

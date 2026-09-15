@@ -5,7 +5,7 @@ using Rss.Records;
 
 namespace Rss;
 
-public sealed class RssFetcher
+public sealed class RssFetcher(ILogger<RssFetcher> logger)
 {
     private static readonly XNamespace Atom = "http://www.w3.org/2005/Atom";
 
@@ -37,8 +37,9 @@ public sealed class RssFetcher
             var content = await http.GetStringAsync(new Uri(url));
             return ParseFeed(url, content);
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Failed to fetch RSS feed: {Url}", url);
             return null;
         }
     }

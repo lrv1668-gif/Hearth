@@ -1,5 +1,4 @@
 using System.Data.Common;
-using System.Globalization;
 using Data.Abstractions;
 
 namespace Birds;
@@ -29,15 +28,8 @@ public sealed class BirdsStore([FromKeyedServices("birds")] IDatabase db)
             cmd.AddParam("$fetched_at", DateTime.UtcNow.ToString("o"));
         });
 
-    public static bool IsStale(BirdsCache cache)
-    {
-        // Parse with RoundtripKind so the stored UTC ("...Z") timestamp keeps Kind=Utc.
-        // Default TryParse converts it to local time, which skews the comparison against
-        // DateTime.UtcNow by the machine's UTC offset (cache reads as perpetually stale).
-        if (!DateTime.TryParse(cache.FetchedAt, CultureInfo.InvariantCulture,
-                DateTimeStyles.RoundtripKind, out var fetched)) return true;
-        return (DateTime.UtcNow - fetched).TotalMinutes > 60;
-    }
+    public static bool IsStale(BirdsCache cache) =>
+        CacheFreshness.IsStale(cache.FetchedAt, TimeSpan.FromMinutes(60));
 
     private static BirdsCache Map(DbDataReader r) =>
         new(r.Field<string>("sightings_json")!, r.Field<string>("fetched_at")!);

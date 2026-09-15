@@ -1,5 +1,4 @@
 using System.Data.Common;
-using System.Globalization;
 using Data.Abstractions;
 using Rss.Records;
 
@@ -42,12 +41,7 @@ public sealed class RssStore([FromKeyedServices("rss")] IDatabase db)
             "SELECT fetched_at FROM rss_articles WHERE feed_url = $url LIMIT 1",
             r => r.Field<string>("fetched_at"),
             cmd => cmd.AddParam("$url", feedUrl));
-        if (fetched is null) return true;
-        // RoundtripKind preserves Kind=Utc on the stored "...Z" timestamp; default
-        // TryParse would convert to local time and skew the comparison against UtcNow.
-        if (!DateTime.TryParse(fetched, CultureInfo.InvariantCulture,
-                DateTimeStyles.RoundtripKind, out var dt)) return true;
-        return (DateTime.UtcNow - dt).TotalMinutes > 30;
+        return CacheFreshness.IsStale(fetched, TimeSpan.FromMinutes(30));
     }
 
     // Titles and links are sanitized again on the read path because rows cached

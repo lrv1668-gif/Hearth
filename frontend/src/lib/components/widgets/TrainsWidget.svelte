@@ -4,25 +4,12 @@
     import { trainsStore, loadTrainDepartures } from '$lib/stores/TrainsStore.svelte.ts';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
+    import ScrollFadeList from '$lib/components/ScrollFadeList.svelte';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
-    let listEl = $state<HTMLDivElement | null>(null);
-    let atBottom = $state(false);
 
     onMount(() => {
         loadPromise = loadTrainDepartures();
-    });
-
-    function updateAtBottom() {
-        if (!listEl) return;
-        atBottom = listEl.scrollTop + listEl.clientHeight >= listEl.scrollHeight - 1;
-    }
-
-    // Recheck when the list renders or its contents change, so the fade only
-    // shows when there actually is more to scroll to.
-    $effect(() => {
-        trainsStore.groups;
-        updateAtBottom();
     });
 
     function stopLabel(stopKey: string, fallback: string | null): string {
@@ -130,47 +117,35 @@
     {:else if displayGroups.every((g) => g.lines.length === 0)}
         <p class="type-label text-(--text-3)">No upcoming departures.</p>
     {:else}
-        <div class="relative">
-            <div
-                bind:this={listEl}
-                class="scroll-thin flex max-h-[min(25vh,320px)] flex-col gap-3 overflow-y-auto"
-                onscroll={updateAtBottom}
-            >
-                {#each displayGroups as group (group.stopKey)}
-                    {#if group.lines.length > 0}
-                        <div class="flex flex-col gap-1.5">
-                            <p class="type-label font-medium text-(--text-2)">{group.label}</p>
-                            <ul class="flex flex-col gap-1.5">
-                                {#each group.lines as line (line.key)}
-                                    <li class="flex items-center gap-2.5">
-                                        {#if isBus(line.mode)}
-                                            <Bus class="icon-sm shrink-0 text-(--text-3)" />
-                                        {:else}
-                                            <TrainFront class="icon-sm shrink-0 text-(--text-3)" />
+        <ScrollFadeList class="gap-3">
+            {#each displayGroups as group (group.stopKey)}
+                {#if group.lines.length > 0}
+                    <div class="flex flex-col gap-1.5">
+                        <p class="type-label font-medium text-(--text-2)">{group.label}</p>
+                        <ul class="flex flex-col gap-1.5">
+                            {#each group.lines as line (line.key)}
+                                <li class="flex items-center gap-2.5">
+                                    {#if isBus(line.mode)}
+                                        <Bus class="icon-sm shrink-0 text-(--text-3)" />
+                                    {:else}
+                                        <TrainFront class="icon-sm shrink-0 text-(--text-3)" />
+                                    {/if}
+                                    <p class="type-body min-w-0 flex-1 truncate text-(--text-1)">
+                                        <span class="font-medium">{line.routeShortName}</span>
+                                        {#if line.headsign}
+                                            <span class="text-(--text-2)">→</span>
+                                            <span class="text-(--text-1)">{line.headsign}</span>
                                         {/if}
-                                        <p class="type-body min-w-0 flex-1 truncate text-(--text-1)">
-                                            <span class="font-medium">{line.routeShortName}</span>
-                                            {#if line.headsign}
-                                                <span class="text-(--text-2)">→</span>
-                                                <span class="text-(--text-1)">{line.headsign}</span>
-                                            {/if}
-                                        </p>
-                                        <span class="type-label shrink-0 text-(--text-2)">
-                                            {timesLabel(line.times)}
-                                        </span>
-                                    </li>
-                                {/each}
-                            </ul>
-                        </div>
-                    {/if}
-                {/each}
-            </div>
-            {#if !atBottom}
-                <div
-                    class="pointer-events-none absolute right-0 bottom-0 left-0 h-8"
-                    style="background: linear-gradient(to bottom, transparent, var(--bg))"
-                ></div>
-            {/if}
-        </div>
+                                    </p>
+                                    <span class="type-label shrink-0 text-(--text-2)">
+                                        {timesLabel(line.times)}
+                                    </span>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
+            {/each}
+        </ScrollFadeList>
     {/if}
 </SkeletonLoader>

@@ -1,6 +1,6 @@
 using System.Linq;
+using Hearth.TestUtilities;
 using Tasks;
-using Tasks.Tests.Helpers;
 using Xunit;
 
 namespace Tasks.Tests;

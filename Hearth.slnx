@@ -17,6 +17,7 @@
     <Project Path="src/Trains/Trains.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Hearth.TestUtilities/Hearth.TestUtilities.csproj" />
     <Project Path="tests/Data.Tests/Data.Tests.csproj" />
     <Project Path="tests/ServiceDefaults.Tests/ServiceDefaults.Tests.csproj" />
     <Project Path="tests/Tasks.Tests/Tasks.Tests.csproj" />

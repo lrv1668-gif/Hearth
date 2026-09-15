@@ -1,6 +1,6 @@
 using Data;
 
-namespace Spotify.Tests.Helpers;
+namespace Hearth.TestUtilities;
 
 /// <summary>
 /// Wraps a real <see cref="Database"/> backed by a throwaway SQLite file.

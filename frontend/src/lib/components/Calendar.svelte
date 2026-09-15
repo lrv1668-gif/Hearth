@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task, CalendarItem, Item } from '$lib/api';
-    import { formatTime, eventDateKey } from '$lib/utils';
+    import { formatTime, eventDateKey, localDateKey as dateKey } from '$lib/utils';
     import {
         ArrowDownToLine,
         ArrowLeft,
@@ -39,10 +39,6 @@
         onToggleCalendarTask,
     }: Props = $props();
     const today = new Date();
-
-    function dateKey(d: Date): string {
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
 
     const todayKey = dateKey(today);
 

@@ -3,7 +3,7 @@
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
     import { taskStore } from '$lib/stores/TaskStore.svelte.ts';
     import { calendarStore } from '$lib/stores/CalendarStore.svelte.ts';
-    import { eventDateKey } from '$lib/utils';
+    import { eventDateKey, localDateKey } from '$lib/utils';
 
     interface Mark {
         at: Date;
@@ -16,10 +16,6 @@
         const id = setInterval(() => (now = new Date()), 60_000);
         return () => clearInterval(id);
     });
-
-    function localDateKey(d: Date): string {
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
 
     const todayKey = $derived(localDateKey(now));
     const todayForecast = $derived(weatherStore.forecast.find((f) => f.date === todayKey) ?? null);

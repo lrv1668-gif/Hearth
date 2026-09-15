@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task, CalendarItem, Item } from '$lib/api';
-    import { formatTime, eventDateKey, stripHtml } from '$lib/utils';
+    import { formatTime, eventDateKey, stripHtml, localDateKey as dateKey } from '$lib/utils';
     import { Calendar as CalendarIcon, Check, ExternalLink, RefreshCw, X } from '@lucide/svelte';
     import ProviderIcon from '$lib/components/ProviderIcon.svelte';
 
@@ -17,10 +17,6 @@
     let { tasks, calItems, onToggle, onDelete, onEdit, onEventClick, onToggleCalendarTask }: Props = $props();
 
     let confirmDeleteId = $state<number | null>(null);
-
-    function dateKey(d: Date): string {
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
 
     function formatGroupLabel(key: string): string {
         // Parse as local date by appending T00:00 to avoid UTC offset shifting the day

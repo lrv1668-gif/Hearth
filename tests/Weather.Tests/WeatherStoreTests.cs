@@ -1,4 +1,4 @@
-using Weather.Tests.Helpers;
+using Hearth.TestUtilities;
 using Xunit;
 
 namespace Weather.Tests;
