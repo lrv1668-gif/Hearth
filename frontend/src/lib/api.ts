@@ -305,6 +305,7 @@ class ApiClient {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
+        if (!res.ok) throw new Error(`POST ${url} failed: ${res.status}`);
         return res.json() as Promise<T>;
     }
 
@@ -314,6 +315,7 @@ class ApiClient {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
+        if (!res.ok) throw new Error(`PUT ${url} failed: ${res.status}`);
         return res.json() as Promise<T>;
     }
 
