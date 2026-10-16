@@ -1,6 +1,6 @@
 # Hearth
 
-A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing, news, a daily quote, nearby bird sightings, and nearby transit departures. The long-term target is an always-on e-paper frame (Raspberry Pi).
+A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing, news, a daily quote, nearby bird sightings, and nearby transit departures. The long-term target is an always-on e-paper frame — a Pimoroni Inky Impression 13.3" driven by a Raspberry Pi Zero 2 W, fed by a home server running the stack (see [`docs/HARDWARE.md`](docs/HARDWARE.md)).
 
 ## Pages
 

@@ -12,9 +12,9 @@ Most home dashboards are designed like control panels — dense, utilitarian, al
 
 - **Language:** C#/.NET
 - **Architecture:** Microservice-oriented — each concern (weather, art, plants, tasks, display) is its own service
-- **Hardware:** Split into two devices with independent power budgets — a **host** (anywhere on the LAN, runs the full Docker Compose stack) and a **frame client** (a minimal board mounted behind an 11–13" color e-paper display inside a physical frame, that only fetches a pre-rendered bitmap and pushes it to the panel). See `HARDWARE.md` for the recommended parts and the reasoning behind the split
+- **Hardware:** Split into two devices with independent power budgets — a **host** (anywhere on the LAN, runs the full Docker Compose stack) and a **frame client** (a Raspberry Pi Zero 2 W mounted behind a Pimoroni Inky Impression 13.3" color e-paper display inside a physical frame, running a small Python client on Pimoroni's `inky` library that only fetches a pre-rendered bitmap, pushes it to the panel, and relays button presses). See `HARDWARE.md` for the parts and the reasoning behind the split
 - **Web access:** Accessible via browser on desktop, tablet, and phone — but the e-paper frame is the primary experience, not a secondary one
-- **Local-first:** Core features require no cloud accounts. All state is stored on the Pi. External APIs (weather, Spotify, calendar) are optional enhancements.
+- **Local-first:** Core features require no cloud accounts. All state is stored on the host. External APIs (weather, Spotify, calendar) are optional enhancements.
 
 ---
 
@@ -38,15 +38,15 @@ E-paper is the right medium for Hearth. Unlike LCD or OLED, e-paper emits no lig
 - The image persists indefinitely with zero power draw. Hearth can show your household's state all day at essentially no cost.
 - It genuinely looks like something hanging on your wall, not a screen.
 
-The tradeoff is refresh rate — full color e-paper refreshes can take 15–30 seconds and cause a brief flicker. Hearth embraces this constraint rather than fighting it. Updates are **intentional and scheduled**, not continuous. The display isn't a live feed; it's a thoughtful snapshot.
+The tradeoff is refresh rate — a full color e-paper refresh takes tens of seconds and flickers while it runs. Hearth embraces this constraint rather than fighting it. Updates are **intentional and scheduled**, not continuous. The display isn't a live feed; it's a thoughtful snapshot.
 
 ### Color vs. Black & White Mode
 
 The display supports two rendering modes, switchable on demand or by schedule:
 
-**Color Mode** — uses the full palette of the e-paper display. Rich art, color-coded weather, visual plant indicators. Slower to refresh (~15–30s), but visually warm and expressive.
+**Color Mode** — uses the full Spectra 6 palette of the e-paper display. Rich art, color-coded weather, visual plant indicators. Visually warm and expressive.
 
-**Black & White Mode** — renders in pure B&W. Crisper, faster refresh (~2–5s), lower visual noise. Better for focused contexts (working from home, nighttime, minimal preference). Has an intentional "printed broadsheet" aesthetic that works well with certain art styles and typography.
+**Black & White Mode** — renders in pure B&W. Crisper, lower visual noise. On Spectra 6 this is an aesthetic choice, not a speed one — the panel runs the same full refresh either way. Better for focused contexts (working from home, nighttime, minimal preference). Has an intentional "printed broadsheet" aesthetic that works well with certain art styles and typography.
 
 Switching modes is a first-class feature, not a setting buried in config. The right mode depends on the room, the time of day, and the person.
 
@@ -79,8 +79,8 @@ The mode schedule is configurable (e.g. Ambient all day, Daily at 7am and 6pm), 
 
 ### First Run
 
-1. User powers on the Pi. Hearth starts automatically.
-2. The display shows a welcome screen with the local network URL (e.g. `hearth.local`).
+1. User powers on the host and the frame. Hearth starts automatically.
+2. The frame shows a welcome screen (drawn locally by the frame client, since nothing is rendered yet) with the local network URL (e.g. `hearth.local`).
 3. On their phone or laptop, the user visits the URL and is walked through a short setup: give the household a name, pick an art source (Unsplash / local folder), set their location for weather.
 4. The display refreshes with a real layout. Setup is done.
 
@@ -99,6 +99,8 @@ The `/settings` route is implemented and currently houses the theme picker, the 
 
 All screens are usable one-handed on a phone. No dense forms.
 
+The frame's four buttons cover the quick actions without a phone: refresh now, Ambient ↔ Daily, and Color ↔ B&W (see `HARDWARE.md`).
+
 ### Display Mode Transitions
 
 When a mode change is triggered (by schedule or phone):
@@ -113,7 +115,9 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 ### Art Rotation
 
 - In Ambient Mode, art rotates on a configurable interval (default: every 30 minutes, aligned with the refresh schedule)
-- Each image is fetched, resized to the display resolution, and dithered by the Art Service before being cached
+- Each image is fetched, cropped to the panel's 4:3 aspect, resized to 1600×1200, and dithered before being cached
+- Favor images that survive a 6-color dither: high contrast, saturated, simple compositions. Smooth gradients, low light, and skin tones break up into visible dither noise
+- Because each change is a full refresh, rotation shouldn't go faster than roughly every 15–30 minutes
 - In Daily Mode, no art is shown — the layout is full-frame structured content
 
 ---
@@ -147,6 +151,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 - Household calendar: pull from Google/Apple Calendar, show next 2–3 events
 - Birds nearby: recent bird sightings around the home from eBird — the frame quietly reflects the living world outside the window; rare sightings gently highlighted
 - Nearby transit: upcoming departures for user-subscribed bus/train stops via Transitland, with per-line filtering so only the routes that matter to the household show up
+- Presence-aware refresh: an optional sensor in the frame lets Hearth refresh when nobody's watching (see Open Questions)
 - Gentle notifications: surface urgent items (weather alert, plant critically overdue) as a temporary overlay before reverting to Ambient
 
 ### Phase 4 — The Soul
@@ -162,7 +167,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 2. **E-paper is the right call.** No glowing screen. No disturbing the room. Looks like something that belongs on a wall.
 3. **Color and B&W are both first-class.** Switch the whole aesthetic of the frame based on mood, time of day, or preference — without changing any content.
 4. **The phone is the remote.** Any family member can add a task, update the grocery list, or trigger a refresh from their phone — no app install, just the local web UI.
-5. **It's self-hosted but not hard.** One command to start. Runs entirely on the Pi 5. No subscriptions, no cloud lock-in.
+5. **It's self-hosted but not hard.** One command to start. Runs entirely on a small home server, with a Pi Zero 2 W in the frame. No subscriptions, no cloud lock-in.
 6. **Updates feel considered, not reactive.** The scheduled refresh cadence makes Hearth feel like a thoughtful daily artifact rather than a noisy feed.
 
 ---
@@ -176,7 +181,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 | Color + B&W modes    | Yes    | No          | No             | No        |
 | Self-hosted          | Yes    | Yes         | Yes            | No        |
 | Ambient/art-first    | Yes    | No          | No             | No        |
-| Pi 5 optimized       | Yes    | Partial     | Yes            | No        |
+| Raspberry Pi friendly | Yes   | Partial     | Yes            | No        |
 | Non-technical setup  | Goal   | No          | No             | Yes       |
 | Free                 | Yes    | Yes         | Yes            | Freemium  |
 
@@ -189,11 +194,12 @@ Hearth's gap: **self-hosted + e-paper-native + beautiful + accessible to non-dev
 These need to be decided before or early in development:
 
 - **Art in Daily Mode:** Current spec says no art in Daily Mode — the layout is full-frame structured content. Is this correct, or should there be a small art pane?
+- **Presence-aware refresh:** A full refresh flickers for tens of seconds, so the best time to refresh is when nobody's looking. Leading idea: while the room is empty, rotate Ambient photos freely; when someone is present, hold the current image (or switch to Daily once, with a minimum dwell time) and suppress further refreshes; with the lights off, skip refreshes entirely. Needs an optional sensor in the frame (mmWave radar preferred — it detects people sitting still and needs no hole) reporting to the Display service, which owns the policy. See `HARDWARE.md`.
 
 ### Resolved
 
-- **E-paper hardware module:** E Ink Spectra 6, 6-color, 1600×1200, SPI (e.g. Inkplate 13SPECTRA or Waveshare's 13.3" E-Paper HAT+). The frame client that drives it runs its own firmware/script (C/C++ on ESP32, or Python on a Pi Zero 2 W) rather than a C# library — see `HARDWARE.md`.
-- **Physical input:** None in v1. The phone-as-remote flow already covers every interaction described here; a button or sensor is deferred to a v2 enclosure once the render/display pipeline is proven, since it requires a hole in the enclosure decided ahead of time. See `HARDWARE.md`.
+- **E-paper hardware module:** Pimoroni Inky Impression 13.3" — E Ink Spectra 6, 6-color, 1600×1200 — driven by a Raspberry Pi Zero 2 W running our own Python client on Pimoroni's `inky` library, rather than a C# library. See `HARDWARE.md`.
+- **Physical input:** The Inky Impression's four built-in buttons, in v1 — refresh, Ambient ↔ Daily, Color ↔ B&W, plus one reserved. The phone remains the primary remote; a "frame tap" stays a v2 idea. See `HARDWARE.md`.
 
 ---
 

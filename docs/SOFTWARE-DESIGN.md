@@ -46,7 +46,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 
 #### Kiosk mode
 
-Kiosk mode can be activated in two ways: toggle **Settings → Frame → Kiosk Mode** (persisted to `localStorage`), or append `?kiosk=1` to the URL (useful for hardcoding the e-paper display URL). Either condition is sufficient. In kiosk mode:
+Kiosk mode can be activated in two ways: toggle **Settings → Frame → Kiosk Mode** (persisted to `localStorage`), or append `?kiosk=1` to the URL (useful for a browser-based wall display such as a tablet or monitor — the e-paper frame doesn't load a URL, it pulls a host-rendered bitmap; see `HARDWARE.md`). Either condition is sufficient. In kiosk mode:
 
 - The desktop navigation header (`Nav.svelte`) is hidden.
 - The `DashboardHeader` strip (live clock + date + current weather) is shown above the widget columns.
