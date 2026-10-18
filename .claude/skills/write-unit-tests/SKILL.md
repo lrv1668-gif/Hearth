@@ -5,16 +5,22 @@ description: Write unit tests for a Hearth backend service. Use this skill when 
 
 # Hearth Unit Test Writer
 
-Creates an xUnit test project for one Hearth backend service. Every test project touches exactly four locations.
+Creates (or extends) an xUnit test project for one Hearth backend service.
 
-## The Four Files
+## The Files
 
 | File | What changes |
 |------|-------------|
-| `tests/<Service>.Tests/<Service>.Tests.csproj` | Create test project |
-| `tests/<Service>.Tests/Helpers/FakeHttpMessageHandler.cs` | Create only if service uses HttpClient |
+| `tests/<Service>.Tests/<Service>.Tests.csproj` | Create test project (skip if it already exists) |
 | `tests/<Service>.Tests/<Subject>Tests.cs` | Create test class(es) |
-| `Hearth.slnx` | Add project entry |
+| `Hearth.slnx` | Add project entry (new projects only) |
+
+Shared helpers already exist in `tests/Hearth.TestUtilities/` — reference that project, never copy the helpers:
+
+- `FakeHttpMessageHandler(string responseJson, HttpStatusCode status = OK)` — canned HTTP responses
+- `TempDatabase` — a real `Database` on a throwaway SQLite file (`tmp.Db`), deleted on `Dispose()`
+
+Service-specific one-off handlers (e.g. `Quote.Tests/Helpers/ThrowingHttpMessageHandler.cs`) go in that test project's `Helpers/` folder. If a helper becomes useful to a second project, move it into `Hearth.TestUtilities`.
 
 ---
 
@@ -22,84 +28,63 @@ Creates an xUnit test project for one Hearth backend service. Every test project
 
 Before writing any code, read the service source to understand its dependencies:
 
-1. Read `src/<Service>/Program.cs` — what's registered? What are the constructor deps?
+1. Read `src/<Service>/Program.cs` and `ServiceCollectionExtensions.cs` — what's registered?
 2. Read the fetcher or store file — how many external dependencies? (`HttpClient`? `IDatabase`?)
-3. Identify testable units: pure functions, mapping logic, or methods with mockable deps
+3. Identify testable units: pure functions, mapping logic, or methods with fakeable deps
+4. Read an existing test project for a similar service (e.g. `tests/Quote.Tests/`, `tests/Tasks.Tests/`) and match its style
 
 **Pick your test type** based on what you find:
 
 | Service type | Example | Test approach |
 |---|---|---|
 | HTTP-backed | `QuoteFetcher`, `WeatherFetcher` | `FakeHttpMessageHandler` |
-| Database-backed | `TaskStore`, `RssStore` | Mock `IDatabase` interface |
-| Pure logic | WMO mapping, recurrence math | Direct instantiation, no mocks |
+| Database-backed | `TaskStore`, `RssStore` | `TempDatabase` (real SQLite) |
+| Pure logic | WMO mapping, recurrence math | Direct instantiation, no fakes |
 
 ---
 
 ## Step 1: Create the Test Project
 
+`TargetFramework`, `Nullable`, `ImplicitUsings`, and `IsPackable` come from `tests/Directory.Build.props`; package versions come from `tests/Directory.Packages.props` (central package management). Do **not** redeclare them or add `Version=` attributes.
+
 ```xml
 <!-- tests/<Service>.Tests/<Service>.Tests.csproj -->
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="xunit" Version="*" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="*" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\<Service>\<Service>.csproj" />
+    <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 </Project>
 ```
 
 > Always use `Microsoft.NET.Sdk` — **not** `Microsoft.NET.Sdk.Web` (that starts an ASP.NET host and is wrong for test projects).
 
----
-
-## Step 2: Add FakeHttpMessageHandler (HTTP-backed services only)
-
-Copy this helper verbatim. It's reusable across any HTTP-backed service test project.
-
-```csharp
-// tests/<Service>.Tests/Helpers/FakeHttpMessageHandler.cs
-using System.Net;
-
-namespace <Service>.Tests.Helpers;
-
-public sealed class FakeHttpMessageHandler(string responseJson, HttpStatusCode status = HttpStatusCode.OK)
-    : HttpMessageHandler
-{
-    protected override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        var response = new HttpResponseMessage(status)
-        {
-            Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json")
-        };
-        return Task.FromResult(response);
-    }
-}
-```
+If you genuinely need a new package, add a version-less `<PackageReference Include="..." />` here **and** a `<PackageVersion Include="..." Version="x.y.z" />` entry in `tests/Directory.Packages.props`.
 
 ---
 
-## Step 3: Write Tests
+## Step 2: Write Tests
 
 Naming convention: `Method_Scenario_ExpectedOutcome`
 
-> **Important:** `ImplicitUsings` does not include third-party namespaces. Always add `using Xunit;` explicitly (or a `GlobalUsings.cs` with `global using Xunit;`).
+> `ImplicitUsings` does not include third-party namespaces. Add `using Xunit;` and `using Hearth.TestUtilities;` explicitly.
 
 ### Pattern A — HTTP-backed (FakeHttpMessageHandler)
 
 ```csharp
+using System.Net;
+using Hearth.TestUtilities;
+using Xunit;
+
 private static MyFetcher MakeFetcher(string json, HttpStatusCode status = HttpStatusCode.OK)
 {
     var handler = new FakeHttpMessageHandler(json, status);
@@ -120,20 +105,18 @@ public async Task FetchAsync_ValidResponse_ReturnsMappedItem()
 public async Task FetchAsync_HttpError_ReturnsNull()
 {
     var fetcher = MakeFetcher("", HttpStatusCode.ServiceUnavailable);
-    var result = await fetcher.FetchAsync();
-    Assert.Null(result);
+    Assert.Null(await fetcher.FetchAsync());
 }
 
 [Fact]
 public async Task FetchAsync_MalformedJson_ReturnsNull()
 {
     var fetcher = MakeFetcher("not-json");
-    var result = await fetcher.FetchAsync();
-    Assert.Null(result);
+    Assert.Null(await fetcher.FetchAsync());
 }
 ```
 
-### Pattern B — Pure logic (no mocks)
+### Pattern B — Pure logic (no fakes)
 
 ```csharp
 [Theory]
@@ -146,23 +129,37 @@ public void Describe_KnownAndUnknownCodes_ReturnsExpected(int code, string expec
 }
 ```
 
-### Pattern C — Database-backed (IDatabase mock)
+### Pattern C — Database-backed (TempDatabase)
 
-Use `NSubstitute` or `Moq` to mock `IDatabase`. Add the package to the csproj:
-
-```xml
-<PackageReference Include="NSubstitute" Version="*" />
-```
+Stores take `IDatabase`; pass `tmp.Db` (a real SQLite-backed `Database`). An in-memory DB won't work — `Database` opens a fresh connection per query. Run the store's migration before exercising it.
 
 ```csharp
-var db = Substitute.For<IDatabase>();
-db.ExecuteAsync(Arg.Any<string>(), Arg.Any<object?>()).Returns(1);
-var store = new MyStore(db);
+using Hearth.TestUtilities;
+using Xunit;
+
+private static MyStore Migrated(TempDatabase tmp)
+{
+    var store = new MyStore(tmp.Db);
+    store.Migrate();
+    return store;
+}
+
+[Fact]
+public void Create_NewItem_AppearsInList()
+{
+    using var tmp = new TempDatabase();
+    var store = Migrated(tmp);
+
+    store.Create("Buy milk");
+
+    var listed = Assert.Single(store.List());
+    Assert.Equal("Buy milk", listed.Title);
+}
 ```
 
 ---
 
-## Step 4: Add to Hearth.slnx
+## Step 3: Add to Hearth.slnx
 
 Open `Hearth.slnx` and add the new project entry inside the `<Folder Name="/tests/">` block:
 
@@ -174,25 +171,12 @@ Open `Hearth.slnx` and add the new project entry inside the `<Folder Name="/test
 
 ## Checklist
 
-- [ ] Read the target service before starting
+- [ ] Read the target service and a similar existing test project before starting
 - [ ] Identified test type (HTTP / database / pure logic)
-- [ ] Created `<Service>.Tests.csproj` with `Microsoft.NET.Sdk` (not Web)
-- [ ] Added `ProjectReference` to the target service
-- [ ] Created `FakeHttpMessageHandler` if service uses `HttpClient`
+- [ ] csproj uses `Microsoft.NET.Sdk`, has no `TargetFramework` or `Version=` attributes
+- [ ] Referenced both the target service and `Hearth.TestUtilities`
+- [ ] Used shared helpers instead of copying them; no mocking library added
 - [ ] Tests named `Method_Scenario_ExpectedOutcome`
-- [ ] Happy path covered
-- [ ] Empty/null response covered
-- [ ] Error/exception path covered
+- [ ] Happy path, empty/null response, and error path covered
 - [ ] Added test project to `Hearth.slnx`
-- [ ] `dotnet test` passes with all tests green
-
----
-
-## Running Tests
-
-```bash
-cd tests/<Service>.Tests
-dotnet test
-# or from repo root:
-dotnet test tests/<Service>.Tests
-```
+- [ ] `dotnet test tests/<Service>.Tests/<Service>.Tests.csproj` passes

@@ -26,4 +26,6 @@ Thumbs.db
 *.user
 .claude/*
 !.claude/skills/
+!.claude/hooks/
+!.claude/settings.json
 .vs/

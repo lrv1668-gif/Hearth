@@ -6,9 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Keep documentation in sync with code at all times:
 
-- When a new service is added or changed, update `SOFTWARE-DESIGN.md` and the directory structure below.
+- When a new service is added or changed, update `docs/SOFTWARE-DESIGN.md` and the directory structure below.
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
-- When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and the theme list below.
+- When a theme is added or removed, update `docs/SOFTWARE-DESIGN.md` (theme list) and the theme list below.
+- When a widget is added or removed, update the widget list in `README.md` and the relevant section of `docs/SOFTWARE-DESIGN.md` — use the `hearth-widget` skill to build it.
 - When a new service needs environment variables, create `src/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
 - When adding a new backend service: add it to `docker-compose.yml` (merge `*defaults`, `build: { context: ./src, args: { SERVICE: <Service> } }` — there are no per-service Dockerfiles; the shared `src/Dockerfile` builds them all), `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency. Reference `ServiceDefaults` and call `AddHearthWebDefaults()` in `ServiceCollectionExtensions.cs` — every service does this, including services with no database.
 - Each frontend data type gets its own `<Type>Store.svelte.ts` file (the `.svelte.ts` suffix is required for runes) — do not combine stores.
@@ -16,7 +17,7 @@ Keep documentation in sync with code at all times:
 
 ## Project Overview
 
-Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, plant care, music, daily tasks, countdown events, moon phase, and news feeds into a single quiet display. The primary target is an always-on, ambient e-paper frame — a Pimoroni Inky Impression 13.3" (Spectra 6, 1600×1200) driven by a Raspberry Pi Zero 2 W thin client that pulls a host-rendered frame (see `docs/HARDWARE.md`) — though it is also accessible via web browser.
+Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, moon phase, tasks and countdowns, a calendar agenda, Spotify now-playing, news feeds, a daily quote, bird sightings, transit departures, and almanac facts into a single quiet display. (Plant care is planned in `docs/PRODUCT.md` but not built yet — there is no plants service.) The primary target is an always-on, ambient e-paper frame — a Pimoroni Inky Impression 13.3" (Spectra 6, 1600×1200) driven by a Raspberry Pi Zero 2 W thin client that pulls a host-rendered frame (see `docs/HARDWARE.md`) — though it is also accessible via web browser.
 
 ## Tech Stack
 
@@ -45,6 +46,7 @@ src/                         # Backend API + shared-library projects
   Almanac/                   # ASP.NET Core 10 Minimal API, port 8089 — season/daylight/frost facts, computed locally (no DB)
   Trains/                    # ASP.NET Core 10 Minimal API, port 8091 — Transitland v2 departures fetch + cache
 tests/                       # xUnit test projects — <Service>.Tests/
+  Hearth.TestUtilities/      # Shared test helpers — FakeHttpMessageHandler, TempDatabase
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 Caddyfile
@@ -54,9 +56,13 @@ Caddyfile
 
 ### Verification Commands
 
-- Type-check frontend: `cd frontend && npx svelte-check --tsconfig ./tsconfig.json`
+- Type-check frontend: `cd frontend && npm run check` (runs `svelte-kit sync` + `svelte-check`)
+- Frontend unit tests (vitest): `cd frontend && npm run test`
+- Frontend formatting: `cd frontend && npm run format:check` (`npm run format` to fix)
 - Build a backend service: `dotnet build src/<Service>/<Service>.csproj`
 - Run a service's tests: `dotnet test tests/<Service>.Tests/<Service>.Tests.csproj`
+- Full CI equivalent: `dotnet build Hearth.slnx && dotnet test Hearth.slnx`, plus `npm run check && npm run test && npm run build` in `frontend/`
+- Before committing a UI-visible change, run the `verify` skill to drive the real UI
 - Run the app locally: `docker compose up --build` (dev overrides in `docker-compose.override.yml` expose service ports on localhost), then `cd frontend && npm run dev` for a hot-reloading frontend — Vite's dev proxy in `frontend/vite.config.ts` forwards `/tasks`, `/weather`, etc. to those ports
 
 ### Backend (C# / ASP.NET Core)
@@ -105,7 +111,8 @@ A separate user size slider (`FontSizeStore.svelte.ts`, localStorage `hearth-fon
 
 - Each service that gets tests has a matching `<Service>.Tests/` project in `tests/`
 - Test projects use `Microsoft.NET.Sdk` (not `Microsoft.NET.Sdk.Web`)
-- HTTP-backed services use a `FakeHttpMessageHandler` test helper (see `Quote.Tests/Helpers/`)
+- Shared helpers live in `tests/Hearth.TestUtilities/` — reference it rather than copying helpers: `FakeHttpMessageHandler` for HTTP-backed services, `TempDatabase` (real SQLite temp file) for database-backed stores. Don't add a mocking library for `IDatabase`.
+- Test projects inherit `TargetFramework`/`Nullable`/`ImplicitUsings` from `tests/Directory.Build.props` and package versions from `tests/Directory.Packages.props` — don't redeclare them
 - Test method naming: `Method_Scenario_ExpectedOutcome`
 - Add each new test project to `Hearth.slnx`
 - Use the `/write-unit-tests` skill to scaffold a new test project
