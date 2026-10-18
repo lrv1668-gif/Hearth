@@ -10,7 +10,7 @@ Keep documentation in sync with code at all times:
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
 - When a theme is added or removed, update `SOFTWARE-DESIGN.md` (theme list) and the theme list below.
 - When a new service needs environment variables, create `src/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
-- When adding a new backend service: add it to `docker-compose.yml`, `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency. Reference `ServiceDefaults` and call `AddHearthWebDefaults()` in `ServiceCollectionExtensions.cs` — every service does this, including services with no database.
+- When adding a new backend service: add it to `docker-compose.yml` (merge `*defaults`, `build: { context: ./src, args: { SERVICE: <Service> } }` — there are no per-service Dockerfiles; the shared `src/Dockerfile` builds them all), `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency. Reference `ServiceDefaults` and call `AddHearthWebDefaults()` in `ServiceCollectionExtensions.cs` — every service does this, including services with no database.
 - Each frontend data type gets its own `<Type>Store.svelte.ts` file (the `.svelte.ts` suffix is required for runes) — do not combine stores.
 - Use `[FromKeyedServices("key")]` to inject `IDatabase` into stores — never inject the concrete `Database` class.
 
@@ -30,6 +30,7 @@ Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-
 ```text
 frontend/                    # SvelteKit app
 src/                         # Backend API + shared-library projects
+  Dockerfile                 # Shared image for every backend service — pick one with the SERVICE build arg
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
   Data/                      # SQLite implementation of IDatabase + AddSqliteDatabase() registration helper
   ServiceDefaults/           # Shared CORS/JSON defaults (AddHearthWebDefaults) + ConfigRequirement env-var validation — referenced by every service

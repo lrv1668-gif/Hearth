@@ -1,0 +1,9 @@
+# Host deps/build output — the image installs and builds its own (host node_modules
+# would otherwise be merged over the container's, mixing in macOS native binaries)
+node_modules
+.svelte-kit
+build
+.env
+.env.*
+.DS_Store
+Dockerfile*

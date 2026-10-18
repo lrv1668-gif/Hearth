@@ -13,7 +13,7 @@ A calm, self-hosted home dashboard designed to look beautiful and recede into th
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose v2.22+
+- [Docker](https://docs.docker.com/get-docker/) Engine 25+ (BuildKit) and Docker Compose v2.22+
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) *(for running the backend locally without Docker)*
 - [Node.js 20+](https://nodejs.org/) *(for running the frontend locally without Docker)*
 

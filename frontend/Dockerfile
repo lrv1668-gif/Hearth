@@ -1,15 +1,17 @@
 FROM node:26-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,id=npm,target=/root/.npm,sharing=locked npm ci
 COPY . .
-RUN npm run build
+# .svelte-kit/ is dockerignored; regenerate it (tsconfig.json extends its tsconfig)
+RUN npx svelte-kit sync && npm run build
 
 FROM node:26-alpine
 WORKDIR /app
-COPY --from=builder /app/build ./
-COPY --from=builder /app/package.json ./
-RUN npm install --omit=dev
-EXPOSE 3000
 ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,id=npm,target=/root/.npm,sharing=locked npm ci --omit=dev
+COPY --from=builder /app/build ./
+USER node
+EXPOSE 3000
 CMD ["node", "index.js"]

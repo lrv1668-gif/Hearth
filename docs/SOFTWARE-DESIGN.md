@@ -696,6 +696,19 @@ The Caddy config is the same in development and production — the only differen
 | `docker-compose.yml`          | Production: multi-stage builds, static frontend bundle                                                       |
 | `docker-compose.override.yml` | Development: auto-merged by Compose; swaps the frontend for the Vite dev server and configures file watching |
 
+### Images
+
+- **Backend:** one shared `src/Dockerfile` builds every service, selected by the `SERVICE` build arg set in each service's `build.args` in `docker-compose.yml`. It publishes for the build's target architecture only (`-a $TARGETARCH`, so arm64 hosts work unchanged) onto `mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra`: no shell or package manager, and `-extra` adds the ICU + tzdata that `TimeZoneInfo` needs. The apphost is renamed to `/app/service` so a single exec-form `ENTRYPOINT` works without a shell.
+- **Frontend:** `frontend/Dockerfile` (adapter-node build, then `npm ci --omit=dev` from the lockfile) and `frontend/Dockerfile.dev` (Vite dev server).
+- **Non-root:** backend containers run as the image's `app` user (UID 1654), the frontend as `node`. Each backend image creates `/data` owned by UID 1654, so new named volumes inherit that ownership. Volumes created before the switch to non-root (October 2026) are root-owned and need a one-time fix, or SQLite fails with "unable to open database file". Run this per volume with the stack stopped:
+
+  ```bash
+  docker run --rm -v hearth_tasks-data:/data alpine chown -R 1654:1654 /data
+  ```
+
+- **`.dockerignore`:** `src/.dockerignore` keeps `.env` secrets and local `*.db` files out of build contexts; `frontend/.dockerignore` keeps host `node_modules`/build output out, since `COPY . .` would otherwise merge macOS native binaries over the container's.
+- **Runtime:** every service has `restart: unless-stopped` and rotated `json-file` logs (3 × 10 MB), via the `x-defaults` anchor. The frontend and Caddy have healthchecks (busybox `wget`), and Caddy waits for the frontend to be healthy. The .NET services have no healthcheck: chiseled images have no probe tool, and starting a .NET probe process per service each interval costs too much on a low-power host. Caddy retries upstreams, and the restart policy covers crashes.
+
 ### Development workflow
 
 ```bash

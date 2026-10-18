@@ -1,8 +1,19 @@
+# Shared defaults — merged into each service with `<<: *name`
+x-defaults: &defaults
+    restart: unless-stopped
+    logging:
+        driver: json-file
+        options:
+            max-size: "10m"
+            max-file: "3"
+
 services:
     tasks:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Tasks/Dockerfile
+            args:
+                SERVICE: Tasks
         environment:
             - DB_PATH=/data/tasks.db
             - ASPNETCORE_HTTP_PORTS=8081
@@ -10,9 +21,11 @@ services:
             - tasks-data:/data
 
     spotify:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Spotify/Dockerfile
+            args:
+                SERVICE: Spotify
         env_file:
             - ./src/Spotify/.env
         environment:
@@ -23,9 +36,11 @@ services:
             - spotify-data:/data
 
     weather:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Weather/Dockerfile
+            args:
+                SERVICE: Weather
         env_file:
             - ./src/Weather/.env
         environment:
@@ -35,9 +50,11 @@ services:
             - weather-data:/data
 
     photos:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Photos/Dockerfile
+            args:
+                SERVICE: Photos
         env_file:
             - ./src/Photos/.env
         environment:
@@ -47,9 +64,11 @@ services:
             - photos-data:/data
 
     rss:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Rss/Dockerfile
+            args:
+                SERVICE: Rss
         environment:
             - DB_PATH=/data/rss.db
             - ASPNETCORE_HTTP_PORTS=8085
@@ -57,9 +76,11 @@ services:
             - rss-data:/data
 
     calendar:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Calendar/Dockerfile
+            args:
+                SERVICE: Calendar
         env_file:
             - ./src/Calendar/.env
         environment:
@@ -70,16 +91,20 @@ services:
             - calendar-data:/data
 
     quote:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Quote/Dockerfile
+            args:
+                SERVICE: Quote
         environment:
             - ASPNETCORE_HTTP_PORTS=8086
 
     birds:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Birds/Dockerfile
+            args:
+                SERVICE: Birds
         env_file:
             - ./src/Birds/.env
         environment:
@@ -89,18 +114,22 @@ services:
             - birds-data:/data
 
     almanac:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Almanac/Dockerfile
+            args:
+                SERVICE: Almanac
         env_file:
             - ./src/Almanac/.env
         environment:
             - ASPNETCORE_HTTP_PORTS=8089
 
     trains:
+        <<: *defaults
         build:
             context: ./src
-            dockerfile: Trains/Dockerfile
+            args:
+                SERVICE: Trains
         env_file:
             - ./src/Trains/.env
         environment:
@@ -110,7 +139,16 @@ services:
             - trains-data:/data
 
     frontend:
+        <<: *defaults
         build: ./frontend
+        # Node as PID 1 ignores SIGTERM; tini forwards it so `docker stop` is instant
+        init: true
+        healthcheck:
+            test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
+            interval: 60s
+            timeout: 5s
+            start_period: 30s
+            start_interval: 2s
         depends_on:
             - tasks
             - spotify
@@ -124,25 +162,45 @@ services:
             - trains
 
     caddy:
-        image: caddy:2
+        <<: *defaults
+        image: caddy:2.11
         ports:
             - "80:80"
             - "443:443"
         volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
             - caddy-data:/data
+            - caddy-config:/config
+        healthcheck:
+            # Caddy's admin API (localhost-only inside the container)
+            test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:2019/config/"]
+            interval: 60s
+            timeout: 5s
+            start_period: 10s
+            start_interval: 2s
         depends_on:
-            - frontend
-            - tasks
-            - spotify
-            - weather
-            - photos
-            - rss
-            - calendar
-            - quote
-            - birds
-            - almanac
-            - trains
+            frontend:
+                condition: service_healthy
+            tasks:
+                condition: service_started
+            spotify:
+                condition: service_started
+            weather:
+                condition: service_started
+            photos:
+                condition: service_started
+            rss:
+                condition: service_started
+            calendar:
+                condition: service_started
+            quote:
+                condition: service_started
+            birds:
+                condition: service_started
+            almanac:
+                condition: service_started
+            trains:
+                condition: service_started
 
 volumes:
     tasks-data:
@@ -154,3 +212,4 @@ volumes:
     birds-data:
     trains-data:
     caddy-data:
+    caddy-config:

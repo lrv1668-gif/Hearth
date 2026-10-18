@@ -1,2 +1,12 @@
 **/bin/
 **/obj/
+Dockerfile
+# Secrets come in via compose env_file — never bake them into image layers
+**/.env
+**/.env.*
+# Local SQLite state from `dotnet run`
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.lscache
+**/.DS_Store

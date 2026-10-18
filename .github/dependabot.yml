@@ -53,11 +53,17 @@ updates:
       nuget-minor-patch:
         update-types: ["minor", "patch"]
 
-  # Docker base images
+  # Docker base images — src/Dockerfile is shared by every backend service
   - package-ecosystem: "docker"
     directories:
       - "/frontend"
-      - "/src/*"
+      - "/src"
+    schedule:
+      interval: "weekly"
+
+  # Images referenced directly in compose (caddy)
+  - package-ecosystem: "docker-compose"
+    directory: "/"
     schedule:
       interval: "weekly"
 

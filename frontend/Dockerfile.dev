@@ -1,7 +1,11 @@
 FROM node:26-alpine
 WORKDIR /app
-COPY package*.json ./
+RUN chown node:node /app
+USER node
+COPY --chown=node:node package.json package-lock.json ./
 RUN npm ci
-COPY . .
+COPY --chown=node:node . .
+# .svelte-kit/ is dockerignored; regenerate it (tsconfig.json extends its tsconfig)
+RUN npx svelte-kit sync
 EXPOSE 3000
 CMD ["npm", "run", "dev", "--", "--host", "--port", "3000"]

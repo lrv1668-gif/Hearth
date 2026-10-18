@@ -19,7 +19,7 @@ Conflating these two is how you end up with a Raspberry Pi 5 (~2.7–3W idle) mo
 
 | Option | Idle power | Notes |
 | --- | --- | --- |
-| Raspberry Pi 4 or 5 (4–8 GB) | ~3–8W under Docker load | All current Dockerfiles use multi-arch base images (`mcr.microsoft.com/dotnet/sdk:10.0`/`aspnet:10.0`, `node:26-alpine`) — arm64 needs no image changes. **Verify before buying:** if the Display service renders via headless Chromium (see below), confirm Playwright/Puppeteer's bundled Chromium has a working arm64 build. |
+| Raspberry Pi 4 or 5 (4–8 GB) | ~3–8W under Docker load | All Dockerfiles use multi-arch base images (`mcr.microsoft.com/dotnet/sdk:10.0`/`aspnet:10.0-noble-chiseled-extra`, `node:26-alpine`, `caddy:2.11`), and the backend publishes for the build's `TARGETARCH` — arm64 needs no image changes. **Verify before buying:** if the Display service renders via headless Chromium (see below), confirm Playwright/Puppeteer's bundled Chromium has a working arm64 build. |
 | x86 mini PC (e.g. Intel N100 class) | ~6–10W | Slightly higher idle draw but sidesteps the arm64-Chromium question entirely; more headroom for 11 containers. |
 
 Either way, prefer an SSD over microSD (if Pi) for reliability under constant SQLite writes from multiple services — not a performance concern, a wear-leveling one.
