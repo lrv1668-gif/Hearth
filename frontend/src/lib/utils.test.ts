@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { eventDateKey, formatTime, providerLabel, stripHtml } from './utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { eventDateKey, formatTime, poll, providerLabel, stripHtml } from './utils';
 
 describe('stripHtml', () => {
     it('strips tags', () => {
@@ -51,5 +51,32 @@ describe('eventDateKey', () => {
 
     it('all-day event slices the date directly, avoiding UTC shift', () => {
         expect(eventDateKey({ start: '2026-06-15T00:00:00Z', is_all_day: true })).toBe('2026-06-15');
+    });
+});
+
+describe('poll', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('does not call fn immediately', () => {
+        const fn = vi.fn();
+        poll(fn, 1000);
+        expect(fn).not.toHaveBeenCalled();
+    });
+
+    it('calls fn once per interval', () => {
+        const fn = vi.fn();
+        poll(fn, 1000);
+        vi.advanceTimersByTime(3000);
+        expect(fn).toHaveBeenCalledTimes(3);
+    });
+
+    it('stops calling fn after cleanup', () => {
+        const fn = vi.fn();
+        const stop = poll(fn, 1000);
+        vi.advanceTimersByTime(1000);
+        stop();
+        vi.advanceTimersByTime(5000);
+        expect(fn).toHaveBeenCalledTimes(1);
     });
 });

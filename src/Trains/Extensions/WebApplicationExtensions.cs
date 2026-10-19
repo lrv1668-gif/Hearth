@@ -1,20 +1,30 @@
-using System.Text.Json;
+using Data.Abstractions;
 using ServiceDefaults;
 using Trains.Records;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Trains.Extensions;
 
 public static class WebApplicationExtensions
 {
+    // Departures go stale fast — past the fail-safe window an old board is worse than none.
+    private static readonly FusionCacheEntryOptions CacheOptions = new()
+    {
+        Duration = TimeSpan.FromSeconds(45),
+        IsFailSafeEnabled = true,
+        FailSafeMaxDuration = TimeSpan.FromMinutes(10),
+    };
+
     public static void InitializeWebAppForTrains(this WebApplication app)
     {
-        app.Services.GetRequiredService<TrainsStore>().Migrate();
+        // Pre-FusionCache cache table — its contents are superseded by the distributed_cache table.
+        app.Services.GetRequiredKeyedService<IDatabase>("trains").NonQuery("DROP TABLE IF EXISTS trains_cache");
         app.AddTrainsEndpoints();
     }
 
     private static void AddTrainsEndpoints(this WebApplication app)
     {
-        app.MapGet("/trains/departures", async (TrainsStore store, TrainsFetcher fetcher, IConfiguration config, string[]? stop) =>
+        app.MapGet("/trains/departures", async (IFusionCache cache, TrainsFetcher fetcher, IConfiguration config, string[]? stop, CancellationToken ct) =>
         {
             if (stop is null || stop.Length == 0)
                 return Results.Ok(Array.Empty<StopDepartures>());
@@ -29,28 +39,18 @@ public static class WebApplicationExtensions
 
             var apiKey = config["TRANSITLAND_API_KEY"]!;
 
+            // A stop that has never fetched successfully is left out rather than failing the whole board.
             var results = new List<StopDepartures>();
             foreach (var stopKey in stop)
             {
-                if (store.IsStale(stopKey))
+                try
                 {
-                    try
-                    {
-                        var fetched = await fetcher.FetchAsync(apiKey, stopKey);
-                        store.Save(stopKey, JsonSerializer.Serialize(fetched, HearthJson.SnakeCaseLower));
-                    }
-                    catch (Exception ex)
-                    {
-                        app.Logger.LogError(ex, "Failed to fetch departures for stop {StopKey}", stopKey);
-                    }
+                    results.Add(await cache.GetOrSetAsync<StopDepartures>(
+                        $"trains:{stopKey}", (_, token) => fetcher.FetchAsync(apiKey, stopKey, token), CacheOptions, ct));
                 }
-
-                var cachedJson = store.Load(stopKey);
-                if (cachedJson is not null)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    var cached = JsonSerializer.Deserialize<StopDepartures>(cachedJson, HearthJson.SnakeCaseLower);
-                    if (cached is not null)
-                        results.Add(cached);
+                    app.Logger.LogError(ex, "Failed to fetch departures for stop {StopKey}", stopKey);
                 }
             }
 

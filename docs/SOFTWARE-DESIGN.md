@@ -65,12 +65,14 @@ The persistent setting is the recommended choice for a dedicated wall display. T
 | `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
 | `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
 | `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `DashboardFooter`     |
-| `rssStore`     | `RssFeedStore.svelte.ts`    | Server (SQLite) | RSS article list, loading state                                       |
-| `weatherStore` | `WeatherStore.svelte.ts`    | Server (SQLite) | Current conditions + 7-day forecast; loaded once per page visit      |
-| `dailyQuote`   | `DailyQuoteStore.svelte.ts` | Server (SQLite) | Daily quote; loaded once per day                                      |
-| `birds`        | `BirdsStore.svelte.ts`      | Server (SQLite) | Nearby bird sightings; loaded on widget mount                         |
-| `trains`       | `TrainsStore.svelte.ts`     | Server (SQLite) | Departures for subscribed stops; loaded on widget mount               |
+| `rssStore`     | `RssFeedStore.svelte.ts`    | Server (SQLite) | RSS article list; refreshed every 30 min by `NewsFeedWidget`          |
+| `weatherStore` | `WeatherStore.svelte.ts`    | Server (SQLite) | Current conditions + 7-day forecast; refreshed every 30 min by the dashboard page |
+| `dailyQuote`   | `DailyQuoteStore.svelte.ts` | Server (memory) | Daily quote; re-checked hourly by `DailyQuoteWidget`                  |
+| `birds`        | `BirdsStore.svelte.ts`      | Server (SQLite) | Nearby bird sightings; refreshed hourly by `BirdsWidget`              |
+| `trains`       | `TrainsStore.svelte.ts`     | Server (SQLite) | Departures for subscribed stops; refreshed every 60 s by `TrainsWidget` |
 | `kioskStore`   | `KioskStore.svelte.ts`      | URL param       | True when `settings.kioskMode` is on or `?kiosk=1` is in the URL    |
+
+Polled stores keep their last good data when a background refresh fails — the error state only shows when there's nothing to display yet.
 
 ### Mixed task/event lists
 
@@ -87,6 +89,7 @@ export type Item =
 - `formatTime(time)` — Converts `"HH:MM"` (24h) to `"4PM"` / `"4:30PM"` format
 - `eventDateKey(event)` — Returns `"YYYY-MM-DD"` in local time; slices all-day strings directly to avoid the UTC midnight shift `new Date("YYYY-MM-DD")` causes in negative UTC offset timezones
 - `stripHtml(html)` — Strips HTML tags (replacing with a space) and collapses whitespace, for plain-text previews of rich content (e.g. calendar event descriptions)
+- `poll(fn, ms)` — Calls `fn` every `ms` and returns the cleanup; widgets do `onMount(() => { loadPromise = load(); return poll(load, ms); })`. `SECOND` / `MINUTE` constants for readable intervals
 - `providerLabel(provider)` — Maps a calendar provider key to its display label (e.g. `"google"` → `"Google Calendar"`)
 
 ### Themes
@@ -165,8 +168,8 @@ Three shared projects live under `src/` and are referenced by service projects v
 | Project             | Responsibility                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
-| `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton. The only project that references `Microsoft.Data.Sqlite`. |
-| `ServiceDefaults`   | Framework-only (no SQLite) library referenced by **all 10** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (CORS `AllowAnyOrigin/Method/Header` + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, and `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`). |
+| `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton, and `SqliteDistributedCache` / `AddSqliteDistributedCache(key)` — an `IDistributedCache` over that same database, used as FusionCache's L2. The only project that references `Microsoft.Data.Sqlite`. |
+| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 10** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (CORS `AllowAnyOrigin/Method/Header` + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), and `AddHearthCache()` (FusionCache — see below). |
 
 Service projects follow this pattern:
 
@@ -176,6 +179,16 @@ Service projects follow this pattern:
 - Never reference `Microsoft.Data.Sqlite` directly
 
 JSON responses use `JsonNamingPolicy.SnakeCaseLower` (via `HearthJson.SnakeCaseLower` / `AddHearthWebDefaults()`) so property names match frontend conventions (e.g. `created_at`, `due_date`).
+
+### Upstream response caching (FusionCache)
+
+Services that proxy a third-party API with a simple "fetch, cache, serve" shape — Weather, Birds, Trains, Quote — cache through [FusionCache](https://github.com/ZiggyCreatures/FusionCache) (`IFusionCache.GetOrSetAsync`) instead of hand-written cache tables. `ServiceDefaults.AddHearthCache()` registers it with:
+
+- **Fail-safe** on: when a refresh fails, the last good value keeps being served (up to the entry's `FailSafeMaxDuration`) instead of an error. Endpoints only return `502` when nothing was ever cached.
+- **SQLite L2** when the service registered one via `AddSqliteDistributedCache(key)` (a `distributed_cache` table in the service's own `DB_PATH` file), so cached values survive container restarts. Without one (Quote), the cache is memory-only.
+- `HearthJson.SnakeCaseLower` serialization for the L2 payloads.
+
+Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint. RSS and Calendar keep their own relational SQLite caches (articles per feed, items per provider); Photos keeps its in-memory `IMemoryCache` batch.
 
 ### Required env var validation
 
@@ -256,7 +269,7 @@ The moon phase display is entirely front-end computed — no backend service is 
 
 ## Weather Service
 
-The `weather` service fetches current conditions and a 7-day forecast from [Open-Meteo](https://open-meteo.com/) (no API key required) and caches the result in SQLite to avoid redundant fetches.
+The `weather` service fetches current conditions and a 7-day forecast from [Open-Meteo](https://open-meteo.com/) (no API key required) and caches the result (one `WeatherSnapshot` entry: current + forecast) via FusionCache for 30 minutes, falling back to the last good snapshot for up to 6 hours if Open-Meteo is down.
 
 ### Endpoints
 
@@ -269,7 +282,7 @@ Both endpoints return `503` with `{ "error": "location not configured" }` if `LA
 
 The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise` and `sunset` as ISO strings. `WeatherWidget.svelte` displays today's sunrise/sunset from `forecast[0]`.
 
-`/weather/current` also returns nullable `uv_index` (from the same forecast call) and `us_aqi` (US Air Quality Index, fetched in parallel from Open-Meteo's separate keyless endpoint at `air-quality-api.open-meteo.com`). An air-quality fetch failure degrades to `null` rather than failing the request; both values are cached in `current_json` under the same 30-minute TTL. `WeatherWidget.svelte` hides the UV/AQI metrics when they are `null`.
+`/weather/current` also returns nullable `uv_index` (from the same forecast call) and `us_aqi` (US Air Quality Index, fetched in parallel from Open-Meteo's separate keyless endpoint at `air-quality-api.open-meteo.com`). An air-quality fetch failure degrades to `null` rather than failing the request; both values are cached in the same snapshot under the same 30-minute TTL. `WeatherWidget.svelte` hides the UV/AQI metrics when they are `null`.
 
 ### Environment variables
 
@@ -376,7 +389,7 @@ Photos transition with a 1.5-second crossfade. Clicking anywhere or pressing any
 
 ## Quote Service
 
-The `quote` service fetches the daily quote from the ZenQuotes API and caches it in SQLite until the next UTC day.
+The `quote` service fetches the daily quote from the ZenQuotes API and caches it in memory (FusionCache, no L2) until the next UTC day.
 
 ### Endpoints
 
@@ -384,7 +397,7 @@ The `quote` service fetches the daily quote from the ZenQuotes API and caches it
 | ------ | -------- | -----------------------------------------------------------------|
 | `GET`  | `/quote` | Returns the current day's quote as `{ q: string, a: string }`  |
 
-If the cached quote is from a prior UTC day (or absent), the service re-fetches before responding. On fetch failure, the endpoint returns the last cached quote; if no quote has ever been fetched, it returns 503.
+If the cached quote is from a prior UTC day (or absent), the service re-fetches before responding. On fetch failure, fail-safe returns the last cached quote (up to 24 hours old); if no quote has been fetched since the service started, it returns 503.
 
 ### Caching
 
@@ -397,12 +410,11 @@ If the cached quote is from a prior UTC day (or absent), the service re-fetches 
 
 | Variable                | Required | Description                                      |
 | ------------------------ | -------- | ---------------------------------------------------|
-| `DB_PATH`               | No       | Path to SQLite cache file (default: `quote.db`)  |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8086` in Docker                            |
 
 ### Frontend integration
 
-`DailyQuoteWidget.svelte` loads the quote on mount via `DailyQuoteStore.svelte.ts`.
+`DailyQuoteWidget.svelte` loads the quote on mount via `DailyQuoteStore.svelte.ts` and re-checks hourly.
 
 ## RSS Service
 
@@ -434,7 +446,7 @@ If a feed's cache is stale (older than 30 minutes) or empty, the service re-fetc
 
 ### Frontend integration
 
-`NewsFeedWidget.svelte` loads articles on mount via `RssFeedStore.svelte.ts`. Feed URLs and the article count are controlled by the settings persisted in `SettingsStore.svelte.ts`, configurable in Settings → RSS Feeds. Clicking an article opens the link in a new tab.
+`NewsFeedWidget.svelte` loads articles on mount via `RssFeedStore.svelte.ts` (`api.rss.articles()`) and refreshes every 30 minutes. Feed URLs and the article count are controlled by the settings persisted in `SettingsStore.svelte.ts`, configurable in Settings → RSS Feeds. Clicking an article opens the link in a new tab.
 
 ## Calendar Service
 
@@ -541,13 +553,13 @@ Stored in `src/Calendar/.env`.
 
 ## Birds Service
 
-The `birds` service fetches recent and notable bird observations near the configured coordinates from the eBird API v2, merges them (one sighting per species, most recent wins, notable species flagged), and caches the result in SQLite for 60 minutes. Distance from home is computed with the haversine formula and served in miles.
+The `birds` service fetches recent and notable bird observations near the configured coordinates from the eBird API v2, merges them (one sighting per species, most recent wins, notable species flagged), and caches the result via FusionCache (SQLite L2) for 60 minutes, falling back to the last good sightings for up to 24 hours if eBird is down. Distance from home is computed with the haversine formula and served in miles.
 
 ### Endpoints
 
 | Method | Path            | Description                                                                        |
 | ------ | ---------------- | -------------------------------------------------------------------------------------|
-| `GET`  | `/birds/recent` | Returns `BirdSighting[]`; `503` when env vars missing, `502` when eBird is unreachable |
+| `GET`  | `/birds/recent` | Returns `BirdSighting[]`; `503` when env vars missing, `502` when eBird is unreachable and nothing is cached |
 
 ### Environment variables
 
@@ -564,7 +576,7 @@ Stored in `src/Birds/.env`.
 
 ### Frontend integration
 
-`BirdsWidget.svelte` loads sightings on mount via `BirdsStore.svelte.ts`.
+`BirdsWidget.svelte` loads sightings on mount via `BirdsStore.svelte.ts` and refreshes hourly; a failed refresh keeps the last sightings on screen.
 
 ## Almanac Service
 
@@ -597,7 +609,7 @@ Stored in `src/Almanac/.env`.
 
 ## Trains Service
 
-The `trains` service fetches upcoming departures for user-subscribed transit stops from the [Transitland v2 API](https://www.transit.land/documentation/how-to-use-transitland-apis) and caches each stop's result in SQLite with a 45-second TTL. Unlike the other external-API services, there's no location configuration — the user picks specific stops (Transitland Onestop IDs) to subscribe to from the Settings page.
+The `trains` service fetches upcoming departures for user-subscribed transit stops from the [Transitland v2 API](https://www.transit.land/documentation/how-to-use-transitland-apis) and caches each stop's result via FusionCache (SQLite L2) with a 45-second TTL. Unlike the other external-API services, there's no location configuration — the user picks specific stops (Transitland Onestop IDs) to subscribe to from the Settings page.
 
 ### Endpoints
 
@@ -609,7 +621,7 @@ Behavior:
 
 - No `stop` params → returns `200` with `[]` immediately; no config check or fetch.
 - `TRANSITLAND_API_KEY` missing → `503` with `{ "error": "trains not configured" }`, logged via `LogError`.
-- Each requested stop is refetched from Transitland only if its cached row is stale (> 45s). A fetch failure for one stop is logged and that stop's group is served from stale cache (or omitted entirely if it was never successfully cached) — it never fails the whole request. **Unlike Birds, a Transitland outage never surfaces as a `502`** — the endpoint always returns `200` and degrades gracefully.
+- Each requested stop is refetched from Transitland only if its cache entry is older than 45s. A fetch failure for one stop is logged and that stop's group is served from the fail-safe copy (up to 10 minutes old), or omitted entirely if it was never successfully cached — it never fails the whole request. **Unlike Birds, a Transitland outage never surfaces as a `502`** — the endpoint always returns `200` and degrades gracefully.
 - Parent stations (no departures of their own) have their child stops' (platforms/gates) departures merged in automatically.
 - GTFS `stop_headsign` is preferred over `trip_headsign` when both are present.
 - `is_realtime` and `estimated_departure` are only populated when Transitland's `schedule_relationship` is `SCHEDULED` (vs. `STATIC`, which has no live prediction).
@@ -643,10 +655,8 @@ Behavior:
 | Field        | Value                                                                        |
 | ------------- | -------------------------------------------------------------------------------|
 | TTL          | 45 seconds per stop                                                          |
-| Key          | `stop_key` (one row per subscribed stop; `INSERT OR REPLACE` upsert)         |
-| Invalidation | None explicit — TTL expiry only; a failed refetch leaves the previous cached value in place |
-
-`fetched_at` is parsed with `DateTimeStyles.RoundtripKind` to preserve UTC — a plain `DateTime.TryParse` would convert the stored `"...Z"` timestamp to local time and skew the staleness check by the machine's UTC offset.
+| Key          | `trains:{stop_key}` (one entry per subscribed stop)                          |
+| Fail-safe    | 10 minutes — older departures are worse than none                            |
 
 ### Filtering
 
@@ -664,7 +674,7 @@ Stored in `src/Trains/.env`.
 
 ### Frontend integration
 
-`TrainsStore.svelte.ts` loads departures for every stop key in `settings.trainStops` via `fetchTrainDepartures()`, which builds repeated `?stop=` query params and returns `[]` on any non-OK response. `TrainsWidget.svelte` groups departures by line, shows up to 3 upcoming times per line (e.g. "5, 20, 38 min"), clusters bus vs. train/rail lines (whichever has the soonest departure first), and applies each stop's `lineFilter`. `TrainStopSettings.svelte` is the Settings-page UI for subscribing to stops (`subscribeToTrainStop` / `unsubscribeFromTrainStop`) and configuring per-line filters.
+`TrainsStore.svelte.ts` loads departures for every stop key in `settings.trainStops` via `api.trains.departures()`, which builds repeated `?stop=` query params and returns `null` on any non-OK response (the store then keeps the last good board). The widget refreshes every 60 seconds. `TrainsWidget.svelte` groups departures by line, shows up to 3 upcoming times per line (e.g. "5, 20, 38 min"), clusters bus vs. train/rail lines (whichever has the soonest departure first), and applies each stop's `lineFilter`. `TrainStopSettings.svelte` is the Settings-page UI for subscribing to stops (`subscribeToTrainStop` / `unsubscribeFromTrainStop`) and configuring per-line filters.
 
 ## Routing
 

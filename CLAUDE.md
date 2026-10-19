@@ -33,8 +33,8 @@ frontend/                    # SvelteKit app
 src/                         # Backend API + shared-library projects
   Dockerfile                 # Shared image for every backend service — pick one with the SERVICE build arg
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
-  Data/                      # SQLite implementation of IDatabase + AddSqliteDatabase() registration helper
-  ServiceDefaults/           # Shared CORS/JSON defaults (AddHearthWebDefaults) + ConfigRequirement env-var validation — referenced by every service
+  Data/                      # SQLite implementation of IDatabase + AddSqliteDatabase() registration helper; SqliteDistributedCache (FusionCache L2)
+  ServiceDefaults/           # Shared CORS/JSON defaults (AddHearthWebDefaults), AddHearthCache (FusionCache) + ConfigRequirement env-var validation — referenced by every service
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
   Spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
@@ -74,6 +74,8 @@ Caddyfile
 - JSON uses snake_case naming (`JsonNamingPolicy.SnakeCaseLower`) — keep record property names PascalCase in C#
 - Each service owns its SQLite file at `DB_PATH` (env var, defaults to `<service>.db`)
 - Log a `LogError` when a required environment variable is missing, before returning a 503
+- Cache third-party API responses with `IFusionCache.GetOrSetAsync` (registered by `AddHearthCache()`, plus `AddSqliteDistributedCache(key)` for a restart-surviving L2) with fail-safe on — don't hand-write cache tables or staleness checks. Return 502 only when the call throws (nothing cached at all)
+- Read numeric config with `config.GetValue<double>(...)` (invariant culture), never `double.Parse(config[...])`; format URLs with `string.Create(CultureInfo.InvariantCulture, ...)`
 
 ### Frontend (Svelte / TypeScript)
 
@@ -81,6 +83,8 @@ Caddyfile
 - API calls live in `frontend/src/lib/api.ts` — all paths are relative (e.g. `/tasks`)
 - Each data type has its own store file: `TaskStore.svelte.ts`, `SpotifyStore.svelte.ts`, etc. — never combine into a shared `stores.ts`
 - `ApiClient` in `api.ts` has `post<T>(url, body)` for JSON POST — don't add overloads; inline `fetch()` directly for body-less POST calls
+- Every backend call goes through an `api.<service>` namespace on `ApiClient` — no standalone `fetch` helpers exported from `api.ts`
+- Widgets that show upstream data refresh with `poll(load, ms)` from `utils.ts` (returned from `onMount`); stores keep the last good data when a refresh fails
 - `{@html}` with any external content (e.g. calendar descriptions) must use `DOMPurify.sanitize()` first — `dompurify` is installed in `frontend/`
 
 ### Themes

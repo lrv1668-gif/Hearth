@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using Weather.Tests.Helpers;
@@ -82,6 +83,26 @@ public sealed class WeatherFetcherTests
 
         Assert.Equal(6.4, current.UvIndex);
         Assert.Equal(42, current.UsAqi);
+    }
+
+    [Fact]
+    public async Task FetchAsync_CommaDecimalCulture_FormatsCoordinatesInvariantly()
+    {
+        var handler = new FakeHttpMessageHandler(ValidJson, airQualityJson: ValidAqiJson);
+        var fetcher = new WeatherFetcher(new HttpClient(handler));
+        var original = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+        try
+        {
+            await fetcher.FetchAsync(47.6, -122.3);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+
+        Assert.All(handler.RequestUris, uri =>
+            Assert.Contains("latitude=47.6&longitude=-122.3", uri.Query));
     }
 
     [Fact]

@@ -9,7 +9,8 @@ public static class ServiceCollectionExtensions
     public static void AddServicesForBirds(this IServiceCollection services)
     {
         services.AddSqliteDatabase("birds", "birds.db");
-        services.AddSingleton<BirdsStore>();
+        services.AddSqliteDistributedCache("birds");
+        services.AddHearthCache();
         services.AddHttpClient<BirdsFetcher>();
 
         services.AddHearthWebDefaults();

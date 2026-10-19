@@ -9,9 +9,12 @@ public sealed class FakeHttpMessageHandler(
     HttpStatusCode airQualityStatus = HttpStatusCode.OK)
     : HttpMessageHandler
 {
+    public List<Uri> RequestUris { get; } = [];
+
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        RequestUris.Add(request.RequestUri!);
         var isAirQuality = request.RequestUri!.Host.Contains("air-quality") && airQualityJson is not null;
         var response = new HttpResponseMessage(isAirQuality ? airQualityStatus : status)
         {

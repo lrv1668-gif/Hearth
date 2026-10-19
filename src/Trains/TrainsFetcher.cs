@@ -5,14 +5,14 @@ namespace Trains;
 
 public sealed class TrainsFetcher(HttpClient http)
 {
-    public async Task<StopDepartures> FetchAsync(string apiKey, string stopKey)
+    public async Task<StopDepartures> FetchAsync(string apiKey, string stopKey, CancellationToken ct = default)
     {
         var url = $"https://transit.land/api/v2/rest/stops/{Uri.EscapeDataString(stopKey)}/departures?apikey={apiKey}";
 
-        using var response = await http.GetAsync(url);
+        using var response = await http.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
 
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
         if (!doc.RootElement.TryGetProperty("stops", out var stops) || stops.GetArrayLength() == 0)
             return new StopDepartures(stopKey, null, []);

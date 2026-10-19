@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Task, CalendarItem } from '$lib/api';
     import { onMount } from 'svelte';
+    import { MINUTE, poll } from '$lib/utils';
     import { taskStore, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore.svelte.ts';
     import { calendarStore, toggleCalendarTask } from '$lib/stores/CalendarStore.svelte.ts';
     import { loadWeather } from '$lib/stores/WeatherStore.svelte.ts';
@@ -24,8 +25,10 @@
     import type { AllWidgetId } from '$lib/constants/widgets';
     import { MediaQuery } from 'svelte/reactivity';
 
+    // Loaded here rather than in WeatherWidget: the header, footer and day arc read it too.
     onMount(() => {
         loadWeather();
+        return poll(loadWeather, 30 * MINUTE);
     });
 
     let modalOpen = $state(false);

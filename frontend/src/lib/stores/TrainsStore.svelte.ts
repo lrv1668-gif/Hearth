@@ -1,9 +1,8 @@
-import { fetchTrainDepartures, type StopDepartures } from '$lib/api';
+import { api, type StopDepartures } from '$lib/api';
 import { settings } from './SettingsStore.svelte';
 
-export const trainsStore = $state<{ groups: StopDepartures[]; loading: boolean }>({
+export const trainsStore = $state<{ groups: StopDepartures[] }>({
     groups: [],
-    loading: false,
 });
 
 export async function loadTrainDepartures() {
@@ -12,7 +11,7 @@ export async function loadTrainDepartures() {
         trainsStore.groups = [];
         return;
     }
-    trainsStore.loading = true;
-    trainsStore.groups = await fetchTrainDepartures(stopKeys);
-    trainsStore.loading = false;
+    // A failed refresh keeps the last good board on screen.
+    const groups = await api.trains.departures(stopKeys);
+    if (groups) trainsStore.groups = groups;
 }

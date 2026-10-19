@@ -10,15 +10,15 @@ public sealed class QuoteFetcher(HttpClient http, ILogger<QuoteFetcher> logger)
         [property: JsonPropertyName("q")] string Q,
         [property: JsonPropertyName("a")] string A);
 
-    public async Task<QuoteItem?> FetchAsync()
+    public async Task<QuoteItem?> FetchAsync(CancellationToken ct = default)
     {
         try
         {
-            var items = await http.GetFromJsonAsync<ZenResponse[]>("https://zenquotes.io/api/today");
+            var items = await http.GetFromJsonAsync<ZenResponse[]>("https://zenquotes.io/api/today", ct);
             var first = items?.FirstOrDefault();
             return first is null ? null : new QuoteItem(first.Q, first.A);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "Failed to fetch daily quote from ZenQuotes");
             return null;

@@ -48,3 +48,16 @@ export function formatTime(time: string): string {
 
     return `${hour}${period}`;
 }
+
+export const SECOND = 1000;
+export const MINUTE = 60 * SECOND;
+
+/**
+ * Calls `fn` every `ms` milliseconds and returns a function that stops it. Return it from
+ * `onMount` so the interval is cleared on unmount. Does not call `fn` immediately — the
+ * caller does the first load itself (usually to drive a skeleton via its promise).
+ */
+export function poll(fn: () => unknown, ms: number): () => void {
+    const id = setInterval(fn, ms);
+    return () => clearInterval(id);
+}

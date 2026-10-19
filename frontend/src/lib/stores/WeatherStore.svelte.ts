@@ -5,8 +5,9 @@ export const weatherStore = $state({
     forecast: [] as ForecastDay[],
 });
 
+// A failed refresh keeps the last good values on screen rather than blanking the widgets.
 export async function loadWeather() {
     const [current, forecast] = await Promise.all([api.weather.current(), api.weather.forecast()]);
-    weatherStore.current = current;
-    weatherStore.forecast = forecast;
+    if (current) weatherStore.current = current;
+    if (forecast) weatherStore.forecast = forecast;
 }

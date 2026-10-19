@@ -223,11 +223,27 @@ class ApiClient {
     readonly weather = {
         current: (): Promise<CurrentWeather | null> => this.get<CurrentWeather>('/weather/current'),
 
-        forecast: (): Promise<ForecastDay[]> => this.get<ForecastDay[]>('/weather/forecast').then((r) => r ?? []),
+        forecast: (): Promise<ForecastDay[] | null> => this.get<ForecastDay[]>('/weather/forecast'),
     };
 
     readonly birds = {
         recent: (): Promise<BirdSighting[] | null> => this.get<BirdSighting[]>('/birds/recent'),
+    };
+
+    readonly rss = {
+        articles: (urls: string[], count: number): Promise<RssFeedGroup[] | null> => {
+            const params = new URLSearchParams({ count: String(count) });
+            urls.forEach((url) => params.append('url', url));
+            return this.get<RssFeedGroup[]>(`/rss/articles?${params}`);
+        },
+    };
+
+    readonly trains = {
+        departures: (stopKeys: string[]): Promise<StopDepartures[] | null> => {
+            const params = new URLSearchParams();
+            stopKeys.forEach((key) => params.append('stop', key));
+            return this.get<StopDepartures[]>(`/trains/departures?${params}`);
+        },
     };
 
     readonly almanac = {
@@ -335,21 +351,3 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
-
-export async function fetchRssArticles(urls: string[], count: number): Promise<RssFeedGroup[]> {
-    if (urls.length === 0) return [];
-    const params = new URLSearchParams({ count: String(count) });
-    urls.forEach((url) => params.append('url', url));
-    const res = await fetch(`/rss/articles?${params}`);
-    if (!res.ok) return [];
-    return res.json();
-}
-
-export async function fetchTrainDepartures(stopKeys: string[]): Promise<StopDepartures[]> {
-    if (stopKeys.length === 0) return [];
-    const params = new URLSearchParams();
-    stopKeys.forEach((key) => params.append('stop', key));
-    const res = await fetch(`/trains/departures?${params}`);
-    if (!res.ok) return [];
-    return res.json();
-}

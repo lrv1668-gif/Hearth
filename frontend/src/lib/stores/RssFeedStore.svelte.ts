@@ -1,9 +1,8 @@
-import { fetchRssArticles, type RssFeedGroup } from '$lib/api';
+import { api, type RssFeedGroup } from '$lib/api';
 import { settings } from './SettingsStore.svelte';
 
-export const rssStore = $state<{ groups: RssFeedGroup[]; loading: boolean }>({
+export const rssStore = $state<{ groups: RssFeedGroup[] }>({
     groups: [],
-    loading: false,
 });
 
 function toTimestamp(s: string | null): number {
@@ -30,7 +29,7 @@ export async function loadRssArticles() {
         rssStore.groups = [];
         return;
     }
-    rssStore.loading = true;
-    rssStore.groups = sortGroups(await fetchRssArticles(urls, settings.rssArticleCount));
-    rssStore.loading = false;
+    // A failed refresh keeps the last good articles on screen.
+    const groups = await api.rss.articles(urls, settings.rssArticleCount);
+    if (groups) rssStore.groups = sortGroups(groups);
 }

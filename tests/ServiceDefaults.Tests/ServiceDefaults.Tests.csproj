@@ -10,5 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ServiceDefaults\ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\src\Data\Data.csproj" />
+    <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 </Project>

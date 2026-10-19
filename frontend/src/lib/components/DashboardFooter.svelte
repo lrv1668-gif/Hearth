@@ -1,13 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { SECOND, poll } from '$lib/utils';
     import { Monitor, Music } from '@lucide/svelte';
     import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
 
     onMount(() => {
         refreshNowPlaying();
-        const id = setInterval(refreshNowPlaying, 5_000);
-        return () => clearInterval(id);
+        return poll(refreshNowPlaying, 5 * SECOND);
     });
 
     function formatRefreshed(iso: string): string {

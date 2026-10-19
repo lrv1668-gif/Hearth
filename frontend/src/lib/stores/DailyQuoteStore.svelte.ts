@@ -8,12 +8,13 @@ class DailyQuoteStore {
 export const dailyQuoteStore = new DailyQuoteStore();
 
 export async function loadDailyQuote() {
-    dailyQuoteStore.error = false;
     try {
         const quote = await api.quote.today();
         if (!quote) throw new Error('Failed to fetch');
+        dailyQuoteStore.error = false;
         dailyQuoteStore.quote = quote;
     } catch {
-        dailyQuoteStore.error = true;
+        // Only surface the error when there's nothing to show; a failed refresh keeps the last quote.
+        dailyQuoteStore.error = dailyQuoteStore.quote === null;
     }
 }

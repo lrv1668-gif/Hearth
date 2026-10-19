@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { MINUTE, poll } from '$lib/utils';
     import { Rss } from '@lucide/svelte';
     import { rssStore, loadRssArticles } from '$lib/stores/RssFeedStore.svelte.ts';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
@@ -28,6 +29,7 @@
 
     onMount(() => {
         loadPromise = loadRssArticles();
+        return poll(loadRssArticles, 30 * MINUTE);
     });
 </script>
 

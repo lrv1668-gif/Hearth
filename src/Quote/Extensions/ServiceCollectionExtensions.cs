@@ -6,7 +6,7 @@ public static class ServiceCollectionExtensions
 {
     public static void AddServicesForQuote(this IServiceCollection services)
     {
-        services.AddMemoryCache();
+        services.AddHearthCache();
         services.AddHttpClient<QuoteFetcher>();
 
         services.AddHearthWebDefaults();

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { MINUTE, poll } from '$lib/utils';
     import { Bus, TrainFront } from '@lucide/svelte';
     import { trainsStore, loadTrainDepartures } from '$lib/stores/TrainsStore.svelte.ts';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
@@ -10,6 +11,7 @@
 
     onMount(() => {
         loadPromise = loadTrainDepartures();
+        return poll(loadTrainDepartures, MINUTE);
     });
 
     function stopLabel(stopKey: string, fallback: string | null): string {

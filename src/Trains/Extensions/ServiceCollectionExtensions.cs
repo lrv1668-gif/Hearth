@@ -8,7 +8,8 @@ public static class ServiceCollectionExtensions
     public static void AddServicesForTrains(this IServiceCollection services)
     {
         services.AddSqliteDatabase("trains", "trains.db");
-        services.AddSingleton<TrainsStore>();
+        services.AddSqliteDistributedCache("trains");
+        services.AddHearthCache();
         services.AddHttpClient<TrainsFetcher>();
 
         services.AddHearthWebDefaults();

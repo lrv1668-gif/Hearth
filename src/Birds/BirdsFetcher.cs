@@ -8,12 +8,13 @@ public sealed class BirdsFetcher(HttpClient http)
 {
     private const int MaxSightings = 12;
 
-    public async Task<List<BirdSighting>> FetchAsync(string apiKey, double latitude, double longitude, int radiusKm)
+    public async Task<List<BirdSighting>> FetchAsync(
+        string apiKey, double latitude, double longitude, int radiusKm, CancellationToken ct = default)
     {
         var recent = await FetchObservationsAsync(
-            "https://api.ebird.org/v2/data/obs/geo/recent", apiKey, latitude, longitude, radiusKm);
+            "https://api.ebird.org/v2/data/obs/geo/recent", apiKey, latitude, longitude, radiusKm, ct);
         var notable = await FetchObservationsAsync(
-            "https://api.ebird.org/v2/data/obs/geo/recent/notable", apiKey, latitude, longitude, radiusKm);
+            "https://api.ebird.org/v2/data/obs/geo/recent/notable", apiKey, latitude, longitude, radiusKm, ct);
 
         return Merge(recent, notable, latitude, longitude);
     }
@@ -46,7 +47,7 @@ public sealed class BirdsFetcher(HttpClient http)
     }
 
     private async Task<List<BirdObservation>> FetchObservationsAsync(
-        string baseUrl, string apiKey, double latitude, double longitude, int radiusKm)
+        string baseUrl, string apiKey, double latitude, double longitude, int radiusKm, CancellationToken ct)
     {
         var url = string.Create(CultureInfo.InvariantCulture,
             $"{baseUrl}?lat={latitude:F4}&lng={longitude:F4}&dist={radiusKm}&back=7&maxResults=50");
@@ -54,10 +55,10 @@ public sealed class BirdsFetcher(HttpClient http)
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("X-eBirdApiToken", apiKey);
 
-        using var response = await http.SendAsync(request);
+        using var response = await http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
         var observations = new List<BirdObservation>();
         foreach (var obs in doc.RootElement.EnumerateArray())

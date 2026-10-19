@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Weather.Records;
 
@@ -25,21 +26,21 @@ public sealed class WeatherFetcher(HttpClient http)
     private static string Describe(int code) =>
         WmoDescriptions.TryGetValue(code, out var desc) ? desc : "Unknown";
 
-    public async Task<(CurrentWeatherResponse Current, List<ForecastDayResponse> Forecast)> FetchAsync(
-        double latitude, double longitude)
+    public async Task<WeatherSnapshot> FetchAsync(
+        double latitude, double longitude, CancellationToken ct = default)
     {
-        var url = $"https://api.open-meteo.com/v1/forecast" +
+        var url = string.Create(CultureInfo.InvariantCulture, $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
                   $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index" +
                   $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset" +
                   $"&temperature_unit=fahrenheit&wind_speed_unit=mph" +
-                  $"&timezone=auto&forecast_days=7";
+                  $"&timezone=auto&forecast_days=7");
 
-        var aqiTask = FetchUsAqiAsync(latitude, longitude);
-        using var response = await http.GetAsync(url);
+        var aqiTask = FetchUsAqiAsync(latitude, longitude, ct);
+        using var response = await http.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
 
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
         var root = doc.RootElement;
 
         var current = root.GetProperty("current");
@@ -75,22 +76,22 @@ public sealed class WeatherFetcher(HttpClient http)
                 sunsets[i].GetString()!));
         }
 
-        return (currentResponse, forecast);
+        return new WeatherSnapshot(currentResponse, forecast);
     }
 
     // Air quality lives on a separate Open-Meteo host that can fail independently of the
     // forecast API — a missing AQI must never fail the whole weather fetch.
-    private async Task<int?> FetchUsAqiAsync(double latitude, double longitude)
+    private async Task<int?> FetchUsAqiAsync(double latitude, double longitude, CancellationToken ct)
     {
         try
         {
-            var url = $"https://air-quality-api.open-meteo.com/v1/air-quality" +
-                      $"?latitude={latitude}&longitude={longitude}&current=us_aqi";
+            var url = string.Create(CultureInfo.InvariantCulture,
+                $"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={latitude}&longitude={longitude}&current=us_aqi");
 
-            using var response = await http.GetAsync(url);
+            using var response = await http.GetAsync(url, ct);
             response.EnsureSuccessStatusCode();
 
-            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
             var aqi = doc.RootElement.GetProperty("current").GetProperty("us_aqi");
             return aqi.ValueKind == JsonValueKind.Number ? (int)Math.Round(aqi.GetDouble()) : null;
         }

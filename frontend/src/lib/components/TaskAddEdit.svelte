@@ -223,8 +223,7 @@
                 rows={2}
                 class="type-body mt-1 w-full resize-none
                        rounded-lg bg-(--surface) px-4 py-2.5 text-(--text-1) placeholder-(--text-2)
-                       transition outline-none focus:ring-1 focus:ring-(--border)"
-            ></textarea>
+                       transition outline-none focus:ring-1 focus:ring-(--border)"></textarea>
 
             <!-- Assignee -->
             <input

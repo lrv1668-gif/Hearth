@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <!-- Explicit override: Microsoft.Data.Sqlite floors this at 2.1.11, which has a
          known high-severity vulnerability (GHSA-2m69-gcr7-jv3q) -->

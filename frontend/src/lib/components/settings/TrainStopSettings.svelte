@@ -5,7 +5,7 @@
         unsubscribeFromTrainStop,
         updateTrainStopLineFilter,
     } from '$lib/stores/SettingsStore.svelte.ts';
-    import { fetchTrainDepartures } from '$lib/api';
+    import { api } from '$lib/api';
     import type { TrainStop } from '$lib/constants/trains';
     import { ChevronDown, ChevronUp, Trash2 } from '@lucide/svelte';
 
@@ -40,7 +40,7 @@
         if (linesByStop[stop.stopKey]) return;
 
         linesByStop = { ...linesByStop, [stop.stopKey]: 'loading' };
-        const [result] = await fetchTrainDepartures([stop.stopKey]);
+        const [result] = (await api.trains.departures([stop.stopKey])) ?? [];
         const departures = result?.departures ?? [];
         if (departures.length === 0) {
             linesByStop = { ...linesByStop, [stop.stopKey]: 'empty' };
@@ -56,7 +56,9 @@
         }
         linesByStop = {
             ...linesByStop,
-            [stop.stopKey]: Array.from(byLine.values()).sort((a, b) => a.routeShortName.localeCompare(b.routeShortName)),
+            [stop.stopKey]: Array.from(byLine.values()).sort((a, b) =>
+                a.routeShortName.localeCompare(b.routeShortName)
+            ),
         };
     }
 
