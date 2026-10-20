@@ -112,7 +112,7 @@
                             </button>
                             <button
                                 onclick={() => unsubscribeFromTrainStop(stop.stopKey)}
-                                class="shrink-0 text-(--text-2) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--text-1)"
+                                class="shrink-0 text-(--text-2) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--text-1) focus-visible:opacity-100 pointer-coarse:opacity-100"
                                 aria-label="Remove {stop.label}"
                             >
                                 <Trash2 class="icon-sm" />

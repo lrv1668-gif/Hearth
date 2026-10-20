@@ -155,7 +155,7 @@
                                 />
                                 <button
                                     onclick={() => handleDelete(p.id)}
-                                    class="absolute top-1.5 right-1.5 rounded-md bg-black/60 p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+                                    class="absolute top-1.5 right-1.5 rounded-md bg-black/60 p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 pointer-coarse:opacity-100"
                                     aria-label="Delete photo"
                                 >
                                     <Trash2 class="h-3.5 w-3.5 text-white" />

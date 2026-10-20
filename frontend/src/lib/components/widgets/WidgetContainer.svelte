@@ -5,7 +5,7 @@
 
     interface Props {
         children: Snippet;
-        title: String;
+        title: string;
         associatedWidgetId?: WidgetId;
     }
 
@@ -23,7 +23,7 @@ NOTE:If no widget ID is passed, then this widget will default to being displayed
 {#if !associatedWidgetId || settings.enabledWidgets.includes(associatedWidgetId)}
     <div class="min-w-0">
         <h2
-            class="type-body mb-3 border-b border-(--border) pb-2 font-bold tracking-[0.12em] text-(--text-1) uppercase"
+            class="type-label mb-3 border-b border-(--border) pb-2 font-semibold tracking-[0.12em] text-(--text-2) uppercase"
         >
             {title}
         </h2>

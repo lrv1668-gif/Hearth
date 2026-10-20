@@ -366,8 +366,8 @@
 
                         <button
                             onclick={() => onDelete(task.id)}
-                            class="type-title leading-none text-(--text-4) opacity-0
-                     transition group-hover:opacity-100 hover:text-(--text-2)"
+                            class="type-title leading-none text-(--text-3) opacity-0
+                     transition group-hover:opacity-100 hover:text-(--text-2) focus-visible:opacity-100 pointer-coarse:opacity-100"
                             aria-label="Delete {task.title}"
                         >
                             <X />

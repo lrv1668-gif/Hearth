@@ -156,10 +156,10 @@
         {@const showCaption = photo.source === 'local' && photo.description}
         {#if showAttribution || showCaption}
             <div
-                class="absolute right-0 bottom-0 left-0 flex items-end justify-between gap-6 bg-gradient-to-t from-black/60 to-transparent px-6 py-4"
+                class="absolute right-0 bottom-0 left-0 flex items-end justify-between gap-6 bg-gradient-to-t from-black/75 via-black/30 to-transparent px-6 pt-12 pb-4 drop-shadow-md"
             >
                 {#if showAttribution}
-                    <p class="type-label text-white/70">
+                    <p class="type-label text-white/85">
                         Photo by
                         <a
                             href={photo.unsplash_link}
@@ -173,9 +173,9 @@
                         on Unsplash
                     </p>
                 {:else}
-                    <p class="type-label text-white/70">{photo.description}</p>
+                    <p class="type-label text-white/85">{photo.description}</p>
                 {/if}
-                <p class="type-label shrink-0 text-white/40">Click or press any key to exit</p>
+                <p class="type-label shrink-0 text-white/60">Click or press any key to exit</p>
             </div>
         {/if}
     {:else}

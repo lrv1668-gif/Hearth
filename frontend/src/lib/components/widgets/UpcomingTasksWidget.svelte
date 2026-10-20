@@ -242,7 +242,7 @@
                                                 onDelete(task.id);
                                             }
                                         }}
-                                        class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/row:opacity-100 hover:text-(--text-1)"
+                                        class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/row:opacity-100 hover:text-(--text-1) focus-visible:opacity-100 pointer-coarse:opacity-100"
                                         aria-label="Delete {task.title}"
                                     >
                                         <X class="icon-md" />
@@ -298,7 +298,7 @@
                                             href={calItem.html_link}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/cal:opacity-100 hover:text-(--accent)"
+                                            class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/cal:opacity-100 hover:text-(--accent) focus-visible:opacity-100 pointer-coarse:opacity-100"
                                             aria-label="Open in Google Tasks"
                                             onclick={(e) => e.stopPropagation()}
                                         >
