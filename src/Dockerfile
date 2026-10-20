@@ -29,9 +29,11 @@ COPY ${SERVICE}/ ${SERVICE}/
 # ENTRYPOINT serve every service (chiseled images have no shell to expand ${SERVICE}).
 # /data is the volume mount point, created here because the runtime image has no
 # shell; new volumes inherit its non-root ownership.
+# No --no-restore: CI restores the restore layer from its layer cache, but not the
+# nuget cache mount, so publish must be able to re-fetch packages (a no-op when present).
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
     dotnet publish ${SERVICE}/${SERVICE}.csproj -c Release -a ${TARGETARCH} --self-contained false \
-        --no-restore -o /out \
+        -o /out \
     && mv /out/${SERVICE} /out/service \
     && mkdir /data
 
