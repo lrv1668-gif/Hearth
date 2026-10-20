@@ -15,6 +15,7 @@
     import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
     import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
+    import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
 
     type SectionId = 'display' | 'dashboard' | 'ambient' | 'connections' | 'frame' | 'about';
 
@@ -23,7 +24,7 @@
         { id: 'dashboard' as SectionId, label: 'Dashboard', subtitle: 'Widgets · layout', icon: LayoutList },
         { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · cadence & source', icon: Image },
         { id: 'connections' as SectionId, label: 'Connections', subtitle: 'Spotify · calendar', icon: Plug },
-        { id: 'frame' as SectionId, label: 'Frame', subtitle: 'Kiosk · display mode', icon: Tv },
+        { id: 'frame' as SectionId, label: 'Frame', subtitle: 'E-paper look · kiosk', icon: Tv },
     ] as const;
 
     const content: Record<SectionId, { heading: string; description: string }> = {
@@ -207,7 +208,17 @@
                     </div>
                 {/if}
             {/snippet}
-            {@render card('Display mode', 'Control how Hearth presents on this device.', kioskContent)}
+            {#snippet frameAppearanceContent()}
+                <FrameAppearanceSettings />
+            {/snippet}
+            <div class="flex flex-col gap-4">
+                {@render card(
+                    'E-paper frame',
+                    'Colours, typeface, and orientation for the wall frame. Themes use only colours the panel can print cleanly.',
+                    frameAppearanceContent
+                )}
+                {@render card('Display mode', 'Control how Hearth presents on this device.', kioskContent)}
+            </div>
         {:else}
             {#snippet comingSoon()}<p class="type-body text-(--text-1)">Coming soon.</p>{/snippet}
             {@render card('', '', comingSoon)}

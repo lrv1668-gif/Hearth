@@ -8,12 +8,17 @@
     import { refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
+    import { DEFAULT_FRAME_THEME, frameDataTheme, isValidFrameThemeId } from '$lib/constants/frameThemes';
+    import { DEFAULT_FONT_THEME, isValidFontThemeId } from '$lib/constants/fontThemes';
 
     // The e-paper render target: a fixed-size canvas that the (future) Display service
     // screenshots and dithers. Everything it needs comes from the URL, because a
     // headless renderer starts with empty localStorage:
     //   ?mode=ambient|daily          (default ambient, per PRODUCT.md)
-    //   ?palette=color|bw            (default color)
+    //   ?palette=color|bw            (default color — the Color ↔ B&W mode)
+    //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
+    //                                 B&W follows its lightness)
+    //   ?font=inter|lora|…           (any font preset from constants/fontThemes.ts)
     //   ?orientation=landscape|portrait
     //       landscape = 1600×1200, the panel's native shape (default); portrait =
     //       1200×1600 for a frame hung on its side — the Display service rotates
@@ -24,6 +29,10 @@
     const params = page.url.searchParams;
     const mode = params.get('mode') === 'daily' ? 'daily' : 'ambient';
     const palette = params.get('palette') === 'bw' ? 'bw' : 'color';
+    const themeParam = params.get('theme');
+    const theme = isValidFrameThemeId(themeParam) ? themeParam : DEFAULT_FRAME_THEME;
+    const fontParam = params.get('font');
+    const font = isValidFontThemeId(fontParam) ? fontParam : DEFAULT_FONT_THEME;
     const orientation = params.get('orientation') === 'portrait' ? 'portrait' : 'landscape';
     const categories = params.get('categories') || 'nature';
 
@@ -60,7 +69,8 @@
 
 <div
     class="frame {orientation} bg-(--bg) text-(--text-1)"
-    data-theme="epaper-{palette}"
+    data-theme={frameDataTheme(theme, palette)}
+    data-font={font}
     data-mode={mode}
     data-orientation={orientation}
     data-ready={ready}
@@ -75,19 +85,22 @@
 <style>
     /* Panel-native size, never scrolls. Type and icon sizes are fixed px tuned for
        reading at 3–4 m on a ~150 PPI panel; overriding the tokens here resizes the
-       shared .type-* / .icon-* utilities, so reused widgets scale with the frame. */
+       shared .type-* / .icon-* utilities, so reused widgets scale with the frame.
+       Type multiplies by the font preset's --font-scale (its optical correction,
+       from the data-font block) but deliberately not the dashboard's user size
+       slider, which is a per-browser preference. */
     .frame {
         position: relative;
         width: 1600px;
         height: 1200px;
         overflow: hidden;
 
-        --font-display: 112px;
-        --font-title: 48px;
-        --font-subtitle: 38px;
-        --font-body: 32px;
-        --font-label: 26px;
-        --font-caption: 22px;
+        --font-display: calc(112px * var(--font-scale, 1));
+        --font-title: calc(48px * var(--font-scale, 1));
+        --font-subtitle: calc(38px * var(--font-scale, 1));
+        --font-body: calc(32px * var(--font-scale, 1));
+        --font-label: calc(26px * var(--font-scale, 1));
+        --font-caption: calc(22px * var(--font-scale, 1));
 
         --icon-lg: 56px;
         --icon-md: 40px;

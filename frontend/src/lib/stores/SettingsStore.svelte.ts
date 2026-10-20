@@ -2,6 +2,8 @@ import { browser } from '$app/environment';
 import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
 import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
 import { DEFAULT_TRAIN_STOPS, type TrainStop } from '$lib/constants/trains';
+import { DEFAULT_FRAME_THEME, type FrameThemeId } from '$lib/constants/frameThemes';
+import { DEFAULT_FONT_THEME, type FontThemeId } from '$lib/constants/fontThemes';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
@@ -25,6 +27,11 @@ class SettingsStore {
     rssFeeds = $state<RssFeed[]>(DEFAULT_RSS_FEEDS);
     trainStops = $state<TrainStop[]>(DEFAULT_TRAIN_STOPS);
     kioskMode = $state(false);
+    // E-paper frame appearance, chosen in Settings → Frame. These build the /frame
+    // URL; the frame itself reads only its URL (a headless renderer has no storage).
+    frameTheme = $state<FrameThemeId>(DEFAULT_FRAME_THEME);
+    frameFont = $state<FontThemeId>(DEFAULT_FONT_THEME);
+    frameOrientation = $state<'landscape' | 'portrait'>('landscape');
 
     toggleCategory(cat: PhotoCategory) {
         this.photoCategories = this.photoCategories.includes(cat)
@@ -108,6 +115,9 @@ if (browser) {
                     rssFeeds: settings.rssFeeds,
                     trainStops: settings.trainStops,
                     kioskMode: settings.kioskMode,
+                    frameTheme: settings.frameTheme,
+                    frameFont: settings.frameFont,
+                    frameOrientation: settings.frameOrientation,
                 })
             );
         });

@@ -96,9 +96,18 @@ Themes are defined in two places — both must be updated together:
 
 Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`, `olive`, `amber`, `ember`
 
-Frame-only palettes `epaper-bw` and `epaper-color` (built from the measured Spectra 6 inks — pure inks for text and lines, two-ink mixes only for fills; see the comment in `themes.css`) live in `themes.css` alone — keep them out of `themes.ts` and the picker. Every picker theme must keep `--text-2` ≥ 4.5:1 and `--text-3` ≥ 3:1 against `--bg` (enforced by `src/lib/themes.test.ts`); use `--text-3`/`--text-4` only for icons and decoration, never for text people need to read.
+Every picker theme must keep `--text-2` ≥ 4.5:1 and `--text-3` ≥ 3:1 against `--bg` (enforced by `src/lib/themes.test.ts`); use `--text-3`/`--text-4` only for icons and decoration, never for text people need to read.
 
 Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme` (for native inputs).
+
+### Frame Themes
+
+E-paper frame themes (`/frame?theme=`) are separate from the dashboard themes and defined in two places — both must be updated together:
+
+1. `frontend/src/themes.css` — an `[data-theme='epaper-<id>']` block under "Frame palettes"
+2. `frontend/src/lib/constants/frameThemes.ts` — entry in the `frameThemes` array (picker metadata; `dark: true` makes B&W mode use `epaper-bw-night`)
+
+Current frame themes: `almanac` (default), `garden`, `harbor`, `letterpress`, `night`; plus the B&W blocks `epaper-bw` and `epaper-bw-night`. Colours are limited to the six measured Spectra 6 inks plus the approved two-ink mixes listed in `themes.css`, and text/icon/line tokens must be pure inks — `themes.test.ts` enforces both. Never add a frame theme to `constants/themes.ts`. Frame blocks set the same tokens minus `color-scheme`, plus optional `--arc-night/day/golden/outline` for the Day Arc.
 
 ### Font Themes
 

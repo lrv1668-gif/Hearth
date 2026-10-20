@@ -40,3 +40,24 @@ export function relativeDayLabel(e: CalendarItem, now: Date): string {
     if (key === localDateKey(tomorrow)) return 'Tomorrow';
     return eventStart(e).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
+
+export interface FrameOptions {
+    mode: 'ambient' | 'daily';
+    palette: 'color' | 'bw';
+    theme: string;
+    font: string;
+    orientation: 'landscape' | 'portrait';
+}
+
+/** The /frame URL for a set of options — what the preview (and later the Display
+ *  service) loads. Every option is spelled out so the URL is self-describing. */
+export function frameUrl(o: FrameOptions): string {
+    const params = new URLSearchParams({
+        mode: o.mode,
+        palette: o.palette,
+        theme: o.theme,
+        font: o.font,
+        orientation: o.orientation,
+    });
+    return `/frame?${params}`;
+}

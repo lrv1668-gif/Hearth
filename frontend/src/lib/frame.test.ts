@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CalendarItem, Task } from './api';
-import { nextEvents, relativeDayLabel, todayTasks } from './frame';
+import { frameUrl, nextEvents, relativeDayLabel, todayTasks } from './frame';
 
 const now = new Date('2026-10-19T12:00');
 
@@ -99,5 +99,13 @@ describe('relativeDayLabel', () => {
 
     it('falls back to a short date', () => {
         expect(relativeDayLabel(event({ start: '2026-10-23T09:00' }), now)).toBe('Fri, Oct 23');
+    });
+});
+
+describe('frameUrl', () => {
+    it('spells out every option', () => {
+        expect(frameUrl({ mode: 'daily', palette: 'bw', theme: 'night', font: 'lora', orientation: 'portrait' })).toBe(
+            '/frame?mode=daily&palette=bw&theme=night&font=lora&orientation=portrait'
+        );
     });
 });

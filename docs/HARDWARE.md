@@ -74,7 +74,7 @@ No camera — a privacy cost the feature doesn't justify. Before wiring anything
 
 In dependency order — panel choice gates the dither target, so it comes first (done above: Spectra 6, 1600×1200):
 
-1. **Frame-specific render route (frontend)** — ✅ built: `/frame?mode=ambient|daily&palette=color|bw`. A fixed 1600×1200 layout (not a screenshot of `/?kiosk=1`, which is built for a backlit screen and an arbitrary viewport) using the `epaper-color` / `epaper-bw` palettes, which contain only Spectra 6 inks. It sets `data-ready="true"` on its root when the page is ready to capture. See `SOFTWARE-DESIGN.md` → "Frame route".
+1. **Frame-specific render route (frontend)** — ✅ built: `/frame?mode=ambient|daily&palette=color|bw&theme=…&font=…&orientation=…`. A fixed 1600×1200 (or 1200×1600) layout — not a screenshot of `/?kiosk=1`, which is built for a backlit screen and an arbitrary viewport — themed with the `epaper-*` palettes, which use only Spectra 6 inks and dither-safe two-ink mixes. Settings → Frame picks the theme, typeface and orientation, with a live preview and the resulting URL. It sets `data-ready="true"` on its root when the page is ready to capture. See `SOFTWARE-DESIGN.md` → "Frame route".
 
 2. **Display service (new backend service)** — port `8090` is the next free slot (current services run 8081–8089, 8091). Responsibilities:
    - On a configurable schedule, render the frame route above to a bitmap (wait for `[data-ready="true"]`). Recommended: headless Chromium (e.g. via Playwright) screenshotting the SvelteKit route at the panel's resolution — reuses all existing widget/layout/theme work instead of re-implementing layout in a second renderer. This is why the arm64-Chromium check under "Host" above matters.

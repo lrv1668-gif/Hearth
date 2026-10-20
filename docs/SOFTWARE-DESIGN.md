@@ -55,6 +55,8 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 | ------------ | ---------------------- | ---------- |
 | `mode`       | `ambient`, `daily`     | `ambient`  |
 | `palette`    | `color`, `bw`          | `color`    |
+| `theme`      | `almanac`, `garden`, `harbor`, `letterpress`, `night` | `almanac` |
+| `font`       | any font preset id     | `inter`    |
 | `orientation` | `landscape`, `portrait` | `landscape` |
 | `categories` | Unsplash query (ambient) | `nature` |
 
@@ -143,7 +145,17 @@ Themes are defined in two places that must be kept in sync: `frontend/src/themes
 
 Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (readable secondary text) and `--text-3` at least 3:1 (icons and non-text marks only); `--text-4` is decorative. `src/lib/themes.test.ts` enforces this.
 
-**Frame palettes.** Two more `[data-theme]` blocks — `epaper-bw` and `epaper-color` — live only in `themes.css` and are used only by `/frame`, so they are not in the picker. Colours are built from the panel's measured Spectra 6 inks, white-balanced so the browser preview looks like the panel. `epaper-bw` is pure black and white. `epaper-color` is a warm "printed almanac": black and indigo ink for type, brick red for marks, and cream/butter/amber fills mixed from two inks of similar lightness so they dither evenly. Text, icons and thin lines are always a pure ink. The Display service's dithering strategy (ordered for Daily, error diffusion for Ambient) is in `HARDWARE.md`. They also set `--arc-night` / `--arc-day` / `--arc-golden` / `--arc-outline`, which `DayArcWidget` reads with fallbacks to the regular tokens, so the ribbon stays solid-coloured on the panel without changing its look elsewhere.
+**Frame themes.** `/frame` has its own themes, chosen with `?theme=` (Color mode) and picked in Settings → Frame, which also sets the frame's typeface (`?font=`, any font preset) and orientation and shows a live, scaled-down preview of the real `/frame` page plus its URL. They are `[data-theme='epaper-<id>']` blocks in `themes.css` with picker metadata in `constants/frameThemes.ts`, kept out of the dashboard theme picker. Colours are built from the panel's measured Spectra 6 inks, white-balanced so the browser preview looks like the panel:
+
+| Frame theme   | Look                                                      |
+| ------------- | --------------------------------------------------------- |
+| `almanac`     | Default — black and indigo type, brick red, cream/butter/amber fills |
+| `garden`      | Green ink, butter and amber fills                         |
+| `harbor`      | Blue and red ink only, no tints (nothing dithered)        |
+| `letterpress` | Black type, red rules and marks, a cream band             |
+| `night`       | White and yellow on black, navy band                      |
+
+B&W mode (`?palette=bw`) ignores the theme's colours: `epaper-bw` (black on white), or `epaper-bw-night` for dark themes. Fills are two-ink mixes of similar lightness so they dither evenly; text, icons and lines are always a pure ink (`themes.test.ts` enforces both). Text, icons and thin lines are always a pure ink. The Display service's dithering strategy (ordered for Daily, error diffusion for Ambient) is in `HARDWARE.md`. They also set `--arc-night` / `--arc-day` / `--arc-golden` / `--arc-outline`, which `DayArcWidget` reads with fallbacks to the regular tokens, so the ribbon stays solid-coloured on the panel without changing its look elsewhere.
 
 ### Font themes
 

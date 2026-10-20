@@ -398,6 +398,7 @@
    The --arc-* tokens recolour the Day Arc ribbon, which otherwise relies on
    opacity; other themes leave them unset and fall back to normal tokens.   */
 [data-theme='epaper-bw'] {
+    /* B&W mode for every light theme — pure black on white. */
     --bg: #ffffff;
     --surface: #ffffff;
     --surface-hi: #ffffff;
@@ -417,9 +418,13 @@
     --arc-outline: #000000;
 }
 
-[data-theme='epaper-color'] {
-    /* Warm "printed almanac": paper white, black and indigo ink for type,
-       brick red for marks, cream/butter/amber fills from yellow mixes. */
+/* Colour themes — `?theme=` on /frame, picked in Settings → Frame. Allowed
+   values are the six inks plus these two-ink mixes (themes.test.ts checks):
+     cream  #fffedb  white + 25% yellow     butter #fffeb6  white + 50% yellow
+     amber  #f8b771  yellow + 50% red       navy   #2f2e49  black + 50% blue */
+[data-theme='epaper-almanac'] {
+    /* Almanac (default) — warm printed almanac: black and indigo type, brick
+       red marks, cream/butter/amber fills. */
     --bg: #ffffff;
     --surface: #fffedb; /* cream — white + 25% yellow */
     --surface-hi: #fffeb6; /* butter — white + 50% yellow */
@@ -436,4 +441,110 @@
     --arc-night: #5e5b91;
     --arc-day: #fffeb6; /* butter */
     --arc-golden: #f8b771; /* amber — yellow + 50% red */
+}
+
+[data-theme='epaper-garden'] {
+    /* Garden — green ink on paper, butter and amber fills. Green is 3.8:1 on
+       white: fine at frame sizes (≥22px), too light for dashboard body text. */
+    --bg: #ffffff;
+    --surface: #fffedb;
+    --surface-hi: #fffeb6;
+    --border: #5a8d6c;
+    --text-1: #000000;
+    --text-2: #5a8d6c;
+    --text-3: #5a8d6c;
+    --text-4: #5a8d6c;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #5a8d6c;
+    --arc-day: #fffeb6;
+    --arc-golden: #f8b771;
+}
+
+[data-theme='epaper-harbor'] {
+    /* Harbor — cool and crisp: blue and red ink only, no tints at all, so
+       nothing on the page is dithered. */
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-hi: #ffffff;
+    --border: #5e5b91;
+    --text-1: #000000;
+    --text-2: #5e5b91;
+    --text-3: #5e5b91;
+    --text-4: #5e5b91;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #5e5b91;
+    --arc-day: #ffffff;
+    --arc-golden: #f16f74;
+    --arc-outline: #5e5b91;
+}
+
+[data-theme='epaper-letterpress'] {
+    /* Letterpress — classic two-colour print: black type, red rules and marks,
+       a cream band. */
+    --bg: #ffffff;
+    --surface: #fffedb;
+    --surface-hi: #fffeb6;
+    --border: #f16f74;
+    --text-1: #000000;
+    --text-2: #000000;
+    --text-3: #000000;
+    --text-4: #000000;
+    --done: #000000;
+    --done-bg: #000000;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #000000;
+    --arc-day: #fffeb6;
+    --arc-golden: #f16f74;
+}
+
+[data-theme='epaper-night'] {
+    /* Night — inverted for evenings: white and yellow on black, red marks,
+       a navy band (black + blue are close in lightness, so it dithers evenly). */
+    --bg: #000000;
+    --surface: #2f2e49;
+    --surface-hi: #2f2e49;
+    --border: #5e5b91;
+    --text-1: #ffffff;
+    --text-2: #ffff6e;
+    --text-3: #ffff6e;
+    --text-4: #5e5b91;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #5e5b91;
+    --arc-day: #ffff6e;
+    --arc-golden: #f8b771;
+}
+
+[data-theme='epaper-bw-night'] {
+    /* B&W mode for the Night theme — pure white on black. */
+    --bg: #000000;
+    --surface: #000000;
+    --surface-hi: #000000;
+    --border: #ffffff;
+    --text-1: #ffffff;
+    --text-2: #ffffff;
+    --text-3: #ffffff;
+    --text-4: #ffffff;
+    --done: #ffffff;
+    --done-bg: #ffffff;
+    --accent: #ffffff;
+    --accent-hi: #ffffff;
+    --accent-fg: #000000;
+    --arc-night: #ffffff;
+    --arc-day: #000000;
+    --arc-golden: #000000;
+    --arc-outline: #ffffff;
 }
