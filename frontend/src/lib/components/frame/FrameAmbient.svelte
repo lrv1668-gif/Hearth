@@ -25,20 +25,23 @@ In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure 
     </div>
 {/if}
 
-<div class="absolute bottom-10 left-10 flex items-center gap-8 border-2 border-(--border) bg-(--bg) px-8 py-6">
-    <div>
+<!-- A single quiet card: time and temperature on one line, the date beneath. No border
+     or rule — the solid --bg panel alone separates it from the photo (shadows or
+     translucency would dither into speckle on the panel). -->
+<div class="absolute bottom-10 left-10 bg-(--bg) px-8 py-6">
+    <div class="flex items-baseline gap-6">
         <p class="type-title leading-none font-bold">{time}</p>
-        <p class="type-label mt-2 text-(--text-2)">{date}</p>
-        <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
-        {#if photo?.source === 'unsplash' && photo.photographer_name}
-            <p class="type-caption mt-2 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
+        {#if weatherStore.current}
+            {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}
+            <p class="type-title flex items-center gap-2 leading-none font-semibold">
+                <WeatherIcon class="icon-md self-center text-(--text-2)" />
+                {Math.round(weatherStore.current.temperature_f)}°
+            </p>
         {/if}
     </div>
-    {#if weatherStore.current}
-        {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}
-        <div class="flex items-center gap-3 border-l-2 border-(--border) pl-8">
-            <WeatherIcon class="icon-lg text-(--text-2)" />
-            <span class="type-title leading-none font-semibold">{Math.round(weatherStore.current.temperature_f)}°</span>
-        </div>
+    <p class="type-label mt-2 text-(--text-2)">{date}</p>
+    <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
+    {#if photo?.source === 'unsplash' && photo.photographer_name}
+        <p class="type-caption mt-1 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
     {/if}
 </div>

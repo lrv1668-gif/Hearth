@@ -104,6 +104,18 @@
         }, cadenceMs());
     }
 
+    // The exit hint and cursor show briefly on entry and whenever the pointer moves,
+    // then fade, so an idle wall display is just the photo and its credit.
+    const CHROME_IDLE_MS = 3000;
+    let chromeVisible = $state(true);
+    let chromeTimer: ReturnType<typeof setTimeout>;
+
+    function wake() {
+        chromeVisible = true;
+        clearTimeout(chromeTimer);
+        chromeTimer = setTimeout(() => (chromeVisible = false), CHROME_IDLE_MS);
+    }
+
     function exit() {
         goto('/');
     }
@@ -121,13 +133,17 @@
 
         await advance();
         loading = false;
+        wake(); // start the hint's idle timer once there's a photo to look at
         scheduleNext();
     });
 
-    onDestroy(() => clearTimeout(timer));
+    onDestroy(() => {
+        clearTimeout(timer);
+        clearTimeout(chromeTimer);
+    });
 </script>
 
-<svelte:window onkeydown={exit} />
+<svelte:window onkeydown={exit} onpointermove={wake} />
 
 <!-- Fullscreen overlay — covers Nav (z-50) -->
 <div
@@ -136,7 +152,8 @@
     role="button"
     tabindex="0"
     aria-label="Exit ambient mode"
-    class="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center overflow-hidden bg-black"
+    class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black
+        {chromeVisible ? 'cursor-pointer' : 'cursor-none'}"
 >
     {#if loading}
         <p class="type-body tracking-widest text-white/40 uppercase">Loading…</p>
@@ -154,36 +171,46 @@
 
         {@const showAttribution = photo.source === 'unsplash' && settings.showAttribution}
         {@const showCaption = photo.source === 'local' && photo.description}
-        {#if showAttribution || showCaption}
-            <div
-                class="absolute right-0 bottom-0 left-0 flex items-end justify-between gap-6 bg-gradient-to-t from-black/75 via-black/30 to-transparent px-6 pt-12 pb-4 drop-shadow-md"
-            >
-                {#if showAttribution}
-                    <p class="type-label text-white/85">
-                        Photo by
-                        <a
-                            href={photo.unsplash_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onclick={(e) => e.stopPropagation()}
-                            class="underline transition-colors hover:text-white"
-                        >
-                            {photo.photographer_name}
-                        </a>
-                        on Unsplash
-                    </p>
-                {:else}
-                    <p class="type-label text-white/85">{photo.description}</p>
-                {/if}
-                <p class="type-label shrink-0 text-white/60">Click or press any key to exit</p>
-            </div>
+        <!-- A quiet corner credit — a soft text shadow keeps it legible on bright photos
+             without a scrim across the image. Always shown: Unsplash requires attribution. -->
+        {#if showAttribution}
+            <p class="ambient-credit type-caption absolute bottom-5 left-6 text-white/75">
+                Photo by
+                <a
+                    href={photo.unsplash_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onclick={(e) => e.stopPropagation()}
+                    class="underline decoration-white/40 underline-offset-2 transition-colors hover:text-white"
+                >
+                    {photo.photographer_name}
+                </a>
+                on Unsplash
+            </p>
+        {:else if showCaption}
+            <p class="ambient-credit type-caption absolute bottom-5 left-6 max-w-[60%] text-white/75">
+                {photo.description}
+            </p>
         {/if}
+        <p
+            class="ambient-credit type-caption absolute right-6 bottom-5 text-white/60 transition-opacity duration-700
+                {chromeVisible ? 'opacity-100' : 'opacity-0'}"
+            aria-hidden={!chromeVisible}
+        >
+            Click or press any key to exit
+        </p>
     {:else}
         <p class="type-body tracking-widest text-white/40 uppercase">No photos available</p>
     {/if}
 </div>
 
 <style>
+    .ambient-credit {
+        text-shadow:
+            0 1px 2px rgb(0 0 0 / 0.6),
+            0 0 12px rgb(0 0 0 / 0.35);
+    }
+
     @keyframes -global-kb-zoom-in {
         from {
             transform: scale(1);
