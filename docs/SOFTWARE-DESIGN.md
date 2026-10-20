@@ -496,7 +496,7 @@ If a feed's cache is stale (older than 30 minutes) or empty, the service re-fetc
 
 ## Calendar Service
 
-The `calendar` service integrates with Google Calendar and Google Tasks via OAuth 2.0, surfacing events (read-only) and tasks (completable via checkbox) for the next 14 days. It's built behind an `ICalendarProvider` interface so additional providers (Outlook, etc.) can be added without changing the aggregation endpoint.
+The `calendar` service integrates with Google Calendar and Google Tasks via OAuth 2.0, surfacing events (read-only) and tasks (completable via checkbox) from the start of yesterday (UTC — so the viewer's whole local day is covered) through the next 60 days. It's built behind an `ICalendarProvider` interface so additional providers (Outlook, etc.) can be added without changing the aggregation endpoint.
 
 ### Extensibility interface
 

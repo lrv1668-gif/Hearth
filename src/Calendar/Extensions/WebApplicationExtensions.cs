@@ -70,8 +70,12 @@ public static class WebApplicationExtensions
             IEnumerable<ICalendarProvider> providers,
             CancellationToken ct) =>
         {
-            var from = DateTimeOffset.UtcNow;
-            var to   = from.AddDays(14);
+            // Start at midnight UTC yesterday rather than "now", so events that already ended today
+            // stay on the calendar; the extra day covers the viewer's local "today" beginning before
+            // UTC midnight. 60 days ahead fills the month grid through next month.
+            var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
+            var from  = today.AddDays(-1);
+            var to    = today.AddDays(60);
 
             var fetches = providers
                 .Where(p => p.IsAuthenticated)
