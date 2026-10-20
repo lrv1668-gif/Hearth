@@ -89,7 +89,7 @@ Daily/Ambient and Color/B&W toggles and the resulting frame URL.
     <div
         bind:clientWidth={boxWidth}
         class="relative overflow-hidden rounded-lg border border-(--border)
-            {settings.frameOrientation === 'portrait' ? 'max-w-sm' : 'max-w-2xl'}"
+            {settings.frameOrientation === 'portrait' ? 'mx-auto max-w-sm' : 'max-w-2xl'}"
         style="height: {size.h * scale}px"
     >
         {#if boxWidth > 0}

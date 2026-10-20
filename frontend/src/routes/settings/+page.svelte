@@ -301,24 +301,50 @@
             {#snippet framePreviewContent()}
                 <FramePreview />
             {/snippet}
-            <div class="flex flex-col gap-4">
-                {@render card(
-                    'E-paper frame',
-                    'Colours, typeface, and orientation for the wall frame. Themes use only colours the panel can print cleanly.',
-                    frameAppearanceContent
-                )}
-                {@render card('Visibility', 'Choose which widgets appear on the frame in Daily mode.', frameVisibility)}
-                {@render card(
-                    'Layout',
-                    'Drag widgets between columns and adjust the column width ratio.',
-                    frameLayoutContent
-                )}
-                {@render card(
-                    'Preview',
-                    'The real frame page, scaled down. Updates as you change settings.',
-                    framePreviewContent
-                )}
-                {@render card('Display mode', 'Control how Hearth presents on this device.', kioskContent)}
+            <!--
+                Wide (container ≥ 56rem): options on the left, the preview pinned beside them
+                so it stays in view while scrolling. Narrow: one column, with the preview right
+                after the look card — the left column becomes `display: contents` so its cards
+                can be ordered around the preview.
+            -->
+            <div class="@container">
+                <div
+                    class="flex flex-col gap-4 @4xl:grid @4xl:grid-cols-[minmax(0,1fr)_minmax(320px,42%)] @4xl:items-start"
+                >
+                    <div class="contents @4xl:flex @4xl:flex-col @4xl:gap-4">
+                        <div class="order-1">
+                            {@render card(
+                                'E-paper frame',
+                                'Colours, typeface, and orientation for the wall frame. Themes use only colours the panel can print cleanly.',
+                                frameAppearanceContent
+                            )}
+                        </div>
+                        <div class="order-3">
+                            {@render card(
+                                'Visibility',
+                                'Choose which widgets appear on the frame in Daily mode.',
+                                frameVisibility
+                            )}
+                        </div>
+                        <div class="order-4">
+                            {@render card(
+                                'Layout',
+                                'Drag widgets between columns and adjust the column width ratio.',
+                                frameLayoutContent
+                            )}
+                        </div>
+                        <div class="order-5">
+                            {@render card('Display mode', 'Control how Hearth presents on this device.', kioskContent)}
+                        </div>
+                    </div>
+                    <div class="order-2 @4xl:sticky @4xl:top-0">
+                        {@render card(
+                            'Preview',
+                            'The real frame page, scaled down. Updates as you change settings.',
+                            framePreviewContent
+                        )}
+                    </div>
+                </div>
             </div>
         {:else}
             {#snippet comingSoon()}<p class="type-body text-(--text-1)">Coming soon.</p>{/snippet}

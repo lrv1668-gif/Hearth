@@ -5,11 +5,12 @@
     import SegmentedControl from './SegmentedControl.svelte';
 </script>
 
-<div class="flex flex-col gap-6">
+<div class="@container flex flex-col gap-6">
     <!-- Colour theme -->
     <div>
         <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Colour theme</p>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <!-- Container-based columns: this card may sit in a narrow column beside the preview -->
+        <div class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @3xl:grid-cols-5">
             {#each frameThemes as t (t.id)}
                 {@const selected = settings.frameTheme === t.id}
                 <button
