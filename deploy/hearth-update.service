@@ -1,0 +1,12 @@
+[Unit]
+Description=Update Hearth to the latest published images
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+# The user who cloned the repo (in the docker group) — git refuses to run as root
+# on another user's checkout, and the deploy key / `docker login` live in their home
+User=<user>
+# Adjust if the repo is cloned somewhere other than /opt/hearth
+ExecStart=/opt/hearth/deploy/update.sh

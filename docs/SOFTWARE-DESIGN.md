@@ -364,7 +364,7 @@ Stored in `src/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_fi
 | `SPOTIFY_CLIENT_ID`      | Yes      | Spotify app client ID                                                                                                                              |
 | `SPOTIFY_CLIENT_SECRET`  | Yes      | Spotify app client secret                                                                                                                          |
 | `SPOTIFY_REDIRECT_URI`   | Yes      | Must match a URI registered in the Spotify app dashboard (e.g. `http://127.0.0.1:8083/spotify/callback`)                                           |
-| `FRONTEND_URL`           | No       | URL to redirect to after OAuth completes; defaults to `/` on the service itself — set to the Caddy entry point (e.g. `http://localhost`) in Docker |
+| `FRONTEND_URL`           | No       | URL to redirect to after OAuth completes; defaults to `/` on the service itself — set from `FRONTEND_URL` in the root `.env` (default `http://localhost`) in Docker |
 
 ### Frontend integration
 
@@ -754,8 +754,8 @@ The Caddy config is the same in development and production — the only differen
 
 ### Images
 
-- **Backend:** one shared `src/Dockerfile` builds every service, selected by the `SERVICE` build arg set in each service's `build.args` in `docker-compose.yml`. It publishes for the build's target architecture only (`-a $TARGETARCH`, so arm64 hosts work unchanged) onto `mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra`: no shell or package manager, and `-extra` adds the ICU + tzdata that `TimeZoneInfo` needs. The apphost is renamed to `/app/service` so a single exec-form `ENTRYPOINT` works without a shell.
-- **Frontend:** `frontend/Dockerfile` (adapter-node build, then `npm ci --omit=dev` from the lockfile) and `frontend/Dockerfile.dev` (Vite dev server).
+- **Backend:** one shared `src/Dockerfile` builds every service, selected by the `SERVICE` build arg set in each service's `build.args` in `docker-compose.yml`. The SDK stage runs on the build machine's own arch (`--platform=$BUILDPLATFORM`) and cross-publishes for the target architecture only (`-a $TARGETARCH`), so arm64 images build at native speed on amd64 CI onto `mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra`: no shell or package manager, and `-extra` adds the ICU + tzdata that `TimeZoneInfo` needs. The apphost is renamed to `/app/service` so a single exec-form `ENTRYPOINT` works without a shell.
+- **Frontend:** `frontend/Dockerfile` (adapter-node build on `$BUILDPLATFORM` — its output is plain JS — then `npm ci --omit=dev` from the lockfile as the target arch) and `frontend/Dockerfile.dev` (Vite dev server).
 - **Non-root:** backend containers run as the image's `app` user (UID 1654), the frontend as `node`. Each backend image creates `/data` owned by UID 1654, so new named volumes inherit that ownership. Volumes created before the switch to non-root (October 2026) are root-owned and need a one-time fix, or SQLite fails with "unable to open database file". Run this per volume with the stack stopped:
 
   ```bash
@@ -778,3 +778,22 @@ docker compose watch
 ```bash
 docker compose -f docker-compose.yml up --build
 ```
+
+Every built service in `docker-compose.yml` also has an `image:` of `${HEARTH_IMAGE_PREFIX:-hearth}-<service>:${HEARTH_TAG:-latest}`. With no root `.env` that is just the name Compose would pick anyway, so local builds are unchanged.
+
+### Deploying to a host
+
+Deployed hosts never build: they pull images that CI publishes.
+
+1. **CI publishes.** The `publish-images` job in `.github/workflows/ci.yml` runs on pushes to `main` once the backend and frontend jobs pass. It builds every service for `linux/amd64` and `linux/arm64` and pushes `ghcr.io/<owner>/hearth-<service>` tagged `latest` and `sha-<short>`. GHCR packages start out private.
+2. **The host pulls.** Use a 64-bit OS, since only amd64 and arm64 images are published. Install Docker and add your user to the `docker` group (`sudo usermod -aG docker <user>`). Clone the repo as that user (to `/opt/hearth`, or adjust the path in `deploy/hearth-update.service`) and set `User=` in that unit to the same user, copy `.env.example` to `.env` and fill it in, and copy each `src/<Service>/.env` over by hand. Secrets never enter an image (`.dockerignore` excludes `.env`) or git. If the repo or packages are private, run `docker login ghcr.io` once as that user with a personal access token that has `read:packages`, and give `git` a read-only deploy key.
+3. **It keeps itself current.** `deploy/update.sh` runs `git pull --ff-only`, then `docker compose -f docker-compose.yml pull`, then `up -d --no-build --remove-orphans`, and prunes dangling images. Compose only recreates containers whose image or config changed. Caddy is restarted only when the pull changed the `Caddyfile`, because `up` doesn't watch bind mounts. Install the timer to run it every 5 minutes:
+
+   ```bash
+   sudo cp deploy/hearth-update.service deploy/hearth-update.timer /etc/systemd/system/
+   sudo systemctl enable --now hearth-update.timer
+   ```
+
+   To roll back, set `HEARTH_TAG=sha-<short>` in `.env` and run `deploy/update.sh`.
+
+`FRONTEND_URL` (where Spotify and Calendar redirect after OAuth) is read from the root `.env` and defaults to `http://localhost`. On a host, also update `SPOTIFY_REDIRECT_URI` and `GOOGLE_REDIRECT_URI` in those services' `.env` files and register the new URIs with each provider.

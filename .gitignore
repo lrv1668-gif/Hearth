@@ -29,3 +29,5 @@ Thumbs.db
 !.claude/hooks/
 !.claude/settings.json
 .vs/
+# Root compose .env (deployed-host settings)
+/.env

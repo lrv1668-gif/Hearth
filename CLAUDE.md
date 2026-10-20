@@ -50,6 +50,8 @@ tests/                       # xUnit test projects — <Service>.Tests/
   Hearth.TestUtilities/      # Shared test helpers — FakeHttpMessageHandler, TempDatabase
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
+.env.example                 # Root compose vars for a deployed host (image prefix/tag, FRONTEND_URL)
+deploy/                      # Host auto-update: update.sh + systemd timer (pulls CI-published GHCR images)
 Caddyfile
 ```
 
@@ -64,6 +66,7 @@ Caddyfile
 - Run a service's tests: `dotnet test tests/<Service>.Tests/<Service>.Tests.csproj`
 - Full CI equivalent: `dotnet build Hearth.slnx && dotnet test Hearth.slnx`, plus `npm run check && npm run test && npm run build` in `frontend/`
 - Before committing a UI-visible change, run the `verify` skill to drive the real UI
+- Deploying: CI's `publish-images` job pushes amd64+arm64 images to GHCR on every green push to `main`; a host pulls them via `deploy/update.sh` (see `docs/SOFTWARE-DESIGN.md` → Deploying to a host). A new service needs a matching `include` entry in that job's matrix and an `image:` line in `docker-compose.yml`
 - Run the app locally: `docker compose up --build` (dev overrides in `docker-compose.override.yml` expose service ports on localhost), then `cd frontend && npm run dev` for a hot-reloading frontend — Vite's dev proxy in `frontend/vite.config.ts` forwards `/tasks`, `/weather`, etc. to those ports
 
 ### Backend (C# / ASP.NET Core)

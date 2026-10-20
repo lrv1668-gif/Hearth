@@ -1,4 +1,6 @@
-FROM node:26-alpine AS builder
+# The build output is plain JS, so build on the machine's own arch; only the
+# runtime stage's prod-deps install runs as the target arch
+FROM --platform=$BUILDPLATFORM node:26-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,id=npm,target=/root/.npm,sharing=locked npm ci

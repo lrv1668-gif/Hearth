@@ -7,9 +7,13 @@ x-defaults: &defaults
             max-size: "10m"
             max-file: "3"
 
+# Image names come from the root .env (see .env.example). Locally they default to
+# hearth-<service>:latest and `--build` builds them; a deployed host sets
+# HEARTH_IMAGE_PREFIX to the registry CI pushes to and pulls instead (deploy/update.sh).
 services:
     tasks:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-tasks:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -22,6 +26,7 @@ services:
 
     spotify:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-spotify:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -31,12 +36,13 @@ services:
         environment:
             - DB_PATH=/data/spotify.db
             - ASPNETCORE_HTTP_PORTS=8083
-            - FRONTEND_URL=http://localhost
+            - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
         volumes:
             - spotify-data:/data
 
     weather:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-weather:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -51,6 +57,7 @@ services:
 
     photos:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-photos:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -65,6 +72,7 @@ services:
 
     rss:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-rss:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -77,6 +85,7 @@ services:
 
     calendar:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-calendar:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -86,12 +95,13 @@ services:
         environment:
             - DB_PATH=/data/calendar.db
             - ASPNETCORE_HTTP_PORTS=8087
-            - FRONTEND_URL=http://localhost
+            - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
         volumes:
             - calendar-data:/data
 
     quote:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-quote:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -101,6 +111,7 @@ services:
 
     birds:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-birds:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -115,6 +126,7 @@ services:
 
     almanac:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-almanac:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -126,6 +138,7 @@ services:
 
     trains:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-trains:${HEARTH_TAG:-latest}
         build:
             context: ./src
             args:
@@ -140,6 +153,7 @@ services:
 
     frontend:
         <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-frontend:${HEARTH_TAG:-latest}
         build: ./frontend
         # Node as PID 1 ignores SIGTERM; tini forwards it so `docker stop` is instant
         init: true

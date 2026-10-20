@@ -96,6 +96,8 @@ In dependency order — panel choice gates the dither target, so it comes first 
 
 4. **mDNS advertising (host)** — `PRODUCT.md`'s first-run flow assumes the display shows a `hearth.local` URL on first boot. Needs Avahi (or equivalent) running on the host; not currently configured in either compose file.
 
+5. **Keeping the host updated** — the host pulls CI-built images from GHCR on a systemd timer, so it never compiles anything. See `SOFTWARE-DESIGN.md` → Deploying to a host.
+
 ## Verification
 
 No running code yet — this is a docs/planning artifact. Before ordering hardware: re-verify the current Inky Impression 13.3" listing (resolution, button GPIO pins, header orientation) and `inky` library support on pimoroni.com / GitHub, since this document favors durable selection criteria over pinned part numbers that will drift.
