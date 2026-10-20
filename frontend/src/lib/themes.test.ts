@@ -71,6 +71,12 @@ describe('frame palettes', () => {
         expect(contrast(tokens['text-1'], tokens['bg'])).toBeGreaterThanOrEqual(7);
         expect(contrast(tokens['text-2'], tokens['bg'])).toBeGreaterThanOrEqual(3);
     });
+
+    // The forecast band sits on --surface, so its type must read there too.
+    it.each(frameCss)('$id: text is legible on --surface', ({ tokens }) => {
+        expect(contrast(tokens['text-1'], tokens['surface'])).toBeGreaterThanOrEqual(7);
+        expect(contrast(tokens['text-2'], tokens['surface'])).toBeGreaterThanOrEqual(3);
+    });
 });
 
 describe('frameDataTheme', () => {

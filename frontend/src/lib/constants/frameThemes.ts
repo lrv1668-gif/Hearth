@@ -11,6 +11,13 @@ export const frameThemes = [
         swatches: ['#ffffff', '#000000', '#5e5b91', '#f16f74', '#fffeb6', '#f8b771'],
     },
     {
+        id: 'gallery',
+        label: 'Gallery',
+        description: 'Near-monochrome, like a print',
+        dark: false,
+        swatches: ['#ffffff', '#000000', '#f16f74', '#f8b771'],
+    },
+    {
         id: 'garden',
         label: 'Garden',
         description: 'Green ink, butter and amber',
@@ -18,11 +25,25 @@ export const frameThemes = [
         swatches: ['#ffffff', '#000000', '#5a8d6c', '#f16f74', '#fffeb6', '#f8b771'],
     },
     {
+        id: 'coast',
+        label: 'Coast',
+        description: 'Indigo on sand, no red',
+        dark: false,
+        swatches: ['#ffffff', '#000000', '#5e5b91', '#fffeb6', '#ffff6e'],
+    },
+    {
         id: 'harbor',
         label: 'Harbor',
         description: 'Crisp blue and red, no tints',
         dark: false,
         swatches: ['#ffffff', '#000000', '#5e5b91', '#f16f74'],
+    },
+    {
+        id: 'terracotta',
+        label: 'Terracotta',
+        description: 'Amber band, red rules, olive',
+        dark: false,
+        swatches: ['#ffffff', '#000000', '#f16f74', '#5a8d6c', '#f8b771'],
     },
     {
         id: 'letterpress',
@@ -37,6 +58,13 @@ export const frameThemes = [
         description: 'White and yellow on black',
         dark: true,
         swatches: ['#000000', '#ffffff', '#ffff6e', '#f16f74', '#2f2e49'],
+    },
+    {
+        id: 'ember',
+        label: 'Ember',
+        description: 'Yellow and red on black',
+        dark: true,
+        swatches: ['#000000', '#ffff6e', '#f16f74', '#f8b771'],
     },
 ] as const;
 

@@ -528,6 +528,91 @@
     --arc-golden: #f8b771;
 }
 
+[data-theme='epaper-gallery'] {
+    /* Gallery — nearly monochrome, like a framed print: black type and rules,
+       no fills; colour only in the Day Arc's golden hours and the red "now" dot. */
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-hi: #ffffff;
+    --border: #000000;
+    --text-1: #000000;
+    --text-2: #000000;
+    --text-3: #000000;
+    --text-4: #000000;
+    --done: #000000;
+    --done-bg: #000000;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #000000;
+    --arc-day: #ffffff;
+    --arc-golden: #f8b771;
+    --arc-outline: #000000;
+}
+
+[data-theme='epaper-coast'] {
+    /* Coast — indigo ink on sand: cream and butter fills, yellow golden hours,
+       no red at all. */
+    --bg: #ffffff;
+    --surface: #fffedb;
+    --surface-hi: #fffeb6;
+    --border: #5e5b91;
+    --text-1: #000000;
+    --text-2: #5e5b91;
+    --text-3: #5e5b91;
+    --text-4: #5e5b91;
+    --done: #5e5b91;
+    --done-bg: #5e5b91;
+    --accent: #5e5b91;
+    --accent-hi: #5e5b91;
+    --accent-fg: #ffffff;
+    --arc-night: #5e5b91;
+    --arc-day: #fffedb;
+    --arc-golden: #ffff6e;
+}
+
+[data-theme='epaper-terracotta'] {
+    /* Terracotta — rust and olive: an amber band, red rules, green Day Arc and
+       checkmarks. Secondary type stays black — green on amber is only ~2.2:1. */
+    --bg: #ffffff;
+    --surface: #f8b771;
+    --surface-hi: #f8b771;
+    --border: #f16f74;
+    --text-1: #000000;
+    --text-2: #000000;
+    --text-3: #000000;
+    --text-4: #000000;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #5a8d6c;
+    --arc-day: #fffeb6;
+    --arc-golden: #f8b771;
+}
+
+[data-theme='epaper-ember'] {
+    /* Ember — dark and warm, for moody rooms: yellow and red type on black, no
+       fills (no dark warm mix has been shown to dither evenly yet). */
+    --bg: #000000;
+    --surface: #000000;
+    --surface-hi: #000000;
+    --border: #f16f74;
+    --text-1: #ffff6e;
+    --text-2: #f16f74;
+    --text-3: #f16f74;
+    --text-4: #f16f74;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #f16f74;
+    --arc-day: #ffff6e;
+    --arc-golden: #f8b771;
+}
+
 [data-theme='epaper-bw-night'] {
     /* B&W mode for the Night theme — pure white on black. */
     --bg: #000000;
