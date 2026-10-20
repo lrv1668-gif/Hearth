@@ -1,6 +1,7 @@
 <script lang="ts">
     import '../app.css';
     import { browser } from '$app/environment';
+    import { page } from '$app/state';
     import Nav from '$lib/components/Nav.svelte';
     import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
     import { initTheme } from '$lib/stores/ThemeStore.svelte.ts';
@@ -10,6 +11,9 @@
     let { children } = $props();
 
     let loaded = $state(false);
+
+    // The e-paper render target draws its own fixed-size canvas — no nav or app chrome.
+    const isFrame = $derived(page.url.pathname.startsWith('/frame'));
 
     $effect(() => {
         if (browser) {
@@ -28,7 +32,9 @@
     <link rel="icon" href="/favicon.ico" />
 </svelte:head>
 
-{#if loaded}
+{#if loaded && isFrame}
+    {@render children()}
+{:else if loaded}
     <div class="flex h-[100dvh] flex-col bg-(--bg) pb-16 text-(--text-1) transition-colors duration-300 lg:pb-0">
         <Nav />
         {@render children()}

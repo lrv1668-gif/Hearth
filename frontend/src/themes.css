@@ -378,3 +378,49 @@
         color-scheme: dark;
     }
 }
+
+/* ── Frame palettes ──────────────────────────────────────────────────────── */
+/* Used only by the /frame route (the e-paper render target), never by the
+   theme picker, so they are absent from constants/themes.ts. Every token is
+   one of the Spectra 6 panel's native inks — no greys or tints — so the
+   host-side dither has nothing to break into speckle. The --arc-* tokens
+   recolour the Day Arc ribbon, which otherwise relies on opacity; other
+   themes leave them unset and fall back to their normal tokens.          */
+[data-theme='epaper-bw'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-hi: #ffffff;
+    --border: #000000;
+    --text-1: #000000;
+    --text-2: #000000;
+    --text-3: #000000;
+    --text-4: #000000;
+    --done: #000000;
+    --done-bg: #000000;
+    --accent: #000000;
+    --accent-hi: #000000;
+    --accent-fg: #ffffff;
+    --arc-night: #000000;
+    --arc-day: #ffffff;
+    --arc-golden: #ffffff;
+    --arc-outline: #000000;
+}
+
+[data-theme='epaper-color'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-hi: #ffffff;
+    --border: #000000;
+    --text-1: #000000;
+    --text-2: #0000ff;
+    --text-3: #000000;
+    --text-4: #000000;
+    --done: #00ff00;
+    --done-bg: #00ff00;
+    --accent: #ff0000;
+    --accent-hi: #ff0000;
+    --accent-fg: #ffffff;
+    --arc-night: #0000ff;
+    --arc-day: #ffff00;
+    --arc-golden: #ff0000;
+}

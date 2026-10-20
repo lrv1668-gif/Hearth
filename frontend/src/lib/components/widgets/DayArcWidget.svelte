@@ -44,7 +44,7 @@
             .map((e) => ({ at: new Date(e.start!), title: e.title }));
 
         const taskMarks = taskStore.tasks
-            .filter((t) => !t.is_countdown && !t.done && t.due_date === todayKey && t.due_time)
+            .filter((t) => !t.is_countdown && !t.done && t.due_date?.slice(0, 10) === todayKey && t.due_time)
             .map((t) => {
                 const [h, m] = t.due_time!.split(':').map(Number);
                 const at = new Date(now);
@@ -72,21 +72,23 @@
     <div class="flex flex-col gap-2">
         <div class="relative h-8">
             <!-- night track -->
-            <div class="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--surface-hi)"></div>
+            <div
+                class="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-night,var(--surface-hi))]"
+            ></div>
 
             <!-- daylight band -->
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--border)"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-day,var(--border))] shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
                 style="left: {pct(sunrise)}%; width: {pct(sunset) - pct(sunrise)}%"
             ></div>
 
             <!-- golden hour bands -->
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--accent) opacity-40"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-golden,color-mix(in_srgb,var(--accent)_40%,transparent))] shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
                 style="left: {pct(sunrise)}%; width: {pct(morningGoldenEnd) - pct(sunrise)}%"
             ></div>
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--accent) opacity-40"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-golden,color-mix(in_srgb,var(--accent)_40%,transparent))] shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
                 style="left: {pct(goldenStart)}%; width: {pct(sunset) - pct(goldenStart)}%"
             ></div>
 

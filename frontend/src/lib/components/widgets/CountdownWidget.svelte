@@ -4,9 +4,10 @@
     interface Props {
         tasks: Task[];
         onEdit: (task: Task) => void;
+        limit?: number;
     }
 
-    let { tasks, onEdit }: Props = $props();
+    let { tasks, onEdit, limit = 5 }: Props = $props();
 
     function daysUntil(dueDate: string): number {
         const today = new Date();
@@ -28,7 +29,7 @@
             .map((t) => ({ ...t, days: daysUntil(t.due_date!) }))
             .filter((t) => t.days >= 0)
             .sort((a, b) => a.days - b.days)
-            .slice(0, 5)
+            .slice(0, limit)
     );
 </script>
 
@@ -42,7 +43,8 @@
                     onclick={() => onEdit(item)}
                     class="group flex items-start gap-3 text-right transition-opacity hover:opacity-80"
                 >
-                    <div class="flex w-12 flex-shrink-0 flex-col items-end">
+                    <!-- Width tracks the number's font size so 3-digit counts fit at any scale (incl. /frame). -->
+                    <div class="flex w-[calc(var(--font-title)*1.75)] flex-shrink-0 flex-col items-end">
                         {#if item.days === 0}
                             <span class="type-title leading-none font-bold text-(--accent)">!</span>
                         {:else}
