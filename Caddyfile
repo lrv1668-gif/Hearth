@@ -1,4 +1,11 @@
-:80 {
+{
+    # Keep plain HTTP working for the HTTPS host too: LAN clients like the frame
+    # don't trust Caddy's local CA
+    auto_https disable_redirects
+}
+
+# Routes shared by the plain-HTTP and HTTPS sites below
+(hearth) {
     handle /tasks* {
         reverse_proxy tasks:8081
     }
@@ -35,4 +42,18 @@
     handle {
         reverse_proxy frontend:3000
     }
+}
+
+# Plain HTTP on any hostname — local dev, and LAN clients like the frame that
+# don't need TLS
+:80 {
+    import hearth
+}
+
+# HTTPS for the host's own name (HEARTH_HOST in the root .env; localhost when
+# unset), signed by Caddy's local CA. OAuth providers like Spotify require an
+# https redirect URI for anything but loopback.
+{$HEARTH_HOST:localhost} {
+    tls internal
+    import hearth
 }

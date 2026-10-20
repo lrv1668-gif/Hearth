@@ -8,7 +8,7 @@ Hearth is a calm, self-hosted home dashboard. The architecture is a set of small
 
 ```
 Browser
-  └── Caddy :80
+  └── Caddy :80 + :443
         ├── /tasks*    → Tasks      :8081
         ├── /weather*  → Weather    :8082
         ├── /spotify*  → Spotify    :8083
@@ -741,6 +741,11 @@ Stored in `src/Trains/.env`.
 /                   →  frontend:3000
 ```
 
+The routes live in a `(hearth)` snippet that two sites import:
+
+- **`:80`** serves plain HTTP on any hostname. `auto_https disable_redirects` stops Caddy from redirecting the HTTPS hostname to HTTPS, so LAN clients like the frame keep working over HTTP.
+- **`{$HEARTH_HOST:localhost}`** serves HTTPS with `tls internal`, using a certificate from Caddy's own local CA. `HEARTH_HOST` comes from the root `.env`. Browsers warn until that CA is trusted. Its root certificate is at `/data/caddy/pki/authorities/local/root.crt` in the `caddy-data` volume.
+
 The Caddy config is the same in development and production — the only difference is that `frontend:3000` points to the Vite dev server in dev and the Node production server in prod.
 
 ## Infrastructure
@@ -796,4 +801,7 @@ Deployed hosts never build: they pull images that CI publishes.
 
    To roll back, set `HEARTH_TAG=sha-<short>` in `.env` and run `deploy/update.sh`.
 
-`FRONTEND_URL` (where Spotify and Calendar redirect after OAuth) is read from the root `.env` and defaults to `http://localhost`. On a host, also update `SPOTIFY_REDIRECT_URI` and `GOOGLE_REDIRECT_URI` in those services' `.env` files and register the new URIs with each provider.
+`FRONTEND_URL` (where Spotify and Calendar redirect after OAuth) is read from the root `.env` and defaults to `http://localhost`. On a host, also update the redirect URIs in those services' `.env` files and register each one with its provider:
+
+- **Spotify** accepts `https://<HEARTH_HOST>/spotify/callback`, served by Caddy's HTTPS site.
+- **Google** rejects any host without a public top-level domain, so `.local` fails even over HTTPS. Without a real domain, set `GOOGLE_REDIRECT_URI=http://localhost:8087/calendar/google/callback` on the host and register that URI. Then sign in once from a laptop with a tunnel open: `ssh -N -L 8087:localhost:80 <user>@<host>`, then open `http://localhost:8087/calendar/google/auth`. The refresh token is stored encrypted in the calendar volume, so the tunnel isn't needed again unless you disconnect.
