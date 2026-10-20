@@ -67,7 +67,7 @@
 </script>
 
 {#if !sunrise || !sunset || !goldenStart || !morningGoldenEnd}
-    <p class="type-label text-(--text-3)">Sun times unavailable — set up the Weather service.</p>
+    <p class="type-label text-(--text-2)">Sun times unavailable — set up the Weather service.</p>
 {:else}
     <div class="flex flex-col gap-2">
         <div class="relative h-8">

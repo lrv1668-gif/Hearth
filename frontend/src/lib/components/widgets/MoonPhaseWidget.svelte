@@ -45,7 +45,7 @@
     <div class="flex min-w-0 flex-col gap-0.5">
         <p class="type-body font-medium text-(--text-1)">{name}</p>
         <p class="type-label text-(--text-2)">{illumination}% illuminated</p>
-        <p class="type-label text-(--text-3)">
+        <p class="type-label text-(--text-2)">
             {nextName} in {nextDays} day{nextDays === 1 ? '' : 's'}
         </p>
     </div>

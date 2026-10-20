@@ -109,7 +109,7 @@
 
 <SkeletonLoader promise={loadPromise}>
     {#if settings.trainStops.length === 0}
-        <div class="flex flex-col gap-1 py-4 text-(--text-3)">
+        <div class="flex flex-col gap-1 py-4 text-(--text-2)">
             <TrainFront class="icon-sm mb-1" />
             <p class="type-label">No stops added yet.</p>
             <a href="/settings" class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)">
@@ -117,7 +117,7 @@
             </a>
         </div>
     {:else if displayGroups.every((g) => g.lines.length === 0)}
-        <p class="type-label text-(--text-3)">No upcoming departures.</p>
+        <p class="type-label text-(--text-2)">No upcoming departures.</p>
     {:else}
         <ScrollFadeList class="gap-3">
             {#each displayGroups as group (group.stopKey)}

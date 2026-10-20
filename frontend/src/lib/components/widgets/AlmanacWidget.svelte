@@ -42,13 +42,13 @@
 
 <SkeletonLoader promise={loadPromise}>
     {#if error || !almanac}
-        <p class="type-label text-(--text-3)">Almanac unavailable.</p>
+        <p class="type-label text-(--text-2)">Almanac unavailable.</p>
     {:else}
         <div class="flex flex-col gap-3">
             <div class="flex flex-col gap-1.5">
                 <div class="flex items-baseline justify-between gap-2">
                     <p class="type-body font-medium text-(--text-1)">{almanac.season.label}</p>
-                    <p class="type-label text-(--text-3)">
+                    <p class="type-label text-(--text-2)">
                         day {almanac.season.day_of_season} of {almanac.season.total_days}
                     </p>
                 </div>

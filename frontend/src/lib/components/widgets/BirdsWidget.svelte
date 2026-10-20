@@ -43,9 +43,9 @@
 
 <SkeletonLoader promise={loadPromise}>
     {#if birdsStore.error}
-        <p class="type-label text-(--text-3)">Bird sightings unavailable.</p>
+        <p class="type-label text-(--text-2)">Bird sightings unavailable.</p>
     {:else if birdsStore.sightings.length === 0}
-        <p class="type-label text-(--text-3)">No sightings reported nearby this week.</p>
+        <p class="type-label text-(--text-2)">No sightings reported nearby this week.</p>
     {:else}
         <ScrollFadeList>
             <ul class="flex flex-col gap-2.5">
@@ -60,7 +60,7 @@
                             </p>
                             <div class="type-label flex gap-2 truncate text-(--text-2)" title={sighting.location}>
                                 <p>{shortLocation(sighting.location)}</p>
-                                <p class="text-(--text-3)">
+                                <p class="text-(--text-2)">
                                     {distanceLabel(sighting.distance_mi)}, {dayLabel(sighting.observed_at)}
                                 </p>
                             </div>

@@ -227,7 +227,7 @@
                                         </button>
                                         <button
                                             onclick={() => (confirmDeleteId = null)}
-                                            class="text-(--text-4) transition hover:text-(--text-2)"
+                                            class="text-(--text-3) transition hover:text-(--text-2)"
                                             aria-label="Cancel"
                                         >
                                             <X class="icon-sm" />

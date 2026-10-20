@@ -35,7 +35,7 @@
 
 <SkeletonLoader promise={loadPromise}>
     {#if flatArticles.length === 0}
-        <div class="flex flex-col gap-1 py-4 text-(--text-3)">
+        <div class="flex flex-col gap-1 py-4 text-(--text-2)">
             <Rss class="icon-sm mb-1" />
             <p class="type-label">No feeds added yet.</p>
             <a href="/settings" class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)">
@@ -54,7 +54,7 @@
                     <p class="type-body text-(--text-1) transition-colors group-hover:text-(--accent)">
                         {article.title}
                     </p>
-                    <span class="type-label text-(--text-3)">
+                    <span class="type-label text-(--text-2)">
                         <span class="font-medium text-(--text-2)">{article.feed_title}</span>
                         {#if article.published_at}
                             · {formatTime(article.published_at)}
