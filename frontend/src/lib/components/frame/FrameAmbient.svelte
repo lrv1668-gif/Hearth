@@ -13,7 +13,8 @@
 @component
 Ambient Mode for the e-paper frame: the photo fills the panel, with a small solid
 info card in the bottom-left corner (PRODUCT.md — "information is peripheral").
-The card is a flat --bg panel rather than a gradient scrim, which would dither badly.
+The card is a flat pure-ink (--bg) panel, not a gradient scrim or a tint: this mode is
+error-diffusion dithered for the photo, and tints streak under that (see HARDWARE.md).
 In the bw palette the photo is greyscaled so the whole frame is black-and-white (PRODUCT.md).
 -->
 {#if photo}

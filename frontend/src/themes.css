@@ -381,11 +381,22 @@
 
 /* ── Frame palettes ──────────────────────────────────────────────────────── */
 /* Used only by the /frame route (the e-paper render target), never by the
-   theme picker, so they are absent from constants/themes.ts. Every token is
-   one of the Spectra 6 panel's native inks — no greys or tints — so the
-   host-side dither has nothing to break into speckle. The --arc-* tokens
-   recolour the Day Arc ribbon, which otherwise relies on opacity; other
-   themes leave them unset and fall back to their normal tokens.          */
+   theme picker, so they are absent from constants/themes.ts.
+
+   Colours come from the panel's measured Spectra 6 inks (Pimoroni `inky`'s
+   measured palette), white-balanced so paper white reads as #fff — so the
+   browser preview looks like the panel, not like pure #00f/#f00. The Display
+   service should dither against these same six values:
+     black #000000  white #ffffff  yellow #ffff6e
+     red   #f16f74  blue  #5e5b91  green  #5a8d6c
+   Rules for dither-friendly colour:
+   - Text, icons and thin lines use a pure ink (exact match → no dither). Red
+     is only 2.9:1 on white, so it is for marks, fills and large numerals.
+   - Fills may be a mix of two inks close in lightness (white+yellow,
+     yellow+red), which dither into an even texture. Mixes of far-apart inks
+     (white+black grey, white+blue) dither into visible speckle — avoid them.
+   The --arc-* tokens recolour the Day Arc ribbon, which otherwise relies on
+   opacity; other themes leave them unset and fall back to normal tokens.   */
 [data-theme='epaper-bw'] {
     --bg: #ffffff;
     --surface: #ffffff;
@@ -407,20 +418,22 @@
 }
 
 [data-theme='epaper-color'] {
+    /* Warm "printed almanac": paper white, black and indigo ink for type,
+       brick red for marks, cream/butter/amber fills from yellow mixes. */
     --bg: #ffffff;
-    --surface: #ffffff;
-    --surface-hi: #ffffff;
-    --border: #000000;
+    --surface: #fffedb; /* cream — white + 25% yellow */
+    --surface-hi: #fffeb6; /* butter — white + 50% yellow */
+    --border: #5e5b91; /* blue ink — softer than black rules */
     --text-1: #000000;
-    --text-2: #0000ff;
-    --text-3: #000000;
-    --text-4: #000000;
-    --done: #00ff00;
-    --done-bg: #00ff00;
-    --accent: #ff0000;
-    --accent-hi: #ff0000;
-    --accent-fg: #ffffff;
-    --arc-night: #0000ff;
-    --arc-day: #ffff00;
-    --arc-golden: #ff0000;
+    --text-2: #5e5b91;
+    --text-3: #5e5b91;
+    --text-4: #5e5b91;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --arc-night: #5e5b91;
+    --arc-day: #fffeb6; /* butter */
+    --arc-golden: #f8b771; /* amber — yellow + 50% red */
 }

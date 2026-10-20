@@ -11,9 +11,12 @@
     import DayArcWidget from '$lib/components/widgets/DayArcWidget.svelte';
     import CountdownWidget from '$lib/components/widgets/CountdownWidget.svelte';
 
-    let { now }: { now: Date } = $props();
+    let { now, orientation }: { now: Date; orientation: 'landscape' | 'portrait' } = $props();
 
-    const MAX_TASKS = 7;
+    // Portrait stacks the middle zones in one full-width column (two 568px columns
+    // would truncate most event titles at frame type sizes), so each list gets less height.
+    const portrait = $derived(orientation === 'portrait');
+    const maxTasks = $derived(portrait ? 6 : 7);
 
     const weekday = $derived(now.toLocaleDateString('en-US', { weekday: 'long' }));
     const date = $derived(now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }));
@@ -21,7 +24,7 @@
     const today = $derived(weatherStore.forecast.find((f) => f.date === todayKey) ?? null);
 
     const tasks = $derived(todayTasks(taskStore.tasks, now));
-    const events = $derived(nextEvents(calendarStore.items, now, 3));
+    const events = $derived(nextEvents(calendarStore.items, now, portrait ? 4 : 3));
     const hasCountdowns = $derived(taskStore.tasks.some((t) => t.is_countdown && !t.done));
 
     function eventTime(start: string, allDay: boolean): string {
@@ -34,8 +37,9 @@
 @component
 Daily Mode for the e-paper frame (PRODUCT.md "Daily Mode" zones, plus Today's Arc and
 countdowns): date and weather on top, the day's arc, today's tasks on the left, what's
-coming up on the right, and a 5-day forecast along the bottom. Zones are separated by
-rules rather than tinted panels, which would dither into speckle.
+coming up on the right (stacked below the tasks in portrait), and a 5-day forecast along
+the bottom. Zones are separated by rules rather than tinted panels, which would dither
+into speckle.
 -->
 <div class="grid h-full grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-10 px-16 pt-12 pb-10">
     <!-- Top: date + current weather -->
@@ -67,14 +71,14 @@ rules rather than tinted panels, which would dither into speckle.
 
     <DayArcWidget />
 
-    <!-- Middle: today's tasks | what's coming up -->
-    <div class="grid min-h-0 grid-cols-2 gap-16 overflow-hidden">
+    <!-- Middle: today's tasks | what's coming up (stacked in portrait) -->
+    <div class="grid min-h-0 overflow-hidden {portrait ? 'grid-cols-1 content-start gap-10' : 'grid-cols-2 gap-16'}">
         <WidgetContainer title="Today">
             {#if tasks.length === 0}
                 <p class="type-body text-(--text-2)">Nothing due today.</p>
             {:else}
                 <ul class="space-y-4">
-                    {#each tasks.slice(0, MAX_TASKS) as task (task.id)}
+                    {#each tasks.slice(0, maxTasks) as task (task.id)}
                         <li class="flex items-baseline gap-4">
                             <span class="h-6 w-6 shrink-0 translate-y-0.5 border-2 border-(--border)"></span>
                             <span class="type-body min-w-0 flex-1 truncate">{task.title}</span>
@@ -84,8 +88,8 @@ rules rather than tinted panels, which would dither into speckle.
                         </li>
                     {/each}
                 </ul>
-                {#if tasks.length > MAX_TASKS}
-                    <p class="type-label mt-4 text-(--text-2)">+{tasks.length - MAX_TASKS} more</p>
+                {#if tasks.length > maxTasks}
+                    <p class="type-label mt-4 text-(--text-2)">+{tasks.length - maxTasks} more</p>
                 {/if}
             {/if}
         </WidgetContainer>
@@ -128,7 +132,7 @@ rules rather than tinted panels, which would dither into speckle.
 
     <!-- Bottom: 5-day forecast -->
     {#if weatherStore.forecast.length > 0}
-        <div class="grid grid-cols-5 border-t-2 border-(--border) pt-6">
+        <div class="-mx-16 -mb-10 grid grid-cols-5 border-t-2 border-(--border) bg-(--surface) px-16 py-8">
             {#each weatherStore.forecast.slice(0, 5) as day, i (day.date)}
                 {@const ForecastIcon = weatherIcon(day.weather_code)}
                 <div class="flex items-center justify-center gap-4 {i > 0 ? 'border-l-2 border-(--border)' : ''}">

@@ -96,7 +96,7 @@ Themes are defined in two places — both must be updated together:
 
 Current themes: `stone`, `linen`, `forest`, `dusk`, `ash`, `chalk`, `terracotta`, `tide`, `slate`, `blush`, `frost`, `smoke`, `sage`, `sky`, `plum`, `olive`, `amber`, `ember`
 
-Frame-only palettes `epaper-bw` and `epaper-color` (Spectra 6 inks only, used by `/frame`) live in `themes.css` alone — keep them out of `themes.ts` and the picker. Every picker theme must keep `--text-2` ≥ 4.5:1 and `--text-3` ≥ 3:1 against `--bg` (enforced by `src/lib/themes.test.ts`); use `--text-3`/`--text-4` only for icons and decoration, never for text people need to read.
+Frame-only palettes `epaper-bw` and `epaper-color` (built from the measured Spectra 6 inks — pure inks for text and lines, two-ink mixes only for fills; see the comment in `themes.css`) live in `themes.css` alone — keep them out of `themes.ts` and the picker. Every picker theme must keep `--text-2` ≥ 4.5:1 and `--text-3` ≥ 3:1 against `--bg` (enforced by `src/lib/themes.test.ts`); use `--text-3`/`--text-4` only for icons and decoration, never for text people need to read.
 
 Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme` (for native inputs).
 

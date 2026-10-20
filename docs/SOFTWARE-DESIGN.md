@@ -49,16 +49,18 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 
 #### Frame route
 
-`/frame` is the page the future Display service screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel (1600×1200, never scrolls), renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and takes everything from the URL because a headless renderer starts with empty `localStorage`:
+`/frame` is the page the future Display service screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel (1600×1200 landscape or 1200×1600 portrait, never scrolls), renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and takes everything from the URL because a headless renderer starts with empty `localStorage`:
 
 | Param        | Values                 | Default    |
 | ------------ | ---------------------- | ---------- |
 | `mode`       | `ambient`, `daily`     | `ambient`  |
 | `palette`    | `color`, `bw`          | `color`    |
+| `orientation` | `landscape`, `portrait` | `landscape` |
 | `categories` | Unsplash query (ambient) | `nature` |
 
 - **Ambient** (`FrameAmbient.svelte`): full-bleed photo with a solid corner card — time, date, temperature.
-- **Daily** (`FrameDaily.svelte`): date + current weather with high/low, Today's Arc, today's tasks (left), next 3 calendar events + countdowns + now-playing (right), 5-day forecast row (bottom). Selection logic lives in `lib/frame.ts`.
+- **Daily** (`FrameDaily.svelte`): date + current weather with high/low, Today's Arc, today's tasks (left), next 3 calendar events + countdowns + now-playing (right), 5-day forecast band (bottom). In portrait the middle zones stack in one full-width column (up to 6 tasks, 4 events). Selection logic lives in `lib/frame.ts`.
+- Portrait is for a frame hung on its side; the Ambient photo is requested in the matching orientation, and the Display service rotates the capture to the panel's native landscape.
 - Type and icon sizes are fixed px set by overriding the `--font-*` / `--icon-*` tokens on the frame root, so reused widgets scale with it. Transitions and animations are disabled.
 - The root's `data-ready` attribute becomes `"true"` once data, fonts, and (ambient) the photo have settled — screenshot after that. The route never polls; the renderer reloads it per frame.
 
@@ -141,7 +143,7 @@ Themes are defined in two places that must be kept in sync: `frontend/src/themes
 
 Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (readable secondary text) and `--text-3` at least 3:1 (icons and non-text marks only); `--text-4` is decorative. `src/lib/themes.test.ts` enforces this.
 
-**Frame palettes.** Two more `[data-theme]` blocks — `epaper-bw` and `epaper-color` — live only in `themes.css` and are used only by `/frame`, so they are not in the picker. Every token is a native Spectra 6 ink (black, white, red, yellow, green, blue), with no greys or tints that would dither into speckle. They also set `--arc-night` / `--arc-day` / `--arc-golden` / `--arc-outline`, which `DayArcWidget` reads with fallbacks to the regular tokens, so the ribbon stays solid-coloured on the panel without changing its look elsewhere.
+**Frame palettes.** Two more `[data-theme]` blocks — `epaper-bw` and `epaper-color` — live only in `themes.css` and are used only by `/frame`, so they are not in the picker. Colours are built from the panel's measured Spectra 6 inks, white-balanced so the browser preview looks like the panel. `epaper-bw` is pure black and white. `epaper-color` is a warm "printed almanac": black and indigo ink for type, brick red for marks, and cream/butter/amber fills mixed from two inks of similar lightness so they dither evenly. Text, icons and thin lines are always a pure ink. The Display service's dithering strategy (ordered for Daily, error diffusion for Ambient) is in `HARDWARE.md`. They also set `--arc-night` / `--arc-day` / `--arc-golden` / `--arc-outline`, which `DayArcWidget` reads with fallbacks to the regular tokens, so the ribbon stays solid-coloured on the panel without changing its look elsewhere.
 
 ### Font themes
 

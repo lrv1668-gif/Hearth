@@ -9,17 +9,22 @@
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
 
-    // The e-paper render target: a fixed 1600×1200 canvas that the (future) Display
-    // service screenshots and dithers. Everything it needs comes from the URL, because
-    // a headless renderer starts with empty localStorage:
-    //   ?mode=ambient|daily   (default ambient, per PRODUCT.md)
-    //   ?palette=color|bw     (default color)
+    // The e-paper render target: a fixed-size canvas that the (future) Display service
+    // screenshots and dithers. Everything it needs comes from the URL, because a
+    // headless renderer starts with empty localStorage:
+    //   ?mode=ambient|daily          (default ambient, per PRODUCT.md)
+    //   ?palette=color|bw            (default color)
+    //   ?orientation=landscape|portrait
+    //       landscape = 1600×1200, the panel's native shape (default); portrait =
+    //       1200×1600 for a frame hung on its side — the Display service rotates
+    //       the capture 90° before sending it to the panel.
     //   ?categories=a,b       (ambient photo query, default nature)
     // The root's data-ready flips to "true" once data, fonts and the photo have
     // settled — screenshot after that. No polling: the renderer reloads per frame.
     const params = page.url.searchParams;
     const mode = params.get('mode') === 'daily' ? 'daily' : 'ambient';
     const palette = params.get('palette') === 'bw' ? 'bw' : 'color';
+    const orientation = params.get('orientation') === 'portrait' ? 'portrait' : 'landscape';
     const categories = params.get('categories') || 'nature';
 
     const now = new Date();
@@ -27,7 +32,7 @@
     let ready = $state(false);
 
     async function loadPhoto() {
-        const next = await api.photos.random(categories, 'landscape', 'unsplash');
+        const next = await api.photos.random(categories, orientation, 'unsplash');
         if (!next) return;
         // Decode before signalling ready so the screenshot never catches a blank frame.
         await new Promise<void>((resolve, reject) => {
@@ -53,9 +58,15 @@
     <title>Hearth — Frame</title>
 </svelte:head>
 
-<div class="frame bg-(--bg) text-(--text-1)" data-theme="epaper-{palette}" data-mode={mode} data-ready={ready}>
+<div
+    class="frame {orientation} bg-(--bg) text-(--text-1)"
+    data-theme="epaper-{palette}"
+    data-mode={mode}
+    data-orientation={orientation}
+    data-ready={ready}
+>
     {#if mode === 'daily'}
-        <FrameDaily {now} />
+        <FrameDaily {now} {orientation} />
     {:else}
         <FrameAmbient {now} {photo} {palette} />
     {/if}
@@ -82,6 +93,11 @@
         --icon-md: 40px;
         --icon-sm: 30px;
         --icon-xs: 24px;
+    }
+
+    .frame.portrait {
+        width: 1200px;
+        height: 1600px;
     }
 
     /* E-paper shows a single still frame — no motion to settle before the screenshot. */
