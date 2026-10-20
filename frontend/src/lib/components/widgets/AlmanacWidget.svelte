@@ -2,46 +2,21 @@
     import { onMount } from 'svelte';
     import { Snowflake, Sprout, Sun } from '@lucide/svelte';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
-    import { api, type AlmanacResponse } from '$lib/api';
+    import { almanacStore, loadAlmanac } from '$lib/stores/AlmanacStore.svelte.ts';
+    import { frostTiming, shortDate, trendText } from '$lib/almanac';
 
-    let almanac = $state<AlmanacResponse | null>(null);
-    let error = $state(false);
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
 
     onMount(() => {
-        loadPromise = (async () => {
-            try {
-                almanac = await api.almanac.today();
-                if (!almanac) error = true;
-            } catch {
-                error = true;
-            }
-        })();
+        loadPromise = loadAlmanac();
     });
 
+    const almanac = $derived(almanacStore.almanac);
     const percent = $derived(almanac ? Math.round(almanac.season.progress * 100) : 0);
-
-    function shortDate(iso: string): string {
-        // "YYYY-MM-DD" without a time parses as UTC — split to keep it a local date
-        const [y, m, d] = iso.split('-').map(Number);
-        return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    }
-
-    function trendText(perDay: number): string {
-        if (perDay === 0) return 'Day length is holding steady';
-        const amount = Math.abs(perDay) < 1 ? 'under a minute' : `~${Math.round(Math.abs(perDay))} min`;
-        return `${perDay < 0 ? 'Losing' : 'Gaining'} ${amount} of daylight each day`;
-    }
-
-    function frostTiming(days: number): string {
-        if (days === 0) return 'today';
-        if (days <= 21) return `in ${days} day${days === 1 ? '' : 's'}`;
-        return `in ~${Math.round(days / 7)} weeks`;
-    }
 </script>
 
 <SkeletonLoader promise={loadPromise}>
-    {#if error || !almanac}
+    {#if almanacStore.error || !almanac}
         <p class="type-label text-(--text-2)">Almanac unavailable.</p>
     {:else}
         <div class="flex flex-col gap-3">

@@ -5,6 +5,14 @@ import { DEFAULT_TRAIN_STOPS, type TrainStop } from '$lib/constants/trains';
 import { DEFAULT_FRAME_THEME, type FrameThemeId } from '$lib/constants/frameThemes';
 import { DEFAULT_FONT_THEME, type FontThemeId } from '$lib/constants/fontThemes';
 import {
+    DEFAULT_FRAME_LAYOUT,
+    DEFAULT_FRAME_SPLIT,
+    MAX_COLUMN_WIDGETS,
+    normalizeFrameLayout,
+    type FrameLayout,
+    type FrameWidgetId,
+} from '$lib/constants/frameWidgets';
+import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
     type WidgetId,
@@ -32,6 +40,8 @@ class SettingsStore {
     frameTheme = $state<FrameThemeId>(DEFAULT_FRAME_THEME);
     frameFont = $state<FontThemeId>(DEFAULT_FONT_THEME);
     frameOrientation = $state<'landscape' | 'portrait'>('landscape');
+    frameLayout = $state<FrameLayout>(DEFAULT_FRAME_LAYOUT);
+    frameSplit = $state(DEFAULT_FRAME_SPLIT);
 
     toggleCategory(cat: PhotoCategory) {
         this.photoCategories = this.photoCategories.includes(cat)
@@ -56,6 +66,18 @@ class SettingsStore {
                 [defaultCol]: [...this.widgetColumns[defaultCol], id as AllWidgetId],
             };
             this.enabledWidgets = [...this.enabledWidgets, id];
+        }
+    }
+
+    /** Frame counterpart of toggleWidget: removes the widget, or adds it to the
+     *  column with more room (no-op if both are full). */
+    toggleFrameWidget(id: FrameWidgetId) {
+        const { left, right } = normalizeFrameLayout(this.frameLayout);
+        if (left.includes(id) || right.includes(id)) {
+            this.frameLayout = { left: left.filter((w) => w !== id), right: right.filter((w) => w !== id) };
+        } else if (Math.min(left.length, right.length) < MAX_COLUMN_WIDGETS) {
+            this.frameLayout =
+                left.length <= right.length ? { left: [...left, id], right } : { left, right: [...right, id] };
         }
     }
 }
@@ -118,6 +140,8 @@ if (browser) {
                     frameTheme: settings.frameTheme,
                     frameFont: settings.frameFont,
                     frameOrientation: settings.frameOrientation,
+                    frameLayout: settings.frameLayout,
+                    frameSplit: settings.frameSplit,
                 })
             );
         });

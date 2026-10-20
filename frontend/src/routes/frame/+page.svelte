@@ -5,7 +5,11 @@
     import { loadWeather } from '$lib/stores/WeatherStore.svelte.ts';
     import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
     import { loadCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
-    import { refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
+    import { loadAlmanac } from '$lib/stores/AlmanacStore.svelte.ts';
+    import { loadDailyQuote } from '$lib/stores/DailyQuoteStore.svelte.ts';
+    import { loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
+    import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
+    import { SECOND } from '$lib/utils';
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
     import { DEFAULT_FRAME_THEME, frameDataTheme, isValidFrameThemeId } from '$lib/constants/frameThemes';
@@ -23,9 +27,14 @@
     //       landscape = 1600×1200, the panel's native shape (default); portrait =
     //       1200×1600 for a frame hung on its side — the Display service rotates
     //       the capture 90° before sending it to the panel.
+    //   ?left=a,b&right=c&split=50   (Daily widget columns, ids from constants/frameWidgets.ts,
+    //                                 and the left column's width %; a missing param
+    //                                 uses the default layout)
     //   ?categories=a,b       (ambient photo query, default nature)
     // The root's data-ready flips to "true" once data, fonts and the photo have
-    // settled — screenshot after that. No polling: the renderer reloads per frame.
+    // settled, or after READY_DEADLINE_MS regardless, so one hung upstream can't
+    // hold back the whole frame — screenshot after that. No polling: the renderer
+    // reloads per frame.
     const params = page.url.searchParams;
     const mode = params.get('mode') === 'daily' ? 'daily' : 'ambient';
     const palette = params.get('palette') === 'bw' ? 'bw' : 'color';
@@ -35,6 +44,17 @@
     const font = isValidFontThemeId(fontParam) ? fontParam : DEFAULT_FONT_THEME;
     const orientation = params.get('orientation') === 'portrait' ? 'portrait' : 'landscape';
     const categories = params.get('categories') || 'nature';
+    const layout = parseFrameLayout(params);
+
+    const READY_DEADLINE_MS = 15 * SECOND;
+
+    // Extra data each slot widget needs. Weather, tasks and calendar always load in
+    // Daily mode — the masthead and Today's Arc use them.
+    const widgetLoaders: Partial<Record<FrameWidgetId, () => Promise<void>>> = {
+        almanac: loadAlmanac,
+        quote: loadDailyQuote,
+        birds: loadBirds,
+    };
 
     const now = new Date();
     let photo = $state<Photo | null>(null);
@@ -53,12 +73,15 @@
         photo = next;
     }
 
+    function dataLoads(): Promise<unknown>[] {
+        if (mode === 'ambient') return [loadWeather(), loadPhoto()];
+        const extras = [...layout.left, ...layout.right].flatMap((id) => widgetLoaders[id] ?? []);
+        return [loadWeather(), loadTasks(), loadCalendarItems(), ...extras.map((load) => load())];
+    }
+
     onMount(async () => {
-        await Promise.allSettled([
-            loadWeather(),
-            ...(mode === 'daily' ? [loadTasks(), loadCalendarItems(), refreshNowPlaying()] : [loadPhoto()]),
-        ]);
-        await document.fonts.ready;
+        const settled = Promise.allSettled(dataLoads()).then(() => document.fonts.ready);
+        await Promise.race([settled, new Promise((resolve) => setTimeout(resolve, READY_DEADLINE_MS))]);
         ready = true;
     });
 </script>
@@ -76,9 +99,9 @@
     data-ready={ready}
 >
     {#if mode === 'daily'}
-        <FrameDaily {now} {orientation} />
+        <FrameDaily {now} {orientation} {layout} split={layout.split} />
     {:else}
-        <FrameAmbient {now} {photo} {palette} />
+        <FrameAmbient {now} {photo} />
     {/if}
 </div>
 
@@ -111,6 +134,12 @@
     .frame.portrait {
         width: 1200px;
         height: 1600px;
+    }
+
+    /* B&W mode greyscales the ambient photo. Keyed off data-theme (not a prop) so
+       the Settings preview can switch palettes in place without reloading. */
+    .frame:is([data-theme='epaper-bw'], [data-theme='epaper-bw-night']) :global(img) {
+        filter: grayscale(1);
     }
 
     /* E-paper shows a single still frame — no motion to settle before the screenshot. */

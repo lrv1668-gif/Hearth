@@ -9,8 +9,25 @@
     import AmbientCategorySettings from '$lib/components/settings/AmbientCategorySettings.svelte';
     import LocalPhotosSettings from '$lib/components/settings/LocalPhotosSettings.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-    import WidgetVisibilitySettings from '$lib/components/settings/WidgetVisibilitySettings.svelte';
-    import WidgetOrderEditor from '$lib/components/settings/WidgetOrderEditor.svelte';
+    import WidgetVisibilityList from '$lib/components/settings/WidgetVisibilityList.svelte';
+    import WidgetLayoutEditor from '$lib/components/settings/WidgetLayoutEditor.svelte';
+    import FramePreview from '$lib/components/settings/FramePreview.svelte';
+    import {
+        allWidgets,
+        fixedFooterWidgets,
+        fixedHeaderWidgets,
+        toggleableWidgets,
+        type AllWidgetId,
+        type WidgetId,
+    } from '$lib/constants/widgets';
+    import {
+        fixedFrameFooter,
+        fixedFrameHeader,
+        frameWidgets,
+        MAX_COLUMN_WIDGETS,
+        normalizeFrameLayout,
+        type FrameWidgetId,
+    } from '$lib/constants/frameWidgets';
     import SpotifyConnectionSettings from '$lib/components/settings/SpotifyConnectionSettings.svelte';
     import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
@@ -47,6 +64,14 @@
         frame: { heading: 'Frame', description: 'Control how Hearth presents itself on this device.' },
         about: { heading: 'About Hearth', description: 'Version information, acknowledgements, and credits.' },
     };
+
+    // Shared by the Dashboard and Frame sections' Visibility and Layout cards.
+    const dashboardLabel = (id: string) => allWidgets.find((w) => w.id === id)?.label ?? id;
+    const frameLabel = (id: string) => frameWidgets.find((w) => w.id === id)?.label ?? id;
+    const frameLayout = $derived(normalizeFrameLayout(settings.frameLayout));
+    const frameUsed = (id: string) =>
+        frameLayout.left.includes(id as FrameWidgetId) || frameLayout.right.includes(id as FrameWidgetId);
+    const frameFull = $derived(Math.min(frameLayout.left.length, frameLayout.right.length) >= MAX_COLUMN_WIDGETS);
 
     let active = $state<SectionId>('display');
     const section = $derived(content[active]);
@@ -114,8 +139,38 @@
         {/snippet}
 
         {#if active === 'dashboard'}
-            {#snippet visibility()}<WidgetVisibilitySettings />{/snippet}
-            {#snippet layout()}<WidgetOrderEditor />{/snippet}
+            {#snippet visibility()}
+                <WidgetVisibilityList
+                    widgets={toggleableWidgets}
+                    isOn={(id) =>
+                        settings.widgetColumns.left.includes(id as AllWidgetId) ||
+                        settings.widgetColumns.right.includes(id as AllWidgetId)}
+                    ontoggle={(id) => settings.toggleWidget(id as WidgetId)}
+                    fixed={[
+                        ...fixedHeaderWidgets.map((w) => ({
+                            label: w.label,
+                            caption: 'Fixed in the dashboard header',
+                        })),
+                        ...fixedFooterWidgets.map((w) => ({
+                            label: w.label,
+                            caption: 'Fixed in the dashboard footer',
+                        })),
+                    ]}
+                />
+            {/snippet}
+            {#snippet layout()}
+                <WidgetLayoutEditor
+                    dragType="dashboard-widget"
+                    columns={settings.widgetColumns}
+                    labelFor={dashboardLabel}
+                    onchange={(c) =>
+                        (settings.widgetColumns = { left: c.left as AllWidgetId[], right: c.right as AllWidgetId[] })}
+                    width={settings.leftColumnWidth}
+                    onwidthchange={(w) => (settings.leftColumnWidth = w)}
+                    header={fixedHeaderWidgets}
+                    footer={fixedFooterWidgets}
+                />
+            {/snippet}
             {#snippet feeds()}<FeedSettings />{/snippet}
             {#snippet trainStops()}<TrainStopSettings />{/snippet}
             <div class="flex flex-col gap-4">
@@ -211,11 +266,57 @@
             {#snippet frameAppearanceContent()}
                 <FrameAppearanceSettings />
             {/snippet}
+            {#snippet frameVisibility()}
+                <WidgetVisibilityList
+                    widgets={frameWidgets}
+                    isOn={frameUsed}
+                    ontoggle={(id) => settings.toggleFrameWidget(id as FrameWidgetId)}
+                    isBlocked={() => frameFull}
+                    fixed={[
+                        ...fixedFrameHeader.map((w) => ({ label: w.label, caption: 'Fixed at the top of the frame' })),
+                        ...fixedFrameFooter.map((w) => ({
+                            label: w.label,
+                            caption: 'Fixed along the bottom of the frame',
+                        })),
+                    ]}
+                />
+            {/snippet}
+            {#snippet frameLayoutContent()}
+                <WidgetLayoutEditor
+                    dragType="frame-widget"
+                    columns={frameLayout}
+                    labelFor={frameLabel}
+                    onchange={(c) => (settings.frameLayout = normalizeFrameLayout(c))}
+                    width={settings.frameSplit}
+                    onwidthchange={(w) => (settings.frameSplit = w)}
+                    header={fixedFrameHeader}
+                    footer={fixedFrameFooter}
+                    maxPerColumn={MAX_COLUMN_WIDGETS}
+                />
+                <p class="type-caption mt-2 text-(--text-2)">
+                    Lists shrink to fit what shares their column. In portrait the left column stacks above the right,
+                    full width.
+                </p>
+            {/snippet}
+            {#snippet framePreviewContent()}
+                <FramePreview />
+            {/snippet}
             <div class="flex flex-col gap-4">
                 {@render card(
                     'E-paper frame',
                     'Colours, typeface, and orientation for the wall frame. Themes use only colours the panel can print cleanly.',
                     frameAppearanceContent
+                )}
+                {@render card('Visibility', 'Choose which widgets appear on the frame in Daily mode.', frameVisibility)}
+                {@render card(
+                    'Layout',
+                    'Drag widgets between columns and adjust the column width ratio.',
+                    frameLayoutContent
+                )}
+                {@render card(
+                    'Preview',
+                    'The real frame page, scaled down. Updates as you change settings.',
+                    framePreviewContent
                 )}
                 {@render card('Display mode', 'Control how Hearth presents on this device.', kioskContent)}
             </div>

@@ -64,12 +64,13 @@ Nothing else. The art is the display. Information is peripheral.
 
 The display shifts to a structured layout with distinct zones:
 
-- **Top:** Date, day of week, current weather + high/low
-- **Left column:** Today's tasks and grocery list items
-- **Right column:** Next 2–3 calendar events; now-playing if music is active
-- **Bottom:** 5-day weather forecast as a simple icon row
+- **Top (fixed):** Date, day of week, current weather + high/low
+- **Two columns (configurable):** up to three widgets each, chosen from Today's Arc, Today (tasks), Coming Up (next events), Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote and Birds Nearby. Default: Today's Arc and Today on the left, Coming Up and Countdowns on the right
+- **Bottom (fixed):** 5-day weather forecast as a simple icon row
 
-Typography is large enough to read from across the room (3–4 meters). No small print. Layout is fixed — not configurable per-user in v1.
+Only widgets that stay correct between scheduled refreshes belong on the frame — no live departures, no now-playing (it changes every song and would usually be wrong).
+
+Typography is large enough to read from across the room (3–4 meters). No small print. The column layout is configured in Settings → Frame the same way as the dashboard — visibility toggles plus drag-and-drop between columns with an adjustable split — and each widget trims its list to fit the space it has.
 
 The mode schedule is configurable (e.g. Ambient all day, Daily at 7am and 6pm), but Ambient is the default.
 
@@ -147,7 +148,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 
 ### Phase 3 — The Pulse
 
-- Music: show what's playing on Spotify (track, artist) in Daily mode
+- Music: show what's playing on Spotify (track, artist) on the web dashboard — deliberately not on the frame, which refreshes too rarely to keep it current
 - Household calendar: pull from Google/Apple Calendar, show next 2–3 events
 - Birds nearby: recent bird sightings around the home from eBird — the frame quietly reflects the living world outside the window; rare sightings gently highlighted
 - Nearby transit: upcoming departures for user-subscribed bus/train stops via Transitland, with per-line filtering so only the routes that matter to the household show up

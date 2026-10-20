@@ -20,9 +20,12 @@
             initTheme();
             initFontTheme();
             initFontSize();
-            loadTasks();
-            loadCalendarStatus();
-            loadCalendarItems(); // fire-and-forget; returns [] silently when not authenticated
+            // /frame loads (and awaits) exactly the data its layout needs — skip it here.
+            if (!isFrame) {
+                loadTasks();
+                loadCalendarStatus();
+                loadCalendarItems(); // fire-and-forget; returns [] silently when not authenticated
+            }
             loaded = true;
         }
     });

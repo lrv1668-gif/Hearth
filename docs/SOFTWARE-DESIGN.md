@@ -57,14 +57,19 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 | `palette`    | `color`, `bw`          | `color`    |
 | `theme`      | any frame theme id (below) | `almanac` |
 | `font`       | any font preset id     | `inter`    |
+| `left`, `right` | comma-separated frame widget ids (Daily) | `arc,today` / `coming-up,countdowns` |
+| `split`      | left column width %, 30–70 | `50`    |
 | `orientation` | `landscape`, `portrait` | `landscape` |
 | `categories` | Unsplash query (ambient) | `nature` |
 
 - **Ambient** (`FrameAmbient.svelte`): full-bleed photo with a solid corner card — time, date, temperature.
-- **Daily** (`FrameDaily.svelte`): date + current weather with high/low, Today's Arc, today's tasks (left), next 3 calendar events + countdowns + now-playing (right), 5-day forecast band (bottom). In portrait the middle zones stack in one full-width column (up to 6 tasks, 4 events). Selection logic lives in `lib/frame.ts`.
+- **Daily** (`FrameDaily.svelte`): a fixed masthead (date + current weather with high/low) and 5-day forecast band, with two configurable widget columns between them (`left`/`right`, up to 3 each, at `split`%). Frame widgets are registered in `constants/frameWidgets.ts` and live in `components/frame/widgets/`: Today's Arc (reuses `DayArcWidget`), Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby. Trains and now-playing are deliberately excluded — they go stale between scheduled refreshes. In portrait the columns stack (left above right) full-width.
+- **Fitting the space:** FrameDaily measures each column's height in lines of body text (via a hidden probe, so font presets count) and `allocateLines()` in `lib/frame.ts` splits it: every widget pays for its heading and gaps, fixed-height widgets (arc, moon) take what they need, and the rest is shared evenly. Each widget trims its list to its share — and, as a last resort, clips inside its own box rather than pushing a neighbour off the panel. Selection logic (`todayTasks`, `nextEvents`, `weekAhead`) lives in `lib/frame.ts` too.
 - Portrait is for a frame hung on its side; the Ambient photo is requested in the matching orientation, and the Display service rotates the capture to the panel's native landscape.
 - Type and icon sizes are fixed px set by overriding the `--font-*` / `--icon-*` tokens on the frame root, so reused widgets scale with it. Transitions and animations are disabled.
-- The root's `data-ready` attribute becomes `"true"` once data, fonts, and (ambient) the photo have settled — screenshot after that. The route never polls; the renderer reloads it per frame.
+- The root's `data-ready` attribute becomes `"true"` once data, fonts, and (ambient) the photo have settled, or after 15 s regardless, so one hung upstream can't stall the frame — screenshot after that. The route loads only what its layout needs (the root layout skips its own loads on `/frame*`) and never polls; the renderer reloads it per frame.
+- Ambient mode credits the Unsplash photographer in the corner card, per Unsplash's API guidelines.
+- **Settings → Frame** has the same cards as Settings → Dashboard: Visibility (`WidgetVisibilityList`) and Layout (`WidgetLayoutEditor` — drag between columns, resizable split, locked header/footer strips). Both sections use these two shared components. A Preview card (`FramePreview`) shows the real `/frame` page scaled down; theme, font and palette changes are applied to the loaded frame in place, and it only reloads for layout, orientation or mode changes.
 
 #### Kiosk mode
 
@@ -83,7 +88,7 @@ The persistent setting is the recommended choice for a dedicated wall display. T
 | `theme`        | `ThemeStore.svelte.ts`      | `localStorage`  | Active theme ID; writes `dataset.theme` on change                     |
 | `fontTheme`    | `FontThemeStore.svelte.ts`  | `localStorage`  | Active font theme ID; writes `dataset.font` on change                 |
 | `fontSize`     | `FontSizeStore.svelte.ts`   | `localStorage`  | User size multiplier (0.9–1.3); sets `--font-user-scale` inline on `<html>` |
-| `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS feeds config, kiosk mode, subscribed train stops + per-stop line filters |
+| `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS feeds config, kiosk mode, subscribed train stops + per-stop line filters, frame appearance (theme, font, orientation, layout, split) |
 | `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
 | `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
 | `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `DashboardFooter`     |
@@ -91,6 +96,7 @@ The persistent setting is the recommended choice for a dedicated wall display. T
 | `weatherStore` | `WeatherStore.svelte.ts`    | Server (SQLite) | Current conditions + 7-day forecast; refreshed every 30 min by the dashboard page |
 | `dailyQuote`   | `DailyQuoteStore.svelte.ts` | Server (memory) | Daily quote; re-checked hourly by `DailyQuoteWidget`                  |
 | `birds`        | `BirdsStore.svelte.ts`      | Server (SQLite) | Nearby bird sightings; refreshed hourly by `BirdsWidget`              |
+| `almanac`      | `AlmanacStore.svelte.ts`    | Server (computed) | Season/daylight/frost facts; loaded by `AlmanacWidget` and the frame |
 | `trains`       | `TrainsStore.svelte.ts`     | Server (SQLite) | Departures for subscribed stops; refreshed every 60 s by `TrainsWidget` |
 | `kioskStore`   | `KioskStore.svelte.ts`      | URL param       | True when `settings.kioskMode` is on or `?kiosk=1` is in the URL    |
 

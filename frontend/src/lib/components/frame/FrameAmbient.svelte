@@ -3,7 +3,7 @@
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
     import { weatherIcon } from '$lib/constants/weather';
 
-    let { now, photo, palette }: { now: Date; photo: Photo | null; palette: 'color' | 'bw' } = $props();
+    let { now, photo }: { now: Date; photo: Photo | null } = $props();
 
     const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     const date = $derived(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
@@ -15,14 +15,10 @@ Ambient Mode for the e-paper frame: the photo fills the panel, with a small soli
 info card in the bottom-left corner (PRODUCT.md — "information is peripheral").
 The card is a flat pure-ink (--bg) panel, not a gradient scrim or a tint: this mode is
 error-diffusion dithered for the photo, and tints streak under that (see HARDWARE.md).
-In the bw palette the photo is greyscaled so the whole frame is black-and-white (PRODUCT.md).
+In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure B&W).
 -->
 {#if photo}
-    <img
-        src={photo.url}
-        alt={photo.description ?? ''}
-        class="absolute inset-0 h-full w-full object-cover {palette === 'bw' ? 'grayscale' : ''}"
-    />
+    <img src={photo.url} alt={photo.description ?? ''} class="absolute inset-0 h-full w-full object-cover" />
 {:else}
     <div class="absolute inset-0 flex items-center justify-center">
         <p class="type-subtitle tracking-widest text-(--text-2) uppercase">No photo available</p>
@@ -33,6 +29,10 @@ In the bw palette the photo is greyscaled so the whole frame is black-and-white 
     <div>
         <p class="type-title leading-none font-bold">{time}</p>
         <p class="type-label mt-2 text-(--text-2)">{date}</p>
+        <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
+        {#if photo?.source === 'unsplash' && photo.photographer_name}
+            <p class="type-caption mt-2 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
+        {/if}
     </div>
     {#if weatherStore.current}
         {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}

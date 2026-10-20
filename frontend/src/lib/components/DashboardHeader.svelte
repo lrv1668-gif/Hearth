@@ -5,20 +5,17 @@
 
     let now = $state(new Date());
 
-    // Only minutes are shown, so tick on each minute boundary rather than every second.
+    // Only minutes are shown, so tick on each minute boundary. The delay is
+    // recomputed every tick (not a fixed setInterval) so the clock re-aligns after
+    // a suspend/resume or an NTP clock correction.
     $effect(() => {
-        let interval: ReturnType<typeof setInterval>;
-        const timeout = setTimeout(
-            () => {
-                now = new Date();
-                interval = setInterval(() => (now = new Date()), MINUTE);
-            },
-            MINUTE - (Date.now() % MINUTE)
-        );
-        return () => {
-            clearTimeout(timeout);
-            clearInterval(interval);
+        let timeout: ReturnType<typeof setTimeout>;
+        const tick = () => {
+            now = new Date();
+            timeout = setTimeout(tick, MINUTE - (Date.now() % MINUTE));
         };
+        timeout = setTimeout(tick, MINUTE - (Date.now() % MINUTE));
+        return () => clearTimeout(timeout);
     });
 
     const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
