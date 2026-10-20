@@ -1,28 +1,30 @@
 <script lang="ts">
-    import { Cloud, CloudRain, CloudSnow, Sun, Zap } from '@lucide/svelte';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
+    import { weatherIcon } from '$lib/constants/weather';
+    import { MINUTE } from '$lib/utils';
 
     let now = $state(new Date());
 
+    // Only minutes are shown, so tick on each minute boundary rather than every second.
     $effect(() => {
-        const id = setInterval(() => (now = new Date()), 1000);
-        return () => clearInterval(id);
+        let interval: ReturnType<typeof setInterval>;
+        const timeout = setTimeout(
+            () => {
+                now = new Date();
+                interval = setInterval(() => (now = new Date()), MINUTE);
+            },
+            MINUTE - (Date.now() % MINUTE)
+        );
+        return () => {
+            clearTimeout(timeout);
+            clearInterval(interval);
+        };
     });
 
     const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     const date = $derived(
         now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()
     );
-
-    function weatherIcon(code: number) {
-        if (code === 0 || code === 1) return Sun;
-        if (code <= 3) return Cloud;
-        if (code <= 57) return CloudRain;
-        if (code <= 77) return CloudSnow;
-        if (code <= 82) return CloudRain;
-        if (code <= 86) return CloudSnow;
-        return Zap;
-    }
 </script>
 
 <div class="shrink-0 border-b border-(--border) px-6 pb-2 md:px-8">

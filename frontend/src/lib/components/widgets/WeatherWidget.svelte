@@ -1,16 +1,7 @@
 <script lang="ts">
-    import { Cloud, CloudRain, CloudSnow, Leaf, Sun, SunMedium, Sunrise, Sunset, Wind, Zap } from '@lucide/svelte';
+    import { Leaf, SunMedium, Sunrise, Sunset, Wind } from '@lucide/svelte';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-
-    function weatherIcon(code: number) {
-        if (code === 0 || code === 1) return Sun;
-        if (code <= 3) return Cloud;
-        if (code <= 57) return CloudRain;
-        if (code <= 77) return CloudSnow;
-        if (code <= 82) return CloudRain;
-        if (code <= 86) return CloudSnow;
-        return Zap;
-    }
+    import { weatherIcon } from '$lib/constants/weather';
 
     function formatSunTime(iso: string): string {
         return new Date(iso).toLocaleTimeString('en-US', {

@@ -35,7 +35,8 @@
     let editingTask = $state<Task | null>(null);
     let selectedEvent = $state<CalendarItem | null>(null);
 
-    const isMobile = new MediaQuery('(max-width: 800px)');
+    // Matches Tailwind's `lg` — the breakpoint the nav, footer and layout padding switch at.
+    const isWide = new MediaQuery('(min-width: 1024px)');
 
     function openEditTask(task: Task) {
         editingTask = task;
@@ -114,8 +115,8 @@
 
     <main class="mx-auto min-h-0 w-full max-w-7xl overflow-x-hidden overflow-y-auto px-6 py-6 md:px-8">
         <div class="flex w-full gap-8">
-            {#if !isMobile.current}
-                <div class="flex min-w-0 flex-col gap-4" style="flex: {settings.leftColumnWidth} 1 0%">
+            {#if isWide.current}
+                <div class="flex min-w-0 flex-col gap-6" style="flex: {settings.leftColumnWidth} 1 0%">
                     {#each settings.widgetColumns.left as id}
                         {@render renderWidget(id)}
                     {/each}
@@ -127,7 +128,7 @@
                     {/each}
                 </div>
             {:else}
-                <div class="flex w-full min-w-0 flex-col gap-4">
+                <div class="flex w-full min-w-0 flex-col gap-6">
                     {#each settings.widgetColumns.left.concat(settings.widgetColumns.right) as id}
                         {@render renderWidget(id)}
                     {/each}
