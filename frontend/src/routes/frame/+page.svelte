@@ -57,7 +57,7 @@
     {#if mode === 'daily'}
         <FrameDaily {now} />
     {:else}
-        <FrameAmbient {now} {photo} />
+        <FrameAmbient {now} {photo} {palette} />
     {/if}
 </div>
 

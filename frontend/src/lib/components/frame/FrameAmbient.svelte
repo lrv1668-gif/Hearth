@@ -3,7 +3,7 @@
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
     import { weatherIcon } from '$lib/constants/weather';
 
-    let { now, photo }: { now: Date; photo: Photo | null } = $props();
+    let { now, photo, palette }: { now: Date; photo: Photo | null; palette: 'color' | 'bw' } = $props();
 
     const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     const date = $derived(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
@@ -14,9 +14,14 @@
 Ambient Mode for the e-paper frame: the photo fills the panel, with a small solid
 info card in the bottom-left corner (PRODUCT.md — "information is peripheral").
 The card is a flat --bg panel rather than a gradient scrim, which would dither badly.
+In the bw palette the photo is greyscaled so the whole frame is black-and-white (PRODUCT.md).
 -->
 {#if photo}
-    <img src={photo.url} alt={photo.description ?? ''} class="absolute inset-0 h-full w-full object-cover" />
+    <img
+        src={photo.url}
+        alt={photo.description ?? ''}
+        class="absolute inset-0 h-full w-full object-cover {palette === 'bw' ? 'grayscale' : ''}"
+    />
 {:else}
     <div class="absolute inset-0 flex items-center justify-center">
         <p class="type-subtitle tracking-widest text-(--text-2) uppercase">No photo available</p>
