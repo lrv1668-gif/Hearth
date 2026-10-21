@@ -835,3 +835,7 @@ Deployed hosts never build: they pull images that CI publishes.
 
 - **Spotify** accepts `https://<HEARTH_HOST>/spotify/callback`, served by Caddy's HTTPS site.
 - **Google** rejects any host without a public top-level domain, so `.local` fails even over HTTPS. Without a real domain, set `GOOGLE_REDIRECT_URI=http://localhost:8087/calendar/google/callback` on the host and register that URI. Then sign in once from a laptop with a tunnel open: `ssh -N -L 8087:localhost:80 <user>@<host>`, then open `http://localhost:8087/calendar/google/auth`. The refresh token is stored encrypted in the calendar volume, so the tunnel isn't needed again unless you disconnect.
+
+### Project site (GitHub Pages)
+
+`site/` is a static showcase (`index.html` tour, `build.html` parts/setup/status, one shared `assets/style.css`, self-hosted Fraunces + Inter woff2) with no build step. `.github/workflows/pages.yml` uploads the folder as-is and deploys it to GitHub Pages on pushes to `main` that touch `site/**`; CI's `paths-ignore` skips the .NET/frontend jobs for site-only changes. Pages serves it under `/Hearth/`, so every link and asset path is relative. Screenshots in `site/assets/img/` are captured from a running stack with personal endpoints (tasks, calendar, birds, trains, RSS, Spotify, uploaded photos) replaced by demo data — never commit captures of real household data. Keep the site's status table in `build.html` in step with what's actually built.

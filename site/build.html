@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Build a Hearth</title>
+        <meta
+            name="description"
+            content="The parts, the two-device design and the setup steps for running Hearth on your own network and in a color e-paper frame."
+        />
+        <meta property="og:title" content="Build a Hearth" />
+        <meta property="og:description" content="Parts and setup for a calm, self-hosted e-paper home display." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://lrv1668-gif.github.io/Hearth/assets/img/frame-night.jpg" />
+        <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#171411" media="(prefers-color-scheme: dark)" />
+        <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+        <link rel="preload" href="assets/fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="stylesheet" href="assets/style.css" />
+    </head>
+    <body>
+        <header class="site-header">
+            <div class="wrap">
+                <a class="wordmark" href="./">Hearth</a>
+                <nav class="site-nav" aria-label="Main">
+                    <a class="nav-optional" href="./#modes">The frame</a>
+                    <a class="nav-optional" href="./#dashboard">Dashboard</a>
+                    <a href="build.html" aria-current="page">Build one</a>
+                    <a href="https://github.com/lrv1668-gif/Hearth">GitHub</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <div class="page-head">
+                <div class="wrap">
+                    <p class="edition"><span>Parts</span><span>Setup</span><span>Status</span></p>
+                    <h1>Build a Hearth.</h1>
+                    <p class="lede">
+                        Start with the software on any machine you have, and use it in a browser. When you want it on
+                        the wall, add a small host and a framed e-paper panel.
+                    </p>
+                </div>
+            </div>
+
+            <section id="split" style="padding-top: 0; border-top: 0">
+                <div class="wrap two-col">
+                    <div class="prose">
+                        <span class="kicker">The key decision</span>
+                        <h2 style="margin-block: 1rem 1.25rem">Two devices, two power budgets.</h2>
+                        <p>
+                            Don't treat “the frame” as one device. The <strong>host</strong> runs the whole stack —
+                            the web app and eleven small services — and can live in a closet or on a shelf anywhere on
+                            your network.
+                        </p>
+                        <p>
+                            The <strong>frame client</strong> is a small Raspberry Pi mounted behind the panel. It
+                            fetches a finished image, pushes it to the e-paper and listens for button presses. That's
+                            all — so the thing on your wall stays at well under a watt.
+                        </p>
+                    </div>
+                    <div class="frame">
+                        <div class="mat">
+                            <img
+                                src="assets/img/frame-night.jpg"
+                                width="1600"
+                                height="1200"
+                                loading="lazy"
+                                alt="The Night frame theme: white and yellow type on black."
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="parts">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">What to buy</span>
+                        <h2>The parts list.</h2>
+                        <p class="lede">
+                            Product lineups and prices drift — check the current listings before ordering. The
+                            <a href="https://github.com/lrv1668-gif/Hearth/blob/main/docs/HARDWARE.md">hardware guide</a>
+                            explains every choice.
+                        </p>
+                    </div>
+                    <div class="parts">
+                        <div class="part">
+                            <span class="role">Panel</span>
+                            <h3>Pimoroni Inky Impression 13.3"</h3>
+                            <p>
+                                E Ink Spectra 6 — six inks at 1600 × 1200, about 150 PPI. Includes the driver board,
+                                four buttons along one edge, and a header the Pi plugs straight onto.
+                            </p>
+                        </div>
+                        <div class="part">
+                            <span class="role">Frame client</span>
+                            <h3>Raspberry Pi Zero 2 W</h3>
+                            <p>
+                                The “WH” version, with a pre-soldered header. Idles around 0.6 W. A Pi 4 works too
+                                (that's what it's being developed on), plus a microSD card and a 5 V USB supply.
+                            </p>
+                        </div>
+                        <div class="part">
+                            <span class="role">Host</span>
+                            <h3>Raspberry Pi 4/5 or a mini PC</h3>
+                            <p>
+                                Anything that runs Docker: a Pi with 4–8 GB, or an Intel N100-class mini PC. Prefer an
+                                SSD over microSD — many services write to SQLite all day.
+                            </p>
+                        </div>
+                        <div class="part">
+                            <span class="role">Enclosure</span>
+                            <h3>A deep shadow-box frame</h3>
+                            <p>
+                                Deep enough for the panel, driver board and Pi. No glass in front — glare is exactly
+                                what e-paper avoids. Leave the buttons reachable and a path for the power cable.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="prose" style="margin-top: clamp(2.5rem, 5vw, 3.5rem)">
+                        <h3>Four buttons, no app needed</h3>
+                        <p>
+                            The Inky's buttons cover the quick actions; your phone handles everything else. The planned
+                            starting mapping:
+                        </p>
+                    </div>
+                    <div class="buttons-map">
+                        <div><b>A</b>Refresh now</div>
+                        <div><b>B</b>Ambient ↔ Daily</div>
+                        <div><b>C</b>Color ↔ black &amp; white</div>
+                        <div><b>D</b>Show status</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="setup">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">Run it</span>
+                        <h2>From clone to dashboard.</h2>
+                        <p class="lede">
+                            You'll need Docker Engine 25+ with Compose v2.22+. The
+                            <a href="https://github.com/lrv1668-gif/Hearth#readme">README</a> has the full details.
+                        </p>
+                    </div>
+                    <ol class="steps">
+                        <li>
+                            <h3>Get the code</h3>
+                            <p>Clone the repository onto the machine that will be your host.</p>
+                            <pre><code>git clone https://github.com/lrv1668-gif/Hearth.git
+cd Hearth</code></pre>
+                        </li>
+                        <li>
+                            <h3>Tell it where home is</h3>
+                            <p>
+                                Services that need a location or an API key read a small <code>.env</code> file. Create
+                                one for each service listed in the
+                                <a href="https://github.com/lrv1668-gif/Hearth#configuration">README</a> — Compose
+                                expects them all to exist, but you can leave the keys blank for integrations you
+                                don't use. Tasks, quotes and news need nothing.
+                            </p>
+                            <pre><code># src/Weather/.env
+LATITUDE=40.7128
+LONGITUDE=-74.0060</code></pre>
+                        </li>
+                        <li>
+                            <h3>Start the stack</h3>
+                            <p>Docker Compose builds and starts everything behind Caddy. Then open the host in a browser.</p>
+                            <pre><code>docker compose -f docker-compose.yml up --build</code></pre>
+                        </li>
+                        <li>
+                            <h3>Make it yours</h3>
+                            <p>
+                                In Settings, pick a theme and typeface, choose which widgets show and where, connect
+                                any integrations below, and design the frame with a live preview.
+                            </p>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="integrations">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">Optional</span>
+                        <h2>Connect what you use.</h2>
+                        <p class="lede">
+                            Every integration is optional. Each lives in its own service, caches what it fetches, and
+                            keeps showing the last good data if the outside world goes quiet.
+                        </p>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>Feature</th><th>Source</th><th>Needs</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Tasks &amp; countdowns</td><td>Built in</td><td>Nothing</td></tr>
+                                <tr><td>Almanac &amp; moon</td><td>Computed on the host</td><td>Location, time zone, frost dates</td></tr>
+                                <tr><td>Weather</td><td>Open-Meteo</td><td>Location</td></tr>
+                                <tr><td>Daily quote</td><td>ZenQuotes</td><td>Nothing</td></tr>
+                                <tr><td>News</td><td>Any RSS or Atom feed</td><td>Feed URLs, added in Settings</td></tr>
+                                <tr><td>Photos</td><td>Your uploads, or Unsplash</td><td>An Unsplash key for live photos</td></tr>
+                                <tr><td>Calendar</td><td>Google Calendar &amp; Tasks</td><td>Google OAuth client</td></tr>
+                                <tr><td>Now playing</td><td>Spotify</td><td>Spotify app credentials</td></tr>
+                                <tr><td>Birds nearby</td><td>eBird</td><td>Free eBird API key</td></tr>
+                                <tr><td>Trains &amp; buses</td><td>Transitland</td><td>Transitland API key</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="status">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">Where it stands</span>
+                        <h2>Honest progress.</h2>
+                        <p class="lede">
+                            Hearth is a work in progress. Here's what's real today and what's next.
+                        </p>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>Piece</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Web dashboard, calendar, ambient slideshow, settings</td><td>Built</td></tr>
+                                <tr><td>Frame layouts — Ambient and Daily, 13 palettes, B&amp;W, portrait</td><td>Built; viewable in any browser at <code>/frame</code></td></tr>
+                                <tr><td>Shared frame settings with a live preview</td><td>Built, in the Display service</td></tr>
+                                <tr><td>Frame client (<a href="https://github.com/lrv1668-gif/inky-pull">inkypull</a>)</td><td>Written and tested off-hardware</td></tr>
+                                <tr><td>Host-side capture and dithering to the six inks</td><td>Next up</td></tr>
+                                <tr><td>Mode schedule, buttons, presence-aware refresh</td><td>Planned</td></tr>
+                                <tr><td>Plant care</td><td>On the wish list</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="stack">
+                <div class="wrap two-col">
+                    <div class="prose">
+                        <span class="kicker">Under the hood</span>
+                        <h2 style="margin-block: 1rem 1.25rem">Small services, one quiet page.</h2>
+                        <p>
+                            Each concern — tasks, weather, photos, the calendar — is its own small ASP.NET Core service
+                            with its own SQLite file, so one flaky upstream can't take the rest down. CI publishes
+                            amd64 and arm64 images, and a host can update itself on a timer.
+                        </p>
+                        <p>
+                            Read the
+                            <a href="https://github.com/lrv1668-gif/Hearth/blob/main/docs/SOFTWARE-DESIGN.md">software design</a>
+                            and the
+                            <a href="https://github.com/lrv1668-gif/Hearth/blob/main/docs/PRODUCT.md">product vision</a>
+                            for the full picture.
+                        </p>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <tbody>
+                                <tr><td>Frontend</td><td>SvelteKit 2, Svelte 5, Tailwind CSS 4</td></tr>
+                                <tr><td>Services</td><td>.NET 10, ASP.NET Core Minimal APIs</td></tr>
+                                <tr><td>Storage</td><td>SQLite, one file per service</td></tr>
+                                <tr><td>Proxy</td><td>Caddy 2</td></tr>
+                                <tr><td>Deploy</td><td>Docker Compose, multi-arch images</td></tr>
+                                <tr><td>Frame client</td><td>Python on Pimoroni's <code>inky</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cta">
+                <div class="wrap">
+                    <h2>Questions, ideas, a frame of your own?</h2>
+                    <p class="lede">Open an issue or follow along on GitHub.</p>
+                    <div class="actions">
+                        <a class="button" href="https://github.com/lrv1668-gif/Hearth">Hearth on GitHub</a>
+                        <a class="button secondary" href="./">Back to the tour</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <div class="wrap">
+                <span>Hearth — a calm, self-hosted home display.</span>
+                <span>
+                    Screenshots use demo data. Photos via <a href="https://unsplash.com">Unsplash</a>.
+                    <a href="https://github.com/lrv1668-gif/Hearth">Source on GitHub</a>
+                </span>
+            </div>
+        </footer>
+    </body>
+</html>
