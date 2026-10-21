@@ -12,7 +12,7 @@ Most home dashboards are designed like control panels — dense, utilitarian, al
 
 - **Language:** C#/.NET
 - **Architecture:** Microservice-oriented — each concern (weather, art, plants, tasks, display) is its own service
-- **Hardware:** Split into two devices with independent power budgets — a **host** (anywhere on the LAN, runs the full Docker Compose stack) and a **frame client** (a Raspberry Pi Zero 2 W mounted behind a Pimoroni Inky Impression 13.3" color e-paper display inside a physical frame, running a small Python client on Pimoroni's `inky` library that only fetches a pre-rendered bitmap, pushes it to the panel, and relays button presses). See `HARDWARE.md` for the parts and the reasoning behind the split
+- **Hardware:** Split into two devices with independent power budgets — a **host** (anywhere on the LAN, runs the full Docker Compose stack) and a **frame client** (a Raspberry Pi Zero 2 W mounted behind a Pimoroni Inky Impression 13.3" color e-paper display inside a physical frame, running inkypull, a small standalone Python client on Pimoroni's `inky` library, that only fetches a pre-rendered bitmap, pushes it to the panel, and relays button presses). See `HARDWARE.md` for the parts and the reasoning behind the split
 - **Web access:** Accessible via browser on desktop, tablet, and phone — but the e-paper frame is the primary experience, not a secondary one
 - **Local-first:** Core features require no cloud accounts. All state is stored on the host. External APIs (weather, Spotify, calendar) are optional enhancements.
 
@@ -199,7 +199,7 @@ These need to be decided before or early in development:
 
 ### Resolved
 
-- **E-paper hardware module:** Pimoroni Inky Impression 13.3" — E Ink Spectra 6, 6-color, 1600×1200 — driven by a Raspberry Pi Zero 2 W running our own Python client on Pimoroni's `inky` library, rather than a C# library. See `HARDWARE.md`.
+- **E-paper hardware module:** Pimoroni Inky Impression 13.3" — E Ink Spectra 6, 6-color, 1600×1200 — driven by a Raspberry Pi Zero 2 W (a Pi 4 Model B for now) running inkypull, our own standalone Python client on Pimoroni's `inky` library, rather than a C# library. See `HARDWARE.md`.
 - **Physical input:** The Inky Impression's four built-in buttons, in v1 — refresh, Ambient ↔ Daily, Color ↔ B&W, plus one reserved. The phone remains the primary remote; a "frame tap" stays a v2 idea. See `HARDWARE.md`.
 
 ---

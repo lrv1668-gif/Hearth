@@ -2,7 +2,7 @@
 
 This document covers what to buy and what to build to get Hearth running on a physical, wall-mounted e-paper frame, per the vision in `PRODUCT.md`. It complements `PRODUCT.md` (product decisions) and `SOFTWARE-DESIGN.md` (implemented architecture) — nothing described here as future work belongs in `SOFTWARE-DESIGN.md` until it's actually built.
 
-**Chosen frame hardware:** a Pimoroni **Inky Impression 13.3"** (E Ink Spectra 6, 1600×1200) driven by a **Raspberry Pi Zero 2 W**, running a small Python client of our own built on Pimoroni's [`inky`](https://github.com/pimoroni/inky) library.
+**Chosen frame hardware:** a Pimoroni **Inky Impression 13.3"** (E Ink Spectra 6, 1600×1200) driven by a **Raspberry Pi Zero 2 W** (a Pi 4 Model B for now, while developing), running **inkypull** — our own small, standalone Python client built on Pimoroni's [`inky`](https://github.com/pimoroni/inky) library (see "What to code" step 3).
 
 ## The key decision: two devices, two power budgets
 
@@ -87,11 +87,13 @@ In dependency order — panel choice gates the dither target, so it comes first 
    - It already has `IDatabase` (`display.db`) for the settings; decide whether the last-rendered frame also goes there or just in memory/disk.
    - **Dithering happens on the host.** `inky`'s `set_image()` always Floyd–Steinberg-dithers RGB input, which would rule out ordered dithering for Daily. It skips dithering (`Dither.NONE`) only for a palette-mode image with exactly six colours, so the service sends the dithered frame as a 6-colour palette PNG in `inky`'s colour order (black, white, yellow, red, blue, green) and the client passes it straight through. This also makes the phone's live preview match the panel pixel-for-pixel.
 
-3. **Frame client (Python on the Zero 2 W)** — lives outside the .NET/Compose stack since it runs on separate physical hardware; not held to `CLAUDE.md`'s backend-service conventions, which are for Compose services.
-   - Raspberry Pi OS Lite, SPI and I2C enabled, `pip install inky` (`inky.auto` detects the board).
-   - Runs as a long-running **systemd service** (not a timer), because it must listen for button presses (and the sensor, if fitted) between refreshes.
-   - Loop: poll `GET /display/frame` with `If-None-Match`; on change, `set_image()` + `show()`. Button presses and presence changes POST to the Display service, which re-renders.
-   - Draws its own local screens with PIL when there's nothing to fetch: first-boot welcome (with the host URL, per `PRODUCT.md`'s first-run flow) and "can't reach host".
+3. **Frame client** — built (not yet run on the panel or its buttons) as **inkypull** ([lrv1668-gif/inky-pull](https://github.com/lrv1668-gif/inky-pull)), a separate, Hearth-agnostic repo (a generic "show this image URL on an Inky" client), so it isn't held to `CLAUDE.md`'s backend-service conventions. For now it runs on a **Raspberry Pi 4 Model B (4 GB)**; the Zero 2 W above remains the low-power target and needs no code changes. Hearth is one config of it (`examples/hearth.toml` in that repo).
+   - Prerequisite: Pimoroni's `inky` installed and working (their installer enables SPI/I2C and creates the venv inkypull installs into; `inky.auto` detects the 13.3" as `EL133UF1`). `inkypull doctor` checks the setup.
+   - Runs as a long-running **systemd service** (not a timer), because it listens for button presses between refreshes.
+   - Loop: poll the URL with `If-None-Match` / `If-Modified-Since` (plus a content-hash fallback); on change, `set_image()` + `show()`. Refreshes are serialized and coalesced, so button presses during a ~30 s refresh don't stack.
+   - **Pass-through:** any image that uses only the six inks — Hearth's white-balanced values above or `inky`'s pure ones, in any palette order — is remapped to `inky`'s palette so `set_image()` takes the `Dither.NONE` path. Anything else (e.g. a photo, or an undithered frame) is Floyd–Steinberg-dithered by `inky` on the Pi. So the contract for `GET /display/frame` stays: a 1600×1200 6-ink PNG with an `ETag`.
+   - Buttons are configured, not coded: each of A–D maps a press and a long press to `refresh`, `http` (e.g. `POST /display/mode`), `command`, `cycle` (between URLs), or `status`. BCM pins on the 13.3" are 5, 6, **25**, 24 (C is 16 on the smaller Impressions).
+   - Draws its own pure-ink screens with PIL: a welcome screen showing the URL when the first fetch fails, a "can't reach" screen after N consecutive failures (shown once), and a status screen.
 
 4. **mDNS advertising (host)** — `PRODUCT.md`'s first-run flow assumes the display shows a `hearth.local` URL on first boot. Needs Avahi (or equivalent) running on the host; not currently configured in either compose file.
 
@@ -99,4 +101,4 @@ In dependency order — panel choice gates the dither target, so it comes first 
 
 ## Verification
 
-No running code yet — this is a docs/planning artifact. Before ordering hardware: re-verify the current Inky Impression 13.3" listing (resolution, button GPIO pins, header orientation) and `inky` library support on pimoroni.com / GitHub, since this document favors durable selection criteria over pinned part numbers that will drift.
+The frame route (step 1) and the frame client (step 3, inkypull) exist; the Display service's render/dither endpoint (step 2) doesn't yet, so nothing has run end to end on a panel. inkypull is tested off-hardware (unit tests, a local image server, and its 6-ink pass-through checked against `inky`'s real `EL133UF1.set_image`); its `inky`, button and `doctor` paths are untested until the panel arrives. Before ordering hardware: re-verify the current Inky Impression 13.3" listing (resolution, button GPIO pins, header orientation) and `inky` library support on pimoroni.com / GitHub, since this document favors durable selection criteria over pinned part numbers that will drift.
