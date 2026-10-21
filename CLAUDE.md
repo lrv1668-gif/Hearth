@@ -10,6 +10,7 @@ Keep documentation in sync with code at all times:
 - When product decisions or feature scope changes, update `docs/PRODUCT.md`.
 - When a theme is added or removed, update `docs/SOFTWARE-DESIGN.md` (theme list) and the theme list below.
 - When a widget is added or removed, update the widget list in `README.md` and the relevant section of `docs/SOFTWARE-DESIGN.md` — use the `hearth-widget` skill to build it. E-paper frame widgets are registered in `frontend/src/lib/constants/frameWidgets.ts`, take a `lines` budget (see `allocateLines` in `lib/frame.ts`), and add their data loader to `widgetLoaders` in `routes/frame/+page.svelte`. When the frame shows the same content as a dashboard widget, don't copy it: put the markup in a shared view in `components/widgets/views/` (data in via props, an optional `lines` budget, sizes from `type-*`/`icon-*`/em units and `--stroke` so the frame's overrides scale it) and keep the dashboard widget a thin wrapper that loads and polls. Only frame-specific designs go in `components/frame/widgets/`. Only widgets that stay correct between scheduled refreshes belong on the frame.
+- The GitHub Pages site in `site/` repeats some of this — theme/palette/typeface counts, the widget grid, the host's service list, and the status table in `build.html`. When those change, or a planned piece gets built, update the site too.
 - Widget visibility and layout settings use the shared `WidgetVisibilityList` / `WidgetLayoutEditor` components for both the dashboard and the frame — keep the two screens consistent rather than adding bespoke editors.
 - When a new service needs environment variables, create `src/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
 - When adding a new backend service: add it to `docker-compose.yml` (merge `*defaults`, `build: { context: ./src, args: { SERVICE: <Service> } }` — there are no per-service Dockerfiles; the shared `src/Dockerfile` builds them all), `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency. Reference `ServiceDefaults` and call `AddHearthWebDefaults()` in `ServiceCollectionExtensions.cs` — every service does this, including services with no database.
@@ -53,6 +54,7 @@ docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 .env.example                 # Root compose vars for a deployed host (image prefix/tag, FRONTEND_URL)
 deploy/                      # Host auto-update: update.sh + systemd timer (pulls CI-published GHCR images)
+site/                        # Static GitHub Pages showcase (no build step; deployed by .github/workflows/pages.yml) — screenshots use demo data, never real tasks/calendar/location
 Caddyfile
 ```
 

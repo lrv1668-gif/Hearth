@@ -6,10 +6,12 @@ on:
     paths-ignore:
       - "**/*.md"
       - "docs/**"
+      - "site/**"
   pull_request:
     paths-ignore:
       - "**/*.md"
       - "docs/**"
+      - "site/**"
 
 jobs:
   backend-tests:

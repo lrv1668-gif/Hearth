@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Hearth — a calm home display</title>
+        <meta
+            name="description"
+            content="Hearth is a calm, self-hosted home dashboard for a wall-mounted color e-paper frame: art, weather, tasks, calendar, the moon and the season in one quiet display."
+        />
+        <meta property="og:title" content="Hearth — a living picture frame that knows your home" />
+        <meta
+            property="og:description"
+            content="A calm, self-hosted home dashboard for a wall-mounted color e-paper frame."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://lrv1668-gif.github.io/Hearth/assets/img/frame-almanac.jpg" />
+        <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#171411" media="(prefers-color-scheme: dark)" />
+        <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+        <link rel="preload" href="assets/fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="stylesheet" href="assets/style.css" />
+    </head>
+    <body>
+        <header class="site-header">
+            <div class="wrap">
+                <a class="wordmark" href="./">Hearth</a>
+                <nav class="site-nav" aria-label="Main">
+                    <a class="nav-optional" href="#modes">The frame</a>
+                    <a class="nav-optional" href="#dashboard">Dashboard</a>
+                    <a href="build.html">Build one</a>
+                    <a href="https://github.com/lrv1668-gif/Hearth">GitHub</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <div class="hero">
+                <div class="wrap">
+                    <div>
+                        <p class="edition">
+                            <span>Self-hosted</span><span>Local-first</span><span>Color e-paper</span>
+                        </p>
+                        <h1>A living picture frame that <em>knows your home.</em></h1>
+                        <p class="lede">
+                            Hearth gathers the weather, your day's tasks and plans, the moon, the season and a
+                            little art into one quiet display — made for a color e-paper frame on the wall, and
+                            just as at home in a browser.
+                        </p>
+                        <div class="actions">
+                            <a class="button" href="build.html">Build your own</a>
+                            <a class="button secondary" href="https://github.com/lrv1668-gif/Hearth">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path
+                                        d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"
+                                    />
+                                </svg>
+                                View the source
+                            </a>
+                        </div>
+                    </div>
+                    <figure class="hero-frame">
+                        <div class="frame">
+                            <div class="mat">
+                                <img
+                                    src="assets/img/frame-almanac.jpg"
+                                    width="1600"
+                                    height="1200"
+                                    alt="Hearth's Daily layout on the e-paper frame: a large date and weekday masthead, today's temperature on a sun-path arc, countdowns, today's tasks, upcoming events, the moon phase, a daily quote and a five-day forecast."
+                                />
+                            </div>
+                        </div>
+                        <figcaption>The Daily layout at the panel's native 1600 × 1200, as rendered by Hearth's frame page.</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <section id="why">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">The idea</span>
+                        <h2>Most home dashboards are control panels. Hearth is designed to recede.</h2>
+                        <p class="lede">
+                            Like a fireplace, it's always on and always present, but it earns its place in the room
+                            by being calm and good to look at — not by asking for your attention.
+                        </p>
+                    </div>
+                    <div class="principles">
+                        <div class="principle">
+                            <div class="num">1</div>
+                            <h3>Paper, not a screen</h3>
+                            <p>
+                                E-paper reflects light instead of emitting it. No glow in a dark room, no
+                                power draw to hold an image — it looks like a print hanging on the wall.
+                            </p>
+                        </div>
+                        <div class="principle">
+                            <div class="num">2</div>
+                            <h3>Snapshots, not feeds</h3>
+                            <p>
+                                The frame is designed for a few deliberate refreshes, not a live feed, so it shows
+                                only things that stay true in between — no ticking clocks, live departures or
+                                now-playing.
+                            </p>
+                        </div>
+                        <div class="principle">
+                            <div class="num">3</div>
+                            <h3>Yours, at home</h3>
+                            <p>
+                                Everything runs on a box on your own network and stores its state there. Weather,
+                                calendar and music hookups are optional extras, not requirements.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="modes">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">On the wall</span>
+                        <h2>Two ways to be in the room.</h2>
+                        <p class="lede">
+                            The frame alternates between a full-bleed picture and a structured morning edition —
+                            Ambient by default, Daily when you want the day laid out.
+                        </p>
+                    </div>
+                    <div class="modes">
+                        <article class="mode">
+                            <figure>
+                                <div class="frame">
+                                    <div class="mat">
+                                        <img
+                                            src="assets/img/ambient-2.jpg"
+                                            width="1600"
+                                            height="1200"
+                                            loading="lazy"
+                                            alt="Ambient mode: a misty meadow with a single large tree at sunrise, with a small card in the corner showing the date, time, temperature and photo credit."
+                                        />
+                                    </div>
+                                </div>
+                            </figure>
+                            <span class="tag">Ambient · the default</span>
+                            <h3>The art is the display.</h3>
+                            <p>
+                                A full-frame photograph — from Unsplash by season and category, or your own uploads —
+                                with a small card in one corner: the date, the temperature, a line about the weather,
+                                and credit for the photographer. Information stays peripheral.
+                            </p>
+                        </article>
+                        <article class="mode">
+                            <figure>
+                                <div class="frame">
+                                    <div class="mat">
+                                        <img
+                                            src="assets/img/frame-bw.jpg"
+                                            width="1600"
+                                            height="1200"
+                                            loading="lazy"
+                                            alt="Daily mode in black and white: a newspaper-style masthead, today's daylight arc, tasks, the almanac and a week-ahead list, above a five-day forecast."
+                                        />
+                                    </div>
+                                </div>
+                            </figure>
+                            <span class="tag alt">Daily · the morning edition</span>
+                            <h3>A morning edition for your household.</h3>
+                            <p>
+                                A masthead with the date, season and today's sun path; two columns of widgets you
+                                arrange yourself; a five-day forecast along the bottom. Type sized to read from across
+                                the room — in full color, or a crisp black-and-white broadsheet.
+                            </p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="themes">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">Frame themes</span>
+                        <h2>Thirteen palettes, mixed from six inks.</h2>
+                        <p class="lede">
+                            The Spectra 6 panel prints with black, white, red, yellow, blue and green. Every frame
+                            theme is built only from those measured inks and a few approved two-ink mixes, so what you
+                            pick on screen is what the panel can actually show.
+                        </p>
+                    </div>
+                    <div class="themes">
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-almanac.jpg">
+                                <img src="assets/img/frame-almanac-sm.jpg" width="800" height="600" loading="lazy" alt="Almanac frame theme" />
+                                <figcaption><strong>Almanac</strong><span>Indigo type, brick red, cream</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-garden.jpg">
+                                <img src="assets/img/frame-garden-sm.jpg" width="800" height="600" loading="lazy" alt="Garden frame theme" />
+                                <figcaption><strong>Garden</strong><span>Green ink, butter and amber</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-terracotta.jpg">
+                                <img src="assets/img/frame-terracotta-sm.jpg" width="800" height="600" loading="lazy" alt="Terracotta frame theme" />
+                                <figcaption><strong>Terracotta</strong><span>Amber band, red rules, olive</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-letterpress.jpg">
+                                <img src="assets/img/frame-letterpress-sm.jpg" width="800" height="600" loading="lazy" alt="Letterpress frame theme" />
+                                <figcaption><strong>Letterpress</strong><span>Black and red, two-colour print</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-coast.jpg">
+                                <img src="assets/img/frame-coast-sm.jpg" width="800" height="600" loading="lazy" alt="Coast frame theme" />
+                                <figcaption><strong>Coast</strong><span>Indigo on sand, no red</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-marigold.jpg">
+                                <img src="assets/img/frame-marigold-sm.jpg" width="800" height="600" loading="lazy" alt="Marigold frame theme" />
+                                <figcaption><strong>Marigold</strong><span>Black type, butter band</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-night.jpg">
+                                <img src="assets/img/frame-night-sm.jpg" width="800" height="600" loading="lazy" alt="Night frame theme" />
+                                <figcaption><strong>Night</strong><span>White and yellow on black</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/frame-moss.jpg">
+                                <img src="assets/img/frame-moss-sm.jpg" width="800" height="600" loading="lazy" alt="Moss frame theme" />
+                                <figcaption><strong>Moss</strong><span>Green and white on black</span></figcaption>
+                            </a>
+                        </figure>
+                    </div>
+                    <p class="note">
+                        Also: Gallery, Harbor, Postbox, Ember and Lantern; a black-and-white mode for every theme; nine
+                        typefaces; and a portrait layout for a frame hung on its side.
+                    </p>
+                </div>
+            </section>
+
+            <section id="layout">
+                <div class="wrap">
+                    <div class="feature-row">
+                        <div class="frame">
+                            <div class="mat">
+                                <img
+                                    src="assets/img/frame-birds.jpg"
+                                    width="1600"
+                                    height="1200"
+                                    loading="lazy"
+                                    alt="The Garden theme with a different layout: birds seen nearby and the moon phase on the left, the almanac and a daily quote on the right."
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <span class="kicker">Your layout</span>
+                            <h3>Pick what's worth a glance.</h3>
+                            <p>
+                                Arrange the Daily columns with the same drag-and-drop editor the web dashboard uses:
+                                Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote
+                                and Birds Nearby.
+                            </p>
+                            <p>
+                                Each widget trims itself to the space it's given, so a short column stays tidy and a
+                                long one fills in — no overflowing lists, no tiny print.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="feature-row flip">
+                        <div class="frame portrait">
+                            <div class="mat">
+                                <img
+                                    src="assets/img/frame-portrait.jpg"
+                                    width="1200"
+                                    height="1600"
+                                    loading="lazy"
+                                    alt="The Daily layout in portrait orientation."
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <span class="kicker">Any wall</span>
+                            <h3>Landscape or portrait.</h3>
+                            <p>
+                                Hang the frame whichever way suits the wall. The Daily layout reflows for a tall
+                                panel instead of just shrinking.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dashboard">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">In the browser</span>
+                        <h2>The same home, on every screen.</h2>
+                        <p class="lede">
+                            The web dashboard is where you add tasks, set up integrations and arrange the frame — and
+                            it makes a fine always-on display for a spare tablet, too.
+                        </p>
+                    </div>
+
+                    <div class="tabs">
+                        <input type="radio" name="dash" id="dash-linen" checked />
+                        <input type="radio" name="dash" id="dash-stone" />
+                        <input type="radio" name="dash" id="dash-forest" />
+                        <div class="tab-labels" role="presentation">
+                            <label for="dash-linen"><i style="background: #faf6ef"></i>Linen</label>
+                            <label for="dash-stone"><i style="background: #1a1410"></i>Stone</label>
+                            <label for="dash-forest"><i style="background: #111713"></i>Forest</label>
+                        </div>
+                        <div class="tab-panels">
+                            <div class="window tab-panel p-linen">
+                                <div class="bar"><i></i><i></i><i></i></div>
+                                <img src="assets/img/dashboard-linen.jpg" width="1600" height="1100" loading="lazy" alt="The Hearth web dashboard in the light Linen theme: today's arc and an agenda on the left; weather, news, countdowns, moon phase and almanac on the right." />
+                            </div>
+                            <div class="window tab-panel p-stone">
+                                <div class="bar"><i></i><i></i><i></i></div>
+                                <img src="assets/img/dashboard-dark.jpg" width="1600" height="1100" loading="lazy" alt="The Hearth web dashboard in the dark Stone theme." />
+                            </div>
+                            <div class="window tab-panel p-forest">
+                                <div class="bar"><i></i><i></i><i></i></div>
+                                <img src="assets/img/dashboard-forest.jpg" width="1600" height="1100" loading="lazy" alt="The Hearth web dashboard in the dark green Forest theme." />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat"><strong>18</strong><span>color themes, light and dark</span></div>
+                        <div class="stat"><strong>9</strong><span>typefaces, with a size slider</span></div>
+                        <div class="stat"><strong>13</strong><span>e-paper frame palettes</span></div>
+                        <div class="stat"><strong>0</strong><span>cloud accounts required</span></div>
+                    </div>
+
+                    <div class="feature-row" style="margin-top: clamp(3.5rem, 7vw, 6rem)">
+                        <div class="window">
+                            <div class="bar"><i></i><i></i><i></i></div>
+                            <img src="assets/img/calendar.jpg" width="1600" height="1100" loading="lazy" alt="The month calendar view, showing Hearth tasks alongside Google Calendar events." />
+                        </div>
+                        <div>
+                            <span class="kicker">Calendar</span>
+                            <h3>Tasks and plans in one place.</h3>
+                            <p>
+                                Hearth keeps its own tasks — one-offs, repeating chores, countdowns to the dates you're
+                                looking forward to — and lays them out next to your Google Calendar events.
+                            </p>
+                            <p>Tick something off on your phone and every screen in the house agrees.</p>
+                        </div>
+                    </div>
+                    <div class="feature-row flip">
+                        <div class="phone">
+                            <img src="assets/img/dashboard-mobile.jpg" width="800" height="1720" loading="lazy" alt="The dashboard on a phone, with a bottom tab bar." />
+                        </div>
+                        <div>
+                            <span class="kicker">Phone</span>
+                            <h3>The frame's remote control.</h3>
+                            <p>
+                                On a phone the dashboard becomes a single column with a tab bar — the quickest way to
+                                add a task, pick a frame theme or check what's coming up.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="widgets">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">What it shows</span>
+                        <h2>Everything a household glances at.</h2>
+                        <p class="lede">
+                            Widgets marked <span class="badge frame-badge">Frame</span> also appear on the e-paper
+                            frame. The rest change too often to be right between refreshes, so they stay on screens.
+                        </p>
+                    </div>
+                    <div class="widgets">
+                        <div class="widget"><h3>Agenda &amp; Today <span class="badge frame-badge">Frame</span></h3><p>Tasks due today and what's next on the calendar.</p></div>
+                        <div class="widget"><h3>Week Ahead <span class="badge frame-badge">Frame</span></h3><p>Events and tasks for the next seven days.</p></div>
+                        <div class="widget"><h3>Countdowns <span class="badge frame-badge">Frame</span></h3><p>Days until the dates you're looking forward to.</p></div>
+                        <div class="widget"><h3>Weather <span class="badge frame-badge">Frame</span></h3><p>Current conditions and a five-day forecast.</p></div>
+                        <div class="widget"><h3>Today's Arc <span class="badge frame-badge">Frame</span></h3><p>Daylight, golden hours and today's events as one ribbon.</p></div>
+                        <div class="widget"><h3>Almanac <span class="badge frame-badge">Frame</span></h3><p>Season progress, the daylight trend, frost dates and seasonal notes.</p></div>
+                        <div class="widget"><h3>Moon Phase <span class="badge frame-badge">Frame</span></h3><p>Tonight's moon and the next major phase.</p></div>
+                        <div class="widget"><h3>Daily Quote <span class="badge frame-badge">Frame</span></h3><p>One quote a day.</p></div>
+                        <div class="widget"><h3>Birds Nearby <span class="badge frame-badge">Frame</span></h3><p>Recent sightings around you, from eBird.</p></div>
+                        <div class="widget"><h3>Today's News</h3><p>The latest from the RSS and Atom feeds you choose.</p></div>
+                        <div class="widget"><h3>Trains &amp; Buses</h3><p>Live departures from the stops you follow, via Transitland.</p></div>
+                        <div class="widget"><h3>Now Playing</h3><p>What's on Spotify, along the bottom of the dashboard.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="how">
+                <div class="wrap">
+                    <div class="section-head">
+                        <span class="kicker">How it fits together</span>
+                        <h2>A thin frame, a capable host.</h2>
+                        <p class="lede">
+                            The frame does almost nothing: fetch a finished picture, show it, listen for a button.
+                            Everything else happens on a small server somewhere on your network.
+                        </p>
+                    </div>
+                    <div class="diagram">
+                        <div class="node">
+                            <h3>Your phone &amp; browser</h3>
+                            <p>Add tasks, connect accounts, choose themes and lay out the frame.</p>
+                        </div>
+                        <div class="arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16m-5-5 5 5-5 5" /></svg>
+                        </div>
+                        <div class="node host">
+                            <h3>The host</h3>
+                            <p>
+                                A Raspberry Pi 4/5 or mini PC running Docker Compose: a SvelteKit app and eleven small
+                                .NET services behind Caddy, each with its own SQLite file.
+                            </p>
+                            <ul>
+                                <li>Tasks</li><li>Calendar</li><li>Weather</li><li>Photos</li><li>Almanac</li><li>Birds</li>
+                                <li>Quote</li><li>RSS</li><li>Trains</li><li>Spotify</li><li>Display</li>
+                            </ul>
+                        </div>
+                        <div class="arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16m-5-5 5 5-5 5" /></svg>
+                            <span>1600×1200<br />image</span>
+                        </div>
+                        <div class="node">
+                            <h3>The frame</h3>
+                            <p>
+                                A Raspberry Pi behind a 13.3" Inky Impression color e-paper panel, running
+                                <em>inkypull</em>, a small Python client.
+                            </p>
+                        </div>
+                    </div>
+                    <p class="note">
+                        <strong>Where it stands:</strong> the dashboard and the frame layouts are built and run today
+                        in any browser, and the inkypull client is written. The host-side step that captures and dithers
+                        the frame for the panel is next — nothing has been printed on real e-paper yet.
+                        <a href="build.html#status">Project status</a>
+                    </p>
+                </div>
+            </section>
+
+            <section class="cta">
+                <div class="wrap">
+                    <span class="kicker">Make one</span>
+                    <h2>Hang a little calm on the wall.</h2>
+                    <p class="lede">
+                        The source is on GitHub. Run it in a browser this afternoon, then put it in a frame when
+                        you're ready.
+                    </p>
+                    <div class="actions">
+                        <a class="button" href="build.html">Parts &amp; setup</a>
+                        <a class="button secondary" href="https://github.com/lrv1668-gif/Hearth">Star it on GitHub</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <div class="wrap">
+                <span>Hearth — a calm, self-hosted home display.</span>
+                <span>
+                    Screenshots use demo data. Photos via <a href="https://unsplash.com">Unsplash</a>.
+                    <a href="https://github.com/lrv1668-gif/Hearth">Source on GitHub</a>
+                </span>
+            </div>
+        </footer>
+    </body>
+</html>
