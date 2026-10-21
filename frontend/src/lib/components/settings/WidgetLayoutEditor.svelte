@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { dndzone } from 'svelte-dnd-action';
+    import { dndzone, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
+    import { settleDrop, type Columns, type Side } from '$lib/widgetLayout';
     import { GripVertical, Grip, Lock } from '@lucide/svelte';
 
-    type Columns = { left: string[]; right: string[] };
     type DragItem = { id: string; label: string };
 
     interface Props {
@@ -14,7 +14,8 @@
         onwidthchange: (width: number) => void;
         header: readonly { label: string }[];
         footer: readonly { label: string }[];
-        /** Most widgets a column accepts; a full column refuses drops from the other. */
+        /** Most widgets a column holds; dropping into a full column swaps with the
+         *  widget it lands on (see settleDrop). */
         maxPerColumn?: number;
         /** Distinguishes this editor's drag zones from another editor's on the same page. */
         dragType: string;
@@ -35,12 +36,35 @@
         rightItems = toItems(columns.right);
     });
 
-    const full = (items: DragItem[]) => maxPerColumn !== undefined && items.length >= maxPerColumn;
+    // Where the dragged widget started, so a swap can send the displaced one there.
+    let origin: { side: Side; index: number } | null = null;
+    let settling = false;
 
-    function finalize(side: 'left' | 'right', items: DragItem[]) {
-        if (side === 'left') leftItems = items;
-        else rightItems = items;
-        onchange({ left: leftItems.map((i) => i.id), right: rightItems.map((i) => i.id) });
+    function consider(side: Side, e: CustomEvent<DndEvent<DragItem>>) {
+        if (e.detail.info.trigger === TRIGGERS.DRAG_STARTED) {
+            const before = side === 'left' ? leftItems : rightItems;
+            origin = { side, index: before.findIndex((i) => i.id === e.detail.info.id) };
+        }
+        if (side === 'left') leftItems = e.detail.items;
+        else rightItems = e.detail.items;
+    }
+
+    function finalize(side: Side, e: CustomEvent<DndEvent<DragItem>>) {
+        if (side === 'left') leftItems = e.detail.items;
+        else rightItems = e.detail.items;
+        // A move between columns finalizes both zones; settle once, after both.
+        if (settling) return;
+        settling = true;
+        const droppedId = e.detail.info.id;
+        queueMicrotask(() => {
+            settling = false;
+            let next: Columns = { left: leftItems.map((i) => i.id), right: rightItems.map((i) => i.id) };
+            if (maxPerColumn !== undefined && origin) next = settleDrop(next, maxPerColumn, droppedId, origin);
+            origin = null;
+            leftItems = toItems(next.left);
+            rightItems = toItems(next.right);
+            onchange(next);
+        });
     }
 
     let previewWidth = $state(0);
@@ -91,12 +115,14 @@ header/footer strips — shared by the Dashboard and Frame settings.
 {#snippet column(title: string, side: 'left' | 'right', items: DragItem[])}
     <p class="type-label mb-2 text-(--text-1)">
         {title}
-        {#if maxPerColumn !== undefined}<span class="text-(--text-2)">· {items.length}/{maxPerColumn}</span>{/if}
+        {#if maxPerColumn !== undefined}<span class="text-(--text-2)"
+                >· {items.length > maxPerColumn ? 'swap' : `${items.length}/${maxPerColumn}`}</span
+            >{/if}
     </p>
     <div
-        use:dndzone={{ items, type: dragType, flipDurationMs: 150, dropFromOthersDisabled: full(items) }}
-        onconsider={(e) => (side === 'left' ? (leftItems = e.detail.items) : (rightItems = e.detail.items))}
-        onfinalize={(e) => finalize(side, e.detail.items)}
+        use:dndzone={{ items, type: dragType, flipDurationMs: 150 }}
+        onconsider={(e) => consider(side, e)}
+        onfinalize={(e) => finalize(side, e)}
         class="min-h-16 space-y-1"
     >
         {#each items as item (item.id)}

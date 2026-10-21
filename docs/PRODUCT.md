@@ -64,9 +64,9 @@ Nothing else. The art is the display. Information is peripheral.
 
 The display shifts to a structured layout with distinct zones:
 
-- **Top (fixed):** Date, day of week, current weather + high/low
-- **Two columns (configurable):** up to three widgets each, chosen from Today's Arc, Today (tasks), Coming Up (next events), Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote and Birds Nearby. Default: Today's Arc and Today on the left, Coming Up and Countdowns on the right
-- **Bottom (fixed):** 5-day weather forecast as a simple icon row
+- **Top (fixed):** a compact masthead — a date block; a small edition line (issue number, season, days to the next solstice/equinox) over the day of week; and a sun path showing today's daylight with the current temperature
+- **Two columns (configurable):** up to three widgets each, chosen from Today's Arc, Today (tasks), Coming Up (next events), Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote and Birds Nearby. Default: Countdowns and Today on the left, Coming Up on the right (the masthead's sun path covers what Today's Arc showed)
+- **Bottom (fixed):** 5-day weather forecast — an icon and a low–high range bar per day, on one shared scale
 
 Only widgets that stay correct between scheduled refreshes belong on the frame — no live departures, no now-playing (it changes every song and would usually be wrong).
 

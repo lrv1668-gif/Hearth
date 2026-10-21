@@ -4,6 +4,8 @@
     import { goto } from '$app/navigation';
     import { api, type Photo, type UploadedPhoto } from '$lib/api';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+    import { frameSettings, loadFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
+    import { photoQuery, resolveSource, uploadToPhoto } from '$lib/photos';
     import { MediaQuery } from 'svelte/reactivity';
 
     const isPortrait = new MediaQuery('orientation: portrait');
@@ -30,27 +32,13 @@
         return a;
     }
 
-    function buildQuery(): string {
-        const categories = settings.photoCategories;
-        return categories.length > 0 ? categories.join(',') : 'nature';
-    }
-
     function nextLocalPhoto(): Photo | null {
         if (localQueue.length === 0) return null;
         if (localIndex >= localQueue.length) {
             localQueue = shuffle(localQueue);
             localIndex = 0;
         }
-        const up = localQueue[localIndex++];
-        return {
-            id: up.id,
-            url: up.url,
-            thumb_url: up.thumb_url,
-            description: up.caption,
-            photographer_name: null,
-            unsplash_link: null,
-            source: 'local',
-        };
+        return uploadToPhoto(localQueue[localIndex++]);
     }
 
     function isNight(): boolean {
@@ -74,12 +62,15 @@
     }
 
     async function fetchNext(): Promise<Photo | null> {
-        let source = settings.photoSource;
-        if (source === 'both') {
-            source = localQueue.length > 0 && Math.random() < 0.5 ? 'local' : 'unsplash';
-        }
+        // Source and categories are the shared Ambient choices (FrameSettingsStore);
+        // cadence and motion stay this browser's own.
+        const source = resolveSource(frameSettings.photoSource, localQueue.length > 0);
         if (source === 'local') return nextLocalPhoto();
-        return api.photos.random(buildQuery(), isPortrait.current ? 'portrait' : 'landscape', source);
+        return api.photos.random(
+            photoQuery(frameSettings.photoCategories),
+            isPortrait.current ? 'portrait' : 'landscape',
+            source
+        );
     }
 
     async function advance() {
@@ -121,9 +112,10 @@
     }
 
     onMount(async () => {
-        if (settings.photoSource === 'local' || settings.photoSource === 'both') {
+        await loadFrameSettings();
+        if (frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both') {
             const uploads = await api.photos.list();
-            if (uploads.length === 0 && settings.photoSource === 'local') {
+            if (uploads.length === 0 && frameSettings.photoSource === 'local') {
                 goto('/settings');
                 return;
             }
@@ -169,7 +161,7 @@
             />
         {/key}
 
-        {@const showAttribution = photo.source === 'unsplash' && settings.showAttribution}
+        {@const showAttribution = photo.source === 'unsplash'}
         {@const showCaption = photo.source === 'local' && photo.description}
         <!-- A quiet corner credit — a soft text shadow keeps it legible on bright photos
              without a scrim across the image. Always shown: Unsplash requires attribution. -->

@@ -151,6 +151,19 @@ services:
         volumes:
             - trains-data:/data
 
+    display:
+        <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-display:${HEARTH_TAG:-latest}
+        build:
+            context: ./src
+            args:
+                SERVICE: Display
+        environment:
+            - DB_PATH=/data/display.db
+            - ASPNETCORE_HTTP_PORTS=8090
+        volumes:
+            - display-data:/data
+
     frontend:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-frontend:${HEARTH_TAG:-latest}
@@ -174,6 +187,7 @@ services:
             - birds
             - almanac
             - trains
+            - display
 
     caddy:
         <<: *defaults
@@ -217,6 +231,8 @@ services:
                 condition: service_started
             trains:
                 condition: service_started
+            display:
+                condition: service_started
 
 volumes:
     tasks-data:
@@ -227,5 +243,6 @@ volumes:
     calendar-data:
     birds-data:
     trains-data:
+    display-data:
     caddy-data:
     caddy-config:

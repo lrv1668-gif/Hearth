@@ -2,7 +2,7 @@
     import { untrack } from 'svelte';
     import { frameDataTheme } from '$lib/constants/frameThemes';
     import { normalizeFrameLayout } from '$lib/constants/frameWidgets';
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { frameUrl } from '$lib/frame';
     import SegmentedControl from './SegmentedControl.svelte';
 
@@ -11,18 +11,19 @@
     let previewMode = $state<'daily' | 'ambient'>('daily');
     let previewPalette = $state<'color' | 'bw'>('color');
 
-    const layout = $derived(normalizeFrameLayout(settings.frameLayout));
+    const layout = $derived(normalizeFrameLayout(frameSettings.layout));
 
     // The full URL, shown below the preview.
     const url = $derived(
         frameUrl({
             mode: previewMode,
             palette: previewPalette,
-            theme: settings.frameTheme,
-            font: settings.frameFont,
-            orientation: settings.frameOrientation,
+            theme: frameSettings.theme,
+            font: frameSettings.font,
+            orientation: frameSettings.orientation,
             layout,
-            split: settings.frameSplit,
+            split: frameSettings.split,
+            position: frameSettings.ambientPosition,
         })
     );
 
@@ -32,12 +33,18 @@
     const previewSrc = $derived.by(() => {
         const structure = {
             mode: previewMode,
-            orientation: settings.frameOrientation,
+            orientation: frameSettings.orientation,
             layout,
-            split: settings.frameSplit,
+            split: frameSettings.split,
         };
         return untrack(() =>
-            frameUrl({ ...structure, palette: previewPalette, theme: settings.frameTheme, font: settings.frameFont })
+            frameUrl({
+                ...structure,
+                palette: previewPalette,
+                theme: frameSettings.theme,
+                font: frameSettings.font,
+                position: frameSettings.ambientPosition,
+            })
         );
     });
 
@@ -46,17 +53,19 @@
     function applyLook() {
         // Read the settings before touching the iframe: if the frame hasn't loaded yet
         // the early return must not stop the $effect from tracking them.
-        const theme = frameDataTheme(settings.frameTheme, previewPalette);
-        const font = settings.frameFont;
+        const theme = frameDataTheme(frameSettings.theme, previewPalette);
+        const font = frameSettings.font;
+        const position = frameSettings.ambientPosition;
         const root = iframe?.contentDocument?.querySelector<HTMLElement>('.frame');
         if (!root) return;
         root.dataset.theme = theme;
         root.dataset.font = font;
+        root.dataset.position = position;
     }
 
     $effect(applyLook);
 
-    const size = $derived(settings.frameOrientation === 'portrait' ? { w: 1200, h: 1600 } : { w: 1600, h: 1200 });
+    const size = $derived(frameSettings.orientation === 'portrait' ? { w: 1200, h: 1600 } : { w: 1600, h: 1200 });
     let boxWidth = $state(0);
     const scale = $derived(boxWidth / size.w);
 </script>
@@ -89,7 +98,7 @@ Daily/Ambient and Color/B&W toggles and the resulting frame URL.
     <div
         bind:clientWidth={boxWidth}
         class="relative overflow-hidden rounded-lg border border-(--border)
-            {settings.frameOrientation === 'portrait' ? 'mx-auto max-w-sm' : 'max-w-2xl'}"
+            {frameSettings.orientation === 'portrait' ? 'mx-auto max-w-sm' : 'max-w-2xl'}"
         style="height: {size.h * scale}px"
     >
         {#if boxWidth > 0}

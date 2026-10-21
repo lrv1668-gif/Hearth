@@ -53,6 +53,20 @@ export const frameThemes = [
         swatches: ['#ffffff', '#000000', '#f16f74', '#fffedb'],
     },
     {
+        id: 'marigold',
+        label: 'Marigold',
+        description: 'Black type, butter band, yellow daylight',
+        dark: false,
+        swatches: ['#ffffff', '#000000', '#fffeb6', '#ffff6e', '#f16f74'],
+    },
+    {
+        id: 'postbox',
+        label: 'Postbox',
+        description: 'Red blocks, blue type, no tints',
+        dark: false,
+        swatches: ['#ffffff', '#000000', '#f16f74', '#5e5b91'],
+    },
+    {
         id: 'night',
         label: 'Night',
         description: 'White and yellow on black',
@@ -65,6 +79,20 @@ export const frameThemes = [
         description: 'Yellow and red on black',
         dark: true,
         swatches: ['#000000', '#ffff6e', '#f16f74', '#f8b771'],
+    },
+    {
+        id: 'moss',
+        label: 'Moss',
+        description: 'Green and white on black',
+        dark: true,
+        swatches: ['#000000', '#ffffff', '#5a8d6c', '#ffff6e'],
+    },
+    {
+        id: 'lantern',
+        label: 'Lantern',
+        description: 'White and yellow on black, no fills',
+        dark: true,
+        swatches: ['#000000', '#ffffff', '#ffff6e', '#f16f74'],
     },
 ] as const;
 

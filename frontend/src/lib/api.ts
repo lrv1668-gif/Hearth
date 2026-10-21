@@ -195,6 +195,25 @@ export interface CalendarItem {
 // kind: 'task' = internal Hearth task; kind: 'event' = external calendar item (CalendarItem.kind determines event vs task).
 export type Item = { kind: 'task'; data: Task } | { kind: 'event'; data: CalendarItem };
 
+/** The e-paper frame's shared look and Daily layout, held by the Display service so
+ *  every client (and the frame's renderer) sees the same settings. */
+export interface FrameSettings {
+    theme: string;
+    font: string;
+    orientation: 'landscape' | 'portrait';
+    left: string[];
+    right: string[];
+    split: number;
+    /** Where Ambient mode's info card sits. */
+    ambient_position: AmbientPosition;
+    /** Ambient photos (frame and the /ambient slideshow): "unsplash", "local", "both", … */
+    photo_source: string;
+    photo_categories: string[];
+}
+
+export type AmbientPosition =
+    'top-left' | 'top-middle' | 'top-right' | 'bottom-left' | 'bottom-middle' | 'bottom-right';
+
 // ---- Client ----
 
 class ApiClient {
@@ -218,6 +237,21 @@ class ApiClient {
             if (res.status === 204) return null;
             return res.json() as Promise<NowPlaying>;
         },
+    };
+
+    readonly display = {
+        /** The saved frame settings; null when none have been saved yet, undefined when
+         *  the Display service can't be reached. */
+        settings: async (): Promise<FrameSettings | null | undefined> => {
+            // Bounded, so a hung service can't hold up /frame's ready signal.
+            const res = await fetch('/display/settings', { signal: AbortSignal.timeout(5000) }).catch(() => null);
+            if (!res?.ok) return undefined;
+            if (res.status === 204) return null;
+            return res.json() as Promise<FrameSettings>;
+        },
+
+        saveSettings: (settings: FrameSettings): Promise<FrameSettings> =>
+            this.put<FrameSettings>('/display/settings', settings),
     };
 
     readonly weather = {

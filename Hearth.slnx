@@ -15,6 +15,7 @@
     <Project Path="src/Birds/Birds.csproj" />
     <Project Path="src/Almanac/Almanac.csproj" />
     <Project Path="src/Trains/Trains.csproj" />
+    <Project Path="src/Display/Display.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Hearth.TestUtilities/Hearth.TestUtilities.csproj" />
@@ -30,5 +31,6 @@
     <Project Path="tests/Birds.Tests/Birds.Tests.csproj" />
     <Project Path="tests/Almanac.Tests/Almanac.Tests.csproj" />
     <Project Path="tests/Trains.Tests/Trains.Tests.csproj" />
+    <Project Path="tests/Display.Tests/Display.Tests.csproj" />
   </Folder>
 </Solution>

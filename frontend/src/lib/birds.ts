@@ -11,6 +11,11 @@ export function dayLabel(observedAt: string, now: Date = new Date()): string {
     return observed.toLocaleDateString(undefined, { weekday: 'short' });
 }
 
+/** Rare (notable) sightings first, otherwise in the order eBird returned them. */
+export function rareFirst<T extends { is_notable: boolean }>(sightings: T[]): T[] {
+    return [...sightings].sort((a, b) => Number(b.is_notable) - Number(a.is_notable));
+}
+
 export function distanceLabel(mi: number): string {
     return mi < 0.1 ? 'here' : `${mi} miles`;
 }

@@ -14,6 +14,16 @@ describe('parseFrameLayout', () => {
         });
     });
 
+    it('falls back per param to the given layout, e.g. saved settings', () => {
+        const saved = { left: ['moon' as const], right: ['quote' as const], split: 40 };
+        expect(parseFrameLayout(new URLSearchParams(), saved)).toEqual(saved);
+        expect(parseFrameLayout(new URLSearchParams('left=week'), saved)).toEqual({
+            left: ['week'],
+            right: ['quote'],
+            split: 40,
+        });
+    });
+
     it('clamps the split to the 30–70 range and ignores junk', () => {
         expect(parseFrameLayout(new URLSearchParams('split=95')).split).toBe(70);
         expect(parseFrameLayout(new URLSearchParams('split=abc')).split).toBe(50);

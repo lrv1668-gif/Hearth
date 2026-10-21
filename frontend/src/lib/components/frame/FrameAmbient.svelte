@@ -1,19 +1,24 @@
 <script lang="ts">
     import type { Photo } from '$lib/api';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { weatherIcon } from '$lib/constants/weather';
+    import { weatherSentence } from '$lib/frame';
+    import { localDateKey } from '$lib/utils';
+    import FrameDateBlock from './FrameDateBlock.svelte';
 
     let { now, photo }: { now: Date; photo: Photo | null } = $props();
 
     const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
-    const date = $derived(now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
+    const today = $derived(weatherStore.forecast.find((f) => f.date === localDateKey(now)) ?? null);
 </script>
 
 <!--
 @component
-Ambient Mode for the e-paper frame: the photo fills the panel, with a small solid
-info card in the bottom-left corner (PRODUCT.md — "information is peripheral").
-The card is a flat pure-ink (--bg) panel, not a gradient scrim or a tint: this mode is
+Ambient Mode for the e-paper frame: the photo fills the panel, with a small plate in
+a corner or at the middle of the top or bottom edge (PRODUCT.md — "information is
+peripheral"; where is the frame root's data-position, from Settings → Frame or
+?position=): a compact date
+block joined to a flat --bg panel with the time, temperature and one sentence of
+weather. Both halves are pure inks, not a gradient scrim or a tint: this mode is
 error-diffusion dithered for the photo, and tints streak under that (see HARDWARE.md).
 In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure B&W).
 -->
@@ -25,23 +30,53 @@ In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure 
     </div>
 {/if}
 
-<!-- A single quiet card: time and temperature on one line, the date beneath. No border
-     or rule — the solid --bg panel alone separates it from the photo (shadows or
-     translucency would dither into speckle on the panel). -->
-<div class="absolute bottom-10 left-10 bg-(--bg) px-8 py-6">
-    <div class="flex items-baseline gap-6">
-        <p class="type-title leading-none font-bold">{time}</p>
+<!-- No border or shadow — the solid inks alone separate the plate from the photo
+     (shadows or translucency would dither into speckle on the panel). -->
+<div class="plate absolute flex items-stretch bg-(--bg)">
+    <FrameDateBlock {now} compact />
+    <div class="px-8 pt-5 pb-4">
+        <p class="type-title leading-none font-semibold">
+            {time}{#if weatherStore.current}<span class="font-medium text-(--text-2)"
+                    >&nbsp;· {Math.round(weatherStore.current.temperature_f)}°</span
+                >{/if}
+        </p>
         {#if weatherStore.current}
-            {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}
-            <p class="type-title flex items-center gap-2 leading-none font-semibold">
-                <WeatherIcon class="icon-md self-center text-(--text-2)" />
-                {Math.round(weatherStore.current.temperature_f)}°
+            <p class="type-label mt-3 font-(family-name:--display-family) text-(--text-2) italic">
+                {weatherSentence(weatherStore.current, today)}
             </p>
         {/if}
+        <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
+        {#if photo?.source === 'unsplash' && photo.photographer_name}
+            <p class="type-caption mt-1 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
+        {:else if photo?.source === 'local' && photo.description}
+            <!-- Your own photo: its caption, if you gave it one -->
+            <p class="type-caption mt-1 text-(--text-2)">{photo.description}</p>
+        {/if}
     </div>
-    <p class="type-label mt-2 text-(--text-2)">{date}</p>
-    <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
-    {#if photo?.source === 'unsplash' && photo.photographer_name}
-        <p class="type-caption mt-1 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
-    {/if}
 </div>
+
+<style>
+    /* Inset 64px from the chosen edge(s), or centred along the top/bottom edge for the
+       middle positions. Keyed off the frame root's data-position (not a
+       prop) so the Settings preview can move the card in place without reloading. */
+    .plate {
+        bottom: 64px;
+        left: 64px;
+        /* Size to the content, the same at every position — a middle card would
+           otherwise only get the half of the frame right of left: 50% and wrap taller. */
+        width: max-content;
+        max-width: calc(100% - 128px);
+    }
+    :global(.frame[data-position^='top']) .plate {
+        top: 64px;
+        bottom: auto;
+    }
+    :global(.frame[data-position$='right']) .plate {
+        right: 64px;
+        left: auto;
+    }
+    :global(.frame[data-position$='middle']) .plate {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+</style>

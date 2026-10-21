@@ -36,6 +36,10 @@ dialog:modal {
 :root {
     --scale: calc(var(--font-scale, 1) * var(--font-user-scale, 1));
 
+    /* Outline weight for shared widget drawings (the moon, the meter) — the e-paper
+       frame raises it to its 3px line weight. */
+    --stroke: 1.5px;
+
     --font-display: clamp(
         calc(2rem * var(--scale)),
         calc(3vw * var(--scale)),
@@ -90,6 +94,20 @@ dialog:modal {
 }
 
 /* ── Semantic type utilities ─────────────────────────────────────────────── */
+/* A progress bar (the Almanac's season): <div class="meter"><div style="width: N%"></div></div>.
+   Rounded and tinted here; the frame route restyles it as an outlined pure-ink bar. */
+.meter {
+    height: 0.25rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--surface-hi);
+}
+.meter > div {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+}
+
 @layer utilities {
     .type-display {
         font-size: var(--font-display);
@@ -108,6 +126,21 @@ dialog:modal {
     }
     .type-caption {
         font-size: var(--font-caption);
+    }
+
+    /* Frame-only display sizes — --font-weekday/-date/-hero/-stamp are set on .frame by
+       routes/frame/+page.svelte and undefined elsewhere. */
+    .type-weekday {
+        font-size: var(--font-weekday);
+    }
+    .type-date {
+        font-size: var(--font-date);
+    }
+    .type-hero {
+        font-size: var(--font-hero);
+    }
+    .type-stamp {
+        font-size: var(--font-stamp);
     }
 
     .icon-lg {

@@ -1,7 +1,7 @@
 /* Widgets that can fill the e-paper frame's Daily-mode columns. The frame redraws
    on a schedule, not live, so only widgets that stay correct for an hour or more
-   belong here — no trains, no now-playing. The masthead (date + weather) and the
-   forecast band are fixed and not listed. */
+   belong here — no trains, no now-playing. The edition bar, masthead (date block,
+   weather and the sun path) and the forecast band are fixed and not listed. */
 export const frameWidgets = [
     { id: 'arc', label: "Today's Arc", description: 'Daylight, golden hours and today’s events as a ribbon' },
     { id: 'today', label: 'Today', description: 'Tasks due today' },
@@ -22,16 +22,17 @@ export interface FrameLayout {
 }
 
 // Always shown on the frame, outside the columns.
-export const fixedFrameHeader = [{ label: 'Date & Weather' }] as const;
+export const fixedFrameHeader = [{ label: 'Edition, Date & Sun Path' }] as const;
 export const fixedFrameFooter = [{ label: '5-Day Forecast' }] as const;
 
 /** Widgets per column. Each widget's item count shrinks to fit what shares its
  *  column (see allocateLines in lib/frame.ts); three is the most that stays legible. */
 export const MAX_COLUMN_WIDGETS = 3;
 
+// The masthead's sun path already shows the day's light, so the Day Arc is off by default.
 export const DEFAULT_FRAME_LAYOUT: FrameLayout = {
-    left: ['arc', 'today'],
-    right: ['coming-up', 'countdowns'],
+    left: ['countdowns', 'today'],
+    right: ['coming-up'],
 };
 
 /** Left column's share of the width, in percent — same 30–70 range as the dashboard. */
@@ -65,17 +66,20 @@ export function clampSplit(value: number): number {
     return Number.isFinite(value) ? Math.min(MAX_SPLIT, Math.max(MIN_SPLIT, Math.round(value))) : DEFAULT_FRAME_SPLIT;
 }
 
-/** Reads `?left=a,b&right=c&split=55` from the frame URL. A missing column param
- *  falls back to the default for that column; an empty one (`left=`) means an
- *  intentionally empty column. */
-export function parseFrameLayout(params: URLSearchParams): FrameLayout & { split: number } {
+/** Reads `?left=a,b&right=c&split=55` from the frame URL. A missing param falls
+ *  back to `fallback` (the saved Settings → Frame layout in a browser, else the
+ *  default); an empty one (`left=`) means an intentionally empty column. */
+export function parseFrameLayout(
+    params: URLSearchParams,
+    fallback: FrameLayout & { split: number } = { ...DEFAULT_FRAME_LAYOUT, split: DEFAULT_FRAME_SPLIT }
+): FrameLayout & { split: number } {
     const column = (key: 'left' | 'right') => {
         const raw = params.get(key);
-        return raw === null ? DEFAULT_FRAME_LAYOUT[key] : raw.split(',').filter(Boolean);
+        return raw === null ? fallback[key] : raw.split(',').filter(Boolean);
     };
     const split = params.get('split');
     return {
         ...normalizeFrameLayout({ left: column('left'), right: column('right') }),
-        split: split === null ? DEFAULT_FRAME_SPLIT : clampSplit(Number(split)),
+        split: clampSplit(split === null ? fallback.split : Number(split)),
     };
 }

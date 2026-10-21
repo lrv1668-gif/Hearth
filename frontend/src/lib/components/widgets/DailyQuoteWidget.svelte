@@ -3,6 +3,7 @@
     import { MINUTE, poll } from '$lib/utils';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
     import { dailyQuoteStore, loadDailyQuote } from '$lib/stores/DailyQuoteStore.svelte.ts';
+    import DailyQuoteView from './views/DailyQuoteView.svelte';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
 
@@ -13,14 +14,5 @@
 </script>
 
 <SkeletonLoader promise={loadPromise}>
-    {#if dailyQuoteStore.error || !dailyQuoteStore.quote}
-        <p class="type-body text-(--text-2)">Quote unavailable.</p>
-    {:else}
-        <div class="flex flex-col gap-3">
-            <p class="type-body leading-relaxed text-(--text-1) italic">
-                "{dailyQuoteStore.quote.q}"
-            </p>
-            <p class="type-label text-(--text-2)">— {dailyQuoteStore.quote.a}</p>
-        </div>
-    {/if}
+    <DailyQuoteView quote={dailyQuoteStore.error ? null : dailyQuoteStore.quote} />
 </SkeletonLoader>

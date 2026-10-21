@@ -1,4 +1,4 @@
-import type { CalendarItem, Task } from '$lib/api';
+import type { AmbientPosition, CalendarItem, CurrentWeather, ForecastDay, Task } from '$lib/api';
 import { eventDateKey, formatTime, localDateKey } from '$lib/utils';
 import type { FrameLayout, FrameWidgetId } from '$lib/constants/frameWidgets';
 
@@ -36,6 +36,19 @@ export function nextEvents(items: CalendarItem[], now: Date, count: number): Cal
  *  exclusive (a one-day event on the 19th ends "…-20"), so it runs while end > today. */
 function allDayRunsThrough(e: CalendarItem, todayKey: string): boolean {
     return e.end ? e.end.slice(0, 10) > todayKey : eventDateKey(e) >= todayKey;
+}
+
+/** The Coming Up rail's day label: "Today", "Tomorrow", a short weekday within the
+ *  week, then "Oct 27". */
+export function railDayLabel(e: CalendarItem, now: Date): string {
+    const start = eventStart(e);
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    const days = Math.round((new Date(start).setHours(0, 0, 0, 0) - today.getTime()) / 86_400_000);
+    if (days <= 0) return 'Today';
+    if (days === 1) return 'Tomorrow';
+    if (days < 7) return start.toLocaleDateString('en-US', { weekday: 'short' });
+    return start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 /** "Today", "Tomorrow", or a short weekday for an event's day. */
@@ -108,6 +121,22 @@ function weekdayLabel(key: string): string {
     return `${d.toLocaleDateString('en-US', { weekday: 'short' })} ${d.getDate()}`;
 }
 
+/** Where Ambient mode's info card can sit — top/bottom row, left/middle/right — in
+ *  picker (reading) order. */
+export const AMBIENT_POSITIONS = [
+    { value: 'top-left', label: 'Top left' },
+    { value: 'top-middle', label: 'Top middle' },
+    { value: 'top-right', label: 'Top right' },
+    { value: 'bottom-left', label: 'Bottom left' },
+    { value: 'bottom-middle', label: 'Bottom middle' },
+    { value: 'bottom-right', label: 'Bottom right' },
+] as const satisfies readonly { value: AmbientPosition; label: string }[];
+export const DEFAULT_AMBIENT_POSITION: AmbientPosition = 'bottom-left';
+
+export function isAmbientPosition(value: string | null | undefined): value is AmbientPosition {
+    return AMBIENT_POSITIONS.some((c) => c.value === value);
+}
+
 export interface FrameOptions {
     mode: 'ambient' | 'daily';
     palette: 'color' | 'bw';
@@ -116,6 +145,7 @@ export interface FrameOptions {
     orientation: 'landscape' | 'portrait';
     layout: FrameLayout;
     split: number;
+    position: AmbientPosition;
 }
 
 /** The /frame URL for a set of options — what the preview (and later the Display
@@ -130,6 +160,7 @@ export function frameUrl(o: FrameOptions): string {
         left: o.layout.left.join(','),
         right: o.layout.right.join(','),
         split: String(o.split),
+        position: o.position,
     });
     return `/frame?${params}`;
 }
@@ -138,13 +169,13 @@ export function frameUrl(o: FrameOptions): string {
    Frame widgets size their lists in "lines": one line of frame body text (48px).
    FrameDaily measures the real column height and body line height at render
    time (so font presets are accounted for); COLUMN_LINES is only the fallback —
-   ~15 lines landscape, ~23 portrait at the default font. Every widget pays for its heading, gaps sit between
-   widgets, and fixed-height widgets (the arc, the moon) take what they need — the
-   rest is split evenly between the widgets whose lists can grow or shrink.     */
-export const COLUMN_LINES = { landscape: 15, portrait: 23 } as const;
-const HEADING_LINES = 1.25;
+   ~15 lines landscape, ~20 portrait at the default font, below the masthead. Every widget pays for its kicker, gaps sit between widgets, and
+   fixed-height widgets (the arc, the moon, the countdown stamps) take what they
+   need — the rest is split evenly between the widgets whose lists can grow.   */
+export const COLUMN_LINES = { landscape: 15, portrait: 20 } as const;
+const HEADING_LINES = 1.05;
 const GAP_LINES = 0.85;
-const FIXED_LINES: Partial<Record<FrameWidgetId, number>> = { arc: 1.7, moon: 2.7 };
+const FIXED_LINES: Partial<Record<FrameWidgetId, number>> = { arc: 1.7, moon: 2.7, countdowns: 4.5 };
 
 /** Content lines (excluding its heading) each widget in a column gets. */
 export function allocateLines(column: readonly FrameWidgetId[], totalLines: number): Map<FrameWidgetId, number> {
@@ -158,4 +189,70 @@ export function allocateLines(column: readonly FrameWidgetId[], totalLines: numb
 /** How many list items of `itemLines` height fit in `lines` (at least 1). */
 export function itemsThatFit(lines: number, itemLines: number): number {
     return Math.max(1, Math.floor(lines / itemLines));
+}
+
+/* ── Almanac edition ──────────────────────────────────────────────────────────
+   Small derivations for the Daily masthead, sun path, stamps and forecast strip. */
+
+/** Day of the year, 1-based — the edition number in the edition bar. */
+export function dayOfYear(now: Date): number {
+    const start = new Date(now.getFullYear(), 0, 1);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((today.getTime() - start.getTime()) / 86_400_000) + 1;
+}
+
+/** How far `now` is through the daylight between sunrise and sunset (0–1), or null
+ *  while the sun is down. */
+export function sunProgress(sunrise: Date, sunset: Date, now: Date): number | null {
+    const span = sunset.getTime() - sunrise.getTime();
+    const elapsed = now.getTime() - sunrise.getTime();
+    if (span <= 0 || elapsed < 0 || elapsed > span) return null;
+    return elapsed / span;
+}
+
+/** "11 h 03 m" between two times. */
+export function durationLabel(from: Date, to: Date): string {
+    const minutes = Math.max(0, Math.round((to.getTime() - from.getTime()) / 60_000));
+    return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} m`;
+}
+
+/** The masthead's one sentence of weather: "Partly cloudy, 58° now and rising to 63°."
+ *  Once the day's high is (about) reached it looks ahead to the low instead. */
+export function weatherSentence(current: CurrentWeather, today: ForecastDay | null): string {
+    const now = Math.round(current.temperature_f);
+    const lead = `${current.description}, ${now}° now`;
+    if (!today) return `${lead}.`;
+    const high = Math.round(today.temp_max_f);
+    const low = Math.round(today.temp_min_f);
+    return high > now ? `${lead} and rising to ${high}°.` : `${lead}, falling to ${low}° tonight.`;
+}
+
+export interface Countdown {
+    task: Task;
+    days: number;
+}
+
+/** Pending countdowns from today on, soonest first. */
+export function upcomingCountdowns(tasks: Task[], now: Date, limit: number): Countdown[] {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return tasks
+        .filter((t) => t.is_countdown && t.due_date && !t.done)
+        .map((task) => ({
+            task,
+            days: Math.round((new Date(`${task.due_date!.slice(0, 10)}T00:00`).getTime() - today) / 86_400_000),
+        }))
+        .filter((c) => c.days >= 0)
+        .sort((a, b) => a.days - b.days)
+        .slice(0, limit);
+}
+
+/** The shared temperature scale for the forecast strip's range bars: each day's
+ *  bar as left offset and width, in percent of the week's lowest low to highest high. */
+export function forecastBars(days: ForecastDay[]): { left: number; width: number }[] {
+    const lo = Math.min(...days.map((d) => d.temp_min_f));
+    const span = Math.max(...days.map((d) => d.temp_max_f)) - lo || 1;
+    return days.map((d) => ({
+        left: ((d.temp_min_f - lo) / span) * 100,
+        width: ((d.temp_max_f - d.temp_min_f) / span) * 100,
+    }));
 }

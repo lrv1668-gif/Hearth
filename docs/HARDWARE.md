@@ -8,7 +8,7 @@ This document covers what to buy and what to build to get Hearth running on a ph
 
 Don't treat "the frame" as one device. Split it into:
 
-1. **The host** — runs the full Docker Compose stack (10 backend services + frontend, soon an 11th Display service). Its power draw is dominated by running Docker/.NET continuously, not by where it physically sits. Hearth is local-first and self-hosted, so the host can live anywhere on the LAN — a closet, a shelf, wherever — it does not need to be inside the frame.
+1. **The host** — runs the full Docker Compose stack (11 backend services, including the Display service, + frontend). Its power draw is dominated by running Docker/.NET continuously, not by where it physically sits. Hearth is local-first and self-hosted, so the host can live anywhere on the LAN — a closet, a shelf, wherever — it does not need to be inside the frame.
 2. **The frame client** — the Pi Zero 2 W mounted on the back of the Inky Impression. It does almost no work: fetch a pre-rendered bitmap over HTTP, push it to the panel via `inky`, listen for button presses, idle. A thin client by necessity, not just preference — with 512 MB of RAM the Zero 2 W can't run the Compose stack or headless Chromium, so all rendering stays on the host.
 
 Conflating these two is how you end up with a Raspberry Pi 5 (~2.7–3W idle) mounted in the frame. Splitting them keeps the frame at well under a watt while the host runs on whatever's convenient.
@@ -76,7 +76,7 @@ In dependency order — panel choice gates the dither target, so it comes first 
 
 1. **Frame-specific render route (frontend)** — ✅ built: `/frame?mode=ambient|daily&palette=color|bw&theme=…&font=…&orientation=…`. A fixed 1600×1200 (or 1200×1600) layout — not a screenshot of `/?kiosk=1`, which is built for a backlit screen and an arbitrary viewport — themed with the `epaper-*` palettes, which use only Spectra 6 inks and dither-safe two-ink mixes. Settings → Frame picks the theme, typeface and orientation, with a live preview and the resulting URL. It sets `data-ready="true"` on its root when the page is ready to capture. See `SOFTWARE-DESIGN.md` → "Frame route".
 
-2. **Display service (new backend service)** — port `8090` is the next free slot (current services run 8081–8089, 8091). Responsibilities:
+2. **Display service** — started: `src/Display` (port 8090) already holds the shared frame settings (`GET`/`PUT /display/settings`, see `SOFTWARE-DESIGN.md` → Display Service), so `/frame` renders the configured look without a long URL. Still to build:
    - On a configurable schedule, render the frame route above to a bitmap (wait for `[data-ready="true"]`). Recommended: headless Chromium (e.g. via Playwright) screenshotting the SvelteKit route at the panel's resolution — reuses all existing widget/layout/theme work instead of re-implementing layout in a second renderer. This is why the arm64-Chromium check under "Host" above matters.
    - Capture at the frame's `orientation` (`landscape` 1600×1200, or `portrait` 1200×1600 for a frame hung on its side) and rotate a portrait capture 90° to the panel's native 1600×1200 before dithering.
    - Dither the screenshot to the six measured, white-balanced Spectra 6 inks — the same values the `epaper-*` palettes in `frontend/src/themes.css` are built from: black `#000000`, white `#ffffff`, yellow `#ffff6e`, red `#f16f74`, blue `#5e5b91`, green `#5a8d6c` (derived from `inky`'s measured palette, scaled so paper white is `#fff`). Pick the method by mode — tested on real frame screenshots:
@@ -84,8 +84,7 @@ In dependency order — panel choice gates the dither target, so it comes first 
      - **Ambient → Floyd–Steinberg.** Error diffusion suits photographs; Bayer crosshatching looks mechanical on them. The ambient card is therefore pure ink only (tints streak under error diffusion).
    - Expose `GET /display/frame` returning the bitmap, with an `ETag` (honoring `If-None-Match`) so the client can poll cheaply and only trigger a full panel refresh when the frame actually changed.
    - Expose the endpoints the buttons and sensor need: e.g. `POST /display/refresh`, `POST /display/mode` (Ambient/Daily, Color/B&W), and `POST /display/presence`. Presence *policy* — dwell times, quiet hours, interaction with the mode schedule — lives here, not on the client.
-   - Evaluate once built whether it needs `IDatabase` at all, or just caches the last-rendered frame in memory/disk.
-   - Once built: add to `docker-compose.yml`, `Caddyfile`, `Hearth.slnx`, and update `SOFTWARE-DESIGN.md`'s service table, per `CLAUDE.md`'s "keep docs in sync" rule. Not done as part of this planning doc — the service doesn't exist yet.
+   - It already has `IDatabase` (`display.db`) for the settings; decide whether the last-rendered frame also goes there or just in memory/disk.
    - **Dithering happens on the host.** `inky`'s `set_image()` always Floyd–Steinberg-dithers RGB input, which would rule out ordered dithering for Daily. It skips dithering (`Dither.NONE`) only for a palette-mode image with exactly six colours, so the service sends the dithered frame as a 6-colour palette PNG in `inky`'s colour order (black, white, yellow, red, blue, green) and the client passes it straight through. This also makes the phone's live preview match the panel pixel-for-pixel.
 
 3. **Frame client (Python on the Zero 2 W)** — lives outside the .NET/Compose stack since it runs on separate physical hardware; not held to `CLAUDE.md`'s backend-service conventions, which are for Compose services.

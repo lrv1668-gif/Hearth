@@ -9,7 +9,9 @@
 
 /* ── Font themes ─────────────────────────────────────────────────────────── */
 /* Each [data-font] block is a complete preset: family stack, the four semantic
-   weights, and a size multiplier. Keep --font-scale within 0.95–1.08 — below
+   weights, and a size multiplier. --display-family is the e-paper frame's
+   masthead and numeral face: Fraunces pairs with every sans preset, and the
+   serif presets set it to their own family. Keep --font-scale within 0.95–1.08 — below
    that, caption text drops under ~8.5px and dithers on the e-paper frame.
    Selectors must stay bare [data-font='id'] (never html[data-font]):
    FontThemePicker.svelte puts data-font on its preview buttons so these same
@@ -25,6 +27,7 @@
     --weight-semibold: 600;
     --weight-bold: 700;
     --font-scale: 1;
+    --display-family: 'Fraunces Variable', Georgia, serif;
     /* User-chosen size from the settings slider — FontSizeStore sets it as an
        inline style on <html>. Composes with the per-preset --font-scale. */
     --font-user-scale: 1;
@@ -72,6 +75,7 @@
     /* Serif hairlines dither on e-paper — nudge regular up; serif reads
        optically smaller at equal rem, hence the scale correction */
     --font-family: 'Source Serif 4 Variable', Georgia, serif;
+    --display-family: var(--font-family);
     --weight-regular: 420;
     --weight-medium: 520;
     --weight-semibold: 600;
@@ -92,6 +96,7 @@
 [data-font='roboto-slab'] {
     /* Sturdy end of the range — 750 ceiling avoids ink-blob at 150 PPI */
     --font-family: 'Roboto Slab Variable', Georgia, serif;
+    --display-family: var(--font-family);
     --weight-regular: 450;
     --weight-medium: 550;
     --weight-semibold: 650;
@@ -102,6 +107,7 @@
 [data-font='lora'] {
     /* Same hairline nudge as source-serif; serif reads optically smaller */
     --font-family: 'Lora Variable', Georgia, serif;
+    --display-family: var(--font-family);
     --weight-regular: 420;
     --weight-medium: 520;
     --weight-semibold: 600;

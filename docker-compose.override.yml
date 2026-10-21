@@ -39,6 +39,10 @@ services:
     ports:
       - "127.0.0.1:8091:8091"
 
+  display:
+    ports:
+      - "127.0.0.1:8090:8090"
+
   frontend:
     build:
       context: ./frontend
@@ -54,6 +58,7 @@ services:
       - BIRDS_URL=http://birds:8088
       - ALMANAC_URL=http://almanac:8089
       - TRAINS_URL=http://trains:8091
+      - DISPLAY_URL=http://display:8090
       - HMR_CLIENT_PORT=80
     develop:
       watch:

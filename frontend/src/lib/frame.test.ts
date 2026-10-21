@@ -1,6 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import type { CalendarItem, Task } from './api';
-import { allocateLines, frameUrl, itemsThatFit, nextEvents, relativeDayLabel, todayTasks, weekAhead } from './frame';
+import type { CalendarItem, CurrentWeather, ForecastDay, Task } from './api';
+import {
+    allocateLines,
+    dayOfYear,
+    durationLabel,
+    forecastBars,
+    frameUrl,
+    isAmbientPosition,
+    itemsThatFit,
+    nextEvents,
+    railDayLabel,
+    relativeDayLabel,
+    sunProgress,
+    todayTasks,
+    upcomingCountdowns,
+    weatherSentence,
+    weekAhead,
+} from './frame';
 
 const now = new Date('2026-10-19T12:00');
 
@@ -110,6 +126,18 @@ describe('relativeDayLabel', () => {
     });
 });
 
+describe('isAmbientPosition', () => {
+    it('accepts the six positions and rejects anything else', () => {
+        expect(
+            ['top-left', 'top-middle', 'top-right', 'bottom-left', 'bottom-middle', 'bottom-right'].every(
+                isAmbientPosition
+            )
+        ).toBe(true);
+        expect(isAmbientPosition('middle')).toBe(false);
+        expect(isAmbientPosition(null)).toBe(false);
+    });
+});
+
 describe('frameUrl', () => {
     it('spells out every option', () => {
         expect(
@@ -121,9 +149,10 @@ describe('frameUrl', () => {
                 orientation: 'portrait',
                 layout: { left: ['today', 'moon'], right: [] },
                 split: 55,
+                position: 'top-middle',
             })
         ).toBe(
-            '/frame?mode=daily&palette=bw&theme=night&font=lora&orientation=portrait&left=today%2Cmoon&right=&split=55'
+            '/frame?mode=daily&palette=bw&theme=night&font=lora&orientation=portrait&left=today%2Cmoon&right=&split=55&position=top-middle'
         );
     });
 });
@@ -170,7 +199,7 @@ describe('weekAhead', () => {
 
 describe('allocateLines', () => {
     it('gives a lone widget the whole column minus its heading', () => {
-        expect(allocateLines(['today'], 12).get('today')).toBeCloseTo(10.75);
+        expect(allocateLines(['today'], 12).get('today')).toBeCloseTo(10.95);
     });
 
     it('gives fixed-height widgets their size and splits the rest between the others', () => {
@@ -178,6 +207,10 @@ describe('allocateLines', () => {
         expect(lines.get('arc')).toBe(1.7);
         expect(lines.get('today')).toBeCloseTo(lines.get('week')!);
         expect(lines.get('today')!).toBeLessThan(5);
+    });
+
+    it('treats countdown stamps as fixed height', () => {
+        expect(allocateLines(['countdowns', 'today'], 12).get('countdowns')).toBe(4.5);
     });
 
     it('never hands out negative space', () => {
@@ -189,5 +222,107 @@ describe('itemsThatFit', () => {
     it('floors to whole items but always shows one', () => {
         expect(itemsThatFit(5, 2)).toBe(2);
         expect(itemsThatFit(0, 2)).toBe(1);
+    });
+});
+
+function forecast(overrides: Partial<ForecastDay>): ForecastDay {
+    return {
+        date: '2026-10-19',
+        weather_code: 2,
+        description: 'Partly cloudy',
+        temp_max_f: 63,
+        temp_min_f: 47,
+        sunrise: '2026-10-19T07:21',
+        sunset: '2026-10-19T18:24',
+        ...overrides,
+    };
+}
+
+const current: CurrentWeather = {
+    temperature_f: 58.4,
+    weather_code: 2,
+    description: 'Partly cloudy',
+    wind_mph: 4,
+    fetched_at: '2026-10-19T12:00:00Z',
+    uv_index: null,
+    us_aqi: null,
+};
+
+describe('railDayLabel', () => {
+    it('names today, tomorrow, the weekday within a week, then the date', () => {
+        expect(railDayLabel(event({ start: '2026-10-19T16:15' }), now)).toBe('Today');
+        expect(railDayLabel(event({ start: '2026-10-20T09:00' }), now)).toBe('Tomorrow');
+        expect(railDayLabel(event({ start: '2026-10-24', is_all_day: true }), now)).toBe('Sat');
+        expect(railDayLabel(event({ start: '2026-10-27T09:30' }), now)).toBe('Oct 27');
+    });
+});
+
+describe('dayOfYear', () => {
+    it('counts from January 1st as day 1', () => {
+        expect(dayOfYear(new Date('2026-01-01T08:00'))).toBe(1);
+        expect(dayOfYear(new Date('2026-10-20T23:00'))).toBe(293);
+    });
+});
+
+describe('sunProgress', () => {
+    const rise = new Date('2026-10-19T07:00');
+    const set = new Date('2026-10-19T19:00');
+
+    it('is the fraction of daylight elapsed', () => {
+        expect(sunProgress(rise, set, new Date('2026-10-19T13:00'))).toBeCloseTo(0.5);
+    });
+
+    it('is null while the sun is down', () => {
+        expect(sunProgress(rise, set, new Date('2026-10-19T05:00'))).toBeNull();
+        expect(sunProgress(rise, set, new Date('2026-10-19T21:00'))).toBeNull();
+    });
+});
+
+describe('durationLabel', () => {
+    it('formats hours and zero-padded minutes', () => {
+        expect(durationLabel(new Date('2026-10-19T07:21'), new Date('2026-10-19T18:24'))).toBe('11 h 03 m');
+    });
+});
+
+describe('weatherSentence', () => {
+    it('looks ahead to the high while it is still warming', () => {
+        expect(weatherSentence(current, forecast({}))).toBe('Partly cloudy, 58° now and rising to 63°.');
+    });
+
+    it('looks ahead to the low once the high is reached', () => {
+        expect(weatherSentence({ ...current, temperature_f: 63 }, forecast({}))).toBe(
+            'Partly cloudy, 63° now, falling to 47° tonight.'
+        );
+    });
+
+    it('stops after the current reading without a forecast', () => {
+        expect(weatherSentence(current, null)).toBe('Partly cloudy, 58° now.');
+    });
+});
+
+describe('upcomingCountdowns', () => {
+    it('keeps pending countdowns from today on, soonest first', () => {
+        const tasks = [
+            task({ id: 1, is_countdown: true, due_date: '2026-10-31' }),
+            task({ id: 2, is_countdown: true, due_date: '2026-10-19' }),
+            task({ id: 3, is_countdown: true, due_date: '2026-10-10' }),
+            task({ id: 4, is_countdown: true, due_date: '2026-10-22', done: true }),
+            task({ id: 5, due_date: '2026-10-20' }),
+        ];
+        expect(upcomingCountdowns(tasks, now, 5).map((c) => [c.task.id, c.days])).toEqual([
+            [2, 0],
+            [1, 12],
+        ]);
+    });
+});
+
+describe('forecastBars', () => {
+    it("places every day on the week's shared scale", () => {
+        const bars = forecastBars([
+            forecast({ temp_min_f: 40, temp_max_f: 60 }),
+            forecast({ temp_min_f: 50, temp_max_f: 80 }),
+        ]);
+        expect(bars[0]).toEqual({ left: 0, width: 50 });
+        expect(bars[1]).toEqual({ left: 25, width: 75 });
     });
 });

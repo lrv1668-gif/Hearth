@@ -14,12 +14,14 @@
 {#if tasks.length === 0}
     <p class="type-body text-(--text-2)">Nothing due today.</p>
 {:else}
+    <!-- A ledger: box, title, then a dotted leader running to the due time. -->
     <ul class="space-y-4">
         {#each tasks.slice(0, limit) as task (task.id)}
-            <li class="flex items-baseline gap-4">
-                <span class="h-6 w-6 shrink-0 translate-y-0.5 border-2 border-(--border)"></span>
-                <span class="type-body min-w-0 flex-1 truncate">{task.title}</span>
+            <li class="flex items-baseline gap-6">
+                <span class="h-6.5 w-6.5 shrink-0 translate-y-0.5 border-3 border-(--border)"></span>
+                <span class="type-body min-w-0 truncate {task.due_time ? '' : 'flex-1'}">{task.title}</span>
                 {#if task.due_time}
+                    <span class="min-w-6 flex-1 -translate-y-2 border-b-3 border-dotted border-(--border)"></span>
                     <span class="type-label text-(--text-2)">{formatTime(task.due_time)}</span>
                 {/if}
             </li>

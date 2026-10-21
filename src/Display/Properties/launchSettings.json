@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Display": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:8090"
+    }
+  }
+}

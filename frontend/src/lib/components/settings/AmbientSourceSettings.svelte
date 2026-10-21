@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { api } from '$lib/api';
 
     const sourceLabels: Record<string, string> = {
@@ -21,9 +21,9 @@
 <div class="flex flex-wrap gap-2">
     {#each options as src}
         <button
-            onclick={() => (settings.photoSource = src)}
+            onclick={() => (frameSettings.photoSource = src)}
             class="type-label rounded-full border px-4 py-1.5 tracking-wide transition-colors
-                {settings.photoSource === src
+                {frameSettings.photoSource === src
                 ? 'pointer-events-none border-(--text-1) bg-(--text-1) text-(--bg)'
                 : 'border-(--border) text-(--text-1) hover:border-(--text-2) hover:bg-(--surface-hi)'}"
         >

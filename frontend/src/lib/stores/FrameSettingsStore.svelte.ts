@@ -1,0 +1,150 @@
+import { browser } from '$app/environment';
+import { api, type AmbientPosition, type FrameSettings } from '$lib/api';
+import { DEFAULT_AMBIENT_POSITION, isAmbientPosition } from '$lib/frame';
+import { categoryOptions } from '$lib/constants/ambient';
+import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
+import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '$lib/constants/frameThemes';
+import { DEFAULT_FONT_THEME, isValidFontThemeId, type FontThemeId } from '$lib/constants/fontThemes';
+import {
+    clampSplit,
+    DEFAULT_FRAME_LAYOUT,
+    DEFAULT_FRAME_SPLIT,
+    MAX_COLUMN_WIDGETS,
+    normalizeFrameLayout,
+    type FrameLayout,
+    type FrameWidgetId,
+} from '$lib/constants/frameWidgets';
+
+/** Where SettingsStore parks frame settings it finds in an old localStorage snapshot,
+ *  so they can be moved to the Display service once (see loadFrameSettings). */
+export const LEGACY_FRAME_SETTINGS_KEY = 'hearth-frame-legacy';
+
+const SAVE_DELAY_MS = 400;
+
+/**
+ * The e-paper frame's look, Daily layout and Ambient photos. One shared copy lives in
+ * the Display service — the frame is a single physical display, so every client edits
+ * the same settings and the frame's headless renderer reads them too. The browser
+ * /ambient slideshow draws from the same photo source and categories.
+ */
+class FrameSettingsStore {
+    theme = $state<FrameThemeId>(DEFAULT_FRAME_THEME);
+    font = $state<FontThemeId>(DEFAULT_FONT_THEME);
+    orientation = $state<'landscape' | 'portrait'>('landscape');
+    layout = $state<FrameLayout>(DEFAULT_FRAME_LAYOUT);
+    split = $state(DEFAULT_FRAME_SPLIT);
+    ambientPosition = $state<AmbientPosition>(DEFAULT_AMBIENT_POSITION);
+    photoSource = $state<PhotoSource>('unsplash');
+    photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);
+    /** True once the Display service has answered (or failed to). */
+    loaded = $state(false);
+    /** The Display service couldn't be reached — showing (and not saving) defaults. */
+    error = $state(false);
+
+    toggleCategory(cat: PhotoCategory) {
+        this.photoCategories = this.photoCategories.includes(cat)
+            ? this.photoCategories.filter((c) => c !== cat)
+            : [...this.photoCategories, cat];
+    }
+
+    /** Removes the widget, or adds it to the column with more room (no-op if both are full). */
+    toggleWidget(id: FrameWidgetId) {
+        const { left, right } = normalizeFrameLayout(this.layout);
+        if (left.includes(id) || right.includes(id)) {
+            this.layout = { left: left.filter((w) => w !== id), right: right.filter((w) => w !== id) };
+        } else if (Math.min(left.length, right.length) < MAX_COLUMN_WIDGETS) {
+            this.layout =
+                left.length <= right.length ? { left: [...left, id], right } : { left, right: [...right, id] };
+        }
+    }
+
+    snapshot(): FrameSettings {
+        const { left, right } = normalizeFrameLayout(this.layout);
+        return {
+            theme: this.theme,
+            font: this.font,
+            orientation: this.orientation,
+            left,
+            right,
+            split: this.split,
+            ambient_position: this.ambientPosition,
+            photo_source: this.photoSource,
+            photo_categories: this.photoCategories,
+        };
+    }
+
+    /** Applies saved settings, dropping ids this frontend doesn't know. */
+    apply(saved: Partial<FrameSettings>) {
+        if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
+        if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
+        if (saved.orientation === 'landscape' || saved.orientation === 'portrait') this.orientation = saved.orientation;
+        if (saved.left && saved.right) this.layout = normalizeFrameLayout({ left: saved.left, right: saved.right });
+        if (typeof saved.split === 'number') this.split = clampSplit(saved.split);
+        if (isAmbientPosition(saved.ambient_position)) this.ambientPosition = saved.ambient_position;
+        if (saved.photo_source) this.photoSource = saved.photo_source;
+        if (Array.isArray(saved.photo_categories)) {
+            this.photoCategories = saved.photo_categories.filter((c): c is PhotoCategory =>
+                categoryOptions.some((o) => o.id === c)
+            );
+        }
+    }
+}
+
+export const frameSettings = new FrameSettingsStore();
+
+/** Loads the shared settings. If none are saved yet but this browser has frame
+ *  settings from before they moved to the server, those are uploaded once. */
+export async function loadFrameSettings() {
+    const saved = await api.display.settings();
+    if (saved === undefined) {
+        frameSettings.error = true;
+    } else {
+        frameSettings.error = false;
+        if (saved) frameSettings.apply(saved);
+        else await migrateLegacy();
+    }
+    frameSettings.loaded = true;
+}
+
+async function migrateLegacy() {
+    if (!browser) return;
+    const raw = localStorage.getItem(LEGACY_FRAME_SETTINGS_KEY);
+    if (!raw) return;
+    try {
+        frameSettings.apply(JSON.parse(raw));
+        await api.display.saveSettings(frameSettings.snapshot());
+        localStorage.removeItem(LEGACY_FRAME_SETTINGS_KEY);
+    } catch {
+        // keep the legacy copy for the next attempt
+    }
+}
+
+/**
+ * Saves every change back to the Display service, debounced so dragging the split or
+ * a widget sends one request. Call once the settings have loaded (it skips the
+ * initial values); returns the cleanup for onMount.
+ */
+export function syncFrameSettings(): () => void {
+    let last = JSON.stringify(frameSettings.snapshot());
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stop = $effect.root(() => {
+        $effect(() => {
+            const next = frameSettings.snapshot();
+            const json = JSON.stringify(next);
+            if (json === last || frameSettings.error) return;
+            clearTimeout(timer);
+            timer = setTimeout(async () => {
+                try {
+                    await api.display.saveSettings(next);
+                    last = json;
+                } catch {
+                    frameSettings.error = true;
+                }
+            }, SAVE_DELAY_MS);
+        });
+    });
+    return () => {
+        clearTimeout(timer);
+        stop();
+    };
+}

@@ -35,7 +35,18 @@ const INKS = ['#000000', '#ffffff', '#ffff6e', '#f16f74', '#5e5b91', '#5a8d6c'];
 const MIXES = ['#fffedb', '#fffeb6', '#f8b771', '#2f2e49'];
 // Tokens drawn as text, icons or thin lines — these must be a pure ink, since a
 // dithered mix breaks thin strokes apart.
-const LINE_TOKENS = ['border', 'text-1', 'text-2', 'text-3', 'text-4', 'accent', 'done', 'arc-outline'];
+const LINE_TOKENS = [
+    'border',
+    'text-1',
+    'text-2',
+    'text-3',
+    'text-4',
+    'accent',
+    'done',
+    'arc-outline',
+    'block',
+    'on-block',
+];
 
 describe('theme contrast', () => {
     it('parses every theme', () => {
@@ -73,6 +84,10 @@ describe('frame palettes', () => {
     });
 
     // The forecast band sits on --surface, so its type must read there too.
+    it.each(frameCss)('$id: --on-block is legible on --block', ({ tokens }) => {
+        expect(contrast(tokens['on-block'], tokens['block'])).toBeGreaterThanOrEqual(4.5);
+    });
+
     it.each(frameCss)('$id: text is legible on --surface', ({ tokens }) => {
         expect(contrast(tokens['text-1'], tokens['surface'])).toBeGreaterThanOrEqual(7);
         expect(contrast(tokens['text-2'], tokens['surface'])).toBeGreaterThanOrEqual(3);

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { Monitor, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
     import Toggle from '$lib/components/Toggle.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
@@ -9,6 +10,7 @@
     import AmbientCategorySettings from '$lib/components/settings/AmbientCategorySettings.svelte';
     import LocalPhotosSettings from '$lib/components/settings/LocalPhotosSettings.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+    import { frameSettings, loadFrameSettings, syncFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import WidgetVisibilityList from '$lib/components/settings/WidgetVisibilityList.svelte';
     import WidgetLayoutEditor from '$lib/components/settings/WidgetLayoutEditor.svelte';
     import FramePreview from '$lib/components/settings/FramePreview.svelte';
@@ -39,7 +41,7 @@
     const sections = [
         { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · type', icon: Monitor },
         { id: 'dashboard' as SectionId, label: 'Dashboard', subtitle: 'Widgets · layout', icon: LayoutList },
-        { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · cadence & source', icon: Image },
+        { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · slideshow', icon: Image },
         { id: 'connections' as SectionId, label: 'Connections', subtitle: 'Spotify · calendar', icon: Plug },
         { id: 'frame' as SectionId, label: 'Frame', subtitle: 'E-paper look · kiosk', icon: Tv },
     ] as const;
@@ -55,23 +57,41 @@
         },
         ambient: {
             heading: 'Ambient Mode',
-            description: 'Configure the photo source, cycling cadence, and category filters.',
+            description:
+                'Choose the photos for Ambient mode — shared by the frame and every device — and how this browser’s slideshow plays them.',
         },
         connections: {
             heading: 'Connections',
             description: 'Connect and manage external services like Spotify and weather providers.',
         },
-        frame: { heading: 'Frame', description: 'Control how Hearth presents itself on this device.' },
+        frame: {
+            heading: 'Frame',
+            description: 'Control how the e-paper frame looks. These settings are shared by every device.',
+        },
         about: { heading: 'About Hearth', description: 'Version information, acknowledgements, and credits.' },
     };
 
     // Shared by the Dashboard and Frame sections' Visibility and Layout cards.
     const dashboardLabel = (id: string) => allWidgets.find((w) => w.id === id)?.label ?? id;
     const frameLabel = (id: string) => frameWidgets.find((w) => w.id === id)?.label ?? id;
-    const frameLayout = $derived(normalizeFrameLayout(settings.frameLayout));
+    const frameLayout = $derived(normalizeFrameLayout(frameSettings.layout));
     const frameUsed = (id: string) =>
         frameLayout.left.includes(id as FrameWidgetId) || frameLayout.right.includes(id as FrameWidgetId);
     const frameFull = $derived(Math.min(frameLayout.left.length, frameLayout.right.length) >= MAX_COLUMN_WIDGETS);
+
+    // Frame settings are shared through the Display service: load them, then save
+    // each change back.
+    onMount(() => {
+        let stopSync: (() => void) | undefined;
+        let cancelled = false;
+        loadFrameSettings().then(() => {
+            if (!cancelled) stopSync = syncFrameSettings();
+        });
+        return () => {
+            cancelled = true;
+            stopSync?.();
+        };
+    });
 
     let active = $state<SectionId>('display');
     const section = $derived(content[active]);
@@ -207,26 +227,31 @@
             {#snippet categories()}<AmbientCategorySettings />{/snippet}
             {#snippet localPhotos()}<LocalPhotosSettings />{/snippet}
             <div class="flex flex-col gap-4">
+                {#if frameSettings.error}
+                    <p class="type-label text-(--accent)">
+                        Can't reach the Display service — photo choices here won't be saved or reach the frame.
+                    </p>
+                {/if}
                 {@render card(
                     'Photo source',
-                    'Choose curated Unsplash photos, your own uploads, or a mix of both.',
+                    'Curated Unsplash photos, your own uploads, or a mix of both — for the frame and every device.',
                     source
                 )}
-                {@render card(
-                    'Cadence & motion',
-                    'How often photos cycle — with a slower pace at night — and whether they drift.',
-                    cadence
-                )}
-                {#if settings.photoSource === 'unsplash' || settings.photoSource === 'both'}
+                {#if frameSettings.photoSource === 'unsplash' || frameSettings.photoSource === 'both'}
                     {@render card(
-                        'Categories & attribution',
-                        'Filter by category and control photographer attribution.',
+                        'Categories',
+                        'Which Unsplash photos to draw from. Shared with the frame.',
                         categories
                     )}
                 {/if}
-                {#if settings.photoSource === 'local' || settings.photoSource === 'both'}
+                {#if frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both'}
                     {@render card('My photos', 'Upload and manage your local photo collection.', localPhotos)}
                 {/if}
+                {@render card(
+                    'Browser slideshow',
+                    'How often the /ambient slideshow in this browser changes photo — slower at night — and whether photos drift. The frame keeps its own schedule.',
+                    cadence
+                )}
             </div>
         {:else if active === 'connections'}
             {#snippet spotifyContent()}<SpotifyConnectionSettings />{/snippet}
@@ -264,13 +289,18 @@
                 {/if}
             {/snippet}
             {#snippet frameAppearanceContent()}
+                {#if frameSettings.error}
+                    <p class="type-label mb-4 text-(--accent)">
+                        Can't reach the Display service — changes here won't be saved or reach the frame.
+                    </p>
+                {/if}
                 <FrameAppearanceSettings />
             {/snippet}
             {#snippet frameVisibility()}
                 <WidgetVisibilityList
                     widgets={frameWidgets}
                     isOn={frameUsed}
-                    ontoggle={(id) => settings.toggleFrameWidget(id as FrameWidgetId)}
+                    ontoggle={(id) => frameSettings.toggleWidget(id as FrameWidgetId)}
                     isBlocked={() => frameFull}
                     fixed={[
                         ...fixedFrameHeader.map((w) => ({ label: w.label, caption: 'Fixed at the top of the frame' })),
@@ -286,16 +316,16 @@
                     dragType="frame-widget"
                     columns={frameLayout}
                     labelFor={frameLabel}
-                    onchange={(c) => (settings.frameLayout = normalizeFrameLayout(c))}
-                    width={settings.frameSplit}
-                    onwidthchange={(w) => (settings.frameSplit = w)}
+                    onchange={(c) => (frameSettings.layout = normalizeFrameLayout(c))}
+                    width={frameSettings.split}
+                    onwidthchange={(w) => (frameSettings.split = w)}
                     header={fixedFrameHeader}
                     footer={fixedFrameFooter}
                     maxPerColumn={MAX_COLUMN_WIDGETS}
                 />
                 <p class="type-caption mt-2 text-(--text-2)">
-                    Lists shrink to fit what shares their column. In portrait the left column stacks above the right,
-                    full width.
+                    Lists shrink to fit what shares their column. Portrait keeps the two columns side by side, so they
+                    are narrower.
                 </p>
             {/snippet}
             {#snippet framePreviewContent()}

@@ -39,6 +39,9 @@
     handle /trains* {
         reverse_proxy trains:8091
     }
+    handle /display* {
+        reverse_proxy display:8090
+    }
     handle {
         reverse_proxy frontend:3000
     }

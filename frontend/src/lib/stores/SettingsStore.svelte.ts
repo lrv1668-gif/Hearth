@@ -1,17 +1,7 @@
 import { browser } from '$app/environment';
-import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
 import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
 import { DEFAULT_TRAIN_STOPS, type TrainStop } from '$lib/constants/trains';
-import { DEFAULT_FRAME_THEME, type FrameThemeId } from '$lib/constants/frameThemes';
-import { DEFAULT_FONT_THEME, type FontThemeId } from '$lib/constants/fontThemes';
-import {
-    DEFAULT_FRAME_LAYOUT,
-    DEFAULT_FRAME_SPLIT,
-    MAX_COLUMN_WIDGETS,
-    normalizeFrameLayout,
-    type FrameLayout,
-    type FrameWidgetId,
-} from '$lib/constants/frameWidgets';
+import { LEGACY_FRAME_SETTINGS_KEY } from '$lib/stores/FrameSettingsStore.svelte.ts';
 import {
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
@@ -25,9 +15,6 @@ class SettingsStore {
     cadenceSeconds = $state(120);
     nightCadenceSeconds = $state<number | null>(null); // null = same as day
     ambientMotion = $state(true);
-    photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);
-    photoSource = $state<PhotoSource>('unsplash');
-    showAttribution = $state(true);
     enabledWidgets = $state<WidgetId[]>(DEFAULT_ENABLED_WIDGETS_IDS);
     widgetColumns = $state<{ left: AllWidgetId[]; right: AllWidgetId[] }>(DEFAULT_WIDGET_COLUMNS);
     leftColumnWidth = $state(60);
@@ -35,19 +22,6 @@ class SettingsStore {
     rssFeeds = $state<RssFeed[]>(DEFAULT_RSS_FEEDS);
     trainStops = $state<TrainStop[]>(DEFAULT_TRAIN_STOPS);
     kioskMode = $state(false);
-    // E-paper frame appearance, chosen in Settings → Frame. These build the /frame
-    // URL; the frame itself reads only its URL (a headless renderer has no storage).
-    frameTheme = $state<FrameThemeId>(DEFAULT_FRAME_THEME);
-    frameFont = $state<FontThemeId>(DEFAULT_FONT_THEME);
-    frameOrientation = $state<'landscape' | 'portrait'>('landscape');
-    frameLayout = $state<FrameLayout>(DEFAULT_FRAME_LAYOUT);
-    frameSplit = $state(DEFAULT_FRAME_SPLIT);
-
-    toggleCategory(cat: PhotoCategory) {
-        this.photoCategories = this.photoCategories.includes(cat)
-            ? this.photoCategories.filter((c) => c !== cat)
-            : [...this.photoCategories, cat];
-    }
 
     toggleWidget(id: WidgetId) {
         const inColumns =
@@ -68,18 +42,6 @@ class SettingsStore {
             this.enabledWidgets = [...this.enabledWidgets, id];
         }
     }
-
-    /** Frame counterpart of toggleWidget: removes the widget, or adds it to the
-     *  column with more room (no-op if both are full). */
-    toggleFrameWidget(id: FrameWidgetId) {
-        const { left, right } = normalizeFrameLayout(this.frameLayout);
-        if (left.includes(id) || right.includes(id)) {
-            this.frameLayout = { left: left.filter((w) => w !== id), right: right.filter((w) => w !== id) };
-        } else if (Math.min(left.length, right.length) < MAX_COLUMN_WIDGETS) {
-            this.frameLayout =
-                left.length <= right.length ? { left: [...left, id], right } : { left, right: [...right, id] };
-        }
-    }
 }
 
 function createSettings(): SettingsStore {
@@ -88,7 +50,37 @@ function createSettings(): SettingsStore {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-            Object.assign(store, JSON.parse(raw));
+            const {
+                frameTheme,
+                frameFont,
+                frameOrientation,
+                frameLayout,
+                frameSplit,
+                photoSource,
+                photoCategories,
+                showAttribution: _attribution, // dropped: Unsplash credit is always shown
+                ...rest
+            } = JSON.parse(raw);
+            Object.assign(store, rest);
+            // Frame and photo settings now live in the Display service
+            // (FrameSettingsStore). Park any from an older snapshot so they can be
+            // uploaded once, before this store's next save drops them.
+            const hasLegacy = frameTheme !== undefined || photoSource !== undefined;
+            if (hasLegacy && localStorage.getItem(LEGACY_FRAME_SETTINGS_KEY) === null) {
+                localStorage.setItem(
+                    LEGACY_FRAME_SETTINGS_KEY,
+                    JSON.stringify({
+                        theme: frameTheme,
+                        font: frameFont,
+                        orientation: frameOrientation,
+                        left: frameLayout?.left,
+                        right: frameLayout?.right,
+                        split: frameSplit,
+                        photo_source: photoSource,
+                        photo_categories: photoCategories,
+                    })
+                );
+            }
 
             // Merge any widgets added after this settings snapshot was saved.
             const storedIds = new Set([...store.widgetColumns.left, ...store.widgetColumns.right]);
@@ -127,9 +119,6 @@ if (browser) {
                     cadenceSeconds: settings.cadenceSeconds,
                     nightCadenceSeconds: settings.nightCadenceSeconds,
                     ambientMotion: settings.ambientMotion,
-                    photoCategories: settings.photoCategories,
-                    photoSource: settings.photoSource,
-                    showAttribution: settings.showAttribution,
                     enabledWidgets: settings.enabledWidgets,
                     widgetColumns: settings.widgetColumns,
                     leftColumnWidth: settings.leftColumnWidth,
@@ -137,11 +126,6 @@ if (browser) {
                     rssFeeds: settings.rssFeeds,
                     trainStops: settings.trainStops,
                     kioskMode: settings.kioskMode,
-                    frameTheme: settings.frameTheme,
-                    frameFont: settings.frameFont,
-                    frameOrientation: settings.frameOrientation,
-                    frameLayout: settings.frameLayout,
-                    frameSplit: settings.frameSplit,
                 })
             );
         });

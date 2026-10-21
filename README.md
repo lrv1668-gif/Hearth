@@ -158,7 +158,7 @@ npm install   # first time only
 npm run dev
 ```
 
-Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, `/rss` → `http://localhost:8085`, `/quote` → `http://localhost:8086`, `/calendar` → `http://localhost:8087`, `/birds` → `http://localhost:8088`, `/almanac` → `http://localhost:8089`, and `/trains` → `http://localhost:8091`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
+Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, `/rss` → `http://localhost:8085`, `/quote` → `http://localhost:8086`, `/calendar` → `http://localhost:8087`, `/birds` → `http://localhost:8088`, `/almanac` → `http://localhost:8089`, `/display` → `http://localhost:8090`, and `/trains` → `http://localhost:8091`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
 
 ## Tech Stack
 

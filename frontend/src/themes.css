@@ -395,6 +395,10 @@
    - Fills may be a mix of two inks close in lightness (white+yellow,
      yellow+red), which dither into an even texture. Mixes of far-apart inks
      (white+black grey, white+blue) dither into visible speckle — avoid them.
+   --block is the theme's boldest pure ink, for large solid shapes (the date
+   block, the sun path's elapsed daylight, today's rail pins) — a pure-ink fill
+   never dithers, so it can be used boldly where a tint could not; type on it
+   uses --on-block.
    The --arc-* tokens recolour the Day Arc ribbon, which otherwise relies on
    opacity; other themes leave them unset and fall back to normal tokens.   */
 [data-theme='epaper-bw'] {
@@ -412,6 +416,8 @@
     --accent: #000000;
     --accent-hi: #000000;
     --accent-fg: #ffffff;
+    --block: #000000;
+    --on-block: #ffffff;
     --arc-night: #000000;
     --arc-day: #ffffff;
     --arc-golden: #ffffff;
@@ -438,6 +444,8 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #5e5b91;
+    --on-block: #ffffff;
     --arc-night: #5e5b91;
     --arc-day: #fffeb6; /* butter */
     --arc-golden: #f8b771; /* amber — yellow + 50% red */
@@ -459,6 +467,8 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #5a8d6c;
+    --on-block: #000000;
     --arc-night: #5a8d6c;
     --arc-day: #fffeb6;
     --arc-golden: #f8b771;
@@ -480,6 +490,8 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #5e5b91;
+    --on-block: #ffffff;
     --arc-night: #5e5b91;
     --arc-day: #ffffff;
     --arc-golden: #f16f74;
@@ -502,9 +514,59 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #f16f74;
+    --on-block: #000000;
     --arc-night: #000000;
     --arc-day: #fffeb6;
     --arc-golden: #f16f74;
+}
+
+[data-theme='epaper-marigold'] {
+    /* Marigold — black type and blocks, a butter-yellow band and yellow daylight
+       on the arc; red marks "now". Yellow never draws marks: it nearly vanishes
+       on white, so --block stays black. */
+    --bg: #ffffff;
+    --surface: #fffeb6;
+    --surface-hi: #fffeb6;
+    --border: #000000;
+    --text-1: #000000;
+    --text-2: #000000;
+    --text-3: #000000;
+    --text-4: #000000;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --block: #000000;
+    --on-block: #ffffff;
+    --arc-night: #000000;
+    --arc-day: #ffff6e;
+    --arc-golden: #f8b771;
+}
+
+[data-theme='epaper-postbox'] {
+    /* Postbox — red blocks and rules, blue secondary type, and blue as the "now"
+       signal; no tints, so nothing on the page is dithered. */
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-hi: #ffffff;
+    --border: #f16f74;
+    --text-1: #000000;
+    --text-2: #5e5b91;
+    --text-3: #5e5b91;
+    --text-4: #5e5b91;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #5e5b91;
+    --accent-hi: #5e5b91;
+    --accent-fg: #ffffff;
+    --block: #f16f74;
+    --on-block: #000000;
+    --arc-night: #5e5b91;
+    --arc-day: #ffffff;
+    --arc-golden: #f16f74;
+    --arc-outline: #5e5b91;
 }
 
 [data-theme='epaper-night'] {
@@ -523,6 +585,8 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #5e5b91;
+    --on-block: #ffffff;
     --arc-night: #5e5b91;
     --arc-day: #ffff6e;
     --arc-golden: #f8b771;
@@ -544,6 +608,8 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #000000;
+    --on-block: #ffffff;
     --arc-night: #000000;
     --arc-day: #ffffff;
     --arc-golden: #f8b771;
@@ -566,6 +632,8 @@
     --accent: #5e5b91;
     --accent-hi: #5e5b91;
     --accent-fg: #ffffff;
+    --block: #5e5b91;
+    --on-block: #ffffff;
     --arc-night: #5e5b91;
     --arc-day: #fffedb;
     --arc-golden: #ffff6e;
@@ -587,6 +655,8 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #f16f74;
+    --on-block: #000000;
     --arc-night: #5a8d6c;
     --arc-day: #fffeb6;
     --arc-golden: #f8b771;
@@ -608,7 +678,55 @@
     --accent: #f16f74;
     --accent-hi: #f16f74;
     --accent-fg: #000000;
+    --block: #f16f74;
+    --on-block: #000000;
     --arc-night: #f16f74;
+    --arc-day: #ffff6e;
+    --arc-golden: #f8b771;
+}
+
+[data-theme='epaper-moss'] {
+    /* Moss — dark: white and green type on black, green blocks, a yellow sun for
+       "now"; no fills. */
+    --bg: #000000;
+    --surface: #000000;
+    --surface-hi: #000000;
+    --border: #5a8d6c;
+    --text-1: #ffffff;
+    --text-2: #5a8d6c;
+    --text-3: #5a8d6c;
+    --text-4: #5a8d6c;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #ffff6e;
+    --accent-hi: #ffff6e;
+    --accent-fg: #000000;
+    --block: #5a8d6c;
+    --on-block: #000000;
+    --arc-night: #5a8d6c;
+    --arc-day: #ffff6e;
+    --arc-golden: #f8b771;
+}
+
+[data-theme='epaper-lantern'] {
+    /* Lantern — dark: white type with yellow secondary type, rules and blocks on
+       black, red for "now"; no fills. */
+    --bg: #000000;
+    --surface: #000000;
+    --surface-hi: #000000;
+    --border: #ffff6e;
+    --text-1: #ffffff;
+    --text-2: #ffff6e;
+    --text-3: #ffff6e;
+    --text-4: #ffff6e;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --block: #ffff6e;
+    --on-block: #000000;
+    --arc-night: #5e5b91;
     --arc-day: #ffff6e;
     --arc-golden: #f8b771;
 }
@@ -628,6 +746,8 @@
     --accent: #ffffff;
     --accent-hi: #ffffff;
     --accent-fg: #000000;
+    --block: #ffffff;
+    --on-block: #000000;
     --arc-night: #ffffff;
     --arc-day: #000000;
     --arc-golden: #000000;

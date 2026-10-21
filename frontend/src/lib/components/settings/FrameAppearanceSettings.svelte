@@ -1,8 +1,9 @@
 <script lang="ts">
     import { frameThemes } from '$lib/constants/frameThemes';
     import { fontThemes } from '$lib/constants/fontThemes';
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
+    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import SegmentedControl from './SegmentedControl.svelte';
+    import { AMBIENT_POSITIONS } from '$lib/frame';
 </script>
 
 <div class="@container flex flex-col gap-6">
@@ -12,9 +13,9 @@
         <!-- Container-based columns: this card may sit in a narrow column beside the preview -->
         <div class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @3xl:grid-cols-5">
             {#each frameThemes as t (t.id)}
-                {@const selected = settings.frameTheme === t.id}
+                {@const selected = frameSettings.theme === t.id}
                 <button
-                    onclick={() => (settings.frameTheme = t.id)}
+                    onclick={() => (frameSettings.theme = t.id)}
                     aria-pressed={selected}
                     style={selected ? 'outline: 2px solid var(--accent); outline-offset: 2px;' : ''}
                     class="flex flex-col overflow-hidden rounded-xl border-2 bg-(--surface) text-left transition-all
@@ -43,8 +44,8 @@
                 <!-- data-font scopes the preset's [data-font] block to this chip -->
                 <button
                     data-font={f.id}
-                    onclick={() => (settings.frameFont = f.id)}
-                    aria-pressed={settings.frameFont === f.id}
+                    onclick={() => (frameSettings.font = f.id)}
+                    aria-pressed={frameSettings.font === f.id}
                     class="type-label rounded-lg border border-(--border) px-3 py-1.5 text-(--text-2) transition-colors
                         hover:text-(--text-1) aria-pressed:border-(--accent) aria-pressed:font-semibold aria-pressed:text-(--text-1)"
                 >
@@ -62,8 +63,37 @@
                 { value: 'landscape', label: 'Landscape' },
                 { value: 'portrait', label: 'Portrait' },
             ]}
-            value={settings.frameOrientation}
-            onchange={(v) => (settings.frameOrientation = v)}
+            value={frameSettings.orientation}
+            onchange={(v) => (frameSettings.orientation = v)}
         />
+    </div>
+
+    <!-- Ambient card position: a 3×2 pad laid out like the frame -->
+    <div>
+        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Ambient card</p>
+        <div
+            class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
+            role="radiogroup"
+            aria-label="Ambient card position"
+        >
+            {#each AMBIENT_POSITIONS as p (p.value)}
+                {@const selected = frameSettings.ambientPosition === p.value}
+                <button
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    title={p.label}
+                    onclick={() => (frameSettings.ambientPosition = p.value)}
+                    class="type-label rounded px-3 py-1.5 transition-colors {selected
+                        ? 'bg-(--accent) text-(--accent-fg)'
+                        : 'text-(--text-2) hover:bg-(--surface-hi)'}"
+                >
+                    {p.label}
+                </button>
+            {/each}
+        </div>
+        <p class="type-caption mt-2 text-(--text-2)">
+            Where the time and weather sit on the photo. The photos themselves are chosen under Ambient.
+        </p>
     </div>
 </div>

@@ -18,6 +18,7 @@ Browser
         ├── /calendar* → Calendar   :8087
         ├── /birds*    → Birds      :8088
         ├── /almanac*  → Almanac    :8089
+        ├── /display*  → Display    :8090
         ├── /trains*   → Trains     :8091
         └── /*         → Frontend   :3000
 ```
@@ -49,7 +50,7 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 
 #### Frame route
 
-`/frame` is the page the future Display service screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel (1600×1200 landscape or 1200×1600 portrait, never scrolls), renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and takes everything from the URL because a headless renderer starts with empty `localStorage`:
+`/frame` is the page the future Display service screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel (1600×1200 landscape or 1200×1600 portrait, never scrolls), renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and is client-rendered (`ssr = false`). Its look and layout come from the shared frame settings in the Display service (see "Display Service"), so every client — and the panel's headless renderer — draws the same frame; URL params override them per request, and anything neither sets uses the defaults below:
 
 | Param        | Values                 | Default    |
 | ------------ | ---------------------- | ---------- |
@@ -57,14 +58,17 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 | `palette`    | `color`, `bw`          | `color`    |
 | `theme`      | any frame theme id (below) | `almanac` |
 | `font`       | any font preset id     | `inter`    |
-| `left`, `right` | comma-separated frame widget ids (Daily) | `arc,today` / `coming-up,countdowns` |
+| `left`, `right` | comma-separated frame widget ids (Daily) | `countdowns,today` / `coming-up` |
 | `split`      | left column width %, 30–70 | `50`    |
 | `orientation` | `landscape`, `portrait` | `landscape` |
-| `categories` | Unsplash query (ambient) | `nature` |
+| `position`   | Ambient card: `top-left`, `top-middle`, `top-right`, `bottom-left`, `bottom-middle`, `bottom-right` | `bottom-left` |
+| `source`     | Ambient photos: `unsplash`, `local`, `both` | the shared photo source |
+| `categories` | Ambient Unsplash categories, comma-separated | the shared categories (`nature` if none) |
 
-- **Ambient** (`FrameAmbient.svelte`): full-bleed photo with a solid corner card — time, date, temperature.
-- **Daily** (`FrameDaily.svelte`): a fixed masthead (date + current weather with high/low) and 5-day forecast band, with two configurable widget columns between them (`left`/`right`, up to 3 each, at `split`%). Frame widgets are registered in `constants/frameWidgets.ts` and live in `components/frame/widgets/`: Today's Arc (reuses `DayArcWidget`), Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby. Trains and now-playing are deliberately excluded — they go stale between scheduled refreshes. In portrait the columns stack (left above right) full-width.
-- **Fitting the space:** FrameDaily measures each column's height in lines of body text (via a hidden probe, so font presets count) and `allocateLines()` in `lib/frame.ts` splits it: every widget pays for its heading and gaps, fixed-height widgets (arc, moon) take what they need, and the rest is shared evenly. Each widget trims its list to its share — and, as a last resort, clips inside its own box rather than pushing a neighbour off the panel. Selection logic (`todayTasks`, `nextEvents`, `weekAhead`) lives in `lib/frame.ts` too.
+- **Ambient** (`FrameAmbient.svelte`): full-bleed photo with a solid plate — a compact date block, time and temperature, and one sentence of weather — inset 64px at one of six positions (a corner, or the middle of the top or bottom edge). The position is the frame root's `data-position`, so the Settings preview moves the plate in place without reloading the photo.
+- **Daily** (`FrameDaily.svelte`), laid out as today's edition of an almanac: a compact masthead (`FrameDateBlock` — the day of the month on a solid `--block` square; `FrameEditionLine` — a small-caps line with the day-of-year issue number, the season and days to its next marker, from the Almanac service — over the weekday in the display face; `FrameSunPath` — today's daylight as a low dome with the elapsed part filled, the sun as an accent disc, the temperature under the dome, sunrise and sunset beside its base and the daylight length below a hatched horizon) and a 5-day forecast band (`FrameForecast` — low–high range bars on one shared scale over a hatched track), with two configurable widget columns between them (`left`/`right`, up to 3 each, at `split`%). Frame widgets are registered in `constants/frameWidgets.ts`. Moon Phase, Daily Quote, Birds Nearby and Almanac are shared views in `components/widgets/views/` (`MoonPhaseView`, `DailyQuoteView`, `BirdSightingsView`, `AlmanacView`) that the dashboard widgets wrap with loading and polling and the frame renders directly with a `lines` budget; they size off `type-*`/`icon-*` tokens and em units, so the frame's larger tokens scale them, and the frame route sets `--stroke: 3px` and restyles their `.meter` bar as an outlined pure-ink bar. Today's Arc reuses `DayArcWidget`. Today, Coming Up, Week Ahead and Countdowns are frame-specific designs in `components/frame/widgets/` (the dashboard versions are interactive), sharing their selection logic through `lib/frame.ts` (e.g. both countdown widgets use `upcomingCountdowns`). Trains and now-playing are deliberately excluded — they go stale between scheduled refreshes. In portrait the two columns stay side by side at `split`% (about 500px each at an even split; Coming Up's rail moves the day and time above each title when its column is under 640px, and the countdown stamps fit fewer per row), and the masthead keeps the edition line and weekday under the date block, beside the sun path.
+- **Visual language:** one 3px line weight for rules, check boxes, leaders and icon strokes (`setLucideProps({ strokeWidth: 3, absoluteStrokeWidth: true })` in the route); widget kickers (tracked caps led by a `--block` square) instead of underlined headings; large shapes in the pure `--block` ink, which never dithers; tints only in the forecast band; and one texture, `.hatch` (vertical 3px pure-ink lines every 9px). Display numerals use `--display-family` with the frame-only `.type-date` / `.type-hero` / `.type-stamp` sizes. Today is a ledger (dotted leader to the due time), Coming Up a rail (day and time in the margin, a pin per event), Countdowns a row of stamps (the soonest filled with `--accent`).
+- **Fitting the space:** FrameDaily measures each column's height in lines of body text (via a hidden probe, so font presets count) and `allocateLines()` in `lib/frame.ts` splits it: every widget pays for its heading and gaps, fixed-height widgets (arc, moon, the countdown stamps) take what they need, and the rest is shared evenly. Each widget trims its list to its share — and, as a last resort, clips inside its own box rather than pushing a neighbour off the panel. Selection logic (`todayTasks`, `nextEvents`, `weekAhead`, `upcomingCountdowns`) and the masthead's small derivations (`sunProgress`, `weatherSentence`, `forecastBars`, `dayOfYear`) live in `lib/frame.ts` too.
 - Portrait is for a frame hung on its side; the Ambient photo is requested in the matching orientation, and the Display service rotates the capture to the panel's native landscape.
 - Type and icon sizes are fixed px set by overriding the `--font-*` / `--icon-*` tokens on the frame root, so reused widgets scale with it. Transitions and animations are disabled.
 - The root's `data-ready` attribute becomes `"true"` once data, fonts, and (ambient) the photo have settled, or after 15 s regardless, so one hung upstream can't stall the frame — screenshot after that. The route loads only what its layout needs (the root layout skips its own loads on `/frame*`) and never polls; the renderer reloads it per frame.
@@ -88,7 +92,8 @@ The persistent setting is the recommended choice for a dedicated wall display. T
 | `theme`        | `ThemeStore.svelte.ts`      | `localStorage`  | Active theme ID; writes `dataset.theme` on change                     |
 | `fontTheme`    | `FontThemeStore.svelte.ts`  | `localStorage`  | Active font theme ID; writes `dataset.font` on change                 |
 | `fontSize`     | `FontSizeStore.svelte.ts`   | `localStorage`  | User size multiplier (0.9–1.3); sets `--font-user-scale` inline on `<html>` |
-| `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | Ambient cadence, photo categories, attribution flag, RSS feeds config, kiosk mode, subscribed train stops + per-stop line filters, frame appearance (theme, font, orientation, layout, split) |
+| `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | `/ambient` slideshow cadence (day/night) and motion, RSS feeds config, kiosk mode, subscribed train stops + per-stop line filters |
+| `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, layout, split and Ambient card position, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
 | `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
 | `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
 | `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `DashboardFooter`     |
@@ -162,10 +167,14 @@ Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (read
 | `harbor`      | Blue and red ink only, no tints (nothing dithered)        |
 | `terracotta`  | Black type, amber band, red rules, olive Day Arc          |
 | `letterpress` | Black type, red rules and marks, a cream band             |
+| `marigold`    | Black type and blocks, a butter band, yellow daylight     |
+| `postbox`     | Red blocks and rules, blue type and "now" mark, no tints  |
 | `night`       | Dark — white and yellow on black, navy band               |
 | `ember`       | Dark — yellow and red on black, no fills                  |
+| `moss`        | Dark — white and green on black, yellow "now" mark        |
+| `lantern`     | Dark — white type, yellow rules and blocks, no fills      |
 
-B&W mode (`?palette=bw`) ignores the theme's colours: `epaper-bw` (black on white), or `epaper-bw-night` for dark themes. Fills are two-ink mixes of similar lightness so they dither evenly; text, icons and lines are always a pure ink (`themes.test.ts` enforces both). Text, icons and thin lines are always a pure ink. The Display service's dithering strategy (ordered for Daily, error diffusion for Ambient) is in `HARDWARE.md`. They also set `--arc-night` / `--arc-day` / `--arc-golden` / `--arc-outline`, which `DayArcWidget` reads with fallbacks to the regular tokens, so the ribbon stays solid-coloured on the panel without changing its look elsewhere.
+B&W mode (`?palette=bw`) ignores the theme's colours: `epaper-bw` (black on white), or `epaper-bw-night` for dark themes. Fills are two-ink mixes of similar lightness so they dither evenly; text, icons and lines are always a pure ink (`themes.test.ts` enforces both). Text, icons and thin lines are always a pure ink. The Display service's dithering strategy (ordered for Daily, error diffusion for Ambient) is in `HARDWARE.md`. Every frame block also sets `--block` / `--on-block`: the theme's boldest pure ink for large solid shapes (date block, elapsed daylight, today's rail pins) and the ink type takes on it (≥4.5:1, tested). They also set `--arc-night` / `--arc-day` / `--arc-golden` / `--arc-outline`, which `DayArcWidget` reads with fallbacks to the regular tokens, so the ribbon stays solid-coloured on the panel without changing its look elsewhere.
 
 ### Font themes
 
@@ -201,6 +210,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `calendar` | 8087 | Implemented | Google Calendar + Google Tasks OAuth, aggregated events/tasks        |
 | `birds`    | 8088 | Implemented | Nearby eBird sightings, cached for 60 minutes                        |
 | `almanac`  | 8089 | Implemented | Season/daylight/frost facts, computed locally (no external API, no DB) |
+| `display`  | 8090 | Partial     | Shared e-paper frame settings; rendering/dithering for the panel is planned (`HARDWARE.md`) |
 | `trains`   | 8091 | Implemented | Transitland departures for subscribed stops, cached for 45 seconds   |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
@@ -425,11 +435,14 @@ Stored in `src/Photos/.env`:
 
 ### Frontend integration
 
-`/ambient` (`routes/ambient/+page.svelte`) fetches a new photo from `/photos/random` on mount and then on each cadence interval. Settings are read from `SettingsStore`:
+Ambient photos are chosen once for every display: the **photo source** (Unsplash, your uploads, or both) and **categories** live in the shared frame settings (`FrameSettingsStore` → Display service), set in Settings → Ambient. Both the frame's Ambient mode and the browser `/ambient` slideshow use them through `lib/photos.ts` (`resolveSource` — "both" picks an upload half the time when there are any; `photoQuery` — categories joined into the `query` param, `nature` when none; `uploadToPhoto`).
 
-- **`cadenceSeconds`** — interval between photo advances (2m / 5m / 10m / 30m / 1hr / 2hr)
-- **`photoCategories`** — array of topics joined as a comma-separated `query` param
-- **`showAttribution`** — toggles the photographer credit bar at the bottom of the display
+`/ambient` (`routes/ambient/+page.svelte`) loads the shared settings, then fetches a new photo on mount and on each cadence interval (shuffling through uploads for "My photos"). Its playback stays per browser in `SettingsStore`:
+
+- **`cadenceSeconds`** / **`nightCadenceSeconds`** — interval between photo advances (2m … 2hr), optionally slower 10pm–6am
+- **`ambientMotion`** — slow Ken Burns pan/zoom
+
+The Unsplash photographer credit is always shown (Unsplash's API guidelines require it); an upload shows its caption instead. The frame renders one photo per refresh via `pickPhoto`; its rotation schedule will belong to the Display service.
 
 Photos transition with a 1.5-second crossfade. Clicking anywhere or pressing any key exits back to `/`.
 
@@ -653,6 +666,22 @@ Unlike Weather, missing coordinates do **not** produce a `503` — the endpoint 
 
 Stored in `src/Almanac/.env`.
 
+## Display Service
+
+`src/Display` (port 8090) holds the e-paper frame's shared settings — the frame is one physical display, so its look is a single source of truth rather than a per-browser preference. It is also where the planned frame renderer, dithering and button/presence endpoints will live (`HARDWARE.md` step 2).
+
+| Endpoint                 | Description |
+| ------------------------ | ----------- |
+| `GET /display/settings`  | The saved `FrameSettings` (`theme`, `font`, `orientation`, `left`, `right`, `split`, `ambient_position`), or `204` if nothing has been saved — clients then use their defaults |
+| `PUT /display/settings`  | Replaces them. `400` unless orientation is `landscape`/`portrait`, each column has at most 3 widgets with none repeated, `split` is 30–70 and `ambient_position` is one of the six positions (omitted → `bottom-left`) |
+
+`FrameSettingsStore` keeps one row (`id = 1`) in `display.db` (`DB_PATH`). Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once.
+
+| Variable                | Required | Description |
+| ----------------------- | -------- | ----------- |
+| `DB_PATH`               | No       | Path to the SQLite file (default: `display.db`) |
+| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8090` in Docker |
+
 ## Trains Service
 
 The `trains` service fetches upcoming departures for user-subscribed transit stops from the [Transitland v2 API](https://www.transit.land/documentation/how-to-use-transitland-apis) and caches each stop's result via FusionCache (SQLite L2) with a 45-second TTL. Unlike the other external-API services, there's no location configuration — the user picks specific stops (Transitland Onestop IDs) to subscribe to from the Settings page.
@@ -737,6 +766,7 @@ Stored in `src/Trains/.env`.
 /calendar/items*    →  calendar:8087
 /birds/*            →  birds:8088
 /almanac/*          →  almanac:8089
+/display/*          →  display:8090
 /trains/*           →  trains:8091
 /                   →  frontend:3000
 ```
