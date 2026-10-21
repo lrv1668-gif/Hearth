@@ -2,6 +2,10 @@
    tokens (`[data-theme='epaper-<id>']`); entries here are picker metadata only.
    Colours are limited to the panel's six inks plus a few two-ink mixes — see
    the "Frame palettes" comment in themes.css before adding one. */
+/** The panel's six measured Spectra 6 inks (white-balanced): black, white, yellow,
+ *  red, blue, green. Text, lines and solid blocks use these exactly. */
+export const FRAME_INKS = ['#000000', '#ffffff', '#ffff6e', '#f16f74', '#5e5b91', '#5a8d6c'] as const;
+
 export const frameThemes = [
     {
         id: 'almanac',

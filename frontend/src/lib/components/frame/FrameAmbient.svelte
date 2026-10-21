@@ -1,14 +1,58 @@
 <script lang="ts">
     import type { Photo } from '$lib/api';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { weatherSentence } from '$lib/frame';
+    import { isAmbientPosition, onBlockInk, pickBlockInk, plateRect, weatherSentence, type Pixels } from '$lib/frame';
+    import { FRAME_INKS } from '$lib/constants/frameThemes';
     import { localDateKey } from '$lib/utils';
     import FrameDateBlock from './FrameDateBlock.svelte';
 
-    let { now, photo }: { now: Date; photo: Photo | null } = $props();
+    let { now, photo, pixels = null }: { now: Date; photo: Photo | null; pixels?: Pixels | null } = $props();
 
     const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     const today = $derived(weatherStore.forecast.find((f) => f.date === localDateKey(now)) ?? null);
+
+    // Theme tokens that are a pure ink the date block may switch to.
+    const INK_TOKENS = ['--block', '--accent', '--text-1', '--text-2', '--done', '--border'];
+
+    let plate = $state<HTMLElement>();
+    let plateW = $state(0);
+    let plateH = $state(0);
+    // The frame root's position and theme. Settings' preview edits these attributes
+    // in place, so watch them rather than reading them once.
+    let attrs = $state({ position: '', theme: '' });
+
+    $effect(() => {
+        const root = plate?.closest<HTMLElement>('.frame');
+        if (!root) return;
+        const read = () => (attrs = { position: root.dataset.position ?? '', theme: root.dataset.theme ?? '' });
+        read();
+        const observer = new MutationObserver(read);
+        observer.observe(root, { attributes: true, attributeFilter: ['data-position', 'data-theme'] });
+        return () => observer.disconnect();
+    });
+
+    // The date block's ink: the theme's --block unless the photo around the plate
+    // is close to it, then whichever of the theme's other inks stands out most.
+    const block = $derived.by(() => {
+        const root = plate?.closest<HTMLElement>('.frame');
+        const { position, theme } = attrs;
+        if (!pixels || !root || !plateW || !isAmbientPosition(position) || !theme) return null;
+        const style = getComputedStyle(root);
+        const token = (name: string) => style.getPropertyValue(name).trim().toLowerCase();
+        const preferred = token('--block');
+        const bg = token('--bg');
+        const inks: readonly string[] = FRAME_INKS;
+        const candidates = [...new Set(INK_TOKENS.map(token))].filter((ink) => inks.includes(ink) && ink !== bg);
+        const frame = { w: root.clientWidth, h: root.clientHeight };
+        const ink = pickBlockInk(
+            pixels,
+            frame,
+            plateRect(position, { w: plateW, h: plateH }, frame),
+            candidates,
+            preferred
+        );
+        return ink === preferred ? null : { ink, on: onBlockInk(ink) };
+    });
 </script>
 
 <!--
@@ -20,10 +64,18 @@ peripheral"; where is the frame root's data-position, from Settings → Frame or
 block joined to a flat --bg panel with the time, temperature and one sentence of
 weather. Both halves are pure inks, not a gradient scrim or a tint: this mode is
 error-diffusion dithered for the photo, and tints streak under that (see HARDWARE.md).
+The date block takes the theme's --block ink unless the photo around the plate is
+close to that colour; then it switches to whichever of the theme's other pure inks
+stands out most there (pickBlockInk in lib/frame.ts).
 In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure B&W).
 -->
 {#if photo}
-    <img src={photo.url} alt={photo.description ?? ''} class="absolute inset-0 h-full w-full object-cover" />
+    <img
+        src={photo.url}
+        alt={photo.description ?? ''}
+        crossorigin="anonymous"
+        class="absolute inset-0 h-full w-full object-cover"
+    />
 {:else}
     <div class="absolute inset-0 flex items-center justify-center">
         <p class="type-subtitle tracking-widest text-(--text-2) uppercase">No photo available</p>
@@ -32,7 +84,14 @@ In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure 
 
 <!-- No border or shadow — the solid inks alone separate the plate from the photo
      (shadows or translucency would dither into speckle on the panel). -->
-<div class="plate absolute flex items-stretch bg-(--bg)">
+<div
+    bind:this={plate}
+    bind:clientWidth={plateW}
+    bind:clientHeight={plateH}
+    class="plate absolute flex items-stretch bg-(--bg)"
+    style:--block={block?.ink}
+    style:--on-block={block?.on}
+>
     <FrameDateBlock {now} compact />
     <div class="px-8 pt-5 pb-4">
         <p class="type-title leading-none font-semibold">

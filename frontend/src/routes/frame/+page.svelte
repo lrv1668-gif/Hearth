@@ -11,7 +11,7 @@
     import { loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
     import { SECOND } from '$lib/utils';
-    import { isAmbientPosition } from '$lib/frame';
+    import { isAmbientPosition, type Pixels } from '$lib/frame';
     import { pickPhoto } from '$lib/photos';
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
@@ -78,6 +78,9 @@
 
     const now = new Date();
     let photo = $state<Photo | null>(null);
+    // The photo as the frame shows it (cover-cropped), at 1/8 scale — Ambient mode
+    // reads the colours around its plate from this to pick the date block's ink.
+    let photoPixels = $state<Pixels | null>(null);
     let ready = $state(false);
 
     async function loadPhoto() {
@@ -88,13 +91,35 @@
         );
         if (!next) return;
         // Decode before signalling ready so the screenshot never catches a blank frame.
+        // CORS mode so the pixels can be read back (Unsplash's CDN allows it; uploads
+        // are same-origin) — the <img> asks the same way, so it reuses this fetch.
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
         await new Promise<void>((resolve, reject) => {
-            const img = new Image();
             img.onload = () => resolve();
             img.onerror = () => reject(new Error(`failed to load ${next.url}`));
             img.src = next.url;
         });
+        photoPixels = coverPixels(img, orientation === 'portrait' ? [150, 200] : [200, 150]);
         photo = next;
+    }
+
+    /** `img` drawn like CSS object-cover into a w×h canvas, or null if it can't be read. */
+    function coverPixels(img: HTMLImageElement, [w, h]: [number, number]): Pixels | null {
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+        const sw = w / scale;
+        const sh = h / scale;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return null;
+        ctx.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, w, h);
+        try {
+            return ctx.getImageData(0, 0, w, h);
+        } catch {
+            return null; // a tainted canvas (no CORS headers) — keep the theme's block ink
+        }
     }
 
     function dataLoads(): Promise<unknown>[] {
@@ -130,7 +155,7 @@
         {#if mode === 'daily'}
             <FrameDaily {now} {orientation} {layout} split={layout.split} />
         {:else}
-            <FrameAmbient {now} {photo} />
+            <FrameAmbient {now} {photo} pixels={photoPixels} />
         {/if}
     {/if}
 </div>

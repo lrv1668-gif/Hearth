@@ -398,7 +398,8 @@
    --block is the theme's boldest pure ink, for large solid shapes (the date
    block, the sun path's elapsed daylight, today's rail pins) — a pure-ink fill
    never dithers, so it can be used boldly where a tint could not; type on it
-   uses --on-block.
+   uses --on-block. On the Ambient plate the date block may swap --block for
+   another of the theme's pure inks that stands out more against the photo.
    The --arc-* tokens recolour the Day Arc ribbon, which otherwise relies on
    opacity; other themes leave them unset and fall back to normal tokens.   */
 [data-theme='epaper-bw'] {

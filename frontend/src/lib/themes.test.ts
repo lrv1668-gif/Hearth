@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { frameDataTheme, frameThemes } from './constants/frameThemes';
+import { FRAME_INKS, frameDataTheme, frameThemes } from './constants/frameThemes';
 
 // WCAG 2.x contrast. --text-2 carries readable secondary text (AA body, 4.5:1);
 // --text-3 is limited to icons and non-text marks (AA graphics, 3:1).
@@ -31,7 +31,7 @@ const frameCss = allThemes.filter((t) => t.id.startsWith('epaper-'));
 
 // The Spectra 6 inks (measured, white-balanced) and the two-ink mixes that dither
 // evenly — see the "Frame palettes" comment in themes.css.
-const INKS = ['#000000', '#ffffff', '#ffff6e', '#f16f74', '#5e5b91', '#5a8d6c'];
+const INKS: readonly string[] = FRAME_INKS;
 const MIXES = ['#fffedb', '#fffeb6', '#f8b771', '#2f2e49'];
 // Tokens drawn as text, icons or thin lines — these must be a pure ink, since a
 // dithered mix breaks thin strokes apart.
