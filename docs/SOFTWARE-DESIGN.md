@@ -46,7 +46,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 | `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, widget visibility  |
 | `/frame`    | E-paper render target — fixed 1600×1200 canvas, no nav (see below)                        |
 
-The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one, the bottom tab bar replaces the masthead, and the kiosk footer is hidden.
+The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one, the bottom tab bar replaces the masthead, and the kiosk footer is hidden (Now Playing moves to the top of the dashboard). The calendar switches earlier, at `md` (768px): below it day cells show dots instead of titles, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows.
 
 #### Frame route
 
@@ -109,7 +109,7 @@ Polled stores keep their last good data when a background refresh fails — the 
 
 ### Mixed task/event lists
 
-`api.ts` exports an `Item` discriminated union shared by `Calendar.svelte`, `DayOverflowModal.svelte`, and `UpcomingTasksWidget.svelte`:
+`api.ts` exports an `Item` discriminated union shared by `Calendar.svelte`, `DayItemList.svelte` (used by `DayOverflowModal.svelte`), and `UpcomingTasksWidget.svelte`:
 
 ```typescript
 export type Item =
