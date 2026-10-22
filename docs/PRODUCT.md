@@ -82,7 +82,7 @@ The mode schedule is configurable (e.g. Ambient all day, Daily at 7am and 6pm), 
 
 1. User powers on the host and the frame. Hearth starts automatically.
 2. The frame shows a welcome screen (drawn locally by the frame client, since nothing is rendered yet) with the local network URL (e.g. `hearth.local`).
-3. On their phone or laptop, the user visits the URL and is walked through a short setup: give the household a name, pick an art source (Unsplash / local folder), set their location for weather.
+3. On their phone or laptop, the user visits the URL and is walked through a short setup: give the household a name, pick an art source (Unsplash / local folder), set their home location and time zone (Settings → Home: this device's location, a city search, or typed coordinates — used for weather, birds, daylight and the frame's clock).
 4. The display refreshes with a real layout. Setup is done.
 
 Optional integrations (Spotify, Google Calendar, etc.) are surfaced in a separate "Connections" screen — not during first run. The frame should look good before any accounts are connected.
@@ -96,7 +96,7 @@ The web UI (phone browser, no app install) has four screens:
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
-The `/settings` route is implemented and currently houses the theme picker, the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, and the e-paper frame's appearance (one of nine ink-safe colour themes, typeface, orientation, panel size) with a live preview. Additional settings will move here as features are built out.
+The `/settings` route is implemented and currently houses the theme picker, the household's home location and time zone (shared by every device and service; `.env` values remain a fallback), the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, and the e-paper frame's appearance (one of nine ink-safe colour themes, typeface, orientation, panel size) with a live preview. Additional settings will move here as features are built out.
 
 All screens are usable one-handed on a phone. No dense forms.
 

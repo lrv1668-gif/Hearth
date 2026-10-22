@@ -156,15 +156,14 @@ cd Hearth</code></pre>
                         <li>
                             <h3>Tell it where home is</h3>
                             <p>
-                                Services that need a location or an API key read a small <code>.env</code> file. Create
-                                one for each service listed in the
+                                Services that need an API key read a small <code>.env</code> file. Create one for each
+                                service listed in the
                                 <a href="https://github.com/lrv1668-gif/Hearth#configuration">README</a> — Compose
                                 expects them all to exist, but you can leave the keys blank for integrations you
-                                don't use. Tasks, quotes and news need nothing.
+                                don't use. Tasks, quotes and news need nothing. The home location and time zone are
+                                set later, in Settings → Home.
                             </p>
-                            <pre><code># src/Weather/.env
-LATITUDE=40.7128
-LONGITUDE=-74.0060</code></pre>
+                            <pre><code>touch src/{Weather,Spotify,Calendar,Photos,Birds,Almanac,Trains}/.env</code></pre>
                         </li>
                         <li>
                             <h3>Start the stack</h3>
@@ -174,7 +173,8 @@ LONGITUDE=-74.0060</code></pre>
                         <li>
                             <h3>Make it yours</h3>
                             <p>
-                                In Settings, pick a theme and typeface, choose which widgets show and where, connect
+                                In Settings, set where home is — this device's location, a city, or coordinates — pick a
+                                theme and typeface, choose which widgets show and where, connect
                                 any integrations below, and design the frame with a live preview.
                             </p>
                         </li>
@@ -199,8 +199,8 @@ LONGITUDE=-74.0060</code></pre>
                             </thead>
                             <tbody>
                                 <tr><td>Tasks &amp; countdowns</td><td>Built in</td><td>Nothing</td></tr>
-                                <tr><td>Almanac &amp; moon</td><td>Computed on the host</td><td>Location, time zone, frost dates</td></tr>
-                                <tr><td>Weather</td><td>Open-Meteo</td><td>Location</td></tr>
+                                <tr><td>Almanac &amp; moon</td><td>Computed on the host</td><td>Home location (Settings), frost dates</td></tr>
+                                <tr><td>Weather</td><td>Open-Meteo</td><td>Home location (Settings)</td></tr>
                                 <tr><td>Daily quote</td><td>ZenQuotes</td><td>Nothing</td></tr>
                                 <tr><td>News</td><td>Any RSS or Atom feed</td><td>Feed URLs, added in Settings</td></tr>
                                 <tr><td>Photos</td><td>Your uploads, or Unsplash</td><td>An Unsplash key for live photos</td></tr>

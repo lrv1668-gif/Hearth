@@ -1,3 +1,4 @@
+using System.Globalization;
 using Data.Abstractions;
 using ServiceDefaults;
 using Weather;
@@ -8,7 +9,9 @@ namespace Weather.Extensions;
 
 public static class WebApplicationExtensions
 {
-    private const string CacheKey = "weather";
+    /// <summary>Per place, so moving the home location doesn't serve the old place's weather.</summary>
+    internal static string CacheKey(double lat, double lon) =>
+        string.Create(CultureInfo.InvariantCulture, $"weather:{lat:F3},{lon:F3}");
 
     private static readonly FusionCacheEntryOptions CacheOptions = new()
     {
@@ -26,38 +29,33 @@ public static class WebApplicationExtensions
 
     private static void AddWeatherEndpoints(this WebApplication app)
     {
-        app.MapGet("/weather/current", async (IFusionCache cache, WeatherFetcher fetcher, IConfiguration config, CancellationToken ct) =>
+        app.MapGet("/weather/current", async (IFusionCache cache, WeatherFetcher fetcher, HomeLocationClient home, CancellationToken ct) =>
         {
-            var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, config, ct);
+            var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, home, ct);
             return error ?? Results.Ok(snapshot!.Current);
         });
 
-        app.MapGet("/weather/forecast", async (IFusionCache cache, WeatherFetcher fetcher, IConfiguration config, CancellationToken ct) =>
+        app.MapGet("/weather/forecast", async (IFusionCache cache, WeatherFetcher fetcher, HomeLocationClient home, CancellationToken ct) =>
         {
-            var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, config, ct);
+            var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, home, ct);
             return error ?? Results.Ok(snapshot!.Forecast);
         });
     }
 
     private static async Task<(WeatherSnapshot? Snapshot, IResult? Error)> GetWeatherAsync(
-        WebApplication app, IFusionCache cache, WeatherFetcher fetcher, IConfiguration config, CancellationToken ct)
+        WebApplication app, IFusionCache cache, WeatherFetcher fetcher, HomeLocationClient home, CancellationToken ct)
     {
-        if (config.RequireOrFail(
-                app.Logger,
-                _ => Results.Json(new { error = "location not configured" }, statusCode: 503),
-                "LATITUDE", "LONGITUDE") is { } configError)
+        if ((await home.GetAsync(ct)).Coordinates is not (var lat, var lon))
         {
-            return (null, configError);
+            app.Logger.LogError("No home location. Set one in Settings → Home, or LATITUDE and LONGITUDE in the .env file.");
+            return (null, Results.Json(new { error = "location not configured" }, statusCode: 503));
         }
 
         try
         {
-            var lat = config.GetValue<double>("LATITUDE");
-            var lon = config.GetValue<double>("LONGITUDE");
-
             // Fail-safe serves the last good snapshot when Open-Meteo is down; this only throws when nothing was ever cached.
             var snapshot = await cache.GetOrSetAsync<WeatherSnapshot>(
-                CacheKey, (_, token) => fetcher.FetchAsync(lat, lon, token), CacheOptions, ct);
+                CacheKey(lat, lon), (_, token) => fetcher.FetchAsync(lat, lon, token), CacheOptions, ct);
             return (snapshot, null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

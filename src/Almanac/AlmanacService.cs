@@ -1,5 +1,6 @@
 using System.Globalization;
 using Almanac.Records;
+using ServiceDefaults;
 
 namespace Almanac;
 
@@ -14,38 +15,28 @@ public class AlmanacService
     private static readonly TimeSpan EarlySunset = new(17, 0, 0);
     private static readonly TimeSpan LateSunrise = new(7, 0, 0);
 
-    private readonly double? _latitude;
-    private readonly double? _longitude;
     private readonly (int Month, int Day)? _firstFrost;
     private readonly (int Month, int Day)? _lastFrost;
-    private readonly TimeZoneInfo _tz;
+    private readonly ILogger<AlmanacService> _logger;
+    private string? _reportedBadZone;
 
     public AlmanacService(IConfiguration config, ILogger<AlmanacService> logger)
     {
-        _latitude = ParseCoordinate(config["LATITUDE"]);
-        _longitude = ParseCoordinate(config["LONGITUDE"]);
         _firstFrost = FrostCalculator.Parse(config["FIRST_FROST"]);
         _lastFrost = FrostCalculator.Parse(config["LAST_FROST"]);
-
-        var tzId = config["TZ"];
-        try
-        {
-            _tz = string.IsNullOrEmpty(tzId) ? TimeZoneInfo.Local : TimeZoneInfo.FindSystemTimeZoneById(tzId);
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            logger.LogError("TZ value '{TzId}' is not a valid IANA time zone — falling back to the system zone.", tzId);
-            _tz = TimeZoneInfo.Local;
-        }
+        _logger = logger;
     }
 
-    public AlmanacResponse Build(DateTimeOffset utcNow)
+    /// <param name="home">Where and in which zone to compute daylight and dates — read per
+    /// request, since it can change in Settings. Daylight is omitted without coordinates.</param>
+    public AlmanacResponse Build(DateTimeOffset utcNow, HomeLocation home)
     {
-        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(utcNow, _tz).DateTime);
-        var isNorthern = _latitude is null or >= 0;
+        var tz = ResolveZone(home.TimeZone);
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(utcNow, tz).DateTime);
+        var isNorthern = home.Latitude is null or >= 0;
 
         var season = SeasonCalculator.GetSeason(utcNow, isNorthern);
-        var nextMarkerDate = ToLocalDate(season.End);
+        var nextMarkerDate = ToLocalDate(season.End, tz);
         var seasonInfo = new SeasonInfo(
             season.Name,
             season.Label,
@@ -60,7 +51,7 @@ public class AlmanacService
         if (FrostCalculator.Next(today, _firstFrost, _lastFrost) is { } f && f.DaysUntil <= FrostTimelyDays)
             frost = new FrostInfo(f.Label, f.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), f.DaysUntil);
 
-        var daylight = BuildDaylight(utcNow, today, isNorthern);
+        var daylight = home.Coordinates is (var lat, var lon) ? BuildDaylight(utcNow, today, isNorthern, lat, lon, tz) : null;
         var note = PhenologyData.NoteFor(today, isNorthern);
 
         // Fill the two rotating slots in priority order: daylight, timely frost, note.
@@ -72,10 +63,9 @@ public class AlmanacService
         return new AlmanacResponse(seasonInfo, daylightSlot, frostSlot, noteSlot);
     }
 
-    private DaylightInfo? BuildDaylight(DateTimeOffset utcNow, DateOnly today, bool isNorthern)
+    private static DaylightInfo? BuildDaylight(
+        DateTimeOffset utcNow, DateOnly today, bool isNorthern, double lat, double lon, TimeZoneInfo tz)
     {
-        if (_latitude is not { } lat || _longitude is not { } lon) return null;
-
         var todayLength = SolarCalculator.DayLengthMinutes(today, lat);
         var weekAgoLength = SolarCalculator.DayLengthMinutes(today.AddDays(-7), lat);
         if (todayLength is null || weekAgoLength is null) return null; // polar day/night
@@ -84,25 +74,25 @@ public class AlmanacService
         trend = Math.Abs(trend) < 0.25 ? 0 : Math.Round(trend, 1);
 
         var (solstice, isLongestDay) = SeasonCalculator.LastSolstice(utcNow, isNorthern);
-        var solsticeLength = SolarCalculator.DayLengthMinutes(ToLocalDate(solstice), lat);
+        var solsticeLength = SolarCalculator.DayLengthMinutes(ToLocalDate(solstice, tz), lat);
         var drift = (int)Math.Round(todayLength.Value - (solsticeLength ?? todayLength.Value));
 
         return new DaylightInfo(
             trend,
             drift,
             isLongestDay ? "longest day" : "shortest day",
-            FindMilestones(today, lat, lon));
+            FindMilestones(today, lat, lon, tz));
     }
 
-    private List<MilestoneInfo> FindMilestones(DateOnly today, double lat, double lon)
+    private static List<MilestoneInfo> FindMilestones(DateOnly today, double lat, double lon, TimeZoneInfo tz)
     {
         var found = new List<(string Label, DateOnly Date)>();
-        var previous = SolarCalculator.SunTimesFor(today, lat, lon, _tz);
+        var previous = SolarCalculator.SunTimesFor(today, lat, lon, tz);
 
         for (var d = 1; d <= MilestoneScanDays && previous is not null; d++)
         {
             var date = today.AddDays(d);
-            var current = SolarCalculator.SunTimesFor(date, lat, lon, _tz);
+            var current = SolarCalculator.SunTimesFor(date, lat, lon, tz);
             if (current is null) break; // entering polar day/night — stop scanning
 
             RecordTransition(found, "Last 8pm sunset", "First 8pm sunset",
@@ -133,9 +123,19 @@ public class AlmanacService
         if (found.All(m => m.Label != label)) found.Add((label, eventDate));
     }
 
-    private DateOnly ToLocalDate(DateTimeOffset instant) =>
-        DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(instant, _tz).DateTime);
+    private static DateOnly ToLocalDate(DateTimeOffset instant, TimeZoneInfo tz) =>
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(instant, tz).DateTime);
 
-    private static double? ParseCoordinate(string? value) =>
-        double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : null;
+    /// <summary>The named zone, else the system zone (logging a bad id once).</summary>
+    private TimeZoneInfo ResolveZone(string? id)
+    {
+        if (string.IsNullOrEmpty(id)) return TimeZoneInfo.Local;
+        if (TimeZoneInfo.TryFindSystemTimeZoneById(id, out var zone)) return zone;
+        if (_reportedBadZone != id)
+        {
+            _reportedBadZone = id;
+            _logger.LogError("TZ value '{TzId}' is not a valid IANA time zone — falling back to the system zone.", id);
+        }
+        return TimeZoneInfo.Local;
+    }
 }

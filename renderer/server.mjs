@@ -5,6 +5,7 @@
 //       &dither=ordered|errorDiffusion|none   (default none: the raw screenshot)
 //       &kernel=floydSteinberg|atkinson|stucki|…  (errorDiffusion only; epdoptimize's names)
 //       &look=screen|paper                    (paper: inks repainted as they look on the panel)
+//       &tz=America/Chicago                   (IANA zone for the page's clock; default TZ, else UTC)
 //     → image/png
 //
 // The page is loaded from FRAME_BASE_URL (default http://caddy, whose :80 site serves
@@ -15,12 +16,12 @@ import { createServer } from 'node:http';
 import { createCanvas, loadImage } from 'canvas';
 import { chromium } from 'playwright';
 import { dither, KERNELS, paintPaper } from './dither.mjs';
+import { captureTimeZone, isTimeZone } from './timezone.mjs';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const FRAME_BASE_URL = process.env.FRAME_BASE_URL ?? 'http://caddy';
-// The frame draws the date and time from the browser's clock, so the browser needs the
-// household's zone — a container otherwise runs on UTC.
-const TIMEZONE = validTimeZone(process.env.TZ);
+// The fallback zone for requests without ?tz= (see timezone.mjs)
+const TIMEZONE = defaultTimeZone(process.env.TZ);
 // Loading the page and waiting for data-ready share one deadline. /frame flips data-ready
 // on its own deadline; this only catches a page that never gets there. Display's
 // HttpClient timeout allows for this twice over (a render running plus this one).
@@ -28,15 +29,11 @@ const CAPTURE_DEADLINE_MS = 40_000;
 const MAX_PENDING = 2;
 const MAX_SIDE = 4000;
 
-function validTimeZone(zone) {
+function defaultTimeZone(zone) {
     if (!zone) return undefined;
-    try {
-        new Intl.DateTimeFormat('en', { timeZone: zone });
-        return zone;
-    } catch {
-        console.error(`TZ "${zone}" is not an IANA time zone — drawing the frame in UTC.`);
-        return undefined;
-    }
+    if (isTimeZone(zone)) return zone;
+    console.error(`TZ "${zone}" is not an IANA time zone — frames without ?tz= are drawn in UTC.`);
+    return undefined;
 }
 
 let browser;
@@ -55,13 +52,13 @@ async function getBrowser() {
     return browser;
 }
 
-async function screenshot(path, width, height, signal) {
+async function screenshot(path, width, height, timezoneId, signal) {
     const context = await (
         await getBrowser()
     ).newContext({
         viewport: { width, height },
         deviceScaleFactor: 1,
-        timezoneId: TIMEZONE,
+        timezoneId,
     });
     // Closing the context aborts whatever the page is waiting on
     const abort = () => context.close().catch(() => {});
@@ -137,6 +134,11 @@ createServer(async (req, res) => {
         res.writeHead(400).end(`kernel must be one of ${KERNELS.join(', ')}`);
         return;
     }
+    const { zone, error: zoneError } = captureTimeZone(url.searchParams.get('tz'), TIMEZONE);
+    if (zoneError) {
+        res.writeHead(400).end(zoneError);
+        return;
+    }
     if (pending >= MAX_PENDING) {
         res.writeHead(503).end('renderer busy');
         return;
@@ -150,7 +152,7 @@ createServer(async (req, res) => {
     try {
         const png = await serialized(async () => {
             if (gone.signal.aborted) return null;
-            return render(await screenshot(path, width, height, gone.signal), { method, kernel, look });
+            return render(await screenshot(path, width, height, zone, gone.signal), { method, kernel, look });
         });
         if (gone.signal.aborted) return;
         res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' }).end(png);
@@ -160,7 +162,7 @@ createServer(async (req, res) => {
         res.writeHead(error?.name === 'TimeoutError' ? 504 : 502).end(String(error?.message ?? error));
     }
 }).listen(PORT, () =>
-    console.log(`renderer listening on :${PORT}, frames from ${FRAME_BASE_URL} in ${TIMEZONE ?? 'UTC'}`)
+    console.log(`renderer listening on :${PORT}, frames from ${FRAME_BASE_URL}, default zone ${TIMEZONE ?? 'UTC'}`)
 );
 
 for (const signal of ['SIGTERM', 'SIGINT']) {

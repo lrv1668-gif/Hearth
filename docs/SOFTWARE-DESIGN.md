@@ -43,7 +43,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 | `/`         | Dashboard — configurable widget columns (tasks, weather, countdowns, moon phase, news, quote) |
 | `/calendar` | Calendar view with month grid and per-day task overflow modal                             |
 | `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                          |
-| `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, widget visibility  |
+| `/settings` | Collapsible sections: theme picker, home location and time zone, ambient photo cadence, categories, widget visibility  |
 | `/frame`    | E-paper render target — panel-sized canvas (default 1600×1200), no nav (see below)        |
 
 The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one, the bottom tab bar replaces the masthead, and the kiosk footer is hidden (Now Playing moves to the top of the dashboard). The calendar switches earlier, at `md` (768px): below it day cells show dots instead of titles, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows.
@@ -94,6 +94,7 @@ The persistent setting is the recommended choice for a dedicated wall display. T
 | `fontTheme`    | `FontThemeStore.svelte.ts`  | `localStorage`  | Active font theme ID; writes `dataset.font` on change                 |
 | `fontSize`     | `FontSizeStore.svelte.ts`   | `localStorage`  | User size multiplier (0.9–1.3); sets `--font-user-scale` inline on `<html>` |
 | `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | `/ambient` slideshow cadence (day/night) and motion, RSS feeds config, kiosk mode, subscribed train stops + per-stop line filters |
+| `homeLocation` | `HomeLocationStore.svelte.ts` | Server (SQLite) | The household's location and time zone — one shared copy in the Display service; Settings → Home loads it and saves the form on Save (the zone defaults to this browser's, unsaved) |
 | `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, panel size, layout, split and Ambient card position, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
 | `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
 | `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
@@ -226,7 +227,7 @@ Three shared projects live under `src/` and are referenced by service projects v
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
 | `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton, and `SqliteDistributedCache` / `AddSqliteDistributedCache(key)` — an `IDistributedCache` over that same database, used as FusionCache's L2. The only project that references `Microsoft.Data.Sqlite`. |
-| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 10** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (CORS `AllowAnyOrigin/Method/Header` + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), and `AddHearthCache()` (FusionCache — see below). |
+| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 10** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (CORS `AllowAnyOrigin/Method/Header` + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `AddHearthCache()` (FusionCache — see below), and `AddHearthHomeLocation()` (the shared home location — see below). |
 
 Service projects follow this pattern:
 
@@ -246,6 +247,16 @@ Services that proxy a third-party API with a simple "fetch, cache, serve" shape 
 - `HearthJson.SnakeCaseLower` serialization for the L2 payloads.
 
 Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint. RSS and Calendar keep their own relational SQLite caches (articles per feed, items per provider); Photos keeps its in-memory `IMemoryCache` batch.
+
+### Home location and time zone
+
+The household's location (`latitude`, `longitude`, optional `name`) and IANA `time_zone` are set in Settings → Home and stored once, by the Display service (`GET`/`PUT /display/home`). `ServiceDefaults` holds the shared `HomeSettings` record and `HomeLocationClient`, which Weather, Birds and Almanac register with `AddHearthHomeLocation()` (it needs `AddHearthCache()`):
+
+- `GetAsync()` reads `DISPLAY_URL/display/home` (3 s timeout), cached through FusionCache for 1 minute with fail-safe, so a saved change reaches every service within a minute and a restarting Display keeps the last answer.
+- It merges in the env-var fallbacks: saved coordinates, else `LATITUDE`/`LONGITUDE`; saved zone, else `TZ`. A Display that's unset (`204`), unreachable with nothing cached, or not configured (no `DISPLAY_URL`) leaves just the env vars — so installs configured through `.env` keep working.
+- Weather and Birds key their upstream caches by coordinates (and Birds by radius), so a new location doesn't serve the old place's data.
+
+Display passes the saved zone to the renderer as `tz=` on each preview, so the frame's date and clock render in it; the renderer's own `TZ` is the fallback.
 
 ### Required env var validation
 
@@ -335,7 +346,7 @@ The `weather` service fetches current conditions and a 7-day forecast from [Open
 | `GET`  | `/weather/current`  | Returns current conditions; uses cache if fresh |
 | `GET`  | `/weather/forecast` | Returns 7-day forecast; uses cache if fresh     |
 
-Both endpoints return `503` with `{ "error": "location not configured" }` if `LATITUDE` or `LONGITUDE` are missing, and log a `LogError` pointing to `.env.example`.
+Both endpoints return `503` with `{ "error": "location not configured" }` when there's no home location — none saved in Settings → Home and no `LATITUDE`/`LONGITUDE` — and log a `LogError`. The snapshot is cached per location (`weather:<lat>,<lon>`).
 
 The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise` and `sunset` as ISO strings. `WeatherWidget.svelte` displays today's sunrise/sunset from `forecast[0]`.
 
@@ -345,8 +356,9 @@ The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise
 
 | Variable                | Required | Description                                        |
 | ------------------------ | -------- | ---------------------------------------------------|
-| `LATITUDE`              | Yes      | Decimal latitude (e.g. `40.7128`)                  |
-| `LONGITUDE`             | Yes      | Decimal longitude (e.g. `-74.0060`)                |
+| `LATITUDE`              | No       | Fallback decimal latitude (e.g. `40.7128`) when none is saved in Settings → Home |
+| `LONGITUDE`             | No       | Fallback decimal longitude (e.g. `-74.0060`)       |
+| `DISPLAY_URL`           | No       | The Display service, for the saved home location (`http://display:8090` in Compose) |
 | `DB_PATH`               | No       | Path to SQLite cache file (default: `weather.db`)  |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8082` in Docker                            |
 
@@ -619,15 +631,16 @@ The `birds` service fetches recent and notable bird observations near the config
 
 | Method | Path            | Description                                                                        |
 | ------ | ---------------- | -------------------------------------------------------------------------------------|
-| `GET`  | `/birds/recent` | Returns `BirdSighting[]`; `503` when env vars missing, `502` when eBird is unreachable and nothing is cached |
+| `GET`  | `/birds/recent` | Returns `BirdSighting[]`; `503` without `EBIRD_API_KEY` or a home location, `502` when eBird is unreachable and nothing is cached |
 
 ### Environment variables
 
 | Variable            | Required | Description                                     |
 | --------------------- | -------- | ---------------------------------------------------|
 | `EBIRD_API_KEY`      | Yes      | Free key from https://ebird.org/api/keygen        |
-| `LATITUDE`           | Yes      | Decimal latitude                                  |
-| `LONGITUDE`          | Yes      | Decimal longitude                                 |
+| `LATITUDE`           | No       | Fallback decimal latitude when none is saved in Settings → Home |
+| `LONGITUDE`          | No       | Fallback decimal longitude                        |
+| `DISPLAY_URL`        | No       | The Display service, for the saved home location  |
 | `BIRDS_RADIUS_KM`    | No       | Search radius in km (default: 15)                 |
 | `DB_PATH`            | No       | Path to SQLite cache file (default: `birds.db`)   |
 | `ASPNETCORE_HTTP_PORTS` | —     | Set to `8088` in Docker                            |
@@ -642,12 +655,12 @@ Stored in `src/Birds/.env`.
 
 The `almanac` service computes seasonal facts entirely locally — no external API, no SQLite (it's stateless, so it has no `Data`/`Data.Abstractions` reference and no Docker volume). The response always contains the pinned **season** section plus at most **two rotating slots**, filled in priority order (daylight → timely frost → note); unfilled or bumped sections are `null`:
 
-- **Season** (always present) — name, Early/Mid/Late label, day-of-season, progress, and countdown to the next equinox/solstice, from a hardcoded table of solstice/equinox UTC instants (2024–2040) in `SeasonCalculator`. Hemisphere derived from the sign of `LATITUDE` (northern when unset).
+- **Season** (always present) — name, Early/Mid/Late label, day-of-season, progress, and countdown to the next equinox/solstice, from a hardcoded table of solstice/equinox UTC instants (2024–2040) in `SeasonCalculator`. Hemisphere derived from the sign of the home latitude (northern when unset).
 - **Daylight** — trend (min/day gained or lost over the past week), drift vs. the most recent solstice, and the single next wall-clock milestone ("Last 8 pm sunset · Aug 13") from the NOAA sunrise/sunset algorithm in `SolarCalculator`. `null` when coordinates are unset.
 - **Frost** — countdown to the next of the user's typical first/last frost dates. Only claims a slot when ≤ 42 days away (bumping the note); `null` when unset or not yet timely.
 - **Note** — curated phenology/in-season sentence keyed by half-month (`PhenologyData`, temperate Northern Hemisphere; `null` for southern installs).
 
-Unlike Weather, missing coordinates do **not** produce a `503` — the endpoint logs an error at startup and returns `200` with `daylight: null`, because season and note are date-only.
+The location and zone are the shared home location (see Shared Libraries → Home location and time zone), read per request. Unlike Weather, missing coordinates do **not** produce a `503` — the endpoint logs an error and returns `200` with `daylight: null`, because season and note are date-only.
 
 ### Endpoints
 
@@ -659,9 +672,10 @@ Unlike Weather, missing coordinates do **not** produce a `503` — the endpoint 
 
 | Variable                | Description                                                  |
 | ------------------------ | ----------------------------------------------------------------|
-| `LATITUDE`              | Decimal latitude                                              |
-| `LONGITUDE`             | Decimal longitude                                              |
-| `TZ`                    | IANA zone for wall-clock milestones; defaults to system zone  |
+| `LATITUDE`              | Fallback decimal latitude when none is saved in Settings → Home |
+| `LONGITUDE`             | Fallback decimal longitude                                     |
+| `TZ`                    | Fallback IANA zone for wall-clock milestones; else the system zone |
+| `DISPLAY_URL`           | The Display service, for the saved home location               |
 | `FIRST_FROST` / `LAST_FROST` | `MM-DD`                                                  |
 | `ASPNETCORE_HTTP_PORTS` | Set to `8089` in Docker                                        |
 
@@ -669,15 +683,18 @@ Stored in `src/Almanac/.env`.
 
 ## Display Service
 
-`src/Display` (port 8090) holds the e-paper frame's shared settings — the frame is one physical display, so its look is a single source of truth rather than a per-browser preference. It also serves the frame dithered to the panel's six inks, captured and dithered by the `renderer` sidecar (below); the panel endpoint, render schedule and button/presence endpoints are still planned (`HARDWARE.md` step 2).
+`src/Display` (port 8090) holds the household's home location and time zone and the e-paper frame's shared settings — the frame is one physical display, so its look is a single source of truth rather than a per-browser preference. It also serves the frame dithered to the panel's six inks, captured and dithered by the `renderer` sidecar (below); the panel endpoint, render schedule and button/presence endpoints are still planned (`HARDWARE.md` step 2).
 
 | Endpoint                 | Description |
 | ------------------------ | ----------- |
 | `GET /display/settings`  | The saved `FrameSettings` (`theme`, `font`, `orientation`, `left`, `right`, `split`, `ambient_position`, `photo_source`, `photo_categories`, `width`, `height`), or `204` if nothing has been saved — clients then use their defaults |
 | `PUT /display/settings`  | Replaces them. `400` unless orientation is `landscape`/`portrait`, each column has at most 3 widgets with none repeated, `split` is 30–70 `ambient_position` is one of the six positions (omitted → `bottom-left`), and `width`/`height` (the panel's native size; omitted → 1600×1200) are 200–4000 with width ≥ height |
-| `GET /display/preview`   | `/frame`'s query params plus `look=screen\|paper` (and optional `kernel=`, an epdoptimize error-diffusion kernel) → the frame as a PNG in the six inks, upright at the panel size (`width`×`height`, swapped in portrait; default 1600×1200). Daily is ordered-dithered, Ambient error-diffused; `paper` repaints the inks as they look on the panel. `400` for an unknown `kernel`, `503` without `RENDERER_URL` or while the renderer is busy, `504` if the frame never got ready, `502` on any other render failure |
+| `GET /display/home`      | The saved `HomeSettings` (`latitude`, `longitude`, `name`, `time_zone`), or `204` if nothing has been saved — services then use their env vars |
+| `PUT /display/home`      | Replaces them. `400` unless latitude is −90–90 and longitude −180–180 (both or neither), `name` is ≤ 100 characters, and `time_zone` (optional) is an IANA zone the host knows |
+| `GET /display/places?q=` | City search for Settings → Home via Open-Meteo's keyless geocoding API → `Place[]` (`name`, `label`, `latitude`, `longitude`, `time_zone`), cached 7 days (FusionCache, memory-only). `400` unless `q` is 2–100 characters, `502` when the geocoder fails |
+| `GET /display/preview`   | `/frame`'s query params plus `look=screen\|paper` (and optional `kernel=`, an epdoptimize error-diffusion kernel) → the frame as a PNG in the six inks, upright at the panel size (`width`×`height`, swapped in portrait; default 1600×1200). Daily is ordered-dithered, Ambient error-diffused; `paper` repaints the inks as they look on the panel. Rendered in the saved home time zone (`tz=`), else the renderer's `TZ`. `400` for an unknown `kernel`, `503` without `RENDERER_URL` or while the renderer is busy, `504` if the frame never got ready, `502` on any other render failure |
 
-`FrameSettingsStore` keeps one row (`id = 1`) in `display.db` (`DB_PATH`). Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once.
+`FrameSettingsStore` and `HomeSettingsStore` each keep one row (`id = 1`) in `display.db` (`DB_PATH`) — separate tables, because the frontend saves the frame settings whole on every change. Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once.
 
 | Variable                | Required | Description |
 | ----------------------- | -------- | ----------- |
@@ -687,7 +704,7 @@ Stored in `src/Almanac/.env`.
 
 ### Renderer sidecar
 
-`renderer/` is a small Node container (not a .NET service — Playwright needs Node and Chromium's system libraries, which the chiseled image lacks) built on the official multi-arch Playwright image. `GET /render?path=/frame?…&width=&height=&dither=ordered|errorDiffusion|none&kernel=&look=screen|paper` loads the frame from `FRAME_BASE_URL` (`http://caddy` — Caddy's `:80` site serves the frontend and the API routes the page calls), waits for `[data-ready="true"]` (40 s for load and ready together, then `504`; an error page fails at once with `502`), screenshots it (with subpixel text antialiasing off, so glyph edges don't dither into stray inks) and dithers it (`dither.mjs`, see `HARDWARE.md` step 2 for why each method). The browser draws in the root `.env`'s `TZ` (IANA zone; UTC when unset or invalid, with an error logged), since the frame's date and clock come from the browser. One render runs at a time with at most one waiting (`503` beyond that), and a render whose client has disconnected is dropped. An unknown `kernel` is a `400` (epdoptimize would otherwise quietly use Floyd–Steinberg). It only accepts `/frame` paths and has no Caddy route. Tests: `cd renderer && npm test`.
+`renderer/` is a small Node container (not a .NET service — Playwright needs Node and Chromium's system libraries, which the chiseled image lacks) built on the official multi-arch Playwright image. `GET /render?path=/frame?…&width=&height=&dither=ordered|errorDiffusion|none&kernel=&look=screen|paper&tz=` loads the frame from `FRAME_BASE_URL` (`http://caddy` — Caddy's `:80` site serves the frontend and the API routes the page calls), waits for `[data-ready="true"]` (40 s for load and ready together, then `504`; an error page fails at once with `502`), screenshots it (with subpixel text antialiasing off, so glyph edges don't dither into stray inks) and dithers it (`dither.mjs`, see `HARDWARE.md` step 2 for why each method). The browser draws in the request's `tz` (an IANA zone, checked with `Intl` — `400` if unknown; Display sends the saved home zone), else the root `.env`'s `TZ` (UTC when unset or invalid, with an error logged), since the frame's date and clock come from the browser (`timezone.mjs`). One render runs at a time with at most one waiting (`503` beyond that), and a render whose client has disconnected is dropped. An unknown `kernel` is a `400` (epdoptimize would otherwise quietly use Floyd–Steinberg). It only accepts `/frame` paths and has no Caddy route. Tests: `cd renderer && npm test`.
 
 Settings → Frame's preview has a Live / Screen / Paper switch: Live is the `/frame` iframe; Screen and Paper show `/display/preview`, rendered 600 ms after the settings stop changing and only while one of them is selected.
 

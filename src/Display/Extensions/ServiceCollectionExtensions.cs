@@ -9,6 +9,9 @@ public static class ServiceCollectionExtensions
     {
         serviceCollection.AddSqliteDatabase("display", "display.db");
         serviceCollection.AddSingleton<FrameSettingsStore>();
+        serviceCollection.AddSingleton<HomeSettingsStore>();
+        serviceCollection.AddHearthCache();
+        serviceCollection.AddHttpClient<GeocodingClient>();
         serviceCollection.AddHttpClient<RendererClient>((services, http) =>
         {
             // RENDERER_URL is checked per request (503 when unset), so don't fail here

@@ -16,13 +16,15 @@ public sealed class RendererClient(HttpClient http)
     /// <param name="dither">"ordered", "errorDiffusion" or "none".</param>
     /// <param name="kernel">epdoptimize's error-diffusion kernel; null for its default.</param>
     /// <param name="look">"screen" (the inks the panel is sent) or "paper" (how they look on it).</param>
+    /// <param name="timeZone">IANA zone the page's clock runs in; null for the renderer's TZ.</param>
     public async Task<byte[]> RenderAsync(
         string framePath, int width, int height, string dither, string? kernel, string look,
-        CancellationToken ct = default)
+        string? timeZone = null, CancellationToken ct = default)
     {
         var url = string.Create(CultureInfo.InvariantCulture,
             $"render?path={Uri.EscapeDataString(framePath)}&width={width}&height={height}&dither={dither}&look={look}");
         if (kernel is not null) url += $"&kernel={Uri.EscapeDataString(kernel)}";
+        if (timeZone is not null) url += $"&tz={Uri.EscapeDataString(timeZone)}";
 
         using var response = await http.GetAsync(url, ct);
         if (response.StatusCode != HttpStatusCode.OK)

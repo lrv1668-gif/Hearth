@@ -1,3 +1,4 @@
+using System.Globalization;
 using Data.Abstractions;
 using ServiceDefaults;
 using Birds;
@@ -8,7 +9,9 @@ namespace Birds.Extensions;
 
 public static class WebApplicationExtensions
 {
-    private const string CacheKey = "birds";
+    /// <summary>Per place and radius, so moving the home location doesn't serve the old place's birds.</summary>
+    internal static string CacheKey(double lat, double lon, int radiusKm) =>
+        string.Create(CultureInfo.InvariantCulture, $"birds:{lat:F3},{lon:F3},{radiusKm}");
 
     private static readonly FusionCacheEntryOptions CacheOptions = new()
     {
@@ -26,28 +29,32 @@ public static class WebApplicationExtensions
 
     private static void AddBirdsEndpoints(this WebApplication app)
     {
-        app.MapGet("/birds/recent", async (IFusionCache cache, BirdsFetcher fetcher, IConfiguration config, CancellationToken ct) =>
+        app.MapGet("/birds/recent", async (IFusionCache cache, BirdsFetcher fetcher, HomeLocationClient home, IConfiguration config,
+            CancellationToken ct) =>
         {
             if (config.RequireOrFail(
                     app.Logger,
                     _ => Results.Json(new { error = "birds not configured" }, statusCode: 503),
-                    "EBIRD_API_KEY", "LATITUDE", "LONGITUDE") is { } configError)
+                    "EBIRD_API_KEY") is { } configError)
             {
                 return configError;
             }
+            if ((await home.GetAsync(ct)).Coordinates is not (var lat, var lon))
+            {
+                app.Logger.LogError("No home location. Set one in Settings → Home, or LATITUDE and LONGITUDE in the .env file.");
+                return Results.Json(new { error = "birds not configured" }, statusCode: 503);
+            }
 
-            // RequireOrFail above guarantees these are present.
+            // RequireOrFail above guarantees this is present.
             var apiKey = config["EBIRD_API_KEY"]!;
 
             try
             {
-                var lat = config.GetValue<double>("LATITUDE");
-                var lon = config.GetValue<double>("LONGITUDE");
                 var radiusKm = config.GetValue("BIRDS_RADIUS_KM", 15);
 
                 // Fail-safe serves the last good sightings when eBird is down; this only throws when nothing was ever cached.
                 var sightings = await cache.GetOrSetAsync<List<BirdSighting>>(
-                    CacheKey, (_, token) => fetcher.FetchAsync(apiKey, lat, lon, radiusKm, token), CacheOptions, ct);
+                    CacheKey(lat, lon, radiusKm), (_, token) => fetcher.FetchAsync(apiKey, lat, lon, radiusKm, token), CacheOptions, ct);
                 return Results.Ok(sightings);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)

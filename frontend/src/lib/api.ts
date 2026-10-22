@@ -197,6 +197,26 @@ export interface CalendarItem {
 // kind: 'task' = internal Hearth task; kind: 'event' = external calendar item (CalendarItem.kind determines event vs task).
 export type Item = { kind: 'task'; data: Task } | { kind: 'event'; data: CalendarItem };
 
+/** The household's location and time zone, held by the Display service and read by
+ *  Weather, Birds, Almanac and the frame's renderer. Coordinates come as a pair. */
+export interface HomeSettings {
+    latitude: number | null;
+    longitude: number | null;
+    /** A label for the place, e.g. "Denver, Colorado". */
+    name: string | null;
+    /** IANA zone id, e.g. "America/Denver". */
+    time_zone: string | null;
+}
+
+/** A city search result (Display's /display/places). */
+export interface Place {
+    name: string;
+    label: string;
+    latitude: number;
+    longitude: number;
+    time_zone: string | null;
+}
+
 /** The e-paper frame's shared look and Daily layout, held by the Display service so
  *  every client (and the frame's renderer) sees the same settings. */
 export interface FrameSettings {
@@ -257,6 +277,21 @@ class ApiClient {
 
         saveSettings: (settings: FrameSettings): Promise<FrameSettings> =>
             this.put<FrameSettings>('/display/settings', settings),
+
+        /** The saved home location; null when none is saved yet, undefined when the
+         *  Display service can't be reached. */
+        home: async (): Promise<HomeSettings | null | undefined> => {
+            const res = await fetch('/display/home').catch(() => null);
+            if (!res?.ok) return undefined;
+            if (res.status === 204) return null;
+            return res.json() as Promise<HomeSettings>;
+        },
+
+        saveHome: (home: HomeSettings): Promise<HomeSettings> => this.put<HomeSettings>('/display/home', home),
+
+        /** Cities matching `query`, each with its coordinates and time zone; null on failure. */
+        places: (query: string): Promise<Place[] | null> =>
+            this.get<Place[]>(`/display/places?${new URLSearchParams({ q: query })}`),
 
         /** The frame rendered and dithered to the panel's six inks, as a PNG URL. `screen`
          *  shows the exact inks the panel is sent; `paper` repaints them as they look on it. */

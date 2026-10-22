@@ -11,4 +11,8 @@
   <ItemGroup>
     <PackageReference Include="DotNetEnv" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Birds.Tests" />
+  </ItemGroup>
+
 </Project>
