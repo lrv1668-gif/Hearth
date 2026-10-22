@@ -6,6 +6,7 @@
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import { frameSettings, loadFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { photoQuery, resolveSource, uploadToPhoto } from '$lib/photos';
+    import { settingsHref } from '$lib/constants/settingsSections';
     import { MediaQuery } from 'svelte/reactivity';
 
     const isPortrait = new MediaQuery('orientation: portrait');
@@ -116,7 +117,7 @@
         if (frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both') {
             const uploads = await api.photos.list();
             if (uploads.length === 0 && frameSettings.photoSource === 'local') {
-                goto('/settings');
+                goto(settingsHref('ambient'));
                 return;
             }
             localQueue = shuffle(uploads);

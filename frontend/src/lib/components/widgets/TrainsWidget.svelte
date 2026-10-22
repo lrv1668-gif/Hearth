@@ -6,6 +6,7 @@
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
     import ScrollFadeList from '$lib/components/ScrollFadeList.svelte';
+    import { settingsHref } from '$lib/constants/settingsSections';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
 
@@ -112,7 +113,10 @@
         <div class="flex flex-col gap-1 py-4 text-(--text-2)">
             <TrainFront class="icon-sm mb-1" />
             <p class="type-label">No stops added yet.</p>
-            <a href="/settings" class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)">
+            <a
+                href={settingsHref('dashboard')}
+                class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)"
+            >
                 Add a stop in Settings →
             </a>
         </div>

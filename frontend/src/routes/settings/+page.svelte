@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { page } from '$app/state';
     import { Monitor, MapPin, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
     import Toggle from '$lib/components/Toggle.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
@@ -36,8 +37,11 @@
     import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
     import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
     import HomeLocationSettings from '$lib/components/settings/HomeLocationSettings.svelte';
-
-    type SectionId = 'display' | 'home' | 'dashboard' | 'ambient' | 'connections' | 'frame';
+    import {
+        parseSettingsSection,
+        settingsHref,
+        type SettingsSection as SectionId,
+    } from '$lib/constants/settingsSections';
 
     const sections = [
         { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · type', icon: Monitor },
@@ -99,7 +103,8 @@
         };
     });
 
-    let active = $state<SectionId>('display');
+    // The section lives in the URL so a refresh keeps it and other pages can link to one.
+    const active = $derived(parseSettingsSection(page.url.searchParams.get('section')));
     const section = $derived(content[active]);
 
     // Mobile tab bar: keep the active tab in view, and show the right-edge fade only while
@@ -135,8 +140,11 @@
     >
         {#each sections as s}
             {@const isActive = active === s.id}
-            <button
-                onclick={() => (active = s.id)}
+            <a
+                href={settingsHref(s.id)}
+                data-sveltekit-replacestate
+                data-sveltekit-noscroll
+                data-sveltekit-keepfocus
                 data-section={s.id}
                 aria-current={isActive ? 'page' : undefined}
                 class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors
@@ -144,7 +152,7 @@
             >
                 <s.icon class="icon-sm shrink-0" />
                 <span class="type-label whitespace-nowrap">{s.label}</span>
-            </button>
+            </a>
         {/each}
     </nav>
 </div>
@@ -154,8 +162,11 @@
     <aside class="hidden flex-col gap-1 overflow-y-auto border-r-2 border-(--border) bg-(--bg) px-3 py-4 lg:flex">
         {#each sections as s}
             {@const isActive = active === s.id}
-            <button
-                onclick={() => (active = s.id)}
+            <a
+                href={settingsHref(s.id)}
+                data-sveltekit-replacestate
+                data-sveltekit-noscroll
+                data-sveltekit-keepfocus
                 aria-current={isActive ? 'page' : undefined}
                 class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors
                     {isActive
@@ -167,7 +178,7 @@
                     <p class="type-body leading-tight font-medium">{s.label}</p>
                     <p class="type-label leading-tight text-(--text-2)">{s.subtitle}</p>
                 </div>
-            </button>
+            </a>
         {/each}
     </aside>
 
