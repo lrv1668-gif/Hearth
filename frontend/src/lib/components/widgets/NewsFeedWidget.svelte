@@ -5,6 +5,7 @@
     import { rssStore, loadRssArticles } from '$lib/stores/RssFeedStore.svelte.ts';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
     import ScrollFadeList from '$lib/components/ScrollFadeList.svelte';
+    import { settingsHref } from '$lib/constants/settingsSections';
 
     function toTimestamp(s: string | null): number {
         if (!s) return 0;
@@ -38,7 +39,10 @@
         <div class="flex flex-col gap-1 py-4 text-(--text-2)">
             <Rss class="icon-sm mb-1" />
             <p class="type-label">No feeds added yet.</p>
-            <a href="/settings" class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)">
+            <a
+                href={settingsHref('dashboard')}
+                class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)"
+            >
                 Add feeds in Settings →
             </a>
         </div>
