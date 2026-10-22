@@ -1,9 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { LocateFixed, Search } from '@lucide/svelte';
-    import { api, type Place } from '$lib/api';
+    import { api, HomeSettingsRejected, type Place } from '$lib/api';
     import {
         browserTimeZone,
+        canonicalTimeZone,
         homeLocation,
         isTimeZone,
         knownTimeZones,
@@ -77,7 +78,7 @@
 
     async function search(e: SubmitEvent) {
         e.preventDefault();
-        if (query.trim().length < 2) return;
+        if (query.trim().length < 2 || searching) return;
         searching = true;
         const found = await api.display.places(query.trim());
         searching = false;
@@ -123,12 +124,18 @@
                 latitude: lat ?? null,
                 longitude: lon ?? null,
                 name: name.trim() || null,
-                time_zone: timeZone.trim() || null,
+                time_zone: timeZone.trim() ? canonicalTimeZone(timeZone.trim()) : null,
             });
             resetDraft();
             status = { kind: 'saved', text: 'Saved. Weather, birds and the almanac update within a minute.' };
-        } catch {
-            status = { kind: 'error', text: 'Couldn’t save — is the Display service running?' };
+        } catch (e) {
+            status = {
+                kind: 'error',
+                text:
+                    e instanceof HomeSettingsRejected
+                        ? `Couldn’t save: ${e.message}.`
+                        : 'Couldn’t save — is the Display service running?',
+            };
         } finally {
             saving = false;
         }
@@ -178,7 +185,7 @@
         </form>
         {#if places}
             <div class="flex flex-col">
-                {#each places as place (`${place.latitude},${place.longitude}`)}
+                {#each places as place}
                     <button
                         onclick={() => pick(place)}
                         class="flex flex-col rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--surface-hi)"
@@ -242,7 +249,7 @@
             </datalist>
         </label>
         {#if homeLocation.loaded && !homeLocation.timeZone && timeZone === thisBrowser}
-            <p class="type-label text-(--text-2)">From this browser — not saved yet.</p>
+            <p class="type-label text-(--text-2)">From this browser — saved along with the location.</p>
         {:else if timeZone !== thisBrowser}
             <div>
                 <button

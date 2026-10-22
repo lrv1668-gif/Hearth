@@ -71,6 +71,16 @@ public sealed class HomeEndpointTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("a")]
+    public async Task Places_QueryTooShort_Returns400(string q)
+    {
+        var response = await _factory.CreateClient().GetAsync($"/display/places?q={q}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task Preview_ZoneSaved_PassesItToTheRenderer()
     {

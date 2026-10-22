@@ -15,6 +15,12 @@ export function isTimeZone(zone: string): boolean {
     }
 }
 
+/** The zone id as Intl spells it — "america/denver" becomes "America/Denver", which the
+ *  host's case-sensitive tz database needs. */
+export function canonicalTimeZone(zone: string): string {
+    return new Intl.DateTimeFormat('en', { timeZone: zone }).resolvedOptions().timeZone;
+}
+
 /** Every zone this browser knows, for the time zone picker (empty on older browsers). */
 export function knownTimeZones(): string[] {
     return typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];

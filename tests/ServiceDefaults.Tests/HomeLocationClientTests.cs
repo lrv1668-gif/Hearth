@@ -19,8 +19,24 @@ public sealed class HomeLocationClientTests
 
     private sealed class DownHandler : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
+        public int Calls { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            Calls++;
             throw new HttpRequestException("connection refused");
+        }
+    }
+
+    private sealed class CountingHandler(HttpStatusCode status) : HttpMessageHandler
+    {
+        public int Calls { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            Calls++;
+            return Task.FromResult(new HttpResponseMessage(status));
+        }
     }
 
     private static HomeLocationClient Client(HttpMessageHandler handler, Dictionary<string, string?> env, bool displayUrl = true)
@@ -70,6 +86,31 @@ public sealed class HomeLocationClientTests
     {
         var home = await Client(new DownHandler(), Env).GetAsync();
 
+        Assert.Equal(new HomeLocation(39.74, -104.99, "America/Denver"), home);
+    }
+
+    [Fact]
+    public async Task GetAsync_DisplayDownTwice_TriesOnceThenRemembers()
+    {
+        var handler = new DownHandler();
+        var client = Client(handler, Env);
+
+        await client.GetAsync();
+        await client.GetAsync();
+
+        Assert.Equal(1, handler.Calls);
+    }
+
+    [Fact]
+    public async Task GetAsync_NothingStoredTwice_CachesTheEmptyAnswer()
+    {
+        var handler = new CountingHandler(HttpStatusCode.NoContent);
+        var client = Client(handler, Env);
+
+        await client.GetAsync();
+        var home = await client.GetAsync();
+
+        Assert.Equal(1, handler.Calls);
         Assert.Equal(new HomeLocation(39.74, -104.99, "America/Denver"), home);
     }
 

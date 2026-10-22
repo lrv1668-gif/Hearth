@@ -34,7 +34,11 @@ public sealed class HomeLocationClient(
         Duration = TimeSpan.FromMinutes(1),
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(7),
+        FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
     };
+
+    // How long "Display unreachable, nothing cached" is remembered before trying again
+    internal static readonly TimeSpan UnreachableRetry = TimeSpan.FromSeconds(30);
 
     public async Task<HomeLocation> GetAsync(CancellationToken ct = default)
     {
@@ -57,23 +61,27 @@ public sealed class HomeLocationClient(
     private async Task<HomeSettings?> GetStoredAsync(CancellationToken ct)
     {
         if (http.BaseAddress is null) return null; // no DISPLAY_URL: env vars only
-        try
+        return await cache.GetOrSetAsync<HomeSettings?>(CacheKey, async (ctx, token) =>
         {
-            return await cache.GetOrSetAsync<HomeSettings?>(CacheKey, async (_, token) =>
+            try
             {
                 using var response = await http.GetAsync("display/home", token);
                 response.EnsureSuccessStatusCode();
                 return response.StatusCode == HttpStatusCode.NoContent
                     ? null
                     : await response.Content.ReadFromJsonAsync<HomeSettings>(HearthJson.SnakeCaseLower, token);
-            }, CacheOptions, ct);
-        }
-        catch (Exception ex) when (!ct.IsCancellationRequested)
-        {
-            // Never reached Display (and nothing cached): carry on with the env vars
-            logger.LogWarning(ex, "Couldn't read the home location from the Display service — using env vars");
-            return null;
-        }
+            }
+            catch (Exception ex) when (!ctx.HasStaleValue && !token.IsCancellationRequested)
+            {
+                // Never reached Display and nothing cached: use the env vars, and remember that
+                // briefly so a down Display doesn't cost every request a timeout and a warning.
+                // With a stale value the exception reaches fail-safe, which keeps serving it.
+                logger.LogWarning(ex, "Couldn't read the home location from the Display service — using env vars");
+                ctx.Options.Duration = UnreachableRetry;
+                ctx.Options.IsFailSafeEnabled = false;
+                return null;
+            }
+        }, CacheOptions, ct);
     }
 }
 

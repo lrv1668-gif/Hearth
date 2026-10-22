@@ -208,6 +208,9 @@ export interface HomeSettings {
     time_zone: string | null;
 }
 
+/** Display refused the home settings; the message is its reason, e.g. "latitude must be -90–90". */
+export class HomeSettingsRejected extends Error {}
+
 /** A city search result (Display's /display/places). */
 export interface Place {
     name: string;
@@ -284,10 +287,20 @@ class ApiClient {
             const res = await fetch('/display/home').catch(() => null);
             if (!res?.ok) return undefined;
             if (res.status === 204) return null;
-            return res.json() as Promise<HomeSettings>;
+            return (res.json() as Promise<HomeSettings>).catch(() => undefined);
         },
 
-        saveHome: (home: HomeSettings): Promise<HomeSettings> => this.put<HomeSettings>('/display/home', home),
+        /** Throws HomeSettingsRejected with Display's reason on a 400. */
+        saveHome: async (home: HomeSettings): Promise<HomeSettings> => {
+            const res = await fetch('/display/home', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(home),
+            });
+            if (res.status === 400) throw new HomeSettingsRejected(await res.json().catch(() => 'invalid settings'));
+            if (!res.ok) throw new Error(`PUT /display/home failed: ${res.status}`);
+            return res.json() as Promise<HomeSettings>;
+        },
 
         /** Cities matching `query`, each with its coordinates and time zone; null on failure. */
         places: (query: string): Promise<Place[] | null> =>
