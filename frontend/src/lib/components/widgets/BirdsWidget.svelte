@@ -16,7 +16,7 @@
 
 <SkeletonLoader promise={loadPromise}>
     {#if birdsStore.error}
-        <p class="type-body text-(--text-2)">Bird sightings unavailable.</p>
+        <p class="type-label text-(--text-2)">Bird sightings unavailable.</p>
     {:else}
         <ScrollFadeList>
             <BirdSightingsView sightings={birdsStore.sightings} />

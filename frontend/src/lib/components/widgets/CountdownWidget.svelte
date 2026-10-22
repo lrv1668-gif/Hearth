@@ -21,7 +21,7 @@
 </script>
 
 {#if upcoming.length === 0}
-    <p class="type-body text-(--text-2)">No countdowns added yet.</p>
+    <p class="type-label text-(--text-2)">No countdowns added yet.</p>
 {:else}
     <ul class="space-y-3">
         {#each upcoming as { task: item, days } (item.id)}

@@ -24,7 +24,7 @@
     );
 </script>
 
-<div class="shrink-0 border-b border-(--border) px-6 pb-2 md:px-8">
+<div class="shrink-0 border-b border-(--border) px-4 pb-2 sm:px-6 lg:px-8">
     <div class="flex justify-between">
         <div class="flex flex-col gap-2 sm:flex-row-reverse sm:items-end sm:pt-2">
             <p class="type-body tracking-widest text-(--text-2) uppercase">{date}</p>

@@ -13,10 +13,10 @@
 
 <!-- Desktop masthead — single compact row: logo left, links right -->
 <header
-    class="mb-4 border-b-2 border-(--border) bg-(--bg)
+    class="border-b-2 border-(--border) bg-(--bg)
     {kioskStore.isKiosk ? 'hidden' : 'hidden lg:block'}"
 >
-    <div class="mx-auto flex items-center justify-between gap-8 px-8 py-2">
+    <div class="mx-auto flex items-center justify-between gap-8 px-4 py-2 sm:px-6 lg:px-8">
         <a href="/" class="inline-flex items-center">
             <span class="font-bold tracking-[0.25em] text-(--text-1) uppercase transition-colors hover:text-(--text-2)">
                 Hearth
@@ -39,9 +39,10 @@
     </div>
 </header>
 
-<!-- Mobile bottom nav -->
+<!-- Mobile bottom nav. On Settings its section tabs sit on top, so a hairline joins the two into one tray. -->
 <nav
-    class="fixed right-0 bottom-0 left-0 flex min-h-max justify-around border-t-2 border-(--border) bg-(--bg) py-2 lg:hidden"
+    class="fixed right-0 bottom-0 left-0 flex min-h-max justify-around border-(--border) bg-(--bg) pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden
+    {page.url.pathname === '/settings' ? 'border-t' : 'border-t-2'}"
 >
     {#each links as link (link.href)}
         <a

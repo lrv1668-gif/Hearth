@@ -41,7 +41,7 @@
     <title>Hearth — Calendar</title>
 </svelte:head>
 
-<main class="mx-auto flex min-h-0 w-full max-w-7xl flex-col px-8 py-8">
+<main class="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
     <Calendar
         tasks={taskStore.tasks}
         calItems={calendarStore.items}

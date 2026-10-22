@@ -36,7 +36,7 @@
     import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
     import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
 
-    type SectionId = 'display' | 'dashboard' | 'ambient' | 'connections' | 'frame' | 'about';
+    type SectionId = 'display' | 'dashboard' | 'ambient' | 'connections' | 'frame';
 
     const sections = [
         { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · type', icon: Monitor },
@@ -62,13 +62,12 @@
         },
         connections: {
             heading: 'Connections',
-            description: 'Connect and manage external services like Spotify and weather providers.',
+            description: 'Connect the outside services Hearth reads from, like Spotify and Google Calendar.',
         },
         frame: {
             heading: 'Frame',
             description: 'Control how the e-paper frame looks. These settings are shared by every device.',
         },
-        about: { heading: 'About Hearth', description: 'Version information, acknowledgements, and credits.' },
     };
 
     // Shared by the Dashboard and Frame sections' Visibility and Layout cards.
@@ -95,25 +94,44 @@
 
     let active = $state<SectionId>('display');
     const section = $derived(content[active]);
+
+    // Mobile tab bar: keep the active tab in view, and show the right-edge fade only while
+    // more tabs are hidden off to the right.
+    let tabBar = $state<HTMLElement>();
+    let moreTabs = $state(false);
+    function updateTabFade() {
+        if (tabBar) moreTabs = tabBar.scrollLeft + tabBar.clientWidth < tabBar.scrollWidth - 1;
+    }
+    $effect(() => {
+        tabBar?.querySelector(`[data-section="${active}"]`)?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+        updateTabFade();
+    });
 </script>
 
 <svelte:head>
     <title>Hearth — Settings</title>
 </svelte:head>
 
-<!-- Mobile: fixed bottom tab bar (above the global nav) -->
-<div class="fixed right-0 bottom-16 left-0 z-20 bg-(--bg) lg:hidden">
-    <!-- Right-edge fade hints at scrollable overflow -->
-    <div
-        class="pointer-events-none absolute top-0 right-0 z-10 h-full w-10 bg-gradient-to-l from-(--bg) to-transparent"
-    ></div>
+<svelte:window onresize={updateTabFade} />
+
+<!-- Mobile: section tabs sit right above the global nav (thumb reach); together they read as one tray -->
+<div class="fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-20 bg-(--bg) lg:hidden">
+    {#if moreTabs}
+        <div
+            class="pointer-events-none absolute top-0 right-0 z-10 h-full w-10 bg-gradient-to-l from-(--bg) to-transparent"
+        ></div>
+    {/if}
     <nav
-        class="flex [scrollbar-width:none] justify-center gap-2 overflow-x-auto border-t-2 border-(--border) px-2 py-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        bind:this={tabBar}
+        onscroll={updateTabFade}
+        class="flex [scrollbar-width:none] gap-1 overflow-x-auto border-t-2 border-(--border) px-4 py-1.5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
         {#each sections as s}
             {@const isActive = active === s.id}
             <button
                 onclick={() => (active = s.id)}
+                data-section={s.id}
+                aria-current={isActive ? 'page' : undefined}
                 class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors
                     {isActive ? 'bg-(--surface-hi) text-(--text-1)' : 'text-(--text-2) hover:text-(--text-1)'}"
             >
@@ -131,12 +149,13 @@
             {@const isActive = active === s.id}
             <button
                 onclick={() => (active = s.id)}
+                aria-current={isActive ? 'page' : undefined}
                 class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors
                     {isActive
                     ? 'bg-(--surface-hi) text-(--text-1)'
-                    : 'text-(--text-1) hover:bg-(--surface) hover:text-(--text-1)'}"
+                    : 'text-(--text-2) hover:bg-(--surface) hover:text-(--text-1)'}"
             >
-                <s.icon class="icon-md shrink-0 {isActive ? 'text-(--accent)' : 'text-(--text-1)'}" />
+                <s.icon class="icon-md shrink-0 {isActive ? 'text-(--accent)' : ''}" />
                 <div class="min-w-0 flex-1">
                     <p class="type-body leading-tight font-medium">{s.label}</p>
                     <p class="type-label leading-tight text-(--text-2)">{s.subtitle}</p>
@@ -146,12 +165,12 @@
     </aside>
 
     <!-- Content -->
-    <main class="min-h-0 flex-1 overflow-y-auto px-6 py-6 pb-20 lg:px-10 lg:py-8 lg:pb-8">
+    <main class="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-20 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8">
         <h1 class="type-title mb-2 font-semibold text-(--text-1)">{section.heading}</h1>
         <p class="type-body mb-6 text-(--text-2)">{section.description}</p>
 
         {#snippet card(title: string, description: string, children: import('svelte').Snippet)}
-            <div class="rounded-xl border-2 border-(--border) bg-(--surface) p-6">
+            <div class="rounded-xl border-2 border-(--border) bg-(--surface) p-4 sm:p-6">
                 {#if title}<p class="type-subtitle mb-1 font-medium text-(--text-1)">{title}</p>{/if}
                 {#if description}<p class="type-body mb-4 text-(--text-2)">{description}</p>{/if}
                 {@render children()}
@@ -200,26 +219,24 @@
                 {@render card('Trains & Buses', 'Manage the transit stops you want to see departures for.', trainStops)}
             </div>
         {:else if active === 'display'}
-            {#snippet themeContent()}
-                <p class="type-body mb-4 font-medium text-(--text-1)">Theme</p>
-                <p class="type-label mb-4 text-(--text-2)">
-                    Each theme is a complete colour set. Click to preview — applies instantly.
-                </p>
-                <ThemePicker />
-            {/snippet}
+            {#snippet themeContent()}<ThemePicker />{/snippet}
             {#snippet fontContent()}
-                <p class="type-body mb-4 font-medium text-(--text-1)">Type</p>
-                <p class="type-label mb-4 text-(--text-2)">
-                    Each font theme sets typeface, weight, and size. Click to preview — applies instantly.
-                </p>
                 <FontThemePicker />
                 <p class="type-body mt-6 mb-1 font-medium text-(--text-1)">Size</p>
                 <p class="type-label mb-4 text-(--text-2)">Scales all text and icons across the dashboard.</p>
                 <FontSizeSlider />
             {/snippet}
             <div class="flex flex-col gap-4">
-                {@render card('', '', themeContent)}
-                {@render card('', '', fontContent)}
+                {@render card(
+                    'Theme',
+                    'Each theme is a complete colour set. Click to preview — applies instantly.',
+                    themeContent
+                )}
+                {@render card(
+                    'Type',
+                    'Each font theme sets typeface, weight, and size. Click to preview — applies instantly.',
+                    fontContent
+                )}
             </div>
         {:else if active === 'ambient'}
             {#snippet source()}<AmbientSourceSettings />{/snippet}
@@ -257,7 +274,7 @@
             {#snippet spotifyContent()}<SpotifyConnectionSettings />{/snippet}
             {#snippet calendarContent()}<GoogleCalendarConnectionSettings />{/snippet}
             <div class="flex flex-col gap-4">
-                {@render card('Music', 'Show your currently playing track in the Now Playing widget.', spotifyContent)}
+                {@render card('Music', 'Show your currently playing track in the dashboard footer.', spotifyContent)}
                 {@render card('Calendar', 'Sync events to the calendar and upcoming views.', calendarContent)}
             </div>
         {:else if active === 'frame'}
@@ -282,7 +299,7 @@
                         <a href="/" class="type-label inline-flex items-center gap-1.5 text-(--accent) hover:underline">
                             Go to Dashboard →
                         </a>
-                        <p class="type-label mt-0.5 text-(--text-3)">
+                        <p class="type-label mt-0.5 text-(--text-2)">
                             The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.
                         </p>
                     </div>
@@ -376,9 +393,6 @@
                     </div>
                 </div>
             </div>
-        {:else}
-            {#snippet comingSoon()}<p class="type-body text-(--text-1)">Coming soon.</p>{/snippet}
-            {@render card('', '', comingSoon)}
         {/if}
     </main>
 </div>
