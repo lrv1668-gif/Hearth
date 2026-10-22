@@ -9,6 +9,14 @@ public static class ServiceCollectionExtensions
     {
         serviceCollection.AddSqliteDatabase("display", "display.db");
         serviceCollection.AddSingleton<FrameSettingsStore>();
+        serviceCollection.AddHttpClient<RendererClient>((services, http) =>
+        {
+            // RENDERER_URL is checked per request (503 when unset), so don't fail here
+            if (services.GetRequiredService<IConfiguration>()["RENDERER_URL"] is { Length: > 0 } url)
+                http.BaseAddress = new Uri(url.EndsWith('/') ? url : url + "/");
+            // A capture has a 40 s deadline plus dithering, and one more may be ahead in the queue
+            http.Timeout = TimeSpan.FromSeconds(110);
+        });
 
         serviceCollection.AddHearthWebDefaults();
     }

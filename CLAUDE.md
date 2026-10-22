@@ -47,7 +47,8 @@ src/                         # Backend API + shared-library projects
   Birds/                     # ASP.NET Core 10 Minimal API, port 8088 — eBird nearby sightings + cache
   Almanac/                   # ASP.NET Core 10 Minimal API, port 8089 — season/daylight/frost facts, computed locally (no DB)
   Trains/                    # ASP.NET Core 10 Minimal API, port 8091 — Transitland v2 departures fetch + cache
-  Display/                   # ASP.NET Core 10 Minimal API, port 8090 — shared e-paper frame settings (frame rendering planned)
+  Display/                   # ASP.NET Core 10 Minimal API, port 8090 — shared e-paper frame settings + dithered frame preview (panel endpoint planned)
+renderer/                    # Node sidecar for Display — headless Chromium (Playwright) screenshots /frame, dither.mjs reduces it to the 6 inks (epdoptimize + Bayer); `npm test`
 tests/                       # xUnit test projects — <Service>.Tests/
   Hearth.TestUtilities/      # Shared test helpers — FakeHttpMessageHandler, TempDatabase
 docker-compose.yml
