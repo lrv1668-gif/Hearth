@@ -33,7 +33,8 @@
     const url = $derived(frameUrl(options));
 
     // A render takes a few seconds of headless Chromium on the host, so wait for the
-    // settings to stop changing, and only render while a dithered view is showing.
+    // settings to stop changing, and only render while a dithered view is showing. The
+    // last render stays loaded under Live, so switching back doesn't render it again.
     let renderSrc = $state('');
     let rendering = $state(false);
     let renderFailed = $state(false);
@@ -130,7 +131,11 @@ Daily/Ambient and Color/B&W toggles and the resulting frame URL.
                 { value: 'paper', label: 'Paper' },
             ]}
             value={view}
-            onchange={(v) => (view = v)}
+            onchange={(v) => {
+                // Coming back after a failed render: clear it so the effect asks again
+                if (renderFailed) renderSrc = '';
+                view = v;
+            }}
         />
     </div>
 
@@ -140,24 +145,21 @@ Daily/Ambient and Color/B&W toggles and the resulting frame URL.
             {size.h > size.w ? 'mx-auto max-w-sm' : 'max-w-2xl'}"
         style="height: {size.h * scale}px"
     >
-        {#if view !== 'live'}
-            {#if renderSrc}
-                <img
-                    src={renderSrc}
-                    alt="Dithered frame preview"
-                    onload={() => (rendering = false)}
-                    onerror={() => ((rendering = false), (renderFailed = true))}
-                    class="absolute inset-0 h-full w-full"
-                />
-            {/if}
-            {#if rendering || renderFailed || !renderSrc}
-                <div
-                    class="type-label absolute inset-0 flex items-center justify-center bg-(--surface)/80 text-(--text-2)"
-                >
-                    {renderFailed ? 'Couldn’t render the frame — is the renderer running?' : 'Rendering…'}
-                </div>
-            {/if}
-        {:else if boxWidth > 0}
+        {#if renderSrc}
+            <img
+                src={renderSrc}
+                alt="Dithered frame preview"
+                onload={() => ((rendering = false), (renderFailed = false))}
+                onerror={() => ((rendering = false), (renderFailed = true))}
+                class="absolute inset-0 h-full w-full {view === 'live' ? 'hidden' : ''}"
+            />
+        {/if}
+        {#if view !== 'live' && (rendering || renderFailed || !renderSrc)}
+            <div class="type-label absolute inset-0 flex items-center justify-center bg-(--surface)/80 text-(--text-2)">
+                {renderFailed ? 'Couldn’t render the frame — is the renderer running?' : 'Rendering…'}
+            </div>
+        {/if}
+        {#if view === 'live' && boxWidth > 0}
             <iframe
                 bind:this={iframe}
                 onload={applyLook}

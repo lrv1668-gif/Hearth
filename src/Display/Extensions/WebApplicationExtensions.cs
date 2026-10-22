@@ -48,7 +48,12 @@ public static class WebApplicationExtensions
             catch (HttpRequestException ex)
             {
                 app.Logger.LogWarning(ex, "Frame render failed");
-                return Results.StatusCode(ex.StatusCode == HttpStatusCode.GatewayTimeout ? 504 : 502);
+                // Pass on a bad request (e.g. an unknown kernel), "busy" and "never got ready";
+                // anything else is a bad gateway
+                return Results.StatusCode(ex.StatusCode is HttpStatusCode.BadRequest
+                    or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout
+                    ? (int)ex.StatusCode
+                    : 502);
             }
             catch (TaskCanceledException) when (!ct.IsCancellationRequested)
             {

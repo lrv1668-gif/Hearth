@@ -137,8 +137,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The .NET images cross-publish natively; QEMU is only for the frontend's
-      # arm64 `npm ci --omit=dev` stage
+      # The .NET images cross-publish natively; QEMU is only for the arm64 `npm ci`
+      # steps of the frontend and renderer images (the renderer's installs node-canvas)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 

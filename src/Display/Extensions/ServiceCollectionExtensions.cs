@@ -14,8 +14,8 @@ public static class ServiceCollectionExtensions
             // RENDERER_URL is checked per request (503 when unset), so don't fail here
             if (services.GetRequiredService<IConfiguration>()["RENDERER_URL"] is { Length: > 0 } url)
                 http.BaseAddress = new Uri(url.EndsWith('/') ? url : url + "/");
-            // The renderer waits up to 30 s for the frame to be ready, plus the capture
-            http.Timeout = TimeSpan.FromSeconds(60);
+            // A capture has a 40 s deadline plus dithering, and one more may be ahead in the queue
+            http.Timeout = TimeSpan.FromSeconds(110);
         });
 
         serviceCollection.AddHearthWebDefaults();

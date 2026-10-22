@@ -58,6 +58,18 @@ test('ordered: two-ink mixes dither in exact proportion', async () => {
     assert.deepEqual(counts(await dithered('#2f2e49', 'ordered')), { '#000000': 128, '#5e5b91': 128 });
 });
 
+// Antialiased text: a half-covered pixel of black type on the yellow forecast band is
+// nearest green and blue, but sits on the black–yellow line
+test('ordered: antialiased edges keep to the inks either side', async () => {
+    for (const [edge, inks] of [
+        ['#808037', ['#000000', '#ffff6e']],
+        ['#afadc8', ['#5e5b91', '#ffffff']],
+        ['#78373a', ['#000000', '#f16f74']],
+    ])
+        for (const colour of Object.keys(counts(await dithered(edge, 'ordered'))))
+            assert.ok(inks.includes(colour), `${edge} → ${colour}`);
+});
+
 test('ordered: a tint repeats every 4 pixels', async () => {
     const out = pixels(await dithered('#fffedb', 'ordered'));
     for (let y = 0; y < 16; y++)
