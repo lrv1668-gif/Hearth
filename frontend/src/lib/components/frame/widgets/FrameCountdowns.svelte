@@ -1,13 +1,15 @@
 <script lang="ts">
     import { taskStore } from '$lib/stores/TaskStore.svelte.ts';
-    import { upcomingCountdowns } from '$lib/frame';
+    import { getFrameScale, upcomingCountdowns } from '$lib/frame';
 
     let { now }: { now: Date } = $props();
 
-    // One row of 168px stamps, 24px apart — as many as the column fits, up to four.
-    // Fixed height, so allocateLines reserves it rather than passing a line budget.
+    // One row of 168px stamps, 24px apart (at the reference panel size; both scale
+    // with the frame) — as many as the column fits, up to four. Fixed height, so
+    // allocateLines reserves it rather than passing a line budget.
+    const scale = getFrameScale();
     let width = $state(0);
-    const perRow = $derived(Math.max(1, Math.min(4, Math.floor((width + 24) / 192))));
+    const perRow = $derived(Math.max(1, Math.min(4, Math.floor((width / scale() + 24) / 192))));
     const countdowns = $derived(upcomingCountdowns(taskStore.tasks, now, perRow));
 </script>
 

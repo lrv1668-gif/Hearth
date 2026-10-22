@@ -44,13 +44,13 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 | `/calendar` | Calendar view with month grid and per-day task overflow modal                             |
 | `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                          |
 | `/settings` | Collapsible sections: theme picker, ambient photo cadence, categories, widget visibility  |
-| `/frame`    | E-paper render target — fixed 1600×1200 canvas, no nav (see below)                        |
+| `/frame`    | E-paper render target — panel-sized canvas (default 1600×1200), no nav (see below)        |
 
 The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one, the bottom tab bar replaces the masthead, and the kiosk footer is hidden (Now Playing moves to the top of the dashboard). The calendar switches earlier, at `md` (768px): below it day cells show dots instead of titles, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows.
 
 #### Frame route
 
-`/frame` is the page the future Display service screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel (1600×1200 landscape or 1200×1600 portrait, never scrolls), renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and is client-rendered (`ssr = false`). Its look and layout come from the shared frame settings in the Display service (see "Display Service"), so every client — and the panel's headless renderer — draws the same frame; URL params override them per request, and anything neither sets uses the defaults below:
+`/frame` is the page the future Display service screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel — the shared panel size (default 1600×1200, the Inky Impression 13.3"), with width and height swapped in portrait — and never scrolls, renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and is client-rendered (`ssr = false`). Its look and layout come from the shared frame settings in the Display service (see "Display Service"), so every client — and the panel's headless renderer — draws the same frame; URL params override them per request, and anything neither sets uses the defaults below:
 
 | Param        | Values                 | Default    |
 | ------------ | ---------------------- | ---------- |
@@ -61,6 +61,7 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 | `left`, `right` | comma-separated frame widget ids (Daily) | `countdowns,today` / `coming-up` |
 | `split`      | left column width %, 30–70 | `50`    |
 | `orientation` | `landscape`, `portrait` | `landscape` |
+| `width`, `height` | the panel's native size in px, 200–4000, width ≥ height (portrait swaps them) | the shared panel size (`1600` × `1200`) |
 | `position`   | Ambient card: `top-left`, `top-middle`, `top-right`, `bottom-left`, `bottom-middle`, `bottom-right` | `bottom-left` |
 | `source`     | Ambient photos: `unsplash`, `local`, `both` | the shared photo source |
 | `categories` | Ambient Unsplash categories, comma-separated | the shared categories (`nature` if none) |
@@ -70,7 +71,7 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 - **Visual language:** one 3px line weight for rules, check boxes, leaders and icon strokes (`setLucideProps({ strokeWidth: 3, absoluteStrokeWidth: true })` in the route); widget kickers (tracked caps led by a `--block` square) instead of underlined headings; large shapes in the pure `--block` ink, which never dithers; tints only in the forecast band; and one texture, `.hatch` (vertical 3px pure-ink lines every 9px). Display numerals use `--display-family` with the frame-only `.type-date` / `.type-hero` / `.type-stamp` sizes. Today is a ledger (dotted leader to the due time), Coming Up a rail (day and time in the margin, a pin per event), Countdowns a row of stamps (the soonest filled with `--accent`).
 - **Fitting the space:** FrameDaily measures each column's height in lines of body text (via a hidden probe, so font presets count) and `allocateLines()` in `lib/frame.ts` splits it: every widget pays for its heading and gaps, fixed-height widgets (arc, moon, the countdown stamps) take what they need, and the rest is shared evenly. Each widget trims its list to its share — and, as a last resort, clips inside its own box rather than pushing a neighbour off the panel. Selection logic (`todayTasks`, `nextEvents`, `weekAhead`, `upcomingCountdowns`) and the masthead's small derivations (`sunProgress`, `weatherSentence`, `forecastBars`, `dayOfYear`) live in `lib/frame.ts` too.
 - Portrait is for a frame hung on its side; the Ambient photo is requested in the matching orientation, and the Display service rotates the capture to the panel's native landscape.
-- Type and icon sizes are fixed px set by overriding the `--font-*` / `--icon-*` tokens on the frame root, so reused widgets scale with it. Transitions and animations are disabled.
+- Type and icon sizes are px tuned for the 1600×1200 13.3" panel, set by overriding the `--font-*` / `--icon-*` tokens on the frame root so reused widgets scale with it. Other panel sizes multiply them by `--frame-scale` (how far the 1600×1200 reference must shrink or grow to fit the panel in both directions — `min(width ÷ 1600, height ÷ 1200)`, from `frameCanvas()` in `lib/frame.ts`), and the root also scales Tailwind's `--spacing`, so padding and gaps keep their proportions; 3px line weights stay fixed so they land on whole pixels. Px thresholds measured in JS (Coming Up's narrow rail, the countdown stamps per row, the Ambient plate inset, the sun path) read the scale via `getFrameScale()`. Transitions and animations are disabled.
 - The root's `data-ready` attribute becomes `"true"` once data, fonts, and (ambient) the photo have settled, or after 15 s regardless, so one hung upstream can't stall the frame — screenshot after that. The route loads only what its layout needs (the root layout skips its own loads on `/frame*`) and never polls; the renderer reloads it per frame.
 - Ambient mode credits the Unsplash photographer in the corner card, per Unsplash's API guidelines.
 - **Settings → Frame** has the same cards as Settings → Dashboard: Visibility (`WidgetVisibilityList`) and Layout (`WidgetLayoutEditor` — drag between columns, resizable split, locked header/footer strips). Both sections use these two shared components. A Preview card (`FramePreview`) shows the real `/frame` page scaled down — pinned beside the options when the settings area is at least 56rem wide (container query), otherwise placed right after the look card; theme, font and palette changes are applied to the loaded frame in place, and it only reloads for layout, orientation or mode changes.
@@ -93,7 +94,7 @@ The persistent setting is the recommended choice for a dedicated wall display. T
 | `fontTheme`    | `FontThemeStore.svelte.ts`  | `localStorage`  | Active font theme ID; writes `dataset.font` on change                 |
 | `fontSize`     | `FontSizeStore.svelte.ts`   | `localStorage`  | User size multiplier (0.9–1.3); sets `--font-user-scale` inline on `<html>` |
 | `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | `/ambient` slideshow cadence (day/night) and motion, RSS feeds config, kiosk mode, subscribed train stops + per-stop line filters |
-| `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, layout, split and Ambient card position, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
+| `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, panel size, layout, split and Ambient card position, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
 | `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
 | `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
 | `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `DashboardFooter`     |
@@ -156,7 +157,7 @@ Themes are defined in two places that must be kept in sync: `frontend/src/themes
 
 Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (readable secondary text) and `--text-3` at least 3:1 (icons and non-text marks only); `--text-4` is decorative. `src/lib/themes.test.ts` enforces this.
 
-**Frame themes.** `/frame` has its own themes, chosen with `?theme=` (Color mode) and picked in Settings → Frame, which also sets the frame's typeface (`?font=`, any font preset) and orientation and shows a live, scaled-down preview of the real `/frame` page plus its URL. They are `[data-theme='epaper-<id>']` blocks in `themes.css` with picker metadata in `constants/frameThemes.ts`, kept out of the dashboard theme picker. Colours are built from the panel's measured Spectra 6 inks, white-balanced so the browser preview looks like the panel:
+**Frame themes.** `/frame` has its own themes, chosen with `?theme=` (Color mode) and picked in Settings → Frame, which also sets the frame's typeface (`?font=`, any font preset), orientation and panel size (typed, or a preset for the common Inky Impression panels) and shows a live, scaled-down preview of the real `/frame` page plus its URL. They are `[data-theme='epaper-<id>']` blocks in `themes.css` with picker metadata in `constants/frameThemes.ts`, kept out of the dashboard theme picker. Colours are built from the panel's measured Spectra 6 inks, white-balanced so the browser preview looks like the panel:
 
 | Frame theme   | Look                                                      |
 | ------------- | --------------------------------------------------------- |
@@ -672,8 +673,8 @@ Stored in `src/Almanac/.env`.
 
 | Endpoint                 | Description |
 | ------------------------ | ----------- |
-| `GET /display/settings`  | The saved `FrameSettings` (`theme`, `font`, `orientation`, `left`, `right`, `split`, `ambient_position`), or `204` if nothing has been saved — clients then use their defaults |
-| `PUT /display/settings`  | Replaces them. `400` unless orientation is `landscape`/`portrait`, each column has at most 3 widgets with none repeated, `split` is 30–70 and `ambient_position` is one of the six positions (omitted → `bottom-left`) |
+| `GET /display/settings`  | The saved `FrameSettings` (`theme`, `font`, `orientation`, `left`, `right`, `split`, `ambient_position`, `photo_source`, `photo_categories`, `width`, `height`), or `204` if nothing has been saved — clients then use their defaults |
+| `PUT /display/settings`  | Replaces them. `400` unless orientation is `landscape`/`portrait`, each column has at most 3 widgets with none repeated, `split` is 30–70 `ambient_position` is one of the six positions (omitted → `bottom-left`), and `width`/`height` (the panel's native size; omitted → 1600×1200) are 200–4000 with width ≥ height |
 
 `FrameSettingsStore` keeps one row (`id = 1`) in `display.db` (`DB_PATH`). Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once.
 

@@ -7,6 +7,10 @@ import {
     durationLabel,
     forecastBars,
     frameUrl,
+    frameCanvas,
+    isFrameSize,
+    normalizeFrameSize,
+    DEFAULT_FRAME_SIZE,
     isAmbientPosition,
     itemsThatFit,
     nextEvents,
@@ -151,13 +155,55 @@ describe('frameUrl', () => {
                 theme: 'night',
                 font: 'lora',
                 orientation: 'portrait',
+                width: 800,
+                height: 480,
                 layout: { left: ['today', 'moon'], right: [] },
                 split: 55,
                 position: 'top-middle',
             })
         ).toBe(
-            '/frame?mode=daily&palette=bw&theme=night&font=lora&orientation=portrait&left=today%2Cmoon&right=&split=55&position=top-middle'
+            '/frame?mode=daily&palette=bw&theme=night&font=lora&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&position=top-middle'
         );
+    });
+});
+
+describe('frameCanvas', () => {
+    it('keeps the native size in landscape and swaps it in portrait', () => {
+        expect(frameCanvas({ width: 800, height: 480, orientation: 'landscape' })).toEqual({
+            w: 800,
+            h: 480,
+            scale: 0.4,
+        });
+        expect(frameCanvas({ width: 800, height: 480, orientation: 'portrait' })).toEqual({
+            w: 480,
+            h: 800,
+            scale: 0.4,
+        });
+    });
+
+    it('scales to fit both edges', () => {
+        expect(frameCanvas({ width: 800, height: 600, orientation: 'landscape' }).scale).toBe(0.5);
+        expect(frameCanvas({ width: 2000, height: 1200, orientation: 'landscape' }).scale).toBe(1);
+    });
+
+    it('is 1:1 at the reference panel', () => {
+        expect(frameCanvas({ ...DEFAULT_FRAME_SIZE, orientation: 'landscape' }).scale).toBe(1);
+    });
+});
+
+describe('frame size', () => {
+    it('accepts in-range integer sizes with width ≥ height', () => {
+        expect(isFrameSize(800, 480)).toBe(true);
+        expect(isFrameSize(480, 800)).toBe(false);
+        expect(isFrameSize(100, 100)).toBe(false);
+        expect(isFrameSize(800.5, 480)).toBe(false);
+        expect(isFrameSize('800', 480)).toBe(false);
+    });
+
+    it('normalizes typed sizes into range, long edge first', () => {
+        expect(normalizeFrameSize(480, 800)).toEqual({ width: 800, height: 480 });
+        expect(normalizeFrameSize(8, 99999)).toEqual({ width: 4000, height: 200 });
+        expect(normalizeFrameSize(NaN, 600.4)).toEqual({ width: 1600, height: 600 });
     });
 });
 
@@ -344,6 +390,10 @@ describe('plateRect', () => {
         ['bottom-right', 1136, 936],
     ] as const)('%s', (position, x, y) => {
         expect(plateRect(position, plate, frame)).toEqual({ x, y, w: 400, h: 200 });
+    });
+
+    it('scales the inset with the frame', () => {
+        expect(plateRect('top-left', plate, { w: 800, h: 600 }, 0.5)).toEqual({ x: 32, y: 32, w: 400, h: 200 });
     });
 });
 

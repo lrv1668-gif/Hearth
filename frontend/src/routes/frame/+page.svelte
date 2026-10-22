@@ -11,7 +11,7 @@
     import { loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
     import { SECOND } from '$lib/utils';
-    import { isAmbientPosition, type Pixels } from '$lib/frame';
+    import { frameCanvas, isAmbientPosition, isFrameSize, setFrameScale, type Pixels } from '$lib/frame';
     import { pickPhoto } from '$lib/photos';
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
@@ -23,16 +23,19 @@
     // screenshots and dithers. Everything it needs comes from the URL, because a
     // headless renderer starts with empty localStorage. A param the URL leaves out
     // falls back to the shared Settings → Frame choices held by the Display service
-    // (theme, font, orientation, layout), then to the defaults:
+    // (theme, font, orientation, panel size, layout), then to the defaults:
     //   ?mode=ambient|daily          (default ambient, per PRODUCT.md)
     //   ?palette=color|bw            (default color — the Color ↔ B&W mode)
     //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
     //                                 B&W follows its lightness)
     //   ?font=inter|lora|…           (any font preset from constants/fontThemes.ts)
     //   ?orientation=landscape|portrait
-    //       landscape = 1600×1200, the panel's native shape (default); portrait =
-    //       1200×1600 for a frame hung on its side — the Display service rotates
-    //       the capture 90° before sending it to the panel.
+    //       landscape = the panel's native shape (default); portrait swaps width and
+    //       height for a frame hung on its side — the capture is rotated 90° before
+    //       it goes to the panel.
+    //   ?width=1600&height=1200      (the panel's native size, width ≥ height; default
+    //                                 the Inky Impression 13.3". Type, icons and
+    //                                 spacing scale to fit it — see frameCanvas)
     //   ?left=a,b&right=c&split=50   (Daily widget columns, ids from constants/frameWidgets.ts,
     //                                 and the left column's width %; a missing param
     //                                 uses the default layout)
@@ -57,6 +60,17 @@
             ? orientationParam
             : frameSettings.orientation
     );
+    const widthParam = Number(params.get('width'));
+    const heightParam = Number(params.get('height'));
+    const canvas = $derived(
+        frameCanvas({
+            ...(isFrameSize(widthParam, heightParam)
+                ? { width: widthParam, height: heightParam }
+                : { width: frameSettings.width, height: frameSettings.height }),
+            orientation,
+        })
+    );
+    setFrameScale(() => canvas.scale);
     const positionParam = params.get('position');
     const position = $derived(isAmbientPosition(positionParam) ? positionParam : frameSettings.ambientPosition);
     const sourceParam = params.get('source');
@@ -78,7 +92,7 @@
 
     const now = new Date();
     let photo = $state<Photo | null>(null);
-    // The photo as the frame shows it (cover-cropped), at 1/8 scale — Ambient mode
+    // The photo as the frame shows it (cover-cropped), at 1/8 size — Ambient mode
     // reads the colours around its plate from this to pick the date block's ink.
     let photoPixels = $state<Pixels | null>(null);
     let ready = $state(false);
@@ -100,7 +114,7 @@
             img.onerror = () => reject(new Error(`failed to load ${next.url}`));
             img.src = next.url;
         });
-        photoPixels = coverPixels(img, orientation === 'portrait' ? [150, 200] : [200, 150]);
+        photoPixels = coverPixels(img, [Math.round(canvas.w / 8), Math.round(canvas.h / 8)]);
         photo = next;
     }
 
@@ -149,6 +163,7 @@
     data-orientation={orientation}
     data-position={position}
     data-ready={ready}
+    style="width: {canvas.w}px; height: {canvas.h}px; --frame-scale: {canvas.scale}"
 >
     <!-- Wait for the shared settings so the layout is measured once, in its final shape. -->
     {#if frameSettings.loaded}
@@ -161,41 +176,40 @@
 </div>
 
 <style>
-    /* Panel-native size, never scrolls. Type and icon sizes are fixed px tuned for
-       reading at 3–4 m on a ~150 PPI panel; overriding the tokens here resizes the
-       shared .type-* / .icon-* utilities, so reused widgets scale with the frame.
+    /* Panel-sized (inline, from frameCanvas), never scrolls. Type and icon sizes are
+       px tuned for reading at 3–4 m on the 1600×1200, ~150 PPI 13.3" panel, times
+       --frame-scale for other panels; overriding the tokens here resizes the shared
+       .type-* / .icon-* utilities, so reused widgets scale with the frame. Tailwind's
+       --spacing scales too, so padding and gaps keep their proportions; 3px lines don't.
        Type multiplies by the font preset's --font-scale (its optical correction,
        from the data-font block) but deliberately not the dashboard's user size
        slider, which is a per-browser preference. */
     .frame {
         position: relative;
-        width: 1600px;
-        height: 1200px;
         overflow: hidden;
+        --spacing: calc(0.25rem * var(--frame-scale, 1));
 
-        --font-display: calc(112px * var(--font-scale, 1));
-        --font-title: calc(48px * var(--font-scale, 1));
-        --font-subtitle: calc(38px * var(--font-scale, 1));
-        --font-body: calc(32px * var(--font-scale, 1));
-        --font-label: calc(26px * var(--font-scale, 1));
-        --font-caption: calc(22px * var(--font-scale, 1));
+        --font-display: calc(112px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-title: calc(48px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-subtitle: calc(38px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-body: calc(32px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-label: calc(26px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-caption: calc(22px * var(--font-scale, 1) * var(--frame-scale, 1));
         /* Frame-only display sizes (.type-weekday/-date/-hero/-stamp), set in --display-family */
-        --font-weekday: calc(112px * var(--font-scale, 1));
-        --font-date: calc(128px * var(--font-scale, 1));
-        --font-hero: calc(100px * var(--font-scale, 1));
-        --font-stamp: calc(80px * var(--font-scale, 1));
+        --font-weekday: calc(112px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-date: calc(128px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-hero: calc(100px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-stamp: calc(80px * var(--font-scale, 1) * var(--frame-scale, 1));
 
-        --icon-lg: 56px;
-        --icon-md: 40px;
-        --icon-sm: 30px;
-        --icon-xs: 24px;
+        --icon-lg: calc(56px * var(--frame-scale, 1));
+        --icon-md: calc(40px * var(--frame-scale, 1));
+        --icon-sm: calc(30px * var(--frame-scale, 1));
+        --icon-xs: calc(24px * var(--frame-scale, 1));
     }
 
     .frame.portrait {
-        width: 1200px;
-        height: 1600px;
         /* Smaller weekday so the masthead stays one row beside the compact sun path */
-        --font-weekday: calc(88px * var(--font-scale, 1));
+        --font-weekday: calc(88px * var(--font-scale, 1) * var(--frame-scale, 1));
     }
 
     /* B&W mode greyscales the ambient photo. Keyed off data-theme (not a prop) so
@@ -210,7 +224,7 @@
         --stroke: 3px;
     }
     .frame :global(.meter) {
-        height: 16px;
+        height: calc(16px * var(--frame-scale, 1));
         border: 3px solid var(--border);
         border-radius: 0;
         background: none;

@@ -3,7 +3,27 @@
     import { fontThemes } from '$lib/constants/fontThemes';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import SegmentedControl from './SegmentedControl.svelte';
-    import { AMBIENT_POSITIONS } from '$lib/frame';
+    import {
+        AMBIENT_POSITIONS,
+        FRAME_SIZE_PRESETS,
+        MAX_FRAME_SIZE,
+        MIN_FRAME_SIZE,
+        normalizeFrameSize,
+    } from '$lib/frame';
+
+    let widthInput = $state<HTMLInputElement>();
+    let heightInput = $state<HTMLInputElement>();
+
+    // Commit on change (blur/Enter), never per keystroke: a half-typed "8" would be
+    // saved, rejected by the Display service, and stop settings from syncing.
+    function commitSize() {
+        const { width, height } = normalizeFrameSize(Number(widthInput?.value), Number(heightInput?.value));
+        frameSettings.width = width;
+        frameSettings.height = height;
+        // The store may be unchanged (e.g. clamped back to its value), so reset the fields too.
+        if (widthInput) widthInput.value = String(width);
+        if (heightInput) heightInput.value = String(height);
+    }
 </script>
 
 <div class="@container flex flex-col gap-6">
@@ -66,6 +86,55 @@
             value={frameSettings.orientation}
             onchange={(v) => (frameSettings.orientation = v)}
         />
+    </div>
+
+    <!-- Panel size: the native (landscape) resolution; Orientation swaps it -->
+    <div>
+        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Panel size</p>
+        <div class="flex flex-wrap items-center gap-2">
+            <input
+                bind:this={widthInput}
+                type="number"
+                inputmode="numeric"
+                min={MIN_FRAME_SIZE}
+                max={MAX_FRAME_SIZE}
+                value={frameSettings.width}
+                onchange={commitSize}
+                aria-label="Panel width in pixels"
+                class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
+            />
+            <span class="type-label text-(--text-2)" aria-hidden="true">×</span>
+            <input
+                bind:this={heightInput}
+                type="number"
+                inputmode="numeric"
+                min={MIN_FRAME_SIZE}
+                max={MAX_FRAME_SIZE}
+                value={frameSettings.height}
+                onchange={commitSize}
+                aria-label="Panel height in pixels"
+                class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
+            />
+            <span class="type-label text-(--text-2)">px</span>
+        </div>
+        <div class="mt-2 flex flex-wrap gap-2">
+            {#each FRAME_SIZE_PRESETS as p (p.label)}
+                <button
+                    onclick={() => {
+                        frameSettings.width = p.width;
+                        frameSettings.height = p.height;
+                    }}
+                    aria-pressed={frameSettings.width === p.width && frameSettings.height === p.height}
+                    class="type-label rounded-lg border border-(--border) px-3 py-1.5 text-(--text-2) transition-colors
+                        hover:text-(--text-1) aria-pressed:border-(--accent) aria-pressed:font-semibold aria-pressed:text-(--text-1)"
+                >
+                    {p.label} <span class="tabular-nums">{p.width}×{p.height}</span>
+                </button>
+            {/each}
+        </div>
+        <p class="type-caption mt-2 text-(--text-2)">
+            The panel's native resolution, long edge first. Type and spacing scale to match.
+        </p>
     </div>
 
     <!-- Ambient card position: a 3×2 pad laid out like the frame -->

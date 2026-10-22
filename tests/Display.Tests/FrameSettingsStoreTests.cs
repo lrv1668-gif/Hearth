@@ -42,6 +42,19 @@ public sealed class FrameSettingsStoreTests
         Assert.Equal("bottom-left", saved.AmbientPosition);
         Assert.Equal("unsplash", saved.PhotoSource);
         Assert.Empty(saved.PhotoCategories!);
+        Assert.Equal((1600, 1200), (saved.Width, saved.Height));
+    }
+
+    [Fact]
+    public void Save_PanelSize_RoundTrips()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save(Sample with { Width = 800, Height = 480 });
+
+        var saved = store.Get()!;
+        Assert.Equal((800, 480), (saved.Width, saved.Height));
     }
 
     [Fact]

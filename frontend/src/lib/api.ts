@@ -201,6 +201,9 @@ export interface FrameSettings {
     theme: string;
     font: string;
     orientation: 'landscape' | 'portrait';
+    /** The panel's native (landscape) size in pixels; portrait swaps it. */
+    width: number;
+    height: number;
     left: string[];
     right: string[];
     split: number;

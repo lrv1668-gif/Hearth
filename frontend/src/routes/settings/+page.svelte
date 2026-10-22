@@ -362,7 +362,7 @@
                         <div class="order-1">
                             {@render card(
                                 'E-paper frame',
-                                'Colours, typeface, and orientation for the wall frame. Themes use only colours the panel can print cleanly.',
+                                'Colours, typeface, orientation, and panel size for the wall frame. Themes use only colours the panel can print cleanly.',
                                 frameAppearanceContent
                             )}
                         </div>

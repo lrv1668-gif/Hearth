@@ -19,7 +19,7 @@ Keep documentation in sync with code at all times:
 
 ## Project Overview
 
-Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, moon phase, tasks and countdowns, a calendar agenda, Spotify now-playing, news feeds, a daily quote, bird sightings, transit departures, and almanac facts into a single quiet display. (Plant care is planned in `docs/PRODUCT.md` but not built yet — there is no plants service.) The primary target is an always-on, ambient e-paper frame — a Pimoroni Inky Impression 13.3" (Spectra 6, 1600×1200) driven by a Raspberry Pi Zero 2 W thin client that pulls a host-rendered frame (see `docs/HARDWARE.md`) — though it is also accessible via web browser.
+Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, moon phase, tasks and countdowns, a calendar agenda, Spotify now-playing, news feeds, a daily quote, bird sightings, transit departures, and almanac facts into a single quiet display. (Plant care is planned in `docs/PRODUCT.md` but not built yet — there is no plants service.) The primary target is an always-on, ambient e-paper frame — a Pimoroni Inky Impression 13.3" (Spectra 6, 1600×1200) driven by a Raspberry Pi Zero 2 W thin client that pulls a host-rendered frame (see `docs/HARDWARE.md`); the frame's panel size is configurable for other panels — though it is also accessible via web browser.
 
 ## Tech Stack
 

@@ -1,6 +1,7 @@
 import type { AmbientPosition, CalendarItem, CurrentWeather, ForecastDay, Task } from '$lib/api';
 import { eventDateKey, formatTime, localDateKey } from '$lib/utils';
 import type { FrameLayout, FrameWidgetId } from '$lib/constants/frameWidgets';
+import { getContext, setContext } from 'svelte';
 
 /**
  * Pending, non-countdown tasks due today — what the e-paper frame's Daily "Today"
@@ -137,12 +138,73 @@ export function isAmbientPosition(value: string | null | undefined): value is Am
     return AMBIENT_POSITIONS.some((c) => c.value === value);
 }
 
+/* ── Panel size ───────────────────────────────────────────────────────────────
+   The panel's native size is landscape (width ≥ height); portrait swaps it. The
+   frame's type, icons and spacing are tuned for the 1600×1200 Inky Impression
+   13.3" and scale so that reference fits the panel in both directions — a
+   wider-aspect panel (800×480) scales by its short edge, so portrait columns keep
+   room. Line weights stay 3px so they land on whole pixels. */
+export const FRAME_REFERENCE_SIZE = { width: 1600, height: 1200 } as const;
+export const DEFAULT_FRAME_SIZE = { width: 1600, height: 1200 } as const;
+export const MIN_FRAME_SIZE = 200;
+export const MAX_FRAME_SIZE = 4000;
+
+/** Common Inky Impression panels, by native resolution. */
+export const FRAME_SIZE_PRESETS = [
+    { label: 'Inky 13.3″', width: 1600, height: 1200 },
+    { label: 'Inky 7.3″', width: 800, height: 480 },
+    { label: 'Inky 5.7″', width: 600, height: 448 },
+    { label: 'Inky 4″', width: 640, height: 400 },
+] as const;
+
+/** Whether `width`×`height` is a valid native panel size. */
+export function isFrameSize(width: unknown, height: unknown): boolean {
+    const ok = (n: unknown) =>
+        Number.isInteger(n) && (n as number) >= MIN_FRAME_SIZE && (n as number) <= MAX_FRAME_SIZE;
+    return ok(width) && ok(height) && (width as number) >= (height as number);
+}
+
+/** Clamps typed dimensions into a valid native size (rounded, in range, long edge first). */
+export function normalizeFrameSize(width: number, height: number): { width: number; height: number } {
+    const clamp = (n: number, fallback: number) =>
+        Number.isFinite(n) ? Math.min(MAX_FRAME_SIZE, Math.max(MIN_FRAME_SIZE, Math.round(n))) : fallback;
+    const a = clamp(width, DEFAULT_FRAME_SIZE.width);
+    const b = clamp(height, DEFAULT_FRAME_SIZE.height);
+    return { width: Math.max(a, b), height: Math.min(a, b) };
+}
+
+/** The frame canvas for a native panel size: `w`×`h` as rendered (portrait swaps
+ *  them) and `scale`, the multiplier on the 1600×1200-reference type and spacing. */
+export function frameCanvas(o: { width: number; height: number; orientation: 'landscape' | 'portrait' }) {
+    const portrait = o.orientation === 'portrait';
+    return {
+        w: portrait ? o.height : o.width,
+        h: portrait ? o.width : o.height,
+        scale: Math.min(o.width / FRAME_REFERENCE_SIZE.width, o.height / FRAME_REFERENCE_SIZE.height),
+    };
+}
+
+const FRAME_SCALE = Symbol('frame-scale');
+
+/** Shares the frame's scale with the components below (call during init). */
+export function setFrameScale(scale: () => number) {
+    setContext(FRAME_SCALE, scale);
+}
+
+/** The frame's scale for px thresholds measured in JS — 1 outside the frame. */
+export function getFrameScale(): () => number {
+    return getContext<(() => number) | undefined>(FRAME_SCALE) ?? (() => 1);
+}
+
 export interface FrameOptions {
     mode: 'ambient' | 'daily';
     palette: 'color' | 'bw';
     theme: string;
     font: string;
     orientation: 'landscape' | 'portrait';
+    /** The panel's native (landscape) size. */
+    width: number;
+    height: number;
     layout: FrameLayout;
     split: number;
     position: AmbientPosition;
@@ -157,6 +219,8 @@ export function frameUrl(o: FrameOptions): string {
         theme: o.theme,
         font: o.font,
         orientation: o.orientation,
+        width: String(o.width),
+        height: String(o.height),
         left: o.layout.left.join(','),
         right: o.layout.right.join(','),
         split: String(o.split),
@@ -273,16 +337,17 @@ export interface Rect {
     h: number;
 }
 
-/** The plate's box in frame pixels for an Ambient position. */
+/** The plate's box in frame pixels for an Ambient position, on a frame at `scale`. */
 export function plateRect(
     position: AmbientPosition,
     plate: { w: number; h: number },
-    frame: { w: number; h: number }
+    frame: { w: number; h: number },
+    scale = 1
 ): Rect {
     const [row, col] = position.split('-');
-    const x =
-        col === 'left' ? PLATE_INSET : col === 'right' ? frame.w - PLATE_INSET - plate.w : (frame.w - plate.w) / 2;
-    const y = row === 'top' ? PLATE_INSET : frame.h - PLATE_INSET - plate.h;
+    const inset = PLATE_INSET * scale;
+    const x = col === 'left' ? inset : col === 'right' ? frame.w - inset - plate.w : (frame.w - plate.w) / 2;
+    const y = row === 'top' ? inset : frame.h - inset - plate.h;
     return { x, y, w: plate.w, h: plate.h };
 }
 
@@ -330,7 +395,7 @@ export interface Pixels {
     data: ArrayLike<number>;
 }
 
-/** How far around the plate (frame px) counts as its surroundings. */
+/** How far around the plate (frame px at scale 1) counts as its surroundings. */
 const RING = 48;
 /** OKLab distance at which an ink reads as clearly apart from the photo around it. */
 const STANDS_OUT = 0.25;
@@ -343,19 +408,22 @@ const KEEP_PREFERRED = 0.85;
  * size, so `plate` maps onto it. Each candidate scores the distance to its 10th-
  * percentile nearest sample — low when a fair patch of the surroundings matches it.
  * The theme's `preferred` ink stays while it stands out, or unless another clearly beats it.
+ * `scale` is the frame's (see frameCanvas), which widens or narrows the sampled ring.
  */
 export function pickBlockInk(
     pixels: Pixels,
     frame: { w: number; h: number },
     plate: Rect,
     candidates: readonly string[],
-    preferred: string
+    preferred: string,
+    scale = 1
 ): string {
     if (candidates.length === 0) return preferred;
+    const margin = RING * scale;
     const sx = pixels.width / frame.w;
     const sy = pixels.height / frame.h;
     const inside = (x: number, y: number, r: Rect) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
-    const ring = { x: plate.x - RING, y: plate.y - RING, w: plate.w + 2 * RING, h: plate.h + 2 * RING };
+    const ring = { x: plate.x - margin, y: plate.y - margin, w: plate.w + 2 * margin, h: plate.h + 2 * margin };
 
     const samples: Oklab[] = [];
     const x0 = Math.max(0, Math.floor(ring.x * sx));

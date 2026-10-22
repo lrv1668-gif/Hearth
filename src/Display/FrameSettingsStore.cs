@@ -30,6 +30,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             "ALTER TABLE frame_settings ADD COLUMN ambient_position TEXT NOT NULL DEFAULT 'bottom-left'",
             "ALTER TABLE frame_settings ADD COLUMN photo_source TEXT NOT NULL DEFAULT 'unsplash'",
             "ALTER TABLE frame_settings ADD COLUMN photo_categories TEXT NOT NULL DEFAULT '[]'",
+            "ALTER TABLE frame_settings ADD COLUMN width INTEGER NOT NULL DEFAULT 1600",
+            "ALTER TABLE frame_settings ADD COLUMN height INTEGER NOT NULL DEFAULT 1200",
         })
         {
             try { db.NonQuery(col); }
@@ -43,7 +45,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
     /// <summary>The saved settings, or null if none have been saved yet.</summary>
     public FrameSettings? Get() =>
         db.QueryOne("""
-            SELECT theme, font, orientation, left_ids, right_ids, split, ambient_position, photo_source, photo_categories
+            SELECT theme, font, orientation, left_ids, right_ids, split, ambient_position, photo_source, photo_categories,
+                   width, height
             FROM frame_settings WHERE id = 1
             """, r => new FrameSettings(
                 r.GetString(0),
@@ -54,20 +57,23 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.GetInt32(5),
                 r.GetString(6),
                 r.GetString(7),
-                JsonSerializer.Deserialize<string[]>(r.GetString(8)) ?? []));
+                JsonSerializer.Deserialize<string[]>(r.GetString(8)) ?? [],
+                r.GetInt32(9),
+                r.GetInt32(10)));
 
     public FrameSettings Save(FrameSettings settings)
     {
         db.NonQuery("""
             INSERT INTO frame_settings (id, theme, font, orientation, left_ids, right_ids, split, ambient_position,
-                                        photo_source, photo_categories, updated_at)
+                                        photo_source, photo_categories, width, height, updated_at)
             VALUES (1, $theme, $font, $orientation, $left, $right, $split, $ambient_position,
-                    $photo_source, $photo_categories, CURRENT_TIMESTAMP)
+                    $photo_source, $photo_categories, $width, $height, CURRENT_TIMESTAMP)
             ON CONFLICT (id) DO UPDATE SET
                 theme = excluded.theme, font = excluded.font, orientation = excluded.orientation,
                 left_ids = excluded.left_ids, right_ids = excluded.right_ids, split = excluded.split,
                 ambient_position = excluded.ambient_position, photo_source = excluded.photo_source,
-                photo_categories = excluded.photo_categories, updated_at = excluded.updated_at
+                photo_categories = excluded.photo_categories, width = excluded.width,
+                height = excluded.height, updated_at = excluded.updated_at
             """, cmd =>
         {
             cmd.AddParam("$theme", settings.Theme);
@@ -79,6 +85,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             cmd.AddParam("$ambient_position", settings.AmbientPosition);
             cmd.AddParam("$photo_source", settings.PhotoSource);
             cmd.AddParam("$photo_categories", JsonSerializer.Serialize(settings.PhotoCategories ?? []));
+            cmd.AddParam("$width", settings.Width);
+            cmd.AddParam("$height", settings.Height);
         });
         return Get()!;
     }

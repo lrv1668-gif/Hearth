@@ -1,7 +1,15 @@
 <script lang="ts">
     import type { Photo } from '$lib/api';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { isAmbientPosition, onBlockInk, pickBlockInk, plateRect, weatherSentence, type Pixels } from '$lib/frame';
+    import {
+        getFrameScale,
+        isAmbientPosition,
+        onBlockInk,
+        pickBlockInk,
+        plateRect,
+        weatherSentence,
+        type Pixels,
+    } from '$lib/frame';
     import { FRAME_INKS } from '$lib/constants/frameThemes';
     import { localDateKey } from '$lib/utils';
     import FrameDateBlock from './FrameDateBlock.svelte';
@@ -14,6 +22,7 @@
     // Theme tokens that are a pure ink the date block may switch to.
     const INK_TOKENS = ['--block', '--accent', '--text-1', '--text-2', '--done', '--border'];
 
+    const scale = getFrameScale();
     let plate = $state<HTMLElement>();
     let plateW = $state(0);
     let plateH = $state(0);
@@ -47,9 +56,10 @@
         const ink = pickBlockInk(
             pixels,
             frame,
-            plateRect(position, { w: plateW, h: plateH }, frame),
+            plateRect(position, { w: plateW, h: plateH }, frame, scale()),
             candidates,
-            preferred
+            preferred,
+            scale()
         );
         return ink === preferred ? null : { ink, on: onBlockInk(ink) };
     });
@@ -115,23 +125,24 @@ In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure 
 </div>
 
 <style>
-    /* Inset 64px from the chosen edge(s), or centred along the top/bottom edge for the
+    /* Inset 64px (times the frame's scale) from the chosen edge(s), or centred along the top/bottom edge for the
        middle positions. Keyed off the frame root's data-position (not a
        prop) so the Settings preview can move the card in place without reloading. */
     .plate {
-        bottom: 64px;
-        left: 64px;
+        --inset: calc(64px * var(--frame-scale, 1));
+        bottom: var(--inset);
+        left: var(--inset);
         /* Size to the content, the same at every position — a middle card would
            otherwise only get the half of the frame right of left: 50% and wrap taller. */
         width: max-content;
-        max-width: calc(100% - 128px);
+        max-width: calc(100% - 2 * var(--inset));
     }
     :global(.frame[data-position^='top']) .plate {
-        top: 64px;
+        top: var(--inset);
         bottom: auto;
     }
     :global(.frame[data-position$='right']) .plate {
-        right: 64px;
+        right: var(--inset);
         left: auto;
     }
     :global(.frame[data-position$='middle']) .plate {
