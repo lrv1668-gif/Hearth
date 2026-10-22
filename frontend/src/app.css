@@ -19,6 +19,15 @@ html {
     background-color: var(--bg);
 }
 
+/* One keyboard-focus ring for every button and link. In the base layer so a
+   component's own `outline-none focus:ring-*` (form inputs) still wins. */
+@layer base {
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+}
+
 /* Tailwind Preflight's `* { margin: 0 }` is author-origin, so it beats the
    UA stylesheet's `dialog:modal { margin: auto }` regardless of specificity —
    without this, <dialog> loses its default centering. */

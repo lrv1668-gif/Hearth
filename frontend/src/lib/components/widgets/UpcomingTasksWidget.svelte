@@ -164,7 +164,7 @@
                                 </button>
 
                                 {#if task.due_time}
-                                    <span class="type-label w-12 flex-shrink-0 sm:w-14 text-(--text-2) tabular-nums">
+                                    <span class="type-label w-12 flex-shrink-0 text-(--text-2) tabular-nums sm:w-14">
                                         {formatTime(task.due_time)}
                                     </span>
                                 {:else}
@@ -254,7 +254,9 @@
                         {:else}
                             {@const calItem = item.data}
                             {#if calItem.kind === 'task'}
-                                <li class="group/cal flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5">
+                                <li
+                                    class="group/cal flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5"
+                                >
                                     <div class="relative flex-shrink-0">
                                         <button
                                             onclick={() => {
@@ -317,7 +319,9 @@
                                         </div>
                                     </div>
                                     {#if !calItem.is_all_day}
-                                        <span class="type-label w-12 flex-shrink-0 sm:w-14 text-(--text-2) tabular-nums">
+                                        <span
+                                            class="type-label w-12 flex-shrink-0 text-(--text-2) tabular-nums sm:w-14"
+                                        >
                                             {formatTime(timeKey(item) ?? '')}
                                         </span>
                                     {:else}

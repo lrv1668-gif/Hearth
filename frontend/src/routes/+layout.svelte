@@ -38,7 +38,9 @@
 {#if loaded && isFrame}
     {@render children()}
 {:else if loaded}
-    <div class="flex h-[100dvh] flex-col bg-(--bg) pb-16 text-(--text-1) transition-colors duration-300 lg:pb-0">
+    <div
+        class="flex h-[100dvh] flex-col bg-(--bg) pr-[env(safe-area-inset-right)] pb-[calc(4rem+env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] text-(--text-1) transition-colors duration-300 lg:pb-0"
+    >
         <Nav />
         {@render children()}
     </div>
