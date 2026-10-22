@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddSqliteDistributedCache("birds");
         services.AddHearthCache();
         services.AddHttpClient<BirdsFetcher>();
+        services.AddHearthHomeLocation();
 
         services.AddHearthWebDefaults();
     }

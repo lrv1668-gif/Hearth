@@ -12,3 +12,6 @@ app.UseCors();
 app.InitializeWebAppForDisplay();
 
 app.Run();
+
+// For WebApplicationFactory in Display.Tests
+public partial class Program;

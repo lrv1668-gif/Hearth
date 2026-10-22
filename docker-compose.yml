@@ -52,6 +52,8 @@ services:
         environment:
             - DB_PATH=/data/weather.db
             - ASPNETCORE_HTTP_PORTS=8082
+            # Home location and zone saved in Settings; .env values are the fallback
+            - DISPLAY_URL=http://display:8090
         volumes:
             - weather-data:/data
 
@@ -121,6 +123,8 @@ services:
         environment:
             - DB_PATH=/data/birds.db
             - ASPNETCORE_HTTP_PORTS=8088
+            # Home location and zone saved in Settings; .env values are the fallback
+            - DISPLAY_URL=http://display:8090
         volumes:
             - birds-data:/data
 
@@ -135,6 +139,8 @@ services:
             - ./src/Almanac/.env
         environment:
             - ASPNETCORE_HTTP_PORTS=8089
+            # Home location and zone saved in Settings; .env values are the fallback
+            - DISPLAY_URL=http://display:8090
 
     trains:
         <<: *defaults
@@ -174,7 +180,8 @@ services:
         init: true
         environment:
             - FRAME_BASE_URL=http://caddy
-            # IANA zone the frame's date and clock are drawn in (root .env); UTC when unset
+            # Fallback zone for the frame's date and clock (root .env) when none is saved in
+            # Settings → Home; UTC when neither is set
             - TZ=${TZ:-}
 
     frontend:

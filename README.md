@@ -22,9 +22,11 @@ A calm, self-hosted home dashboard designed to look beautiful and recede into th
 
 ## Configuration
 
-Services that need secrets or location data use a per-service `.env` file. Create these before starting:
+Services that need secrets use a per-service `.env` file. Create these before starting (Compose expects each to exist, even if empty).
 
-**Weather** (`src/Weather/.env`):
+Set the home location and time zone in **Settings → Home** — use the device's location, search for a city, or type coordinates. Weather, Birds, Almanac and the frame preview all read it from the Display service. `LATITUDE`, `LONGITUDE` and `TZ` in the files below still work as fallbacks until one is saved.
+
+**Weather** (`src/Weather/.env`, optional fallback):
 ```
 LATITUDE=40.7128
 LONGITUDE=-74.0060
@@ -44,14 +46,14 @@ GOOGLE_CLIENT_SECRET=...
 GOOGLE_REDIRECT_URI=http://127.0.0.1:8087/calendar/google/callback
 ```
 
-**Birds** (`src/Birds/.env`):
+**Birds** (`src/Birds/.env`; the location is an optional fallback):
 ```
 EBIRD_API_KEY=...
 LATITUDE=40.7128
 LONGITUDE=-74.0060
 ```
 
-**Almanac** (`src/Almanac/.env`):
+**Almanac** (`src/Almanac/.env`, all optional; location and zone are fallbacks):
 ```
 LATITUDE=40.7128
 LONGITUDE=-74.0060
@@ -100,7 +102,7 @@ dotnet run
 ```
 
 ```bash
-# Backend — weather service (requires src/Weather/.env with LATITUDE and LONGITUDE)
+# Backend — weather service (location from Settings → Home via DISPLAY_URL=http://localhost:8090, or LATITUDE/LONGITUDE in src/Weather/.env)
 cd src/Weather
 dotnet run
 ```
@@ -136,13 +138,13 @@ dotnet run
 ```
 
 ```bash
-# Backend — Birds service (optional; requires src/Birds/.env with EBIRD_API_KEY, LATITUDE, LONGITUDE)
+# Backend — Birds service (optional; requires src/Birds/.env with EBIRD_API_KEY; location as for Weather)
 cd src/Birds
 dotnet run
 ```
 
 ```bash
-# Backend — Almanac service (optional; requires src/Almanac/.env with LATITUDE, LONGITUDE, TZ, FIRST_FROST, LAST_FROST)
+# Backend — Almanac service (optional; src/Almanac/.env with FIRST_FROST, LAST_FROST; location and TZ as for Weather)
 cd src/Almanac
 dotnet run
 ```

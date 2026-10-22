@@ -83,6 +83,17 @@ public sealed class FramePreviewTests
     }
 
     [Fact]
+    public async Task RenderAsync_TimeZone_SendsItEscaped()
+    {
+        var handler = new FakeHttpMessageHandler("png");
+        var client = new RendererClient(new HttpClient(handler) { BaseAddress = new Uri("http://renderer:3000/") });
+
+        await client.RenderAsync("/frame", 1600, 1200, "ordered", null, "screen", "America/Chicago");
+
+        Assert.EndsWith("&tz=America%2FChicago", handler.LastRequestUri?.AbsoluteUri);
+    }
+
+    [Fact]
     public async Task RenderAsync_RendererTimesOut_ThrowsWithStatus()
     {
         var handler = new FakeHttpMessageHandler("timeout", HttpStatusCode.GatewayTimeout);

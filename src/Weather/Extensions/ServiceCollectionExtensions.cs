@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddSqliteDistributedCache("weather");
         services.AddHearthCache();
         services.AddHttpClient<WeatherFetcher>();
+        services.AddHearthHomeLocation();
 
         services.AddHearthWebDefaults();
     }

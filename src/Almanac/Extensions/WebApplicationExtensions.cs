@@ -4,23 +4,26 @@ namespace Almanac.Extensions;
 
 public static class WebApplicationExtensions
 {
+    private static int _reportedMissing;
+
     public static void InitializeWebAppForAlmanac(this WebApplication app)
     {
-        var config = app.Services.GetRequiredService<IConfiguration>();
-
-        // Unlike Weather, missing coordinates are not fatal: season and phenology
-        // are date-only, so /almanac still returns 200 with daylight omitted.
-        config.WarnIfMissing(
-            app.Logger,
-            "LATITUDE and LONGITUDE are not set — the daylight section will be omitted. Update the .env file to add your coordinates.",
-            "LATITUDE", "LONGITUDE");
-
         app.AddAlmanacEndpoints();
     }
 
     private static void AddAlmanacEndpoints(this WebApplication app)
     {
-        app.MapGet("/almanac", (AlmanacService service) =>
-            Results.Ok(service.Build(DateTimeOffset.UtcNow)));
+        app.MapGet("/almanac", async (AlmanacService service, HomeLocationClient homeClient, CancellationToken ct) =>
+        {
+            var home = await homeClient.GetAsync(ct);
+            // Unlike Weather, missing coordinates are not fatal: season and phenology
+            // are date-only, so /almanac still returns 200 with daylight omitted.
+            // Logged once per change rather than on every poll
+            var missing = home.Coordinates is null;
+            if (missing && Interlocked.Exchange(ref _reportedMissing, 1) == 0)
+                app.Logger.LogError("No home location — the daylight section will be omitted. Set one in Settings → Home, or LATITUDE and LONGITUDE in the .env file.");
+            else if (!missing) Interlocked.Exchange(ref _reportedMissing, 0);
+            return Results.Ok(service.Build(DateTimeOffset.UtcNow, home));
+        });
     }
 }

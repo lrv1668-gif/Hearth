@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Monitor, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
+    import { Monitor, MapPin, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
     import Toggle from '$lib/components/Toggle.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import FontThemePicker from '$lib/components/settings/FontThemePicker.svelte';
@@ -35,11 +35,13 @@
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
     import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
     import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
+    import HomeLocationSettings from '$lib/components/settings/HomeLocationSettings.svelte';
 
-    type SectionId = 'display' | 'dashboard' | 'ambient' | 'connections' | 'frame';
+    type SectionId = 'display' | 'home' | 'dashboard' | 'ambient' | 'connections' | 'frame';
 
     const sections = [
         { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · type', icon: Monitor },
+        { id: 'home' as SectionId, label: 'Home', subtitle: 'Location · time zone', icon: MapPin },
         { id: 'dashboard' as SectionId, label: 'Dashboard', subtitle: 'Widgets · layout', icon: LayoutList },
         { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · slideshow', icon: Image },
         { id: 'connections' as SectionId, label: 'Connections', subtitle: 'Spotify · calendar', icon: Plug },
@@ -50,6 +52,11 @@
         display: {
             heading: 'How Hearth looks',
             description: 'The theme drives every surface, type colour, and accent across the dashboard and the frame.',
+        },
+        home: {
+            heading: 'Home',
+            description:
+                'Where Hearth lives — for the weather, nearby birds, daylight, and the frame’s clock. Shared by every device.',
         },
         dashboard: {
             heading: 'Dashboard & Widgets',
@@ -238,6 +245,13 @@
                     fontContent
                 )}
             </div>
+        {:else if active === 'home'}
+            {#snippet homeContent()}<HomeLocationSettings />{/snippet}
+            {@render card(
+                'Location & time zone',
+                'Use this device’s location, search for a city, or type coordinates.',
+                homeContent
+            )}
         {:else if active === 'ambient'}
             {#snippet source()}<AmbientSourceSettings />{/snippet}
             {#snippet cadence()}<AmbientCadenceSettings />{/snippet}
