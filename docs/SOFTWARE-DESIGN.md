@@ -50,7 +50,7 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 
 #### Frame route
 
-`/frame` is the page the future Display service screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel — the shared panel size (default 1600×1200, the Inky Impression 13.3"), with width and height swapped in portrait — and never scrolls, renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and is client-rendered (`ssr = false`). Its look and layout come from the shared frame settings in the Display service (see "Display Service"), so every client — and the panel's headless renderer — draws the same frame; URL params override them per request, and anything neither sets uses the defaults below:
+`/frame` is the page the Display service's renderer screenshots and dithers for the Inky panel (`HARDWARE.md` step 1). It is sized to the panel — the shared panel size (default 1600×1200, the Inky Impression 13.3"), with width and height swapped in portrait — and never scrolls, renders outside the app chrome (`+layout.svelte` skips `Nav` for `/frame*`), and is client-rendered (`ssr = false`). Its look and layout come from the shared frame settings in the Display service (see "Display Service"), so every client — and the panel's headless renderer — draws the same frame; URL params override them per request, and anything neither sets uses the defaults below:
 
 | Param        | Values                 | Default    |
 | ------------ | ---------------------- | ---------- |
@@ -211,7 +211,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `calendar` | 8087 | Implemented | Google Calendar + Google Tasks OAuth, aggregated events/tasks        |
 | `birds`    | 8088 | Implemented | Nearby eBird sightings, cached for 60 minutes                        |
 | `almanac`  | 8089 | Implemented | Season/daylight/frost facts, computed locally (no external API, no DB) |
-| `display`  | 8090 | Partial     | Shared e-paper frame settings; rendering/dithering for the panel is planned (`HARDWARE.md`) |
+| `display`  | 8090 | Partial     | Shared e-paper frame settings and the dithered frame preview (via the `renderer` sidecar); the panel endpoint is planned (`HARDWARE.md`) |
 | `trains`   | 8091 | Implemented | Transitland departures for subscribed stops, cached for 45 seconds   |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
@@ -669,12 +669,13 @@ Stored in `src/Almanac/.env`.
 
 ## Display Service
 
-`src/Display` (port 8090) holds the e-paper frame's shared settings — the frame is one physical display, so its look is a single source of truth rather than a per-browser preference. It is also where the planned frame renderer, dithering and button/presence endpoints will live (`HARDWARE.md` step 2).
+`src/Display` (port 8090) holds the e-paper frame's shared settings — the frame is one physical display, so its look is a single source of truth rather than a per-browser preference. It also serves the frame dithered to the panel's six inks, captured and dithered by the `renderer` sidecar (below); the panel endpoint, render schedule and button/presence endpoints are still planned (`HARDWARE.md` step 2).
 
 | Endpoint                 | Description |
 | ------------------------ | ----------- |
 | `GET /display/settings`  | The saved `FrameSettings` (`theme`, `font`, `orientation`, `left`, `right`, `split`, `ambient_position`, `photo_source`, `photo_categories`, `width`, `height`), or `204` if nothing has been saved — clients then use their defaults |
 | `PUT /display/settings`  | Replaces them. `400` unless orientation is `landscape`/`portrait`, each column has at most 3 widgets with none repeated, `split` is 30–70 `ambient_position` is one of the six positions (omitted → `bottom-left`), and `width`/`height` (the panel's native size; omitted → 1600×1200) are 200–4000 with width ≥ height |
+| `GET /display/preview`   | `/frame`'s query params plus `look=screen\|paper` (and optional `kernel=`, an epdoptimize error-diffusion kernel) → the frame as a PNG in the six inks, upright at the panel size (`width`×`height`, swapped in portrait; default 1600×1200). Daily is ordered-dithered, Ambient error-diffused; `paper` repaints the inks as they look on the panel. `503` without `RENDERER_URL`, `504` if the frame never got ready, `502` on any other render failure |
 
 `FrameSettingsStore` keeps one row (`id = 1`) in `display.db` (`DB_PATH`). Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once.
 
@@ -682,6 +683,13 @@ Stored in `src/Almanac/.env`.
 | ----------------------- | -------- | ----------- |
 | `DB_PATH`               | No       | Path to the SQLite file (default: `display.db`) |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8090` in Docker |
+| `RENDERER_URL`          | For preview | The renderer sidecar (`http://renderer:3000` in Compose) |
+
+### Renderer sidecar
+
+`renderer/` is a small Node container (not a .NET service — Playwright needs Node and Chromium's system libraries, which the chiseled image lacks) built on the official multi-arch Playwright image. `GET /render?path=/frame?…&width=&height=&dither=ordered|errorDiffusion|none&kernel=&look=screen|paper` loads the frame from `FRAME_BASE_URL` (`http://caddy` — Caddy's `:80` site serves the frontend and the API routes the page calls), waits for `[data-ready="true"]` (30 s, then `504`), screenshots it and dithers it (`dither.mjs`, see `HARDWARE.md` step 2 for why each method). The browser draws in the root `.env`'s `TZ` (IANA zone; UTC when unset), since the frame's date and clock come from the browser. One render runs at a time. It only accepts `/frame` paths and has no Caddy route. Tests: `cd renderer && npm test`.
+
+Settings → Frame's preview has a Live / Screen / Paper switch: Live is the `/frame` iframe; Screen and Paper show `/display/preview`, rendered 600 ms after the settings stop changing and only while one of them is selected.
 
 ## Trains Service
 

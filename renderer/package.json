@@ -1,0 +1,15 @@
+{
+    "name": "hearth-renderer",
+    "private": true,
+    "type": "module",
+    "description": "Screenshots and dithers the e-paper frame route for the Display service",
+    "scripts": {
+        "start": "node server.mjs",
+        "test": "node --test"
+    },
+    "dependencies": {
+        "canvas": "^3.2.3",
+        "epdoptimize": "^1.3.0",
+        "playwright": "1.63.0"
+    }
+}

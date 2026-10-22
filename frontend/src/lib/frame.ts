@@ -210,10 +210,15 @@ export interface FrameOptions {
     position: AmbientPosition;
 }
 
-/** The /frame URL for a set of options — what the preview (and later the Display
- *  service) loads. Every option is spelled out so the URL is self-describing. */
+/** The /frame URL for a set of options — what the live preview and the Display
+ *  service's renderer load. Every option is spelled out so the URL is self-describing. */
 export function frameUrl(o: FrameOptions): string {
-    const params = new URLSearchParams({
+    return `/frame?${frameParams(o)}`;
+}
+
+/** /frame's query params — also taken by the Display service's dithered preview. */
+export function frameParams(o: FrameOptions): URLSearchParams {
+    return new URLSearchParams({
         mode: o.mode,
         palette: o.palette,
         theme: o.theme,
@@ -226,7 +231,6 @@ export function frameUrl(o: FrameOptions): string {
         split: String(o.split),
         position: o.position,
     });
-    return `/frame?${params}`;
 }
 
 /* ── Column space ─────────────────────────────────────────────────────────────

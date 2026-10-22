@@ -161,8 +161,21 @@ services:
         environment:
             - DB_PATH=/data/display.db
             - ASPNETCORE_HTTP_PORTS=8090
+            - RENDERER_URL=http://renderer:3000
         volumes:
             - display-data:/data
+
+    # Headless Chromium that screenshots /frame for the Display service to dither.
+    # Internal only — no Caddy route. It loads the frame through Caddy's :80 site.
+    renderer:
+        <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-renderer:${HEARTH_TAG:-latest}
+        build: ./renderer
+        init: true
+        environment:
+            - FRAME_BASE_URL=http://caddy
+            # IANA zone the frame's date and clock are drawn in (root .env); UTC when unset
+            - TZ=${TZ:-}
 
     frontend:
         <<: *defaults

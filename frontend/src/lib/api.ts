@@ -1,3 +1,5 @@
+import { frameParams, type FrameOptions } from '$lib/frame';
+
 // ---- Types ----
 
 export interface Task {
@@ -255,6 +257,14 @@ class ApiClient {
 
         saveSettings: (settings: FrameSettings): Promise<FrameSettings> =>
             this.put<FrameSettings>('/display/settings', settings),
+
+        /** The frame rendered and dithered to the panel's six inks, as a PNG URL. `screen`
+         *  shows the exact inks the panel is sent; `paper` repaints them as they look on it. */
+        previewUrl: (o: FrameOptions, look: 'screen' | 'paper'): string => {
+            const params = frameParams(o);
+            params.set('look', look);
+            return `/display/preview?${params}`;
+        },
     };
 
     readonly weather = {

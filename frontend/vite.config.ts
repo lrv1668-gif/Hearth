@@ -8,6 +8,8 @@ export default defineConfig({
         include: ['src/**/*.{test,spec}.ts'],
     },
     server: {
+        // The renderer sidecar loads /frame through Caddy as http://caddy
+        allowedHosts: ['caddy'],
         proxy: {
             '/tasks': process.env.TASKS_URL ?? 'http://localhost:8081',
             '/spotify': process.env.SPOTIFY_URL ?? 'http://localhost:8083',
