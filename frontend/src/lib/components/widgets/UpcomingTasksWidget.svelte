@@ -149,7 +149,7 @@
                     {#each group.items as item (item.kind === 'task' ? `t-${item.data.id}` : `e-${item.data.id}`)}
                         {#if item.kind === 'task'}
                             {@const task = item.data}
-                            <li class="group/row flex items-center gap-3 rounded-lg px-3 py-2.5">
+                            <li class="group/row flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5">
                                 <button
                                     onclick={() => onToggle(task)}
                                     class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
@@ -164,11 +164,11 @@
                                 </button>
 
                                 {#if task.due_time}
-                                    <span class="type-label w-14 flex-shrink-0 text-(--text-2) tabular-nums">
+                                    <span class="type-label w-12 flex-shrink-0 sm:w-14 text-(--text-2) tabular-nums">
                                         {formatTime(task.due_time)}
                                     </span>
                                 {:else}
-                                    <span class="w-14 flex-shrink-0"></span>
+                                    <span class="w-12 flex-shrink-0 sm:w-14"></span>
                                 {/if}
 
                                 <button
@@ -190,11 +190,13 @@
                                             </span>
                                         {/if}
                                         {#if task.recurrence_unit}
+                                            <!-- Icon-only on phones, where the title needs the room -->
                                             <span
                                                 class="type-label flex flex-shrink-0 items-center gap-0.5 text-(--text-2)"
+                                                title={recurrenceLabel(task)}
                                             >
-                                                <RefreshCw class="icon-xs" />
-                                                {recurrenceLabel(task)}
+                                                <RefreshCw class="icon-xs" aria-label={recurrenceLabel(task)} />
+                                                <span class="hidden sm:inline">{recurrenceLabel(task)}</span>
                                             </span>
                                         {/if}
                                     </div>
@@ -252,7 +254,7 @@
                         {:else}
                             {@const calItem = item.data}
                             {#if calItem.kind === 'task'}
-                                <li class="group/cal flex items-center gap-3 rounded-lg px-3 py-2.5">
+                                <li class="group/cal flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5">
                                     <div class="relative flex-shrink-0">
                                         <button
                                             onclick={() => {
@@ -277,7 +279,7 @@
                                             <ProviderIcon provider={calItem.provider} />
                                         </div>
                                     </div>
-                                    <span class="w-14 flex-shrink-0"></span>
+                                    <span class="w-12 flex-shrink-0 sm:w-14"></span>
                                     <div class="min-w-0 flex-1">
                                         <span
                                             class="type-body block truncate
@@ -307,7 +309,7 @@
                                     {/if}
                                 </li>
                             {:else}
-                                <li class="flex items-center gap-3 rounded-lg px-3 py-2.5">
+                                <li class="flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5">
                                     <div class="relative flex-shrink-0">
                                         <CalendarIcon class="h-4 w-4 text-(--accent)" aria-hidden="true" />
                                         <div class="absolute -right-1 -bottom-1">
@@ -315,11 +317,11 @@
                                         </div>
                                     </div>
                                     {#if !calItem.is_all_day}
-                                        <span class="type-label w-14 flex-shrink-0 text-(--text-2) tabular-nums">
+                                        <span class="type-label w-12 flex-shrink-0 sm:w-14 text-(--text-2) tabular-nums">
                                             {formatTime(timeKey(item) ?? '')}
                                         </span>
                                     {:else}
-                                        <span class="w-14 flex-shrink-0"></span>
+                                        <span class="w-12 flex-shrink-0 sm:w-14"></span>
                                     {/if}
                                     <button
                                         onclick={() => onEventClick?.(calItem)}

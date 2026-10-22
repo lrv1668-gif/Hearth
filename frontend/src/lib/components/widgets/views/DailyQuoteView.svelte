@@ -16,7 +16,7 @@
 The daily quote and its author — shared by the dashboard widget and the e-paper frame.
 -->
 {#if !quote}
-    <p class="type-body text-(--text-2)">Quote unavailable.</p>
+    <p class="type-label text-(--text-2)">Quote unavailable.</p>
 {:else}
     <figure class="flex flex-col gap-3">
         <blockquote

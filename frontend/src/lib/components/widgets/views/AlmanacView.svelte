@@ -19,7 +19,7 @@ dashboard widget and the e-paper frame. The season bar is a .meter: rounded and 
 on the dashboard, an outlined pure-ink bar on the frame (see routes/frame).
 -->
 {#if !almanac}
-    <p class="type-body text-(--text-2)">Almanac unavailable.</p>
+    <p class="type-label text-(--text-2)">Almanac unavailable.</p>
 {:else}
     <div class="type-body flex flex-col gap-[0.6em]">
         <div>
