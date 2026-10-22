@@ -1,7 +1,7 @@
 <script lang="ts">
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
     import { almanacStore } from '$lib/stores/AlmanacStore.svelte.ts';
-    import { durationLabel, sunProgress } from '$lib/frame';
+    import { durationLabel, getFrameScale, sunProgress } from '$lib/frame';
     import { localDateKey } from '$lib/utils';
 
     /** `compact`: a smaller dome that fits beside the weekday in portrait — the times
@@ -17,6 +17,10 @@
     const W = $derived(2 * CX);
     const CY = $derived(R + 12);
     const H = $derived(CY + 52);
+    // The dome is drawn at the 1600px reference and scaled with the frame; its labels
+    // sit outside that group, at scaled positions, since their type tokens already scale.
+    const frameScale = getFrameScale();
+    const k = $derived(frameScale());
 
     const today = $derived(weatherStore.forecast.find((f) => f.date === localDateKey(now)) ?? null);
     // Open-Meteo sends local ISO times without an offset, which Date parses as local.
@@ -62,9 +66,9 @@ times it falls back to the temperature alone.
 {#if sunrise && sunset}
     {@const sun = progress === null ? null : point((R + r) / 2, progress)}
     <svg
-        viewBox="0 0 {W} {H}"
-        width={W}
-        height={H}
+        viewBox="0 0 {W * k} {H * k}"
+        width={W * k}
+        height={H * k}
         class="shrink-0"
         role="img"
         aria-label="Daylight {durationLabel(sunrise, sunset)}, sunrise {clock(sunrise)}, sunset {clock(sunset)}"
@@ -74,17 +78,19 @@ times it falls back to the temperature alone.
                 <rect width="3" height="9" fill="var(--border)" />
             </pattern>
         </defs>
-        <path d={sector(0, 1)} fill="none" stroke="var(--border)" stroke-width="3" />
-        {#if lit > 0}<path d={sector(0, lit)} fill="var(--block)" />{/if}
-        <line x1="0" y1={CY + 1.5} x2={W} y2={CY + 1.5} stroke="var(--border)" stroke-width="3" />
-        <rect x="0" y={CY + 3} width={W} height="18" fill="url(#sunpath-hatch)" />
-        {#if sun}
-            <circle cx={sun[0]} cy={sun[1]} r="16" fill="var(--accent)" stroke="var(--bg)" stroke-width="6" />
-        {/if}
+        <g transform="scale({k})">
+            <path d={sector(0, 1)} fill="none" stroke="var(--border)" stroke-width="3" />
+            {#if lit > 0}<path d={sector(0, lit)} fill="var(--block)" />{/if}
+            <line x1="0" y1={CY + 1.5} x2={W} y2={CY + 1.5} stroke="var(--border)" stroke-width="3" />
+            <rect x="0" y={CY + 3} width={W} height="18" fill="url(#sunpath-hatch)" />
+            {#if sun}
+                <circle cx={sun[0]} cy={sun[1]} r="16" fill="var(--accent)" stroke="var(--bg)" stroke-width="6" />
+            {/if}
+        </g>
         {#if temperature !== null}
             <text
-                x={CX}
-                y={CY - 12}
+                x={CX * k}
+                y={(CY - 12) * k}
                 text-anchor="middle"
                 fill="var(--text-1)"
                 class="{compact
@@ -96,13 +102,13 @@ times it falls back to the temperature alone.
         {/if}
         <g class="type-label" fill="var(--text-2)">
             {#if compact}
-                <text x="0" y={CY + 50}>{clock(sunrise)}</text>
-                <text x={CX} y={CY + 50} text-anchor="middle">{durationLabel(sunrise, sunset)}</text>
-                <text x={W} y={CY + 50} text-anchor="end">{clock(sunset)}</text>
+                <text x="0" y={(CY + 50) * k}>{clock(sunrise)}</text>
+                <text x={CX * k} y={(CY + 50) * k} text-anchor="middle">{durationLabel(sunrise, sunset)}</text>
+                <text x={W * k} y={(CY + 50) * k} text-anchor="end">{clock(sunset)}</text>
             {:else}
-                <text x={CX - R - 12} y={CY - 10} text-anchor="end">{clock(sunrise)}</text>
-                <text x={CX + R + 12} y={CY - 10}>{clock(sunset)}</text>
-                <text x={CX} y={CY + 50} text-anchor="middle">{durationLabel(sunrise, sunset)}{trend}</text>
+                <text x={(CX - R - 12) * k} y={(CY - 10) * k} text-anchor="end">{clock(sunrise)}</text>
+                <text x={(CX + R + 12) * k} y={(CY - 10) * k}>{clock(sunset)}</text>
+                <text x={CX * k} y={(CY + 50) * k} text-anchor="middle">{durationLabel(sunrise, sunset)}{trend}</text>
             {/if}
         </g>
     </svg>

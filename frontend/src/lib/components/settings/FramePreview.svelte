@@ -3,7 +3,7 @@
     import { frameDataTheme } from '$lib/constants/frameThemes';
     import { normalizeFrameLayout } from '$lib/constants/frameWidgets';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { frameUrl } from '$lib/frame';
+    import { frameCanvas, frameUrl } from '$lib/frame';
     import SegmentedControl from './SegmentedControl.svelte';
 
     // Preview-only toggles: on the real frame, Daily/Ambient and Color/B&W are
@@ -21,19 +21,23 @@
             theme: frameSettings.theme,
             font: frameSettings.font,
             orientation: frameSettings.orientation,
+            width: frameSettings.width,
+            height: frameSettings.height,
             layout,
             split: frameSettings.split,
             position: frameSettings.ambientPosition,
         })
     );
 
-    // The iframe only reloads for structural changes (mode, orientation, layout,
+    // The iframe only reloads for structural changes (mode, orientation, size, layout,
     // split). Theme, font and palette are applied to the loaded frame in place below —
     // a reload would refetch everything, and in Ambient swap in a new random photo.
     const previewSrc = $derived.by(() => {
         const structure = {
             mode: previewMode,
             orientation: frameSettings.orientation,
+            width: frameSettings.width,
+            height: frameSettings.height,
             layout,
             split: frameSettings.split,
         };
@@ -65,7 +69,13 @@
 
     $effect(applyLook);
 
-    const size = $derived(frameSettings.orientation === 'portrait' ? { w: 1200, h: 1600 } : { w: 1600, h: 1200 });
+    const size = $derived(
+        frameCanvas({
+            width: frameSettings.width,
+            height: frameSettings.height,
+            orientation: frameSettings.orientation,
+        })
+    );
     let boxWidth = $state(0);
     const scale = $derived(boxWidth / size.w);
 </script>
@@ -98,7 +108,7 @@ Daily/Ambient and Color/B&W toggles and the resulting frame URL.
     <div
         bind:clientWidth={boxWidth}
         class="relative overflow-hidden rounded-lg border border-(--border)
-            {frameSettings.orientation === 'portrait' ? 'mx-auto max-w-sm' : 'max-w-2xl'}"
+            {size.h > size.w ? 'mx-auto max-w-sm' : 'max-w-2xl'}"
         style="height: {size.h * scale}px"
     >
         {#if boxWidth > 0}

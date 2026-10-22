@@ -56,6 +56,7 @@ public sealed class FrameSettingsTests
 
         Assert.Equal("bottom-left", settings.AmbientPosition);
         Assert.Equal("unsplash", settings.PhotoSource);
+        Assert.Equal((1600, 1200), (settings.Width, settings.Height));
         Assert.Null(settings.Validate());
     }
 
@@ -75,5 +76,25 @@ public sealed class FrameSettingsTests
     public void Validate_BlankTheme_ReturnsError()
     {
         Assert.NotNull((Valid with { Theme = " " }).Validate());
+    }
+
+    [Theory]
+    [InlineData(199, 199)]
+    [InlineData(4001, 1200)]
+    public void Validate_SizeOutOfRange_ReturnsError(int width, int height)
+    {
+        Assert.NotNull((Valid with { Width = width, Height = height }).Validate());
+    }
+
+    [Fact]
+    public void Validate_HeightAboveWidth_ReturnsError()
+    {
+        Assert.NotNull((Valid with { Width = 480, Height = 800 }).Validate());
+    }
+
+    [Fact]
+    public void Validate_CustomLandscapeSize_ReturnsNull()
+    {
+        Assert.Null((Valid with { Width = 800, Height = 480 }).Validate());
     }
 }

@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { api, type AmbientPosition, type FrameSettings } from '$lib/api';
-import { DEFAULT_AMBIENT_POSITION, isAmbientPosition } from '$lib/frame';
+import { DEFAULT_AMBIENT_POSITION, DEFAULT_FRAME_SIZE, isAmbientPosition, isFrameSize } from '$lib/frame';
 import { categoryOptions } from '$lib/constants/ambient';
 import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '$lib/constants/frameThemes';
@@ -31,6 +31,9 @@ class FrameSettingsStore {
     theme = $state<FrameThemeId>(DEFAULT_FRAME_THEME);
     font = $state<FontThemeId>(DEFAULT_FONT_THEME);
     orientation = $state<'landscape' | 'portrait'>('landscape');
+    /** The panel's native (landscape) size; always valid (see isFrameSize). */
+    width = $state<number>(DEFAULT_FRAME_SIZE.width);
+    height = $state<number>(DEFAULT_FRAME_SIZE.height);
     layout = $state<FrameLayout>(DEFAULT_FRAME_LAYOUT);
     split = $state(DEFAULT_FRAME_SPLIT);
     ambientPosition = $state<AmbientPosition>(DEFAULT_AMBIENT_POSITION);
@@ -64,6 +67,8 @@ class FrameSettingsStore {
             theme: this.theme,
             font: this.font,
             orientation: this.orientation,
+            width: this.width,
+            height: this.height,
             left,
             right,
             split: this.split,
@@ -78,6 +83,10 @@ class FrameSettingsStore {
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
         if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
         if (saved.orientation === 'landscape' || saved.orientation === 'portrait') this.orientation = saved.orientation;
+        if (isFrameSize(saved.width, saved.height)) {
+            this.width = saved.width!;
+            this.height = saved.height!;
+        }
         if (saved.left && saved.right) this.layout = normalizeFrameLayout({ left: saved.left, right: saved.right });
         if (typeof saved.split === 'number') this.split = clampSplit(saved.split);
         if (isAmbientPosition(saved.ambient_position)) this.ambientPosition = saved.ambient_position;

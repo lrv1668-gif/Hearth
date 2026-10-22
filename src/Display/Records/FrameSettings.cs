@@ -19,7 +19,11 @@ public sealed record FrameSettings(
     // Ambient photos: "unsplash", "local" (uploads), "both", or another Photos-service
     // source, plus the Unsplash categories to draw from. Defaulted like AmbientPosition.
     string PhotoSource = FrameSettings.DefaultPhotoSource,
-    IReadOnlyList<string>? PhotoCategories = null
+    IReadOnlyList<string>? PhotoCategories = null,
+    // The panel's native (landscape) size in pixels; portrait swaps it. Defaulted to
+    // the Inky Impression 13.3" so older payloads and rows still read.
+    int Width = FrameSettings.DefaultWidth,
+    int Height = FrameSettings.DefaultHeight
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -28,6 +32,11 @@ public sealed record FrameSettings(
     public const string DefaultAmbientPosition = "bottom-left";
     public static readonly string[] AmbientPositions =
         ["top-left", "top-middle", "top-right", "bottom-left", "bottom-middle", "bottom-right"];
+
+    public const int DefaultWidth = 1600;
+    public const int DefaultHeight = 1200;
+    public const int MinSize = 200;
+    public const int MaxSize = 4000;
 
     public const int MaxColumnWidgets = 3;
     public const int MinSplit = 30;
@@ -52,6 +61,9 @@ public sealed record FrameSettings(
         if (PhotoCategories is { } categories &&
             (categories.Count > MaxPhotoCategories || categories.Any(string.IsNullOrWhiteSpace)))
             return $"at most {MaxPhotoCategories} photo categories, none blank";
+        if (Width is < MinSize or > MaxSize || Height is < MinSize or > MaxSize)
+            return $"width and height must be {MinSize}–{MaxSize}";
+        if (Width < Height) return "width must be ≥ height (the panel's native landscape size)";
         return null;
     }
 }
