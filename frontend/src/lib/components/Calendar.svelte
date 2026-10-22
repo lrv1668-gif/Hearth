@@ -70,6 +70,11 @@
         } else viewMonth++;
     }
 
+    // Keep the mobile day agenda on the month being shown: today in the current month, else the 1st.
+    function followMonth() {
+        selectedKey = isCurrentMonth ? todayKey : cellKey(1);
+    }
+
     function goToToday() {
         viewYear = today.getFullYear();
         viewMonth = today.getMonth();
@@ -174,14 +179,20 @@
 
         <div class="flex items-center gap-1">
             <button
-                onclick={prevMonth}
+                onclick={() => {
+                    prevMonth();
+                    followMonth();
+                }}
                 class="p-1.5 text-(--text-2) transition-colors hover:text-(--text-1)"
                 aria-label="Previous month"
             >
                 <ChevronLeft class="icon-md" />
             </button>
             <button
-                onclick={nextMonth}
+                onclick={() => {
+                    nextMonth();
+                    followMonth();
+                }}
                 class="p-1.5 text-(--text-2) transition-colors hover:text-(--text-1)"
                 aria-label="Next month"
             >
@@ -239,7 +250,7 @@
                 tabindex={day ? 0 : undefined}
                 onclick={() => day && selectDay(key)}
                 onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && day && selectDay(key)}
-                class="flex h-full w-full min-w-0 flex-col items-start overflow-hidden p-1.5 text-left md:p-3
+                class="flex h-full w-full min-w-0 flex-col items-start overflow-hidden p-1.5 text-left focus-visible:-outline-offset-2 md:p-3
                   {day
                     ? isToday
                         ? 'cursor-default bg-(--surface-hi) transition-colors hover:bg-(--surface-hi)'

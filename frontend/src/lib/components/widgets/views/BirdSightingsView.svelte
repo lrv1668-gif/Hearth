@@ -20,7 +20,7 @@ Recent eBird sightings nearby, rare ones first — shared by the dashboard widge
 the e-paper frame. Gaps are in em, so they grow with the frame's larger type.
 -->
 {#if shown.length === 0}
-    <p class="type-label text-(--text-2)">No sightings reported nearby this week.</p>
+    <p class="type-body text-(--text-2)">No sightings reported nearby this week.</p>
 {:else}
     <ul class="type-body flex flex-col gap-[0.5em]">
         {#each shown as s (s.species_code)}
