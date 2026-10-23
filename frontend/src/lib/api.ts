@@ -299,10 +299,12 @@ class ApiClient {
     readonly spotify = {
         disconnect: (): Promise<void> => this.del('/spotify/auth').then(() => {}),
 
+        /** undefined = not connected, null = nothing playing; throws when Spotify can't be reached. */
         nowPlaying: async (): Promise<NowPlaying | null | undefined> => {
             const res = await fetch('/spotify/now-playing');
             if (res.status === 401) return undefined;
             if (res.status === 204) return null;
+            if (!res.ok) throw new Error(`GET /spotify/now-playing failed: ${res.status}`);
             return res.json() as Promise<NowPlaying>;
         },
     };

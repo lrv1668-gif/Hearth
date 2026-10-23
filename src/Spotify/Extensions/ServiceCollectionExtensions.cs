@@ -12,7 +12,10 @@ public static class ServiceCollectionExtensions
         services.AddHearthDataProtection("spotify");
         services.AddSingleton<SpotifyStore>();
         services.AddSingleton<SpotifyClientService>();
+        services.AddSingleton<NowPlayingService>();
+        services.AddHttpClient(SpotifyClientService.HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(10));
 
         services.AddHearthWebDefaults();
+        services.AddHearthCache();
     }
 }

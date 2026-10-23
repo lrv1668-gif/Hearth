@@ -12,3 +12,6 @@ var app = builder.Build();
 app.InitializeWebAppForSpotify();
 
 app.Run();
+
+// For WebApplicationFactory in Spotify.Tests
+public partial class Program;

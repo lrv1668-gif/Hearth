@@ -68,34 +68,22 @@ public static class WebApplicationExtensions
             return Results.Redirect(frontendUrl);
         });
 
-        app.MapGet("/spotify/now-playing", async (SpotifyClientService clientService) =>
+        // 401 only when there's no usable login; a rate limit or outage is a 502, so the
+        // dashboard keeps the track it has rather than showing Spotify as disconnected
+        app.MapGet("/spotify/now-playing", async (NowPlayingService nowPlaying, CancellationToken ct) =>
         {
-            var client = clientService.TryGetClient();
-            if (client is null) return Results.Unauthorized();
-
-            CurrentlyPlaying? playing;
             try
             {
-                playing = await client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+                var result = await nowPlaying.GetAsync(ct);
+                if (!result.Connected) return Results.Unauthorized();
+                return result.Track is null ? Results.NoContent() : Results.Ok(result.Track);
             }
-            catch (APIException)
+            catch (Exception ex) when ((ex is APIException or HttpRequestException or TaskCanceledException)
+                                       && !ct.IsCancellationRequested)
             {
-                return Results.Unauthorized();
+                app.Logger.LogWarning(ex, "Spotify now-playing unavailable");
+                return Results.Json(new { error = "spotify unavailable" }, statusCode: 502);
             }
-
-            if (playing?.Item is not FullTrack track) return Results.NoContent();
-
-            var artist   = string.Join(", ", track.Artists.Select(a => a.Name));
-            var albumArt = track.Album.Images.FirstOrDefault()?.Url;
-
-            return Results.Ok(new NowPlayingResponse(
-                track.Name,
-                artist,
-                track.Album.Name,
-                albumArt,
-                playing.ProgressMs ?? 0,
-                track.DurationMs,
-                playing.IsPlaying));
         });
 
         app.MapGet("/spotify/status", (SpotifyClientService clientService) =>

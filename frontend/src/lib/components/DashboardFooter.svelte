@@ -2,12 +2,12 @@
     import { onMount } from 'svelte';
     import { SECOND, poll } from '$lib/utils';
     import { Monitor, Music } from '@lucide/svelte';
-    import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
+    import { spotifyStore, refreshNowPlaying, pollNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
 
     onMount(() => {
         refreshNowPlaying();
-        return poll(refreshNowPlaying, 5 * SECOND);
+        return poll(pollNowPlaying, 5 * SECOND);
     });
 
     function formatRefreshed(iso: string): string {
