@@ -2,6 +2,7 @@ using Calendar;
 using Calendar.Providers;
 using Calendar.Providers.Google;
 using Calendar.Records;
+using Google.Apis.Auth.OAuth2.Responses;
 using ServiceDefaults;
 
 namespace Calendar.Extensions;
@@ -37,17 +38,36 @@ public static class WebApplicationExtensions
         });
 
         // GET /calendar/google/callback
-        // Validates CSRF state, exchanges code for tokens, redirects to frontend.
+        // Validates CSRF state, exchanges code for tokens, redirects to frontend. When Google
+        // refuses (consent declined, or a rejected client secret) it redirects to Settings →
+        // Connections with ?calendar_error=<Google's error code> rather than failing with a 500.
         app.MapGet("/calendar/google/callback", async (
-            string code,
-            string state,
+            string? code,
+            string? state,
+            string? error,
             GoogleAuthService authService,
             IConfiguration config) =>
         {
-            if (!authService.ValidateAndConsumeState(state))
+            if (state is null || !authService.ValidateAndConsumeState(state))
                 return Results.BadRequest("Invalid or expired state token");
 
-            await authService.HandleCallbackAsync(code);
+            if (error is not null || code is null)
+            {
+                app.Logger.LogWarning("Google sign-in was not completed: {Error}", error ?? "no code");
+                return Results.Redirect(GoogleAuthService.ConnectionsErrorUrl(config["FRONTEND_URL"], error ?? "no_code"));
+            }
+
+            try
+            {
+                await authService.HandleCallbackAsync(code);
+            }
+            catch (TokenResponseException ex)
+            {
+                // e.g. invalid_client: GOOGLE_CLIENT_SECRET doesn't match GOOGLE_CLIENT_ID in Google Cloud Console
+                app.Logger.LogError(ex, "Google rejected the token exchange: {Error} — {Description}",
+                    ex.Error.Error, ex.Error.ErrorDescription);
+                return Results.Redirect(GoogleAuthService.ConnectionsErrorUrl(config["FRONTEND_URL"], ex.Error.Error ?? "token_exchange_failed"));
+            }
 
             return Results.Redirect(config["FRONTEND_URL"] ?? "/");
         });

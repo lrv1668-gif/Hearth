@@ -548,7 +548,7 @@ public interface ICalendarProvider
 | Method   | Path                                       | Description                                                              |
 | -------- | ------------------------------------------- | ---------------------------------------------------------------------------|
 | `GET`    | `/calendar/google/auth`                    | Validate env vars, generate CSRF state, redirect to Google               |
-| `GET`    | `/calendar/google/callback`                | Validate state, exchange code for tokens, redirect to frontend           |
+| `GET`    | `/calendar/google/callback`                | Validate state, exchange code for tokens, redirect to frontend. If Google refuses (consent declined, or `invalid_client` for a wrong client secret), logs it and redirects to `/settings?section=connections&calendar_error=<code>`, which the Calendar card explains |
 | `GET`    | `/calendar/google/status`                  | `{ authenticated: bool }`                                                 |
 | `DELETE` | `/calendar/google/auth`                    | Clear token + items cache (disconnect)                                   |
 | `GET`    | `/calendar/items`                          | Aggregated `CalendarItem[]` from all authenticated providers (5-min cache) |

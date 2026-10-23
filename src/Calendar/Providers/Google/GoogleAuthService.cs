@@ -57,6 +57,13 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
     }
 
     /// <summary>
+    /// Where a failed sign-in lands: Settings → Connections, with Google's error code for
+    /// the Calendar card to explain.
+    /// </summary>
+    public static string ConnectionsErrorUrl(string? frontendUrl, string error) =>
+        $"{(frontendUrl ?? "").TrimEnd('/')}/settings?section=connections&calendar_error={Uri.EscapeDataString(error)}";
+
+    /// <summary>
     /// Returns a fresh flow configured with the current client credentials.
     /// Called per-request — flows are stateless configuration objects.
     /// Also used by GoogleCalendarProvider for token refresh.
