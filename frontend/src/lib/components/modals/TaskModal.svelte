@@ -93,14 +93,15 @@
     bind:this={dialog}
     onclose={close}
     onclick={handleBackdropClick}
-    class="w-full max-w-2xl bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
+    aria-labelledby="task-modal-title"
+    class="sheet w-full max-w-2xl bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
     <div class="mx-4 space-y-5 rounded-xl border border-(--border) bg-(--bg) p-6 shadow-xl">
         <div class="flex items-center justify-between">
-            <h2 class="text-(--text-1)">{isEdit ? 'Edit Task' : 'Add a New Task'}</h2>
+            <h2 id="task-modal-title" class="text-(--text-1)">{isEdit ? 'Edit Task' : 'Add a New Task'}</h2>
             <button
                 onclick={close}
-                class="flex h-6 w-6 items-center justify-center text-(--text-3) transition-colors hover:text-(--text-1)"
+                class="-m-2 flex h-10 w-10 items-center justify-center text-(--text-3) transition-colors hover:text-(--text-1)"
                 aria-label="Close"
             >
                 <X class="icon-md" />

@@ -108,7 +108,7 @@
     bind:this={dialog}
     onclose={close}
     onclick={handleBackdropClick}
-    class="w-full max-w-3xl bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
+    class="sheet w-full max-w-3xl bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
 >
     <div class="mx-4 flex max-h-[85vh] flex-col rounded-xl border border-(--border) bg-(--bg) shadow-xl">
         <!-- Sticky header -->
@@ -138,7 +138,7 @@
                 </label>
                 <button
                     onclick={close}
-                    class="flex h-7 w-7 items-center justify-center text-(--text-3) transition-colors hover:text-(--text-1)"
+                    class="-m-2 flex h-10 w-10 items-center justify-center text-(--text-3) transition-colors hover:text-(--text-1)"
                     aria-label="Close"
                 >
                     <X class="icon-md" />

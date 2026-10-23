@@ -164,20 +164,28 @@
                                 </button>
 
                                 {#if task.due_time}
-                                    <span class="type-label w-12 flex-shrink-0 text-(--text-2) tabular-nums sm:w-14">
+                                    <span
+                                        class="type-label hidden w-14 flex-shrink-0 text-(--text-2) tabular-nums sm:block"
+                                    >
                                         {formatTime(task.due_time)}
                                     </span>
                                 {:else}
-                                    <span class="w-12 flex-shrink-0 sm:w-14"></span>
+                                    <span class="hidden w-14 flex-shrink-0 sm:block"></span>
                                 {/if}
 
                                 <button
                                     onclick={() => onEdit(task)}
                                     class="min-w-0 flex-1 text-left transition-colors hover:opacity-80"
                                 >
+                                    <!-- Phones: the time sits above the title rather than taking a column from it -->
+                                    {#if task.due_time}
+                                        <span class="type-label block text-(--text-2) tabular-nums sm:hidden">
+                                            {formatTime(task.due_time)}
+                                        </span>
+                                    {/if}
                                     <div class="flex min-w-0 items-center gap-2">
                                         <span
-                                            class="type-body truncate transition-colors
+                                            class="type-body transition-colors max-sm:line-clamp-2 sm:truncate
                                                    {task.done ? 'text-(--done) line-through' : 'text-(--text-1)'}"
                                         >
                                             {task.title}
@@ -281,10 +289,10 @@
                                             <ProviderIcon provider={calItem.provider} />
                                         </div>
                                     </div>
-                                    <span class="w-12 flex-shrink-0 sm:w-14"></span>
+                                    <span class="hidden w-14 flex-shrink-0 sm:block"></span>
                                     <div class="min-w-0 flex-1">
                                         <span
-                                            class="type-body block truncate
+                                            class="type-body max-sm:line-clamp-2 sm:block sm:truncate
                                                    {calItem.is_completed
                                                 ? 'text-(--done) line-through'
                                                 : 'text-(--text-1)'}"
@@ -320,18 +328,25 @@
                                     </div>
                                     {#if !calItem.is_all_day}
                                         <span
-                                            class="type-label w-12 flex-shrink-0 text-(--text-2) tabular-nums sm:w-14"
+                                            class="type-label hidden w-14 flex-shrink-0 text-(--text-2) tabular-nums sm:block"
                                         >
                                             {formatTime(timeKey(item) ?? '')}
                                         </span>
                                     {:else}
-                                        <span class="w-12 flex-shrink-0 sm:w-14"></span>
+                                        <span class="hidden w-14 flex-shrink-0 sm:block"></span>
                                     {/if}
                                     <button
                                         onclick={() => onEventClick?.(calItem)}
                                         class="min-w-0 flex-1 text-left transition-opacity hover:opacity-70"
                                     >
-                                        <span class="type-body block truncate text-(--text-1)">{calItem.title}</span>
+                                        {#if !calItem.is_all_day}
+                                            <span class="type-label block text-(--text-2) tabular-nums sm:hidden">
+                                                {formatTime(timeKey(item) ?? '')}
+                                            </span>
+                                        {/if}
+                                        <span class="type-body text-(--text-1) max-sm:line-clamp-2 sm:block sm:truncate"
+                                            >{calItem.title}</span
+                                        >
                                         {#if calItem.description}
                                             <p class="type-label mt-0.5 truncate text-(--text-2)">
                                                 {stripHtml(calItem.description)}

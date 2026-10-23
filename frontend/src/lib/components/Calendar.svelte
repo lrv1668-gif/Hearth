@@ -75,6 +75,34 @@
         selectedKey = isCurrentMonth ? todayKey : cellKey(1);
     }
 
+    function showPrevMonth() {
+        prevMonth();
+        followMonth();
+    }
+
+    function showNextMonth() {
+        nextMonth();
+        followMonth();
+    }
+
+    // Narrow screens: a horizontal swipe across the grid changes month. Mostly-vertical
+    // drags are left alone so the page still scrolls.
+    let swipeStart: { x: number; y: number } | null = null;
+    function onSwipeStart(e: TouchEvent) {
+        const t = e.touches[0];
+        swipeStart = e.touches.length === 1 ? { x: t.clientX, y: t.clientY } : null;
+    }
+    function onSwipeEnd(e: TouchEvent) {
+        if (!swipeStart || isWide.current) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - swipeStart.x;
+        const dy = t.clientY - swipeStart.y;
+        swipeStart = null;
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+        if (dx < 0) showNextMonth();
+        else showPrevMonth();
+    }
+
     function goToToday() {
         viewYear = today.getFullYear();
         viewMonth = today.getMonth();
@@ -160,13 +188,38 @@
 </script>
 
 <div class="flex min-h-0 flex-1 flex-col gap-4 sm:gap-6">
-    <!-- Month navigation — below sm the month title takes its own row above the controls -->
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <!-- Hidden (not removed) in the current month so the arrows and title don't shift -->
+    <!-- Month navigation: the title between its arrows, 40px tap targets -->
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div class="flex min-w-0 items-center">
+            <button
+                onclick={showPrevMonth}
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-(--text-2) transition-colors hover:bg-(--surface) hover:text-(--text-1)"
+                aria-label="Previous month"
+            >
+                <ChevronLeft class="icon-md" />
+            </button>
+            <!-- Fixed width (in em, so it scales with type) keeps the arrows still between months;
+                 it can shrink and truncate rather than push the next arrow off a narrow screen -->
+            <h2
+                class="type-body w-[12.5em] min-w-0 truncate text-center font-bold tracking-widest whitespace-nowrap text-(--text-1) uppercase select-none"
+            >
+                {MONTH_NAMES[viewMonth]}
+                {viewYear}
+            </h2>
+            <button
+                onclick={showNextMonth}
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-(--text-2) transition-colors hover:bg-(--surface) hover:text-(--text-1)"
+                aria-label="Next month"
+            >
+                <ChevronRight class="icon-md" />
+            </button>
+        </div>
+
+        <!-- Hidden (not removed) in the current month so nothing shifts -->
         <button
             onclick={goToToday}
             disabled={isCurrentMonth}
-            class="type-label flex items-center gap-1 rounded border border-(--border) px-2.5 py-1 tracking-wide text-(--text-2) transition-colors hover:border-(--text-3) hover:bg-(--surface) hover:text-(--text-1)
+            class="type-label flex min-h-10 items-center gap-1 rounded-lg border border-(--border) px-2.5 tracking-wide text-(--text-2) transition-colors hover:border-(--text-3) hover:bg-(--surface) hover:text-(--text-1)
              {isCurrentMonth ? 'invisible' : ''}"
         >
             {#if todayArrowDir === 'left'}
@@ -177,47 +230,19 @@
             Today
         </button>
 
-        <div class="flex items-center gap-1">
-            <button
-                onclick={() => {
-                    prevMonth();
-                    followMonth();
-                }}
-                class="p-1.5 text-(--text-2) transition-colors hover:text-(--text-1)"
-                aria-label="Previous month"
-            >
-                <ChevronLeft class="icon-md" />
-            </button>
-            <button
-                onclick={() => {
-                    nextMonth();
-                    followMonth();
-                }}
-                class="p-1.5 text-(--text-2) transition-colors hover:text-(--text-1)"
-                aria-label="Next month"
-            >
-                <ChevronRight class="icon-md" />
-            </button>
-        </div>
-
-        <h2
-            class="type-body order-first basis-full font-bold tracking-widest whitespace-nowrap text-(--text-1) uppercase select-none sm:order-none sm:basis-auto"
-        >
-            {MONTH_NAMES[viewMonth]}
-            {viewYear}
-        </h2>
-
         <div class="flex-1"></div>
 
-        <button
-            onclick={onNewTask}
-            aria-label="New task"
-            class="type-label flex items-center gap-1.5 rounded-lg bg-(--accent) px-2 py-1 font-medium
-             whitespace-nowrap text-(--accent-fg) transition-colors hover:bg-(--accent-hi) sm:px-3"
-        >
-            <Plus class="icon-md" />
-            <span class="hidden sm:inline">New Task</span>
-        </button>
+        <!-- Narrow screens add from the selected day's heading instead, so there's one "+" -->
+        {#if isWide.current}
+            <button
+                onclick={onNewTask}
+                class="type-label flex min-h-10 items-center gap-1.5 rounded-lg bg-(--accent) px-3 font-medium
+                 whitespace-nowrap text-(--accent-fg) transition-colors hover:bg-(--accent-hi)"
+            >
+                <Plus class="icon-md" />
+                New Task
+            </button>
+        {/if}
     </div>
 
     <!-- Calendar grid — gap-px + bg-(--border) creates hairline grid lines.
@@ -225,6 +250,11 @@
     <div
         class="grid shrink-0 grid-cols-7 gap-px overflow-hidden rounded-lg border border-(--border) bg-(--border) md:min-h-0 md:flex-1 md:shrink"
         style="grid-template-rows: auto repeat({numWeeks}, {isWide.current ? '1fr' : 'minmax(3rem, auto)'})"
+        role="group"
+        class:touch-pan-y={!isWide.current}
+        aria-label="{MONTH_NAMES[viewMonth]} {viewYear}"
+        ontouchstart={onSwipeStart}
+        ontouchend={onSwipeEnd}
     >
         <!-- Day-of-week headers -->
         {#each DAY_NAMES as day}
@@ -257,7 +287,11 @@
                         : 'cursor-default bg-(--bg) transition-colors hover:bg-(--surface)'
                     : 'pointer-events-none bg-(--bg)'}
                   {isSelected || (isWide.current && isToday) ? 'ring-2 ring-(--accent) ring-inset' : ''}"
-                aria-label={day ? (isWide.current ? `Add task on ${key}` : `Show ${key}`) : undefined}
+                aria-label={day
+                    ? isWide.current
+                        ? `Add task on ${key}`
+                        : `Show ${key}${dayItems.length ? `, ${dayItems.length} item${dayItems.length > 1 ? 's' : ''}` : ''}`
+                    : undefined}
                 aria-pressed={isSelected || undefined}
             >
                 {#if day}
@@ -269,15 +303,18 @@
                     </span>
 
                     {#if dayItems.length > 0 && !isWide.current}
-                        <!-- Narrow: no room for titles — a dot per item, up to three -->
+                        <!-- Narrow: no room for titles — a mark per item, up to three: squares
+                             for tasks (like their checkboxes), circles for events -->
                         <div class="flex gap-1" aria-hidden="true">
                             {#each dayTasks.slice(0, 3) as task (task.id)}
-                                <span class="h-1.5 w-1.5 rounded-full {task.done ? 'bg-(--done-bg)' : 'bg-(--text-2)'}"
+                                <span class="h-1.5 w-1.5 rounded-[1px] {task.done ? 'bg-(--done-bg)' : 'bg-(--text-2)'}"
                                 ></span>
                             {/each}
                             {#each dayCalItems.slice(0, Math.max(0, 3 - dayTasks.length)) as calItem (calItem.id)}
                                 <span
-                                    class="h-1.5 w-1.5 rounded-full {calItem.kind === 'task' && calItem.is_completed
+                                    class="h-1.5 w-1.5 {calItem.kind === 'task'
+                                        ? 'rounded-[1px]'
+                                        : 'rounded-full'} {calItem.kind === 'task' && calItem.is_completed
                                         ? 'bg-(--done-bg)'
                                         : 'bg-(--accent)'}"
                                 ></span>
@@ -396,10 +433,11 @@
                 <h3 class="type-body font-semibold text-(--text-1)">{dayLabel(selectedKey)}</h3>
                 <button
                     onclick={() => onDateClick(selectedKey)}
-                    class="flex h-8 w-8 items-center justify-center rounded-lg text-(--text-2) transition-colors hover:bg-(--surface) hover:text-(--text-1)"
+                    class="type-label flex min-h-10 items-center gap-1.5 rounded-lg bg-(--accent) px-3 font-medium text-(--accent-fg) transition-colors hover:bg-(--accent-hi)"
                     aria-label="Add task on {dayLabel(selectedKey)}"
                 >
                     <Plus class="icon-md" />
+                    Add task
                 </button>
             </div>
             {#if selectedItems.length > 0}

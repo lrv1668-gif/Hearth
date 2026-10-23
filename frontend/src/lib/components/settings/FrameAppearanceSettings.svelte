@@ -2,6 +2,7 @@
     import { frameThemes } from '$lib/constants/frameThemes';
     import { fontThemes } from '$lib/constants/fontThemes';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
+    import { ChevronRight } from '@lucide/svelte';
     import SegmentedControl from './SegmentedControl.svelte';
     import {
         AMBIENT_POSITIONS,
@@ -88,81 +89,95 @@
         />
     </div>
 
-    <!-- Panel size: the native (landscape) resolution; Orientation swaps it -->
-    <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Panel size</p>
-        <div class="flex flex-wrap items-center gap-2">
-            <input
-                bind:this={widthInput}
-                type="number"
-                inputmode="numeric"
-                min={MIN_FRAME_SIZE}
-                max={MAX_FRAME_SIZE}
-                value={frameSettings.width}
-                onchange={commitSize}
-                aria-label="Panel width in pixels"
-                class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
-            />
-            <span class="type-label text-(--text-2)" aria-hidden="true">×</span>
-            <input
-                bind:this={heightInput}
-                type="number"
-                inputmode="numeric"
-                min={MIN_FRAME_SIZE}
-                max={MAX_FRAME_SIZE}
-                value={frameSettings.height}
-                onchange={commitSize}
-                aria-label="Panel height in pixels"
-                class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
-            />
-            <span class="type-label text-(--text-2)">px</span>
-        </div>
-        <div class="mt-2 flex flex-wrap gap-2">
-            {#each FRAME_SIZE_PRESETS as p (p.label)}
-                <button
-                    onclick={() => {
-                        frameSettings.width = p.width;
-                        frameSettings.height = p.height;
-                    }}
-                    aria-pressed={frameSettings.width === p.width && frameSettings.height === p.height}
-                    class="type-label rounded-lg border border-(--border) px-3 py-1.5 text-(--text-2) transition-colors
-                        hover:text-(--text-1) aria-pressed:border-(--accent) aria-pressed:font-semibold aria-pressed:text-(--text-1)"
-                >
-                    {p.label} <span class="tabular-nums">{p.width}×{p.height}</span>
-                </button>
-            {/each}
-        </div>
-        <p class="type-caption mt-2 text-(--text-2)">
-            The panel's native resolution, long edge first. Type and spacing scale to match.
-        </p>
-    </div>
-
-    <!-- Ambient card position: a 3×2 pad laid out like the frame -->
-    <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Ambient card</p>
-        <div
-            class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
-            role="radiogroup"
-            aria-label="Ambient card position"
+    <!-- Set-once options, folded away so the everyday ones stay close together -->
+    <details class="group">
+        <summary
+            class="type-label flex min-h-10 cursor-pointer list-none items-center gap-1.5 font-semibold tracking-widest text-(--text-2) uppercase transition-colors hover:text-(--text-1) [&::-webkit-details-marker]:hidden"
         >
-            {#each AMBIENT_POSITIONS as p (p.value)}
-                {@const selected = frameSettings.ambientPosition === p.value}
-                <button
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    title={p.label}
-                    onclick={() => (frameSettings.ambientPosition = p.value)}
-                    class="type-label rounded px-3 py-1.5 transition-colors {selected
-                        ? 'bg-(--accent) text-(--accent-fg)'
-                        : 'text-(--text-2) hover:bg-(--surface-hi)'}"
+            <ChevronRight class="icon-sm shrink-0 transition-transform group-open:rotate-90" aria-hidden="true" />
+            Panel size &amp; ambient card
+            <span class="font-normal tracking-normal normal-case tabular-nums">
+                · {frameSettings.width}×{frameSettings.height}
+            </span>
+        </summary>
+        <div class="mt-3 flex flex-col gap-6">
+            <!-- Panel size: the native (landscape) resolution; Orientation swaps it -->
+            <div>
+                <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Panel size</p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <input
+                        bind:this={widthInput}
+                        type="number"
+                        inputmode="numeric"
+                        min={MIN_FRAME_SIZE}
+                        max={MAX_FRAME_SIZE}
+                        value={frameSettings.width}
+                        onchange={commitSize}
+                        aria-label="Panel width in pixels"
+                        class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
+                    />
+                    <span class="type-label text-(--text-2)" aria-hidden="true">×</span>
+                    <input
+                        bind:this={heightInput}
+                        type="number"
+                        inputmode="numeric"
+                        min={MIN_FRAME_SIZE}
+                        max={MAX_FRAME_SIZE}
+                        value={frameSettings.height}
+                        onchange={commitSize}
+                        aria-label="Panel height in pixels"
+                        class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
+                    />
+                    <span class="type-label text-(--text-2)">px</span>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                    {#each FRAME_SIZE_PRESETS as p (p.label)}
+                        <button
+                            onclick={() => {
+                                frameSettings.width = p.width;
+                                frameSettings.height = p.height;
+                            }}
+                            aria-pressed={frameSettings.width === p.width && frameSettings.height === p.height}
+                            class="type-label rounded-lg border border-(--border) px-3 py-1.5 text-(--text-2) transition-colors
+                        hover:text-(--text-1) aria-pressed:border-(--accent) aria-pressed:font-semibold aria-pressed:text-(--text-1)"
+                        >
+                            {p.label} <span class="tabular-nums">{p.width}×{p.height}</span>
+                        </button>
+                    {/each}
+                </div>
+                <p class="type-caption mt-2 text-(--text-2)">
+                    The panel's native resolution, long edge first. Type and spacing scale to match.
+                </p>
+            </div>
+
+            <!-- Ambient card position: a 3×2 pad laid out like the frame -->
+            <div>
+                <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Ambient card</p>
+                <div
+                    class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
+                    role="radiogroup"
+                    aria-label="Ambient card position"
                 >
-                    {p.label}
-                </button>
-            {/each}
+                    {#each AMBIENT_POSITIONS as p (p.value)}
+                        {@const selected = frameSettings.ambientPosition === p.value}
+                        <button
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            title={p.label}
+                            onclick={() => (frameSettings.ambientPosition = p.value)}
+                            class="type-label rounded px-3 py-1.5 transition-colors {selected
+                                ? 'bg-(--accent) text-(--accent-fg)'
+                                : 'text-(--text-2) hover:bg-(--surface-hi)'}"
+                        >
+                            {p.label}
+                        </button>
+                    {/each}
+                </div>
+                <p class="type-caption mt-2 text-(--text-2)">
+                    Where the time and weather sit on the photo. The photos themselves are chosen under Ambient.
+                </p>
+            </div>
         </div>
-        <p class="type-caption mt-2 text-(--text-2)">
-            Where the time and weather sit on the photo. The photos themselves are chosen under Ambient.
-        </p>
-    </div>
+    </details>
 </div>
