@@ -46,6 +46,42 @@ public sealed class FrameSettingsStoreTests
         Assert.Empty(saved.PhotoIds!);
         Assert.Equal("full", saved.PhotoCard);
         Assert.Null(saved.CountdownId);
+        Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
+        Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
+    }
+
+    [Fact]
+    public void Migrate_RowFromBeforePanelRenderChoices_ReadsTheirDefaults()
+    {
+        using var tmp = new TempDatabase();
+        tmp.Db.NonQuery("""
+            CREATE TABLE frame_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1), theme TEXT NOT NULL, font TEXT NOT NULL,
+                orientation TEXT NOT NULL, left_ids TEXT NOT NULL, right_ids TEXT NOT NULL,
+                split INTEGER NOT NULL, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)
+            """);
+        tmp.Db.NonQuery("""
+            INSERT INTO frame_settings (id, theme, font, orientation, left_ids, right_ids, split)
+            VALUES (1, 'almanac', 'inter', 'portrait', '[]', '[]', 50)
+            """);
+
+        var saved = Migrated(tmp).Get()!;
+
+        Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
+        Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
+    }
+
+    [Fact]
+    public void Save_PanelRenderChoices_RoundTrip()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save(Sample with { PhotoIntervalMinutes = 180, PortraitRotation = 270 });
+
+        var saved = store.Get()!;
+        Assert.Equal(180, saved.PhotoIntervalMinutes);
+        Assert.Equal(270, saved.PortraitRotation);
     }
 
     [Fact]

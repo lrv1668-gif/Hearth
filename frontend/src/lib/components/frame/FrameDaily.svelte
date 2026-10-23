@@ -60,7 +60,7 @@
             {label(id)}
         </h2>
         {#if id === 'arc'}
-            <DayArcWidget />
+            <DayArcWidget hourly />
         {:else if id === 'today'}
             <FrameToday {now} lines={n} />
         {:else if id === 'coming-up'}

@@ -1,6 +1,7 @@
 using System.Net;
 using Display.Records;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using ServiceDefaults;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -16,6 +17,10 @@ public static class WebApplicationExtensions
         FailSafeMaxDuration = TimeSpan.FromDays(30),
     };
 
+    // Long enough for a render queued behind another (see RendererClient's timeout), short
+    // enough for inkypull's 120 s request timeout
+    private static readonly TimeSpan WaitForRender = TimeSpan.FromSeconds(100);
+
     public static void InitializeWebAppForDisplay(this WebApplication app)
     {
         app.Services.GetRequiredService<FrameSettingsStore>().Migrate();
@@ -23,6 +28,56 @@ public static class WebApplicationExtensions
         app.Services.GetRequiredService<ModeStore>().Migrate();
         app.AddDisplayEndpoints();
         app.AddModeEndpoints();
+        app.AddFrameEndpoints();
+    }
+
+    /// <summary>
+    /// The panel's frame, rendered on a schedule by <see cref="FrameRenderService"/> — what
+    /// a frame client (inkypull) polls. A change that invalidates it (Button B, a Settings
+    /// edit) is waited for, so the poll right after a button press gets the new frame.
+    /// </summary>
+    private static void AddFrameEndpoints(this WebApplication app)
+    {
+        app.MapGet("/display/frame", async (
+            FrameCache cache, FrameRenderService renderer, IConfiguration config, TimeProvider clock,
+            HttpResponse response, CancellationToken ct) =>
+        {
+            if (config.RequireOrFail(
+                    app.Logger,
+                    _ => Results.Json(new { error = "renderer not configured" }, statusCode: 503),
+                    "RENDERER_URL") is { } configError)
+            {
+                return configError;
+            }
+
+            try
+            {
+                await renderer.Pending.WaitAsync(WaitForRender, clock, ct);
+            }
+            catch (TimeoutException)
+            {
+                // Serve what's cached; the next poll picks the change up
+            }
+
+            if (cache.Current is not { } frame)
+            {
+                response.Headers.RetryAfter = "60";
+                return Results.Json(new { error = "no frame rendered yet" }, statusCode: 503);
+            }
+            response.Headers.CacheControl = "no-cache";
+            // With an ETag, a matching If-None-Match gets a 304
+            return Results.File(frame.Png, "image/png",
+                lastModified: frame.Info.RenderedAt, entityTag: EntityTagHeaderValue.Parse(frame.Info.ETag));
+        });
+
+        app.MapGet("/display/frame/status", (FrameRenderService renderer) => Results.Ok(renderer.Status()));
+
+        // Render now — e.g. a long press on the frame's Button A
+        app.MapPost("/display/frame/refresh", (FrameRenderService renderer) =>
+        {
+            renderer.Invalidate();
+            return Results.Accepted();
+        });
     }
 
     /// <summary>
@@ -33,47 +88,52 @@ public static class WebApplicationExtensions
     private static void AddModeEndpoints(this WebApplication app)
     {
         app.MapGet("/display/mode", (ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock) =>
-            Results.Ok(ModeResolver.Resolve(store.GetSchedule(), store.GetOverride(), clock.GetUtcNow(), HomeZone(home, config))));
+            Results.Ok(ModeResolver.Resolve(store.GetSchedule(), store.GetOverride(), clock.GetUtcNow(), HomeZones.Resolve(home.Get(), config))));
 
         app.MapGet("/display/mode/schedule", (ModeStore store) => Results.Ok(store.GetSchedule()));
 
-        app.MapPut("/display/mode/schedule", (ModeSchedule schedule, ModeStore store) =>
-            schedule.Validate() is { } error ? Results.BadRequest(error) : Results.Ok(store.SaveSchedule(schedule)));
+        app.MapPut("/display/mode/schedule", (ModeSchedule schedule, ModeStore store, FrameRenderService frame) =>
+        {
+            if (schedule.Validate() is { } error) return Results.BadRequest(error);
+            var saved = store.SaveSchedule(schedule);
+            frame.Invalidate();
+            return Results.Ok(saved);
+        });
 
-        app.MapPut("/display/mode/override", (ModeOverride manual, ModeStore store, TimeProvider clock) =>
+        app.MapPut("/display/mode/override", (ModeOverride manual, ModeStore store, TimeProvider clock, FrameRenderService frame) =>
         {
             if (manual.Validate() is { } error) return Results.BadRequest(error);
             if (manual.Until <= clock.GetUtcNow()) return Results.BadRequest("until must be in the future");
-            return Results.Ok(store.SetOverride(manual));
+            var saved = store.SetOverride(manual);
+            frame.Invalidate();
+            return Results.Ok(saved);
         });
 
         // Back to the schedule. With photo_id, only when that photo is the one pinned —
         // the frontend calls this after deleting an upload, so a pin never outlives its photo.
-        app.MapDelete("/display/mode/override", ([FromQuery(Name = "photo_id")] string? photoId, ModeStore store) =>
+        app.MapDelete("/display/mode/override", (
+            [FromQuery(Name = "photo_id")] string? photoId, ModeStore store, FrameRenderService frame) =>
         {
-            if (photoId is null || store.GetOverride()?.PhotoId == photoId) store.ClearOverride();
+            if (photoId is null || store.GetOverride()?.PhotoId == photoId)
+            {
+                store.ClearOverride();
+                frame.Invalidate();
+            }
             return Results.NoContent();
         });
 
         // Step to the next mode, holding it until the schedule's next change.
-        app.MapPost("/display/mode/next", (ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock) =>
+        app.MapPost("/display/mode/next", (
+            ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock, FrameRenderService frame) =>
         {
             var now = clock.GetUtcNow();
-            var zone = HomeZone(home, config);
+            var zone = HomeZones.Resolve(home.Get(), config);
             var schedule = store.GetSchedule();
             var current = ModeResolver.Resolve(schedule, store.GetOverride(), now, zone);
             store.SetOverride(new ModeOverride(FrameModes.Next(current.Mode), ModeResolver.NextBoundary(schedule, now, zone)));
+            frame.Invalidate();
             return Results.Ok(ModeResolver.Resolve(schedule, store.GetOverride(), now, zone));
         });
-    }
-
-    /// <summary>The household's zone from Settings → Home, else TZ, else the host's.</summary>
-    private static TimeZoneInfo HomeZone(HomeSettingsStore home, IConfiguration config)
-    {
-        var id = home.Get()?.TimeZone ?? config["TZ"];
-        return !string.IsNullOrWhiteSpace(id) && TimeZoneInfo.TryFindSystemTimeZoneById(id, out var zone)
-            ? zone
-            : TimeZoneInfo.Local;
     }
 
     private static void AddDisplayEndpoints(this WebApplication app)
@@ -83,16 +143,26 @@ public static class WebApplicationExtensions
         app.MapGet("/display/settings", (FrameSettingsStore store) =>
             store.Get() is { } settings ? Results.Ok(settings) : Results.NoContent());
 
-        app.MapPut("/display/settings", (FrameSettings settings, FrameSettingsStore store) =>
-            settings.Validate() is { } error ? Results.BadRequest(error) : Results.Ok(store.Save(settings)));
+        app.MapPut("/display/settings", (FrameSettings settings, FrameSettingsStore store, FrameRenderService frame) =>
+        {
+            if (settings.Validate() is { } error) return Results.BadRequest(error);
+            var saved = store.Save(settings);
+            frame.Invalidate();
+            return Results.Ok(saved);
+        });
 
         // The household's location and time zone (Settings → Home), shared with Weather,
         // Birds and Almanac. 204 until saved — they then use their env vars.
         app.MapGet("/display/home", (HomeSettingsStore store) =>
             store.Get() is { } home ? Results.Ok(home) : Results.NoContent());
 
-        app.MapPut("/display/home", (HomeSettings home, HomeSettingsStore store) =>
-            home.Validate() is { } error ? Results.BadRequest(error) : Results.Ok(store.Save(home)));
+        app.MapPut("/display/home", (HomeSettings home, HomeSettingsStore store, FrameRenderService frame) =>
+        {
+            if (home.Validate() is { } error) return Results.BadRequest(error);
+            var saved = store.Save(home);
+            frame.Invalidate();
+            return Results.Ok(saved);
+        });
 
         // City search for picking the home location without typing coordinates.
         app.MapGet("/display/places", async (
@@ -136,7 +206,7 @@ public static class WebApplicationExtensions
                     FramePreview.FramePath(request.Query), width, height,
                     FramePreview.DitherFor(request.Query["mode"]), request.Query["kernel"].FirstOrDefault(), look,
                     // The household's zone, so the frame's date and clock aren't drawn in UTC
-                    home.Get()?.TimeZone, ct);
+                    home.Get()?.TimeZone, ct: ct);
                 return Results.File(png, "image/png");
             }
             catch (HttpRequestException ex)

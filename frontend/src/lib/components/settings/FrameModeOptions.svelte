@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { Check } from '@lucide/svelte';
     import { api, type UploadedPhoto } from '$lib/api';
-    import { photoCards } from '$lib/constants/frameModes';
+    import { photoCards, photoIntervals } from '$lib/constants/frameModes';
     import { upcomingCountdowns } from '$lib/frame';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { loadTasks, taskStore } from '$lib/stores/TaskStore.svelte.ts';
@@ -33,12 +33,25 @@
 
 <!--
 @component
-Choices for the modes that need them: Photo mode's uploads (one pins it, several make
-an album picked from at random) and its card, Countdown mode's countdown, and Note
-mode's text, with a button to put the note up until changed.
+Choices for the modes that need them: how long Ambient and Photo keep a photo on the
+panel, Photo mode's uploads (one pins it, several make an album picked from at random)
+and its card, Countdown mode's countdown, and Note mode's text, with a button to put
+the note up until changed.
 Saved with the rest of the frame settings.
 -->
 <div class="@container flex flex-col gap-6">
+    <div>
+        <p class="type-label mb-1 font-semibold tracking-widest text-(--text-2) uppercase">New photo every</p>
+        <p class="type-label mb-3 text-(--text-2)">
+            Ambient and Photo mode on the panel. Each change is a full e-paper refresh, about 30 seconds of flashing.
+        </p>
+        <SegmentedControl
+            options={photoIntervals.map((i) => ({ value: String(i.minutes), label: i.label }))}
+            value={String(frameSettings.photoIntervalMinutes)}
+            onchange={(v) => (frameSettings.photoIntervalMinutes = Number(v))}
+        />
+    </div>
+
     <div>
         <p class="type-label mb-1 font-semibold tracking-widest text-(--text-2) uppercase">Photo</p>
         <p class="type-label mb-3 text-(--text-2)">

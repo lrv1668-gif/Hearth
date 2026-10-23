@@ -1,7 +1,7 @@
 <script lang="ts">
     import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
     import { almanacStore } from '$lib/stores/AlmanacStore.svelte.ts';
-    import { durationLabel, getFrameScale, sunProgress } from '$lib/frame';
+    import { durationLabel, getFrameScale, nearestHour, sunProgress } from '$lib/frame';
     import { localDateKey } from '$lib/utils';
 
     /** `compact`: a smaller dome that fits beside the weekday in portrait — the times
@@ -26,9 +26,11 @@
     // Open-Meteo sends local ISO times without an offset, which Date parses as local.
     const sunrise = $derived(today ? new Date(today.sunrise) : null);
     const sunset = $derived(today ? new Date(today.sunset) : null);
-    const progress = $derived(sunrise && sunset ? sunProgress(sunrise, sunset, now) : null);
+    // The sun moves in whole hours, so a re-render within the hour keeps the same pixels
+    const sunAt = $derived(nearestHour(now));
+    const progress = $derived(sunrise && sunset ? sunProgress(sunrise, sunset, sunAt) : null);
     // After sunset the whole day is lit; before sunrise none of it.
-    const lit = $derived(progress ?? (sunset && now > sunset ? 1 : 0));
+    const lit = $derived(progress ?? (sunset && sunAt > sunset ? 1 : 0));
     const temperature = $derived(weatherStore.current ? Math.round(weatherStore.current.temperature_f) : null);
 
     const trend = $derived.by(() => {

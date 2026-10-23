@@ -6,6 +6,8 @@
 //       &kernel=floydSteinberg|atkinson|stucki|…  (errorDiffusion only; epdoptimize's names)
 //       &look=screen|paper                    (paper: inks repainted as they look on the panel)
 //       &tz=America/Chicago                   (IANA zone for the page's clock; default TZ, else UTC)
+//       &rotate=0|90|180|270                  (clockwise, applied last — portrait frames onto the
+//                                              panel's native landscape; default 0)
 //     → image/png
 //
 // The page is loaded from FRAME_BASE_URL (default http://caddy, whose :80 site serves
@@ -16,6 +18,7 @@ import { createServer } from 'node:http';
 import { createCanvas, loadImage } from 'canvas';
 import { chromium } from 'playwright';
 import { dither, KERNELS, paintPaper } from './dither.mjs';
+import { ROTATIONS, rotatePixels } from './rotate.mjs';
 import { captureTimeZone, isTimeZone } from './timezone.mjs';
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -86,7 +89,7 @@ function serialized(task) {
     return result;
 }
 
-async function render(png, { method, kernel, look }) {
+async function render(png, { method, kernel, look, rotate }) {
     const image = await loadImage(png);
     const canvas = () => createCanvas(image.width, image.height);
     let result = canvas();
@@ -100,6 +103,15 @@ async function render(png, { method, kernel, look }) {
         const paper = canvas();
         paintPaper(result, paper);
         result = paper;
+    }
+    if (rotate !== 0) {
+        const turned = rotatePixels(result.getContext('2d').getImageData(0, 0, result.width, result.height), rotate);
+        const rotated = createCanvas(turned.width, turned.height);
+        const ctx = rotated.getContext('2d');
+        const image = ctx.createImageData(turned.width, turned.height);
+        image.data.set(turned.data);
+        ctx.putImageData(image, 0, 0);
+        result = rotated;
     }
     return result.toBuffer('image/png');
 }
@@ -121,6 +133,7 @@ createServer(async (req, res) => {
     const method = url.searchParams.get('dither') ?? 'none';
     const kernel = url.searchParams.get('kernel') ?? 'floydSteinberg';
     const look = url.searchParams.get('look') ?? 'screen';
+    const rotate = Number(url.searchParams.get('rotate') ?? 0);
     // Only the frame route — this is not a general-purpose browser.
     if (!/^\/frame(\?|$)/.test(path) || !width || !height) {
         res.writeHead(400).end('path must be /frame?..., width and height 1–4000');
@@ -128,6 +141,10 @@ createServer(async (req, res) => {
     }
     if (!['ordered', 'errorDiffusion', 'none'].includes(method) || !['screen', 'paper'].includes(look)) {
         res.writeHead(400).end('dither must be ordered, errorDiffusion or none; look screen or paper');
+        return;
+    }
+    if (!ROTATIONS.includes(rotate)) {
+        res.writeHead(400).end(`rotate must be one of ${ROTATIONS.join(', ')}`);
         return;
     }
     if (!KERNELS.includes(kernel)) {
@@ -152,7 +169,7 @@ createServer(async (req, res) => {
     try {
         const png = await serialized(async () => {
             if (gone.signal.aborted) return null;
-            return render(await screenshot(path, width, height, zone, gone.signal), { method, kernel, look });
+            return render(await screenshot(path, width, height, zone, gone.signal), { method, kernel, look, rotate });
         });
         if (gone.signal.aborted) return;
         res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' }).end(png);

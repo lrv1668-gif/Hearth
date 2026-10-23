@@ -25,7 +25,9 @@
     // Photo mode can drop the card, or keep only an upload's caption.
     const caption = $derived(photo?.source === 'local' ? photo.description : null);
 
-    const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
+    // When the frame was drawn: the panel holds a render for up to the photo interval, so
+    // this is a timestamp ("Updated 3:15"), never a clock that would be wrong in between.
+    const updated = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     const today = $derived(weatherStore.forecast.find((f) => f.date === localDateKey(now)) ?? null);
 
     // Theme tokens that are a pure ink the date block may switch to.
@@ -80,8 +82,8 @@ Ambient Mode for the e-paper frame: the photo fills the panel, with a small plat
 a corner or at the middle of the top or bottom edge (PRODUCT.md — "information is
 peripheral"; where is the frame root's data-position, from Settings → Frame or
 ?position=): a compact date
-block joined to a flat --bg panel with the time, temperature and one sentence of
-weather. Both halves are pure inks, not a gradient scrim or a tint: this mode is
+block joined to a flat --bg panel with the temperature, one sentence of weather and
+when the frame was drawn. Both halves are pure inks, not a gradient scrim or a tint: this mode is
 error-diffusion dithered for the photo, and tints streak under that (see HARDWARE.md).
 The date block takes the theme's --block ink unless the photo around the plate is
 close to that colour; then it switches to whichever of the theme's other pure inks
@@ -122,12 +124,10 @@ the flat --bg panel, "none" leaves the photo bare.
     >
         <FrameDateBlock {now} compact />
         <div class="px-8 pt-5 pb-4">
-            <p class="type-title leading-none font-semibold">
-                {time}{#if weatherStore.current}<span class="font-medium text-(--text-2)"
-                        >&nbsp;· {Math.round(weatherStore.current.temperature_f)}°</span
-                    >{/if}
-            </p>
             {#if weatherStore.current}
+                <p class="type-title leading-none font-semibold">
+                    {Math.round(weatherStore.current.temperature_f)}°
+                </p>
                 <p class="type-label mt-3 font-(family-name:--display-family) text-(--text-2) italic">
                     {weatherSentence(weatherStore.current, today)}
                 </p>
@@ -139,6 +139,7 @@ the flat --bg panel, "none" leaves the photo bare.
                 <!-- Your own photo: its caption, if you gave it one -->
                 <p class="type-caption mt-1 text-(--text-2)">{photo.description}</p>
             {/if}
+            <p class="type-caption mt-1 text-(--text-2)">Updated {updated}</p>
         </div>
     </div>
 {/if}

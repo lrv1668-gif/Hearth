@@ -14,6 +14,28 @@ public sealed class FrameSettingsTests
         Assert.Null(Valid.Validate());
     }
 
+    [Theory]
+    [InlineData(FrameSettings.MinPhotoIntervalMinutes - 1)]
+    [InlineData(FrameSettings.MaxPhotoIntervalMinutes + 1)]
+    public void Validate_PhotoIntervalOutOfRange_ReturnsError(int minutes)
+    {
+        Assert.NotNull((Valid with { PhotoIntervalMinutes = minutes }).Validate());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(180)]
+    public void Validate_PortraitRotationNotAQuarterTurn_ReturnsError(int degrees)
+    {
+        Assert.NotNull((Valid with { PortraitRotation = degrees }).Validate());
+    }
+
+    [Fact]
+    public void Validate_CounterClockwisePortrait_ReturnsNull()
+    {
+        Assert.Null((Valid with { PortraitRotation = 270, PhotoIntervalMinutes = 360 }).Validate());
+    }
+
     [Fact]
     public void Validate_UnknownPhotoCard_ReturnsError()
     {

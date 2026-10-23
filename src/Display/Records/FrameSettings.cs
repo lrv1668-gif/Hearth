@@ -32,7 +32,12 @@ public sealed record FrameSettings(
     int? CountdownId = null,
     // Note mode: your own text — a heading and a body, one line per rule or item.
     string? NoteTitle = null,
-    string? NoteBody = null
+    string? NoteBody = null,
+    // GET /display/frame: how long Ambient and Photo keep a photo before the next render
+    // picks another (each change is a full ~30 s panel refresh), and which way a portrait
+    // frame is turned onto the panel's native landscape (clockwise degrees, 90 or 270).
+    int PhotoIntervalMinutes = FrameSettings.DefaultPhotoIntervalMinutes,
+    int PortraitRotation = FrameSettings.DefaultPortraitRotation
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -49,6 +54,12 @@ public sealed record FrameSettings(
     public const int MaxNoteTitle = 80;
     public const int MaxNoteBody = 600;
     public const int MaxNoteLines = 12;
+
+    public const int DefaultPhotoIntervalMinutes = 60;
+    public const int MinPhotoIntervalMinutes = 15;
+    public const int MaxPhotoIntervalMinutes = 1440;
+
+    public const int DefaultPortraitRotation = 90;
 
     public const int DefaultWidth = 1600;
     public const int DefaultHeight = 1200;
@@ -88,6 +99,9 @@ public sealed record FrameSettings(
         if (NoteBody is not null && NoteBody.Split('\n').Length > MaxNoteLines)
             return $"note_body must be at most {MaxNoteLines} lines";
         if (Width < Height) return "width must be ≥ height (the panel's native landscape size)";
+        if (PhotoIntervalMinutes is < MinPhotoIntervalMinutes or > MaxPhotoIntervalMinutes)
+            return $"photo_interval_minutes must be {MinPhotoIntervalMinutes}–{MaxPhotoIntervalMinutes}";
+        if (PortraitRotation is not (90 or 270)) return "portrait_rotation must be 90 or 270";
         return null;
     }
 }

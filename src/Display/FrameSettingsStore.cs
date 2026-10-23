@@ -37,6 +37,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             "ALTER TABLE frame_settings ADD COLUMN countdown_id INTEGER",
             "ALTER TABLE frame_settings ADD COLUMN note_title TEXT",
             "ALTER TABLE frame_settings ADD COLUMN note_body TEXT",
+            "ALTER TABLE frame_settings ADD COLUMN photo_interval_minutes INTEGER NOT NULL DEFAULT 60",
+            "ALTER TABLE frame_settings ADD COLUMN portrait_rotation INTEGER NOT NULL DEFAULT 90",
         })
         {
             try { db.NonQuery(col); }
@@ -51,7 +53,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
     public FrameSettings? Get() =>
         db.QueryOne("""
             SELECT theme, font, orientation, left_ids, right_ids, split, ambient_position, photo_source, photo_categories,
-                   width, height, photo_ids, photo_card, countdown_id, note_title, note_body
+                   width, height, photo_ids, photo_card, countdown_id, note_title, note_body,
+                   photo_interval_minutes, portrait_rotation
             FROM frame_settings WHERE id = 1
             """, r => new FrameSettings(
                 r.GetString(0),
@@ -69,17 +72,21 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.GetString(12),
                 r.IsDBNull(13) ? null : r.GetInt32(13),
                 r.IsDBNull(14) ? null : r.GetString(14),
-                r.IsDBNull(15) ? null : r.GetString(15)));
+                r.IsDBNull(15) ? null : r.GetString(15),
+                r.GetInt32(16),
+                r.GetInt32(17)));
 
     public FrameSettings Save(FrameSettings settings)
     {
         db.NonQuery("""
             INSERT INTO frame_settings (id, theme, font, orientation, left_ids, right_ids, split, ambient_position,
                                         photo_source, photo_categories, width, height, photo_ids, photo_card,
-                                        countdown_id, note_title, note_body, updated_at)
+                                        countdown_id, note_title, note_body, photo_interval_minutes,
+                                        portrait_rotation, updated_at)
             VALUES (1, $theme, $font, $orientation, $left, $right, $split, $ambient_position,
                     $photo_source, $photo_categories, $width, $height, $photo_ids, $photo_card,
-                    $countdown_id, $note_title, $note_body, CURRENT_TIMESTAMP)
+                    $countdown_id, $note_title, $note_body, $photo_interval_minutes,
+                    $portrait_rotation, CURRENT_TIMESTAMP)
             ON CONFLICT (id) DO UPDATE SET
                 theme = excluded.theme, font = excluded.font, orientation = excluded.orientation,
                 left_ids = excluded.left_ids, right_ids = excluded.right_ids, split = excluded.split,
@@ -87,7 +94,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 photo_categories = excluded.photo_categories, width = excluded.width,
                 height = excluded.height, photo_ids = excluded.photo_ids, photo_card = excluded.photo_card,
                 countdown_id = excluded.countdown_id, note_title = excluded.note_title,
-                note_body = excluded.note_body, updated_at = excluded.updated_at
+                note_body = excluded.note_body, photo_interval_minutes = excluded.photo_interval_minutes,
+                portrait_rotation = excluded.portrait_rotation, updated_at = excluded.updated_at
             """, cmd =>
         {
             cmd.AddParam("$theme", settings.Theme);
@@ -106,6 +114,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             cmd.AddParam("$countdown_id", settings.CountdownId);
             cmd.AddParam("$note_title", string.IsNullOrWhiteSpace(settings.NoteTitle) ? null : settings.NoteTitle);
             cmd.AddParam("$note_body", string.IsNullOrWhiteSpace(settings.NoteBody) ? null : settings.NoteBody);
+            cmd.AddParam("$photo_interval_minutes", settings.PhotoIntervalMinutes);
+            cmd.AddParam("$portrait_rotation", settings.PortraitRotation);
         });
         return Get()!;
     }

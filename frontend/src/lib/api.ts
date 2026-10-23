@@ -1,4 +1,4 @@
-import { frameParams, type FrameOptions } from '$lib/frame';
+import { frameParams, type FrameOptions, type PortraitRotation } from '$lib/frame';
 import type { FrameModeId, ModeDay, PhotoCard } from '$lib/constants/frameModes';
 
 // ---- Types ----
@@ -246,6 +246,10 @@ export interface FrameSettings {
     /** Note mode's heading and body (one line per rule or item; blank lines space sections). */
     note_title: string | null;
     note_body: string | null;
+    /** GET /display/frame: minutes Ambient and Photo keep a photo (15–1440). */
+    photo_interval_minutes: number;
+    /** GET /display/frame: clockwise degrees a portrait frame is turned onto the panel. */
+    portrait_rotation: PortraitRotation;
 }
 
 /** A time-of-day schedule rule ("HH:mm", household time); an end before the start
