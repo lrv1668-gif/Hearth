@@ -39,10 +39,13 @@ public static class FramePreview
     }
 
     /// <summary>
-    /// Ordered for Daily's flat UI (tints become an even texture); error diffusion for
-    /// Ambient's photo, which is also /frame's default mode.
+    /// Ordered for the flat-UI modes, Daily, Countdown, Night and Note (tints become an even texture); error diffusion for
+    /// the photo modes, Ambient (also /frame's fallback) and Photo.
     /// </summary>
-    public static string DitherFor(string? mode) => mode == "daily" ? "ordered" : "errorDiffusion";
+    public static string DitherFor(string? mode) =>
+        mode is FrameModes.Daily or FrameModes.Countdown or FrameModes.Night or FrameModes.Note
+            ? "ordered"
+            : "errorDiffusion";
 
     public static string FramePath(IQueryCollection query)
     {

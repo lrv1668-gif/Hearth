@@ -12,7 +12,7 @@ A calm, self-hosted home dashboard designed to look beautiful and recede into th
 | `/calendar` | Month grid with per-day task lists and a detail modal |
 | `/ambient` | Fullscreen photo slideshow at a configurable cadence |
 | `/settings` | Theme picker, font theme picker, photo cadence and categories, attribution toggle, widget visibility and layout, integrations, subscribed train stops, e-paper frame appearance and layout with live preview |
-| `/frame` | E-paper render target (panel-sized, default 1600×1200): Ambient photo or a Daily layout of frame widgets — Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby |
+| `/frame` | E-paper render target (panel-sized, default 1600×1200): Ambient photo, a Daily layout of frame widgets — Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby — a pinned Photo or album, one big Countdown, Night (moon and sunrise), or a Note of your own text sized to fill the panel. The mode follows a schedule and manual override set in Settings → Frame |
 
 ## Prerequisites
 

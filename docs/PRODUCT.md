@@ -72,7 +72,22 @@ Only widgets that stay correct between scheduled refreshes belong on the frame �
 
 Typography is large enough to read from across the room (3–4 meters). No small print. The column layout is configured in Settings → Frame the same way as the dashboard — visibility toggles plus drag-and-drop between columns with an adjustable split — and each widget trims its list to fit the space it has.
 
-The mode schedule is configurable (e.g. Ambient all day, Daily at 7am and 6pm), but Ambient is the default.
+### Photo, Countdown and Night Modes
+
+- **Photo** — one photo you choose, or a small album of your uploads (one per refresh), full-bleed with the full Ambient card, just the caption, or nothing at all. Any upload can be pinned straight from the photo collection with **Show on frame**: it stays up until you switch it off (no expiry, and the schedule never replaces it); pinning another photo moves the pin, and deleting the pinned photo clears it.
+- **Countdown** — one countdown as a poster: the number of days, huge, then the title and date. You pick the countdown, or it shows the next one coming up.
+- **Night** — a quiet page for overnight: tonight's moon, the next sunrise and the temperature.
+- **Note** — your own words: house rules for a party, a welcome, a reminder. A heading and up to 12 lines, kept as typed (a blank line adds space). The text sizes itself to the frame: a few words fill it, a long list shrinks to fit, and each line stays on one line unless that would make the text much smaller. **Show this note** in Settings → Frame puts it up until you change it.
+
+### Choosing the mode
+
+What the frame shows is decided in one place, shared by every device:
+
+1. **Your choice** — set in Settings → Frame for an hour, until midnight, or until you change it; a pinned photo; or Button B on the frame, which steps to the next mode until the schedule's next change.
+2. **The schedule** — time-of-day rules on chosen days (e.g. Daily 7–9am on weekdays, Night from 11pm to 6am). The first matching rule wins.
+3. **The default mode** — Ambient unless you change it.
+
+Ideas for later modes: **Guest** (a Wi-Fi QR code and house notes), a full **Week/Month** calendar, **Gallery** art (public-domain paintings with a museum placard), and **Occasion** cards on birthdays and holidays.
 
 ---
 
@@ -91,12 +106,12 @@ Optional integrations (Spotify, Google Calendar, etc.) are surfaced in a separat
 
 The web UI (phone browser, no app install) has four screens:
 
-1. **Home** — live preview of what's on the frame, button to trigger an immediate refresh, mode toggle (Color / B&W, Ambient / Daily)
+1. **Home** — live preview of what's on the frame, button to trigger an immediate refresh, mode toggle (Color / B&W, and the frame mode)
 2. **Tasks** — add/complete household tasks and grocery list items; changes trigger a display refresh
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
-The `/settings` route is implemented and currently houses the theme picker, the household's home location and time zone (shared by every device and service; `.env` values remain a fallback), the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, and the e-paper frame's appearance (one of nine ink-safe colour themes, typeface, orientation, panel size) with a live preview. Additional settings will move here as features are built out.
+The `/settings` route is implemented and currently houses the theme picker, the household's home location and time zone (shared by every device and service; `.env` values remain a fallback), the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, the e-paper frame's mode (what it shows now, a manual choice with an expiry, and the time-of-day schedule), Photo mode's album and Countdown mode's countdown, and its appearance (an ink-safe colour theme, typeface, orientation, panel size) with a live preview. Additional settings will move here as features are built out.
 
 All screens are usable one-handed on a phone. No dense forms.
 

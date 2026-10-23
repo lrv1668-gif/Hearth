@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { page } from '$app/state';
     import { CalendarDays, RefreshCw } from '@lucide/svelte';
     import { calendarStore, loadCalendarStatus, refreshCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
     import { api } from '$lib/api';
@@ -7,6 +8,16 @@
     onMount(() => loadCalendarStatus());
 
     let refreshing = $state(false);
+
+    // Set by the Calendar service's OAuth callback when Google refused the sign-in.
+    const errorCode = $derived(page.url.searchParams.get('calendar_error'));
+    const errorMessage = $derived.by(() => {
+        if (!errorCode) return null;
+        if (errorCode === 'invalid_client')
+            return 'Google rejected Hearth’s client secret. Check GOOGLE_CLIENT_SECRET in src/Calendar/.env matches the OAuth client in Google Cloud Console, then restart the calendar service.';
+        if (errorCode === 'access_denied') return 'Google access wasn’t granted, so nothing was connected.';
+        return `Couldn’t connect to Google (${errorCode}). The calendar service’s log has details.`;
+    });
 
     async function handleRefresh() {
         refreshing = true;
@@ -31,6 +42,9 @@
             <p class="type-label text-(--text-2)">
                 {calendarStore.googleConnected ? 'Connected — events and tasks are syncing.' : 'Not connected.'}
             </p>
+            {#if errorMessage}
+                <p class="type-label mt-1 text-(--accent)" role="alert">{errorMessage}</p>
+            {/if}
         </div>
         <div class="flex items-center gap-3">
             {#if calendarStore.googleConnected}

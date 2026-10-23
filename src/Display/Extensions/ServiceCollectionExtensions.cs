@@ -1,4 +1,5 @@
 using Data.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ServiceDefaults;
 
 namespace Display.Extensions;
@@ -10,6 +11,8 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSqliteDatabase("display", "display.db");
         serviceCollection.AddSingleton<FrameSettingsStore>();
         serviceCollection.AddSingleton<HomeSettingsStore>();
+        serviceCollection.AddSingleton<ModeStore>();
+        serviceCollection.TryAddSingleton(TimeProvider.System);
         serviceCollection.AddHearthCache();
         serviceCollection.AddHttpClient<GeocodingClient>(http => http.Timeout = TimeSpan.FromSeconds(10));
         serviceCollection.AddHttpClient<RendererClient>((services, http) =>

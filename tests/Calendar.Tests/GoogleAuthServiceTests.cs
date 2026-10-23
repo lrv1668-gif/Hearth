@@ -41,6 +41,21 @@ public sealed class GoogleAuthServiceTests
         Assert.Contains("prompt=consent", url);
     }
 
+    [Theory]
+    [InlineData("http://localhost", "http://localhost/settings?section=connections&calendar_error=invalid_client")]
+    [InlineData("https://hearth.local/", "https://hearth.local/settings?section=connections&calendar_error=invalid_client")]
+    [InlineData(null, "/settings?section=connections&calendar_error=invalid_client")]
+    public void ConnectionsErrorUrl_PointsAtConnectionsSettingsWithTheError(string? frontendUrl, string expected)
+    {
+        Assert.Equal(expected, GoogleAuthService.ConnectionsErrorUrl(frontendUrl, "invalid_client"));
+    }
+
+    [Fact]
+    public void ConnectionsErrorUrl_EscapesTheError()
+    {
+        Assert.EndsWith("calendar_error=a%20b%26c", GoogleAuthService.ConnectionsErrorUrl("", "a b&c"));
+    }
+
     [Fact]
     public void GenerateAuthUrl_IncludesConfiguredClientIdAndRedirectUri()
     {

@@ -36,6 +36,9 @@
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
     import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
     import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
+    import FrameModeSettings from '$lib/components/settings/FrameModeSettings.svelte';
+    import FrameModeOptions from '$lib/components/settings/FrameModeOptions.svelte';
+    import { loadModes } from '$lib/stores/ModeStore.svelte.ts';
     import HomeLocationSettings from '$lib/components/settings/HomeLocationSettings.svelte';
     import {
         parseSettingsSection,
@@ -77,7 +80,8 @@
         },
         frame: {
             heading: 'Frame',
-            description: 'Control how the e-paper frame looks. These settings are shared by every device.',
+            description:
+                'Control what the e-paper frame shows, when, and how it looks. These settings are shared by every device.',
         },
     };
 
@@ -94,6 +98,7 @@
     onMount(() => {
         let stopSync: (() => void) | undefined;
         let cancelled = false;
+        loadModes();
         loadFrameSettings().then(() => {
             if (!cancelled) stopSync = syncFrameSettings();
         });
@@ -370,6 +375,8 @@
                     are narrower.
                 </p>
             {/snippet}
+            {#snippet frameModeContent()}<FrameModeSettings />{/snippet}
+            {#snippet frameModeOptionsContent()}<FrameModeOptions />{/snippet}
             {#snippet framePreviewContent()}
                 <FramePreview />
             {/snippet}
@@ -386,9 +393,23 @@
                     <div class="contents @4xl:flex @4xl:flex-col @4xl:gap-4">
                         <div class="order-1">
                             {@render card(
+                                'Mode',
+                                'What the frame shows now, and a schedule for the rest of the day.',
+                                frameModeContent
+                            )}
+                        </div>
+                        <div class="order-1">
+                            {@render card(
                                 'E-paper frame',
                                 'Colours, typeface, orientation, and panel size for the wall frame. Themes use only colours the panel can print cleanly.',
                                 frameAppearanceContent
+                            )}
+                        </div>
+                        <div class="order-3">
+                            {@render card(
+                                'Photo, Countdown & Note',
+                                'What Photo, Countdown and Note modes show.',
+                                frameModeOptionsContent
                             )}
                         </div>
                         <div class="order-3">

@@ -1,0 +1,49 @@
+// The e-paper frame's modes — the ids /frame?mode= takes. Kept in sync with the Display
+// service's FrameModes (src/Display/Records/FrameModes.cs); the order is the cycle the
+// frame's Button B (POST /display/mode/next) steps through.
+export const frameModes = [
+    { id: 'ambient', label: 'Ambient', description: 'A full-frame photo with a small date and weather card' },
+    { id: 'daily', label: 'Daily', description: 'Today, the week ahead and your chosen widgets' },
+    { id: 'photo', label: 'Photo', description: 'Your chosen photo, or an album of them' },
+    { id: 'countdown', label: 'Countdown', description: 'One countdown, as big as the frame allows' },
+    { id: 'night', label: 'Night', description: 'Tonight’s moon and the next sunrise' },
+    { id: 'note', label: 'Note', description: 'Your own words — house rules, a welcome, a reminder' },
+] as const;
+
+export type FrameModeId = (typeof frameModes)[number]['id'];
+
+export const DEFAULT_FRAME_MODE: FrameModeId = 'ambient';
+
+export function isFrameMode(value: unknown): value is FrameModeId {
+    return frameModes.some((m) => m.id === value);
+}
+
+export function frameModeLabel(id: string): string {
+    return frameModes.find((m) => m.id === id)?.label ?? id;
+}
+
+/** How much of Ambient's info card Photo mode keeps. */
+export const photoCards = [
+    { value: 'full', label: 'Full card' },
+    { value: 'caption', label: 'Caption only' },
+    { value: 'none', label: 'No card' },
+] as const;
+
+export type PhotoCard = (typeof photoCards)[number]['value'];
+
+export function isPhotoCard(value: unknown): value is PhotoCard {
+    return photoCards.some((c) => c.value === value);
+}
+
+/** Schedule rule days, Sunday first — Display's ModeRule.DayIds. */
+export const modeDays = [
+    { id: 'sun', label: 'S' },
+    { id: 'mon', label: 'M' },
+    { id: 'tue', label: 'T' },
+    { id: 'wed', label: 'W' },
+    { id: 'thu', label: 'T' },
+    { id: 'fri', label: 'F' },
+    { id: 'sat', label: 'S' },
+] as const;
+
+export type ModeDay = (typeof modeDays)[number]['id'];
