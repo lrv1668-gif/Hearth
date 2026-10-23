@@ -28,8 +28,8 @@ updates:
       # once shipped alone, breaking `npm ci` on the vite-plugin-svelte peer
       # range), and even once paired correctly, vite 8's CSS pipeline can't
       # resolve Tailwind v4's `@import "tailwindcss"` via @tailwindcss/postcss
-      # (ENOENT), with no newer tailwindcss/postcss release fixing it yet.
-      # Revisit once that's confirmed compatible; upgrade manually til then.
+      # (ENOENT). Tailwind now runs through @tailwindcss/vite instead, so
+      # recheck before upgrading; upgrade manually til then.
       - dependency-name: "vite"
         update-types: ["version-update:semver-major"]
 
