@@ -2,8 +2,10 @@ import { api, type Task } from '../api';
 
 export const taskStore = $state({ tasks: [] as Task[] });
 
+// A failed refresh keeps the tasks already on screen
 export async function loadTasks() {
-    taskStore.tasks = await api.tasks.list();
+    const tasks = await api.tasks.list();
+    if (tasks) taskStore.tasks = tasks;
 }
 
 export async function addTask(
@@ -65,7 +67,8 @@ export async function editTask(
 }
 
 export async function removeTask(id: number, series = false) {
-    await api.tasks.delete(id, series);
+    // Only drop it from the list once the server has
+    if (!(await api.tasks.delete(id, series))) return;
     if (series) {
         await loadTasks();
     } else {

@@ -9,19 +9,14 @@ namespace ServiceDefaults.Tests;
 public sealed class HearthServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddHearthWebDefaults_ConfiguresDefaultCorsPolicyToAllowAnyOriginMethodAndHeader()
+    public void AddHearthWebDefaults_RegistersNoCorsPolicy()
     {
         var provider = new ServiceCollection()
             .AddHearthWebDefaults()
             .BuildServiceProvider();
 
-        var corsOptions = provider.GetRequiredService<IOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>>().Value;
-        var policy = corsOptions.GetPolicy(corsOptions.DefaultPolicyName);
-
-        Assert.NotNull(policy);
-        Assert.True(policy!.AllowAnyOrigin);
-        Assert.True(policy.AllowAnyMethod);
-        Assert.True(policy.AllowAnyHeader);
+        // Every service is reached same-origin through Caddy, so no site gets cross-origin access
+        Assert.Null(provider.GetService<Microsoft.AspNetCore.Cors.Infrastructure.ICorsService>());
     }
 
     [Fact]

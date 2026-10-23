@@ -10,7 +10,6 @@ builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 200L * 1024 
 builder.Services.AddServicesForPhotos();
 
 var app = builder.Build();
-app.UseCors();
 
 app.InitializeWebAppForPhotos();
 

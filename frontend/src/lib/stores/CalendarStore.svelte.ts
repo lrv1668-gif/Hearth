@@ -10,13 +10,15 @@ export const calendarStore = $state<CalendarStoreState>({
     googleConnected: false,
 });
 
+// A failed check or refresh keeps what's already known
 export async function loadCalendarStatus(): Promise<void> {
     const status = await api.calendar.googleStatus();
-    calendarStore.googleConnected = status?.authenticated ?? false;
+    if (status) calendarStore.googleConnected = status.authenticated;
 }
 
 export async function loadCalendarItems(): Promise<void> {
-    calendarStore.items = await api.calendar.items();
+    const items = await api.calendar.items();
+    if (items) calendarStore.items = items;
 }
 
 export async function refreshCalendarItems(): Promise<void> {

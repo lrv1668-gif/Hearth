@@ -8,7 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddServicesForSpotify();
 
 var app = builder.Build();
-app.UseCors();
 
 app.InitializeWebAppForSpotify();
 

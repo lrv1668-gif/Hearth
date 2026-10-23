@@ -6,9 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddServicesForTasks();
 
 var app = builder.Build();
-app.UseCors();
 
 // Setup each service
 app.InitializeWebAppForTasks();
 
 app.Run();
+
+// For WebApplicationFactory in Tasks.Tests
+public partial class Program;

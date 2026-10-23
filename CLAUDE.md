@@ -36,7 +36,7 @@ src/                         # Backend API + shared-library projects
   Dockerfile                 # Shared image for every backend service — pick one with the SERVICE build arg
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
   Data/                      # SQLite implementation of IDatabase + AddSqliteDatabase() registration helper; SqliteDistributedCache (FusionCache L2)
-  ServiceDefaults/           # Shared CORS/JSON defaults (AddHearthWebDefaults), AddHearthCache (FusionCache), ConfigRequirement env-var validation + HomeLocationClient (the home location saved in Display, env-var fallback) — referenced by every service
+  ServiceDefaults/           # Shared JSON defaults (AddHearthWebDefaults — no CORS: everything is same-origin via Caddy), AddHearthCache (FusionCache), ConfigRequirement env-var validation + HomeLocationClient (the home location saved in Display, env-var fallback) — referenced by every service
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
   Spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache

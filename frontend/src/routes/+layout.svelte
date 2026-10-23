@@ -8,6 +8,7 @@
     import { initFontTheme } from '$lib/stores/FontThemeStore.svelte.ts';
     import { initFontSize } from '$lib/stores/FontSizeStore.svelte.ts';
     import { loadCalendarStatus, loadCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
+    import { MINUTE, poll } from '$lib/utils';
     let { children } = $props();
 
     let loaded = $state(false);
@@ -28,6 +29,17 @@
             }
             loaded = true;
         }
+    });
+
+    // An always-on screen picks up tasks added from a phone and newly synced events.
+    $effect(() => {
+        if (!browser || isFrame) return;
+        const stopTasks = poll(loadTasks, MINUTE);
+        const stopCalendar = poll(loadCalendarItems, 5 * MINUTE);
+        return () => {
+            stopTasks();
+            stopCalendar();
+        };
     });
 </script>
 
