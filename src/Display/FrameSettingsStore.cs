@@ -32,6 +32,11 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             "ALTER TABLE frame_settings ADD COLUMN photo_categories TEXT NOT NULL DEFAULT '[]'",
             "ALTER TABLE frame_settings ADD COLUMN width INTEGER NOT NULL DEFAULT 1600",
             "ALTER TABLE frame_settings ADD COLUMN height INTEGER NOT NULL DEFAULT 1200",
+            "ALTER TABLE frame_settings ADD COLUMN photo_ids TEXT NOT NULL DEFAULT '[]'",
+            "ALTER TABLE frame_settings ADD COLUMN photo_card TEXT NOT NULL DEFAULT 'full'",
+            "ALTER TABLE frame_settings ADD COLUMN countdown_id INTEGER",
+            "ALTER TABLE frame_settings ADD COLUMN note_title TEXT",
+            "ALTER TABLE frame_settings ADD COLUMN note_body TEXT",
         })
         {
             try { db.NonQuery(col); }
@@ -46,7 +51,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
     public FrameSettings? Get() =>
         db.QueryOne("""
             SELECT theme, font, orientation, left_ids, right_ids, split, ambient_position, photo_source, photo_categories,
-                   width, height
+                   width, height, photo_ids, photo_card, countdown_id, note_title, note_body
             FROM frame_settings WHERE id = 1
             """, r => new FrameSettings(
                 r.GetString(0),
@@ -59,21 +64,30 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.GetString(7),
                 JsonSerializer.Deserialize<string[]>(r.GetString(8)) ?? [],
                 r.GetInt32(9),
-                r.GetInt32(10)));
+                r.GetInt32(10),
+                JsonSerializer.Deserialize<string[]>(r.GetString(11)) ?? [],
+                r.GetString(12),
+                r.IsDBNull(13) ? null : r.GetInt32(13),
+                r.IsDBNull(14) ? null : r.GetString(14),
+                r.IsDBNull(15) ? null : r.GetString(15)));
 
     public FrameSettings Save(FrameSettings settings)
     {
         db.NonQuery("""
             INSERT INTO frame_settings (id, theme, font, orientation, left_ids, right_ids, split, ambient_position,
-                                        photo_source, photo_categories, width, height, updated_at)
+                                        photo_source, photo_categories, width, height, photo_ids, photo_card,
+                                        countdown_id, note_title, note_body, updated_at)
             VALUES (1, $theme, $font, $orientation, $left, $right, $split, $ambient_position,
-                    $photo_source, $photo_categories, $width, $height, CURRENT_TIMESTAMP)
+                    $photo_source, $photo_categories, $width, $height, $photo_ids, $photo_card,
+                    $countdown_id, $note_title, $note_body, CURRENT_TIMESTAMP)
             ON CONFLICT (id) DO UPDATE SET
                 theme = excluded.theme, font = excluded.font, orientation = excluded.orientation,
                 left_ids = excluded.left_ids, right_ids = excluded.right_ids, split = excluded.split,
                 ambient_position = excluded.ambient_position, photo_source = excluded.photo_source,
                 photo_categories = excluded.photo_categories, width = excluded.width,
-                height = excluded.height, updated_at = excluded.updated_at
+                height = excluded.height, photo_ids = excluded.photo_ids, photo_card = excluded.photo_card,
+                countdown_id = excluded.countdown_id, note_title = excluded.note_title,
+                note_body = excluded.note_body, updated_at = excluded.updated_at
             """, cmd =>
         {
             cmd.AddParam("$theme", settings.Theme);
@@ -87,6 +101,11 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             cmd.AddParam("$photo_categories", JsonSerializer.Serialize(settings.PhotoCategories ?? []));
             cmd.AddParam("$width", settings.Width);
             cmd.AddParam("$height", settings.Height);
+            cmd.AddParam("$photo_ids", JsonSerializer.Serialize(settings.PhotoIds ?? []));
+            cmd.AddParam("$photo_card", settings.PhotoCard);
+            cmd.AddParam("$countdown_id", settings.CountdownId);
+            cmd.AddParam("$note_title", string.IsNullOrWhiteSpace(settings.NoteTitle) ? null : settings.NoteTitle);
+            cmd.AddParam("$note_body", string.IsNullOrWhiteSpace(settings.NoteBody) ? null : settings.NoteBody);
         });
         return Get()!;
     }

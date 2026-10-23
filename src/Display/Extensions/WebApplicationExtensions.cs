@@ -1,5 +1,6 @@
 using System.Net;
 using Display.Records;
+using Microsoft.AspNetCore.Mvc;
 using ServiceDefaults;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -19,7 +20,60 @@ public static class WebApplicationExtensions
     {
         app.Services.GetRequiredService<FrameSettingsStore>().Migrate();
         app.Services.GetRequiredService<HomeSettingsStore>().Migrate();
+        app.Services.GetRequiredService<ModeStore>().Migrate();
         app.AddDisplayEndpoints();
+        app.AddModeEndpoints();
+    }
+
+    /// <summary>
+    /// What the frame shows: a manual override (with an optional expiry) beats the
+    /// time-of-day schedule, which beats its default mode. /frame without ?mode= asks
+    /// GET /display/mode; the frame's Button B calls POST /display/mode/next.
+    /// </summary>
+    private static void AddModeEndpoints(this WebApplication app)
+    {
+        app.MapGet("/display/mode", (ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock) =>
+            Results.Ok(ModeResolver.Resolve(store.GetSchedule(), store.GetOverride(), clock.GetUtcNow(), HomeZone(home, config))));
+
+        app.MapGet("/display/mode/schedule", (ModeStore store) => Results.Ok(store.GetSchedule()));
+
+        app.MapPut("/display/mode/schedule", (ModeSchedule schedule, ModeStore store) =>
+            schedule.Validate() is { } error ? Results.BadRequest(error) : Results.Ok(store.SaveSchedule(schedule)));
+
+        app.MapPut("/display/mode/override", (ModeOverride manual, ModeStore store, TimeProvider clock) =>
+        {
+            if (manual.Validate() is { } error) return Results.BadRequest(error);
+            if (manual.Until <= clock.GetUtcNow()) return Results.BadRequest("until must be in the future");
+            return Results.Ok(store.SetOverride(manual));
+        });
+
+        // Back to the schedule. With photo_id, only when that photo is the one pinned —
+        // the frontend calls this after deleting an upload, so a pin never outlives its photo.
+        app.MapDelete("/display/mode/override", ([FromQuery(Name = "photo_id")] string? photoId, ModeStore store) =>
+        {
+            if (photoId is null || store.GetOverride()?.PhotoId == photoId) store.ClearOverride();
+            return Results.NoContent();
+        });
+
+        // Step to the next mode, holding it until the schedule's next change.
+        app.MapPost("/display/mode/next", (ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock) =>
+        {
+            var now = clock.GetUtcNow();
+            var zone = HomeZone(home, config);
+            var schedule = store.GetSchedule();
+            var current = ModeResolver.Resolve(schedule, store.GetOverride(), now, zone);
+            store.SetOverride(new ModeOverride(FrameModes.Next(current.Mode), ModeResolver.NextBoundary(schedule, now, zone)));
+            return Results.Ok(ModeResolver.Resolve(schedule, store.GetOverride(), now, zone));
+        });
+    }
+
+    /// <summary>The household's zone from Settings → Home, else TZ, else the host's.</summary>
+    private static TimeZoneInfo HomeZone(HomeSettingsStore home, IConfiguration config)
+    {
+        var id = home.Get()?.TimeZone ?? config["TZ"];
+        return !string.IsNullOrWhiteSpace(id) && TimeZoneInfo.TryFindSystemTimeZoneById(id, out var zone)
+            ? zone
+            : TimeZoneInfo.Local;
     }
 
     private static void AddDisplayEndpoints(this WebApplication app)

@@ -168,6 +168,9 @@ services:
             - DB_PATH=/data/display.db
             - ASPNETCORE_HTTP_PORTS=8090
             - RENDERER_URL=http://renderer:3000
+            # Fallback zone for the mode schedule (root .env), matching the renderer's clock,
+            # when none is saved in Settings → Home; UTC when neither is set
+            - TZ=${TZ:-}
         volumes:
             - display-data:/data
 

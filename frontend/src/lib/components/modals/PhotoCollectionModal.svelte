@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { X, Trash2, Upload } from '@lucide/svelte';
+    import { X, Trash2, Upload, Pin } from '@lucide/svelte';
     import { api, type UploadedPhoto } from '$lib/api';
+    import { clearOverride, loadModes, modeStore, pinPhoto } from '$lib/stores/ModeStore.svelte.ts';
 
     interface Props {
         open?: boolean;
@@ -21,6 +22,7 @@
         if (!dialog) return;
         if (open) {
             error = null;
+            loadModes();
             dialog.showModal();
         } else if (dialog.open) {
             dialog.close();
@@ -81,7 +83,16 @@
 
     async function handleDelete(id: string) {
         const ok = await api.photos.delete(id);
-        if (ok) onDeleted?.(id);
+        if (!ok) return;
+        onDeleted?.(id);
+        // A pin never outlives its photo: Display clears it only if this was the pinned one.
+        await clearOverride(id);
+    }
+
+    /** "Show on frame": pins the photo until switched off; pinning another moves the pin. */
+    function togglePin(id: string) {
+        if (modeStore.pinnedPhotoId === id) clearOverride(id);
+        else pinPhoto(id);
     }
 
     async function handleCaptionChange(id: string, e: Event) {
@@ -146,6 +157,7 @@
             {:else}
                 <div class="grid grid-cols-3 gap-3">
                     {#each photos as p (p.id)}
+                        {@const pinned = modeStore.pinnedPhotoId === p.id}
                         <div class="flex flex-col gap-1">
                             <div class="group relative aspect-square overflow-hidden rounded-lg bg-(--surface)">
                                 <img
@@ -159,6 +171,18 @@
                                     aria-label="Delete photo"
                                 >
                                     <Trash2 class="h-3.5 w-3.5 text-white" />
+                                </button>
+                                <button
+                                    onclick={() => togglePin(p.id)}
+                                    aria-pressed={pinned}
+                                    title={pinned ? 'Showing on the frame — click to stop' : 'Show on frame'}
+                                    class="type-caption absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-md px-2 py-1 font-semibold transition-opacity
+                                        {pinned
+                                        ? 'bg-(--accent) text-(--accent-fg)'
+                                        : 'bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 pointer-coarse:opacity-100'}"
+                                >
+                                    <Pin class="h-3.5 w-3.5" />
+                                    {pinned ? 'On frame' : 'Show on frame'}
                                 </button>
                             </div>
                             <input

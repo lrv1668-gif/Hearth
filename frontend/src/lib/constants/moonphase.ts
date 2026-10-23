@@ -49,12 +49,12 @@ export function moonPath(phase: number, r = 40): string {
     const tx = r * Math.cos(2 * Math.PI * phase); // terminator x-radius (signed)
     const rx = Math.abs(tx);
     if (phase < 0.5) {
-        // Waxing — right side lit
-        const sweep = tx >= 0 ? 1 : 0;
+        // Waxing — right side lit; the terminator bulges right for a crescent, left for a gibbous
+        const sweep = tx >= 0 ? 0 : 1;
         return `M 0,${-r} A ${r},${r} 0 0 1 0,${r} A ${rx},${r} 0 0 ${sweep} 0,${-r} Z`;
     } else {
-        // Waning — left side lit
-        const sweep = tx >= 0 ? 0 : 1;
+        // Waning — left side lit; the terminator bulges left for a crescent, right for a gibbous
+        const sweep = tx >= 0 ? 1 : 0;
         return `M 0,${-r} A ${r},${r} 0 0 0 0,${r} A ${rx},${r} 0 0 ${sweep} 0,${-r} Z`;
     }
 }

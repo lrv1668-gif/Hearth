@@ -1,5 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { photoQuery, resolveSource, uploadToPhoto } from './photos';
+import { photoQuery, pickPinned, resolveSource, uploadToPhoto } from './photos';
+
+const upload = (id: string) => ({ id, url: `/${id}.jpg`, thumb_url: `/${id}-t.jpg`, caption: null });
+
+describe('pickPinned', () => {
+    const uploads = [upload('a'), upload('b'), upload('c')];
+
+    it('shows the one pinned photo', () => {
+        expect(pickPinned(['b'], uploads)?.id).toBe('b');
+    });
+
+    it('picks at random within the album, skipping photos not in it', () => {
+        expect(pickPinned(['a', 'c'], uploads, 0)?.id).toBe('a');
+        expect(pickPinned(['a', 'c'], uploads, 0.99)?.id).toBe('c');
+    });
+
+    it('is null when every chosen photo has been deleted', () => {
+        expect(pickPinned(['gone'], uploads)).toBeNull();
+        expect(pickPinned([], uploads)).toBeNull();
+    });
+});
 
 describe('photoQuery', () => {
     it('joins categories, falling back to nature', () => {

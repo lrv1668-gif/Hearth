@@ -43,6 +43,48 @@ public sealed class FrameSettingsStoreTests
         Assert.Equal("unsplash", saved.PhotoSource);
         Assert.Empty(saved.PhotoCategories!);
         Assert.Equal((1600, 1200), (saved.Width, saved.Height));
+        Assert.Empty(saved.PhotoIds!);
+        Assert.Equal("full", saved.PhotoCard);
+        Assert.Null(saved.CountdownId);
+    }
+
+    [Fact]
+    public void Save_PhotoAndCountdownChoices_RoundTrip()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save(Sample with { PhotoIds = ["a1", "b2"], PhotoCard = "none", CountdownId = 7 });
+
+        var saved = store.Get()!;
+        Assert.Equal(["a1", "b2"], saved.PhotoIds);
+        Assert.Equal("none", saved.PhotoCard);
+        Assert.Equal(7, saved.CountdownId);
+    }
+
+    [Fact]
+    public void Save_Note_RoundTripsWithItsLineBreaks()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save(Sample with { NoteTitle = "House rules", NoteBody = "Shoes off\n\nHave fun!" });
+
+        var saved = store.Get()!;
+        Assert.Equal("House rules", saved.NoteTitle);
+        Assert.Equal("Shoes off\n\nHave fun!", saved.NoteBody);
+    }
+
+    [Fact]
+    public void Save_BlankNote_StoresNull()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save(Sample with { NoteTitle = "  ", NoteBody = "" });
+
+        Assert.Null(store.Get()!.NoteTitle);
+        Assert.Null(store.Get()!.NoteBody);
     }
 
     [Fact]

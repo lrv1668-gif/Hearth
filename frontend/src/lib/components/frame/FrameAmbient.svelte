@@ -11,10 +11,19 @@
         type Pixels,
     } from '$lib/frame';
     import { FRAME_INKS } from '$lib/constants/frameThemes';
+    import type { PhotoCard } from '$lib/constants/frameModes';
     import { localDateKey } from '$lib/utils';
     import FrameDateBlock from './FrameDateBlock.svelte';
 
-    let { now, photo, pixels = null }: { now: Date; photo: Photo | null; pixels?: Pixels | null } = $props();
+    let {
+        now,
+        photo,
+        pixels = null,
+        card = 'full',
+    }: { now: Date; photo: Photo | null; pixels?: Pixels | null; card?: PhotoCard } = $props();
+
+    // Photo mode can drop the card, or keep only an upload's caption.
+    const caption = $derived(photo?.source === 'local' ? photo.description : null);
 
     const time = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     const today = $derived(weatherStore.forecast.find((f) => f.date === localDateKey(now)) ?? null);
@@ -78,6 +87,8 @@ The date block takes the theme's --block ink unless the photo around the plate i
 close to that colour; then it switches to whichever of the theme's other pure inks
 stands out most there (pickBlockInk in lib/frame.ts).
 In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure B&W).
+Photo mode reuses this view with `card`: "caption" keeps just an upload's caption on
+the flat --bg panel, "none" leaves the photo bare.
 -->
 {#if photo}
     <img
@@ -92,37 +103,45 @@ In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure 
     </div>
 {/if}
 
+{#if card === 'caption' && caption}
+    <div class="plate absolute bg-(--bg) px-8 pt-5 pb-4">
+        <p class="type-label font-(family-name:--display-family) text-(--text-1) italic">{caption}</p>
+    </div>
+{/if}
+
 <!-- No border or shadow — the solid inks alone separate the plate from the photo
      (shadows or translucency would dither into speckle on the panel). -->
-<div
-    bind:this={plate}
-    bind:clientWidth={plateW}
-    bind:clientHeight={plateH}
-    class="plate absolute flex items-stretch bg-(--bg)"
-    style:--block={block?.ink}
-    style:--on-block={block?.on}
->
-    <FrameDateBlock {now} compact />
-    <div class="px-8 pt-5 pb-4">
-        <p class="type-title leading-none font-semibold">
-            {time}{#if weatherStore.current}<span class="font-medium text-(--text-2)"
-                    >&nbsp;· {Math.round(weatherStore.current.temperature_f)}°</span
-                >{/if}
-        </p>
-        {#if weatherStore.current}
-            <p class="type-label mt-3 font-(family-name:--display-family) text-(--text-2) italic">
-                {weatherSentence(weatherStore.current, today)}
+{#if card === 'full'}
+    <div
+        bind:this={plate}
+        bind:clientWidth={plateW}
+        bind:clientHeight={plateH}
+        class="plate absolute flex items-stretch bg-(--bg)"
+        style:--block={block?.ink}
+        style:--on-block={block?.on}
+    >
+        <FrameDateBlock {now} compact />
+        <div class="px-8 pt-5 pb-4">
+            <p class="type-title leading-none font-semibold">
+                {time}{#if weatherStore.current}<span class="font-medium text-(--text-2)"
+                        >&nbsp;· {Math.round(weatherStore.current.temperature_f)}°</span
+                    >{/if}
             </p>
-        {/if}
-        <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
-        {#if photo?.source === 'unsplash' && photo.photographer_name}
-            <p class="type-caption mt-1 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
-        {:else if photo?.source === 'local' && photo.description}
-            <!-- Your own photo: its caption, if you gave it one -->
-            <p class="type-caption mt-1 text-(--text-2)">{photo.description}</p>
-        {/if}
+            {#if weatherStore.current}
+                <p class="type-label mt-3 font-(family-name:--display-family) text-(--text-2) italic">
+                    {weatherSentence(weatherStore.current, today)}
+                </p>
+            {/if}
+            <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
+            {#if photo?.source === 'unsplash' && photo.photographer_name}
+                <p class="type-caption mt-1 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
+            {:else if photo?.source === 'local' && photo.description}
+                <!-- Your own photo: its caption, if you gave it one -->
+                <p class="type-caption mt-1 text-(--text-2)">{photo.description}</p>
+            {/if}
+        </div>
     </div>
-</div>
+{/if}
 
 <style>
     /* Inset 64px (times the frame's scale) from the chosen edge(s), or centred along the top/bottom edge for the

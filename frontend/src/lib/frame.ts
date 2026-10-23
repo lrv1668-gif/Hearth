@@ -1,6 +1,7 @@
-import type { AmbientPosition, CalendarItem, CurrentWeather, ForecastDay, Task } from '$lib/api';
+import type { AmbientPosition, CalendarItem, CurrentWeather, ForecastDay, Photo, Task } from '$lib/api';
 import { eventDateKey, formatTime, localDateKey } from '$lib/utils';
 import type { FrameLayout, FrameWidgetId } from '$lib/constants/frameWidgets';
+import type { FrameModeId } from '$lib/constants/frameModes';
 import { getContext, setContext } from 'svelte';
 
 /**
@@ -197,7 +198,7 @@ export function getFrameScale(): () => number {
 }
 
 export interface FrameOptions {
-    mode: 'ambient' | 'daily';
+    mode: FrameModeId;
     palette: 'color' | 'bw';
     theme: string;
     font: string;
@@ -208,6 +209,8 @@ export interface FrameOptions {
     layout: FrameLayout;
     split: number;
     position: AmbientPosition;
+    /** Ambient/Photo's photo, fixed instead of a random pick (Settings' preview). */
+    photo?: Photo | null;
 }
 
 /** The /frame URL for a set of options — what the live preview and the Display
@@ -218,7 +221,7 @@ export function frameUrl(o: FrameOptions): string {
 
 /** /frame's query params — also taken by the Display service's dithered preview. */
 export function frameParams(o: FrameOptions): URLSearchParams {
-    return new URLSearchParams({
+    const params = new URLSearchParams({
         mode: o.mode,
         palette: o.palette,
         theme: o.theme,
@@ -231,6 +234,8 @@ export function frameParams(o: FrameOptions): URLSearchParams {
         split: String(o.split),
         position: o.position,
     });
+    if (o.photo) params.set('photo', JSON.stringify(o.photo));
+    return params;
 }
 
 /* ── Column space ─────────────────────────────────────────────────────────────
@@ -298,6 +303,31 @@ export function weatherSentence(current: CurrentWeather, today: ForecastDay | nu
 export interface Countdown {
     task: Task;
     days: number;
+}
+
+/** The largest whole size in [min, max] for which `fits(size)` holds — `min` if none does.
+ *  `fits` must be monotonic (true up to some size, false beyond), like "the text fits its box". */
+export function fitFontSize(fits: (size: number) => boolean, min: number, max: number): number {
+    let lo = Math.ceil(min);
+    let hi = Math.floor(max);
+    if (!fits(lo)) return lo;
+    while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        if (fits(mid)) lo = mid;
+        else hi = mid - 1;
+    }
+    return lo;
+}
+
+/** The next sunrise after `now` in the forecast (Open-Meteo's local ISO times), or null. */
+export function nextSunrise(forecast: ForecastDay[], now: Date): Date | null {
+    return forecast.map((f) => new Date(f.sunrise)).find((sunrise) => sunrise > now) ?? null;
+}
+
+/** Countdown mode's countdown: the chosen one while it's still ahead, else the next one coming up. */
+export function heroCountdown(tasks: Task[], now: Date, id: number | null): Countdown | null {
+    const upcoming = upcomingCountdowns(tasks, now, Infinity);
+    return upcoming.find((c) => c.task.id === id) ?? upcoming[0] ?? null;
 }
 
 /** Pending countdowns from today on, soonest first. */

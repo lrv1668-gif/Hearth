@@ -15,6 +15,40 @@ public sealed class FrameSettingsTests
     }
 
     [Fact]
+    public void Validate_UnknownPhotoCard_ReturnsError()
+    {
+        Assert.NotNull((Valid with { PhotoCard = "poster" }).Validate());
+    }
+
+    [Fact]
+    public void Validate_BlankPhotoId_ReturnsError()
+    {
+        Assert.NotNull((Valid with { PhotoIds = ["abc", " "] }).Validate());
+    }
+
+    [Fact]
+    public void Validate_TooManyPhotoIds_ReturnsError()
+    {
+        var ids = Enumerable.Range(0, FrameSettings.MaxPhotoIds + 1).Select(i => $"p{i}").ToList();
+        Assert.NotNull((Valid with { PhotoIds = ids }).Validate());
+    }
+
+    [Fact]
+    public void Validate_NoteWithinLimits_ReturnsNull()
+    {
+        var body = string.Join('\n', Enumerable.Repeat("No shoes inside", FrameSettings.MaxNoteLines));
+        Assert.Null((Valid with { NoteTitle = "House rules", NoteBody = body }).Validate());
+    }
+
+    [Fact]
+    public void Validate_NoteTooLong_ReturnsError()
+    {
+        Assert.NotNull((Valid with { NoteTitle = new string('a', FrameSettings.MaxNoteTitle + 1) }).Validate());
+        Assert.NotNull((Valid with { NoteBody = new string('a', FrameSettings.MaxNoteBody + 1) }).Validate());
+        Assert.NotNull((Valid with { NoteBody = string.Join('\n', Enumerable.Repeat("x", FrameSettings.MaxNoteLines + 1)) }).Validate());
+    }
+
+    [Fact]
     public void Validate_UnknownOrientation_ReturnsError()
     {
         Assert.NotNull((Valid with { Orientation = "sideways" }).Validate());

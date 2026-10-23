@@ -137,7 +137,7 @@ dialog:modal {
         font-size: var(--font-caption);
     }
 
-    /* Frame-only display sizes — --font-weekday/-date/-hero/-stamp are set on .frame by
+    /* Frame-only display sizes — --font-weekday/-date/-hero/-stamp/-poster are set on .frame by
        routes/frame/+page.svelte and undefined elsewhere. */
     .type-weekday {
         font-size: var(--font-weekday);
@@ -150,6 +150,9 @@ dialog:modal {
     }
     .type-stamp {
         font-size: var(--font-stamp);
+    }
+    .type-poster {
+        font-size: var(--font-poster);
     }
 
     .icon-lg {

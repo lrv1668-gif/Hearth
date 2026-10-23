@@ -4,17 +4,47 @@
     import { normalizeFrameLayout } from '$lib/constants/frameWidgets';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { frameCanvas, frameUrl, type FrameOptions } from '$lib/frame';
-    import { api } from '$lib/api';
+    import { frameModes, type FrameModeId } from '$lib/constants/frameModes';
+    import { api, type Photo } from '$lib/api';
+    import { pickPhoto, pickPinned } from '$lib/photos';
     import SegmentedControl from './SegmentedControl.svelte';
 
-    // Preview-only toggles: on the real frame, Daily/Ambient and Color/B&W are
-    // switched by schedule or the frame's buttons, so they aren't saved here.
-    let previewMode = $state<'daily' | 'ambient'>('daily');
+    // Preview-only toggles: on the real frame, the mode and Color/B&W are switched by
+    // the mode schedule, a manual choice or the frame's buttons, so they aren't saved here.
+    let previewMode = $state<FrameModeId>('daily');
     let previewPalette = $state<'color' | 'bw'>('color');
     // Live is the page itself; Screen and Paper are the Display service's dithered render.
     let view = $state<'live' | 'screen' | 'paper'>('live');
 
     const layout = $derived(normalizeFrameLayout(frameSettings.layout));
+
+    // Ambient and Photo show a random photo, so the preview picks one itself and hands
+    // it to every view: Live, Screen and Paper show the same photo. It picks again only
+    // when the mode, photo choices or orientation change. Undefined while a pick loads.
+    const photoMode = $derived(previewMode === 'ambient' || previewMode === 'photo');
+    let pickedPhoto = $state<Photo | null | undefined>(undefined);
+    let photoKey = '';
+    $effect(() => {
+        if (!photoMode || !frameSettings.loaded) return;
+        const mode = previewMode;
+        const ids = mode === 'photo' ? [...frameSettings.photoIds] : [];
+        const source = frameSettings.photoSource;
+        const categories = [...frameSettings.photoCategories];
+        const orientation = frameSettings.orientation;
+        const key = JSON.stringify([mode, ids, source, categories, orientation]);
+        if (key === photoKey) return;
+        photoKey = key;
+        pickedPhoto = undefined;
+        // As the frame picks: Photo's pinned upload or album, else an Ambient photo.
+        const pick = async () =>
+            (ids.length > 0 ? pickPinned(ids, await api.photos.list()) : null) ??
+            (await pickPhoto(source, categories, orientation));
+        pick().then(
+            (p) => key === photoKey && (pickedPhoto = p),
+            () => key === photoKey && (pickedPhoto = null)
+        );
+    });
+    const photo = $derived(photoMode ? pickedPhoto : null);
 
     const options = $derived<FrameOptions>({
         mode: previewMode,
@@ -27,10 +57,11 @@
         layout,
         split: frameSettings.split,
         position: frameSettings.ambientPosition,
+        photo,
     });
 
-    // The full URL, shown below the preview.
-    const url = $derived(frameUrl(options));
+    // The full URL, shown below the preview — without the pinned photo, as the frame loads it.
+    const url = $derived(frameUrl({ ...options, photo: null }));
 
     // A render takes a few seconds of headless Chromium on the host, so wait for the
     // settings to stop changing, and only render while a dithered view is showing. The
@@ -39,7 +70,7 @@
     let rendering = $state(false);
     let renderFailed = $state(false);
     $effect(() => {
-        if (view === 'live') return;
+        if (view === 'live' || photo === undefined) return;
         const next = api.display.previewUrl(options, view);
         const timer = setTimeout(() => {
             if (next === renderSrc) return;
@@ -51,8 +82,8 @@
     });
 
     // The iframe only reloads for structural changes (mode, orientation, size, layout,
-    // split). Theme, font and palette are applied to the loaded frame in place below —
-    // a reload would refetch everything, and in Ambient swap in a new random photo.
+    // split, the picked photo). Theme, font and palette are applied to the loaded frame
+    // in place below — a reload would refetch everything.
     const previewSrc = $derived.by(() => {
         const structure = {
             mode: previewMode,
@@ -61,6 +92,7 @@
             height: frameSettings.height,
             layout,
             split: frameSettings.split,
+            photo,
         };
         return untrack(() =>
             frameUrl({
@@ -104,15 +136,12 @@
 <!--
 @component
 Live preview of the real /frame page at panel resolution, scaled to fit, with
-Daily/Ambient and Color/B&W toggles and the resulting frame URL.
+mode and Color/B&W toggles and the resulting frame URL.
 -->
 <div>
     <div class="mb-3 flex flex-wrap items-center gap-3">
         <SegmentedControl
-            options={[
-                { value: 'daily', label: 'Daily' },
-                { value: 'ambient', label: 'Ambient' },
-            ]}
+            options={frameModes.map((m) => ({ value: m.id, label: m.label }))}
             value={previewMode}
             onchange={(v) => (previewMode = v)}
         />
@@ -159,7 +188,7 @@ Daily/Ambient and Color/B&W toggles and the resulting frame URL.
                 {renderFailed ? 'Couldn’t render the frame — is the renderer running?' : 'Rendering…'}
             </div>
         {/if}
-        {#if view === 'live' && boxWidth > 0}
+        {#if view === 'live' && boxWidth > 0 && photo !== undefined}
             <iframe
                 bind:this={iframe}
                 onload={applyLook}

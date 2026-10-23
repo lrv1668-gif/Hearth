@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { setLucideProps } from '@lucide/svelte';
     import { page } from '$app/state';
-    import type { Photo } from '$lib/api';
+    import { api, type Photo } from '$lib/api';
     import { loadWeather } from '$lib/stores/WeatherStore.svelte.ts';
     import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
     import { loadCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
@@ -12,9 +12,13 @@
     import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
     import { SECOND } from '$lib/utils';
     import { frameCanvas, isAmbientPosition, isFrameSize, setFrameScale, type Pixels } from '$lib/frame';
-    import { pickPhoto } from '$lib/photos';
+    import { parsePhotoParam, pickPhoto, pickPinned } from '$lib/photos';
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
+    import FrameCountdownHero from '$lib/components/frame/modes/FrameCountdownHero.svelte';
+    import FrameNight from '$lib/components/frame/modes/FrameNight.svelte';
+    import FrameNote from '$lib/components/frame/modes/FrameNote.svelte';
+    import { DEFAULT_FRAME_MODE, isFrameMode, type FrameModeId } from '$lib/constants/frameModes';
     import { frameDataTheme, isValidFrameThemeId } from '$lib/constants/frameThemes';
     import { isValidFontThemeId } from '$lib/constants/fontThemes';
     import { frameSettings, loadFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
@@ -24,7 +28,10 @@
     // headless renderer starts with empty localStorage. A param the URL leaves out
     // falls back to the shared Settings → Frame choices held by the Display service
     // (theme, font, orientation, panel size, layout), then to the defaults:
-    //   ?mode=ambient|daily          (default ambient, per PRODUCT.md)
+    //   ?mode=ambient|daily|photo|countdown|night|note
+    //                                (default: what the Display service resolves now —
+    //                                 an override, the schedule, or its default mode —
+    //                                 else ambient; see constants/frameModes.ts)
     //   ?palette=color|bw            (default color — the Color ↔ B&W mode)
     //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
     //                                 B&W follows its lightness)
@@ -43,12 +50,18 @@
     //                                (Ambient info card)
     //   ?source=unsplash|local|both   (Ambient photos; default: the shared choice)
     //   ?categories=a,b       (Ambient Unsplash categories; default: the shared choice)
+    //   ?photo={...}          (a JSON Photo shown instead of a random pick — Settings'
+    //                          preview pins one so its Live/Screen/Paper views match)
     // The root's data-ready flips to "true" once data, fonts and the photo have
     // settled, or after READY_DEADLINE_MS regardless, so one hung upstream can't
     // hold back the whole frame — screenshot after that. No polling: the renderer
     // reloads per frame.
     const params = page.url.searchParams;
-    const mode = params.get('mode') === 'daily' ? 'daily' : 'ambient';
+    const modeParam = params.get('mode');
+    // Null until resolved: the URL's mode, else Display's (onMount).
+    let mode = $state<FrameModeId | null>(isFrameMode(modeParam) ? modeParam : null);
+    // The upload "Show on frame" pinned, when Display resolved to it.
+    let pinnedPhotoId: string | null = null;
     const palette = params.get('palette') === 'bw' ? 'bw' : 'color';
     const themeParam = params.get('theme');
     const theme = $derived(isValidFrameThemeId(themeParam) ? themeParam : frameSettings.theme);
@@ -75,6 +88,7 @@
     const position = $derived(isAmbientPosition(positionParam) ? positionParam : frameSettings.ambientPosition);
     const sourceParam = params.get('source');
     const categoriesParam = params.get('categories');
+    const photoParam = parsePhotoParam(params.get('photo'));
     const layout = $derived(parseFrameLayout(params, { ...frameSettings.layout, split: frameSettings.split }));
 
     const READY_DEADLINE_MS = 15 * SECOND;
@@ -97,12 +111,22 @@
     let photoPixels = $state<Pixels | null>(null);
     let ready = $state(false);
 
+    /** Photo mode's pinned upload or album, or null (none chosen, or all deleted). */
+    async function pinnedPhoto(): Promise<Photo | null> {
+        const ids = pinnedPhotoId ? [pinnedPhotoId] : frameSettings.photoIds;
+        return ids.length > 0 ? pickPinned(ids, await api.photos.list()) : null;
+    }
+
     async function loadPhoto() {
-        const next = await pickPhoto(
-            sourceParam || frameSettings.photoSource,
-            categoriesParam ? categoriesParam.split(',') : frameSettings.photoCategories,
-            orientation
-        );
+        // Photo mode falls back to Ambient's pick, so the frame never goes blank.
+        const next =
+            photoParam ??
+            (mode === 'photo' ? await pinnedPhoto() : null) ??
+            (await pickPhoto(
+                sourceParam || frameSettings.photoSource,
+                categoriesParam ? categoriesParam.split(',') : frameSettings.photoCategories,
+                orientation
+            ));
         if (!next) return;
         // Decode before signalling ready so the screenshot never catches a blank frame.
         // CORS mode so the pixels can be read back (Unsplash's CDN allows it; uploads
@@ -137,7 +161,10 @@
     }
 
     function dataLoads(): Promise<unknown>[] {
-        if (mode === 'ambient') return [loadWeather(), loadPhoto()];
+        if (mode === 'ambient' || mode === 'photo') return [loadWeather(), loadPhoto()];
+        if (mode === 'countdown') return [loadTasks()];
+        if (mode === 'night') return [loadWeather()];
+        if (mode === 'note') return [];
         const extras = [...layout.left, ...layout.right].flatMap((id) => widgetLoaders[id] ?? []);
         return [loadWeather(), loadTasks(), loadCalendarItems(), loadAlmanac(), ...extras.map((load) => load())];
     }
@@ -145,6 +172,11 @@
     onMount(async () => {
         // Settings first: the layout decides which data to load.
         await loadFrameSettings();
+        if (!mode) {
+            const resolved = await api.display.mode();
+            mode = resolved?.mode ?? DEFAULT_FRAME_MODE;
+            pinnedPhotoId = resolved?.photo_id ?? null;
+        }
         const settled = Promise.allSettled(dataLoads()).then(() => document.fonts.ready);
         await Promise.race([settled, new Promise((resolve) => setTimeout(resolve, READY_DEADLINE_MS))]);
         ready = true;
@@ -166,11 +198,22 @@
     style="width: {canvas.w}px; height: {canvas.h}px; --frame-scale: {canvas.scale}"
 >
     <!-- Wait for the shared settings so the layout is measured once, in its final shape. -->
-    {#if frameSettings.loaded}
+    {#if frameSettings.loaded && mode}
         {#if mode === 'daily'}
             <FrameDaily {now} {orientation} {layout} split={layout.split} />
+        {:else if mode === 'countdown'}
+            <FrameCountdownHero {now} countdownId={frameSettings.countdownId} />
+        {:else if mode === 'night'}
+            <FrameNight {now} />
+        {:else if mode === 'note'}
+            <FrameNote title={frameSettings.noteTitle} body={frameSettings.noteBody} />
         {:else}
-            <FrameAmbient {now} {photo} pixels={photoPixels} />
+            <FrameAmbient
+                {now}
+                {photo}
+                pixels={photoPixels}
+                card={mode === 'photo' ? frameSettings.photoCard : 'full'}
+            />
         {/if}
     {/if}
 </div>
@@ -195,11 +238,12 @@
         --font-body: calc(32px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-label: calc(26px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-caption: calc(22px * var(--font-scale, 1) * var(--frame-scale, 1));
-        /* Frame-only display sizes (.type-weekday/-date/-hero/-stamp), set in --display-family */
+        /* Frame-only display sizes (.type-weekday/-date/-hero/-stamp/-poster), set in --display-family */
         --font-weekday: calc(112px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-date: calc(128px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-hero: calc(100px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-stamp: calc(80px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-poster: calc(400px * var(--font-scale, 1) * var(--frame-scale, 1));
 
         --icon-lg: calc(56px * var(--frame-scale, 1));
         --icon-md: calc(40px * var(--frame-scale, 1));

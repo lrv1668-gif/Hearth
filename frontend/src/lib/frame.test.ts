@@ -7,8 +7,11 @@ import {
     durationLabel,
     forecastBars,
     frameUrl,
+    fitFontSize,
     frameCanvas,
+    heroCountdown,
     isFrameSize,
+    nextSunrise,
     normalizeFrameSize,
     DEFAULT_FRAME_SIZE,
     isAmbientPosition,
@@ -363,6 +366,55 @@ describe('upcomingCountdowns', () => {
             [2, 0],
             [1, 12],
         ]);
+    });
+});
+
+describe('heroCountdown', () => {
+    const tasks = [
+        task({ id: 1, is_countdown: true, due_date: '2026-10-31' }),
+        task({ id: 2, is_countdown: true, due_date: '2026-10-22' }),
+        task({ id: 3, is_countdown: true, due_date: '2026-10-10' }),
+    ];
+
+    it('shows the chosen countdown while it is still ahead', () => {
+        expect(heroCountdown(tasks, now, 1)).toMatchObject({ task: { id: 1 }, days: 12 });
+    });
+
+    it('falls back to the next one coming up', () => {
+        expect(heroCountdown(tasks, now, null)?.task.id).toBe(2);
+        expect(heroCountdown(tasks, now, 3)?.task.id).toBe(2); // already past
+        expect(heroCountdown(tasks, now, 99)?.task.id).toBe(2); // deleted
+    });
+
+    it('is null with no countdowns ahead', () => {
+        expect(heroCountdown([], now, null)).toBeNull();
+    });
+});
+
+describe('fitFontSize', () => {
+    it('finds the largest size that still fits', () => {
+        expect(fitFontSize((px) => px <= 87, 22, 200)).toBe(87);
+    });
+
+    it('stops at the bounds', () => {
+        expect(fitFontSize(() => true, 22, 200)).toBe(200);
+        expect(fitFontSize(() => false, 22, 200)).toBe(22);
+    });
+
+    it('works on fractional bounds from a scaled frame', () => {
+        expect(fitFontSize((px) => px <= 50, 10.5, 99.9)).toBe(50);
+    });
+});
+
+describe('nextSunrise', () => {
+    it("takes today's sunrise before dawn and tomorrow's after it", () => {
+        const days = [
+            forecast({ date: '2026-10-19', sunrise: '2026-10-19T07:12' }),
+            forecast({ date: '2026-10-20', sunrise: '2026-10-20T07:13' }),
+        ];
+        expect(nextSunrise(days, new Date('2026-10-19T03:00'))).toEqual(new Date('2026-10-19T07:12'));
+        expect(nextSunrise(days, now)).toEqual(new Date('2026-10-20T07:13'));
+        expect(nextSunrise(days, new Date('2026-10-21T03:00'))).toBeNull();
     });
 });
 

@@ -48,7 +48,11 @@ public sealed class FramePreviewTests
 
     [Theory]
     [InlineData("daily", "ordered")]
+    [InlineData("countdown", "ordered")]
+    [InlineData("night", "ordered")]
+    [InlineData("note", "ordered")]
     [InlineData("ambient", "errorDiffusion")]
+    [InlineData("photo", "errorDiffusion")]
     [InlineData(null, "errorDiffusion")]
     public void DitherFor_Mode_ReturnsMethod(string? mode, string method)
     {

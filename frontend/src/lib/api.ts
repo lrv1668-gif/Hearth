@@ -1,4 +1,5 @@
 import { frameParams, type FrameOptions } from '$lib/frame';
+import type { FrameModeId, ModeDay, PhotoCard } from '$lib/constants/frameModes';
 
 // ---- Types ----
 
@@ -237,6 +238,45 @@ export interface FrameSettings {
     /** Ambient photos (frame and the /ambient slideshow): "unsplash", "local", "both", … */
     photo_source: string;
     photo_categories: string[];
+    /** Photo mode's uploads — one pins it, several make an album — and how much card it keeps. */
+    photo_ids: string[];
+    photo_card: PhotoCard;
+    /** Countdown mode's countdown task; null shows the next one coming up. */
+    countdown_id: number | null;
+    /** Note mode's heading and body (one line per rule or item; blank lines space sections). */
+    note_title: string | null;
+    note_body: string | null;
+}
+
+/** A time-of-day schedule rule ("HH:mm", household time); an end before the start
+ *  runs past midnight, equal times mean all day. */
+export interface ModeRule {
+    mode: FrameModeId;
+    days: ModeDay[];
+    start: string;
+    end: string;
+}
+
+/** The frame's default mode plus its rules; the first matching rule wins. */
+export interface ModeSchedule {
+    default_mode: FrameModeId;
+    rules: ModeRule[];
+}
+
+/** What the frame shows now and why; `until` is when that may next change. */
+export interface ResolvedMode {
+    mode: FrameModeId;
+    reason: 'override' | 'schedule' | 'default';
+    until: string | null;
+    /** The upload pinned by "Show on frame", when one is. */
+    photo_id: string | null;
+}
+
+/** A manual choice that beats the schedule until `until` (null: until cleared). */
+export interface ModeOverride {
+    mode: FrameModeId;
+    until?: string | null;
+    photo_id?: string | null;
 }
 
 export type AmbientPosition =
@@ -280,6 +320,31 @@ class ApiClient {
 
         saveSettings: (settings: FrameSettings): Promise<FrameSettings> =>
             this.put<FrameSettings>('/display/settings', settings),
+
+        /** The mode the frame shows now; null when the Display service can't be reached. */
+        mode: async (): Promise<ResolvedMode | null> => {
+            // Bounded like settings(), so a hung service can't hold up /frame's ready signal.
+            const res = await fetch('/display/mode', { signal: AbortSignal.timeout(5000) }).catch(() => null);
+            return res?.ok ? (res.json() as Promise<ResolvedMode>) : null;
+        },
+
+        schedule: (): Promise<ModeSchedule | null> => this.get<ModeSchedule>('/display/mode/schedule'),
+
+        saveSchedule: (schedule: ModeSchedule): Promise<ModeSchedule> =>
+            this.put<ModeSchedule>('/display/mode/schedule', schedule),
+
+        setOverride: (manual: ModeOverride): Promise<ModeOverride> =>
+            this.put<ModeOverride>('/display/mode/override', manual),
+
+        /** Back to the schedule. With `photoId`, only if that photo is the one pinned. */
+        clearOverride: (photoId?: string): Promise<boolean> =>
+            this.del(`/display/mode/override${photoId ? `?${new URLSearchParams({ photo_id: photoId })}` : ''}`),
+
+        /** Steps to the next mode until the schedule's next change — the frame's Button B. */
+        next: async (): Promise<ResolvedMode | null> => {
+            const res = await fetch('/display/mode/next', { method: 'POST' }).catch(() => null);
+            return res?.ok ? (res.json() as Promise<ResolvedMode>) : null;
+        },
 
         /** The saved home location; null when none is saved yet, undefined when the
          *  Display service can't be reached. */

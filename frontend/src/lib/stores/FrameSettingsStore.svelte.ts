@@ -3,6 +3,7 @@ import { api, type AmbientPosition, type FrameSettings } from '$lib/api';
 import { DEFAULT_AMBIENT_POSITION, DEFAULT_FRAME_SIZE, isAmbientPosition, isFrameSize } from '$lib/frame';
 import { categoryOptions } from '$lib/constants/ambient';
 import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
+import { isPhotoCard, type PhotoCard } from '$lib/constants/frameModes';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '$lib/constants/frameThemes';
 import { DEFAULT_FONT_THEME, isValidFontThemeId, type FontThemeId } from '$lib/constants/fontThemes';
 import {
@@ -39,6 +40,14 @@ class FrameSettingsStore {
     ambientPosition = $state<AmbientPosition>(DEFAULT_AMBIENT_POSITION);
     photoSource = $state<PhotoSource>('unsplash');
     photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);
+    /** Photo mode: the chosen uploads and how much of the info card to keep. */
+    photoIds = $state<string[]>([]);
+    photoCard = $state<PhotoCard>('full');
+    /** Countdown mode: the countdown task to show; null shows the next one coming up. */
+    countdownId = $state<number | null>(null);
+    /** Note mode: a heading and a body, kept as typed (line breaks included). */
+    noteTitle = $state('');
+    noteBody = $state('');
     /** True once the Display service has answered (or failed to). */
     loaded = $state(false);
     /** The Display service couldn't be reached — showing (and not saving) defaults. */
@@ -48,6 +57,10 @@ class FrameSettingsStore {
         this.photoCategories = this.photoCategories.includes(cat)
             ? this.photoCategories.filter((c) => c !== cat)
             : [...this.photoCategories, cat];
+    }
+
+    togglePhoto(id: string) {
+        this.photoIds = this.photoIds.includes(id) ? this.photoIds.filter((p) => p !== id) : [...this.photoIds, id];
     }
 
     /** Removes the widget, or adds it to the column with more room (no-op if both are full). */
@@ -75,11 +88,21 @@ class FrameSettingsStore {
             ambient_position: this.ambientPosition,
             photo_source: this.photoSource,
             photo_categories: this.photoCategories,
+            photo_ids: this.photoIds,
+            photo_card: this.photoCard,
+            countdown_id: this.countdownId,
+            note_title: this.noteTitle || null,
+            note_body: this.noteBody || null,
         };
     }
 
     /** Applies saved settings, dropping ids this frontend doesn't know. */
     apply(saved: Partial<FrameSettings>) {
+        if (Array.isArray(saved.photo_ids)) this.photoIds = saved.photo_ids;
+        if (isPhotoCard(saved.photo_card)) this.photoCard = saved.photo_card;
+        if (saved.countdown_id !== undefined) this.countdownId = saved.countdown_id;
+        if (saved.note_title !== undefined) this.noteTitle = saved.note_title ?? '';
+        if (saved.note_body !== undefined) this.noteBody = saved.note_body ?? '';
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
         if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
         if (saved.orientation === 'landscape' || saved.orientation === 'portrait') this.orientation = saved.orientation;
