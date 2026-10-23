@@ -1,8 +1,25 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
+import { createLogger } from 'vite';
 import { defineConfig } from 'vitest/config';
 
+// Vite only warns when a CSS url() can't be resolved and leaves it to 404 at
+// runtime — that's how the self-hosted fonts once silently fell out of the
+// prod build. Fail the build instead.
+const logger = createLogger();
+for (const level of ['warn', 'warnOnce'] as const) {
+    const log = logger[level];
+    logger[level] = (msg, options) => {
+        if (msg.includes("didn't resolve at build time")) throw new Error(msg);
+        log(msg, options);
+    };
+}
+
 export default defineConfig({
-    plugins: [sveltekit()],
+    // Tailwind's Vite plugin (not @tailwindcss/postcss) so @imported CSS keeps
+    // its own base for relative url()s — e.g. @fontsource's ./files/*.woff2
+    plugins: [tailwindcss(), sveltekit()],
+    customLogger: logger,
     test: {
         environment: 'node',
         include: ['src/**/*.{test,spec}.ts'],
