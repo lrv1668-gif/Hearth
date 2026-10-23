@@ -461,38 +461,168 @@
                             Everything else happens on a small server somewhere on your network.
                         </p>
                     </div>
-                    <div class="diagram">
-                        <div class="node">
-                            <h3>Your phone &amp; browser</h3>
-                            <p>Add tasks, connect accounts, choose themes and lay out the frame.</p>
-                        </div>
-                        <div class="arrow" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16m-5-5 5 5-5 5" /></svg>
-                        </div>
-                        <div class="node host">
-                            <h3>The host</h3>
-                            <p>
-                                A Raspberry Pi 4/5 or mini PC running Docker Compose: a SvelteKit app and eleven small
-.NET services behind Caddy, each with its own SQLite file, plus a headless-Chromium
-                                renderer that captures and dithers the frame.
-                            </p>
-                            <ul>
-                                <li>Tasks</li><li>Calendar</li><li>Weather</li><li>Photos</li><li>Almanac</li><li>Birds</li>
-                                <li>Quote</li><li>RSS</li><li>Trains</li><li>Spotify</li><li>Display</li>
-                            </ul>
-                        </div>
-                        <div class="arrow" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16m-5-5 5 5-5 5" /></svg>
-                            <span>Panel-sized<br />image</span>
-                        </div>
-                        <div class="node">
-                            <h3>The frame</h3>
-                            <p>
-                                A Raspberry Pi behind a 13.3" Inky Impression color e-paper panel, running
-                                <em>inkypull</em>, a small Python client.
-                            </p>
-                        </div>
-                    </div>
+                    <figure class="diagram">
+                        <svg class="diagram-wide" viewBox="0 0 1000 440" role="img" aria-labelledby="dg-title dg-desc">
+                            <title id="dg-title">How Hearth fits together</title>
+                            <desc id="dg-desc">
+                                Browsers and the e-paper frame both talk to Caddy on the host. Caddy serves the SvelteKit app
+                                and routes API calls to eleven .NET services, which fetch and cache upstream APIs. On a schedule
+                                the Display service has the renderer load the /frame page through Caddy, screenshot and dither
+                                it; the frame pulls the finished image from /display/frame.
+                            </desc>
+                            <defs>
+                                <marker id="dg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                    <path class="dg-head" d="M0 0 10 5 0 10z" />
+                                </marker>
+                                <marker id="dg-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                    <path class="dg-head hot" d="M0 0 10 5 0 10z" />
+                                </marker>
+                            </defs>
+
+                            <rect class="dg-host" x="250" y="12" width="520" height="416" rx="12" />
+                            <text class="dg-m start" x="270" y="42">The host · Docker Compose</text>
+
+                            <rect class="dg-box" x="1" y="60" width="168" height="80" rx="8" />
+                            <text class="dg-t" x="85" y="95">Phone &amp; browser</text>
+                            <text class="dg-s" x="85" y="117">dashboard · settings</text>
+
+                            <rect class="dg-box hot" x="1" y="300" width="168" height="90" rx="8" />
+                            <text class="dg-t" x="85" y="330">E-paper frame</text>
+                            <text class="dg-s" x="85" y="351">Pi + Inky 13.3″</text>
+                            <text class="dg-s" x="85" y="371">runs inkypull</text>
+
+                            <rect class="dg-box" x="290" y="70" width="80" height="330" rx="8" />
+                            <text class="dg-t" x="330" y="228">Caddy</text>
+                            <text class="dg-s" x="330" y="249">one</text>
+                            <text class="dg-s" x="330" y="266">origin</text>
+
+                            <rect class="dg-box" x="470" y="70" width="280" height="70" rx="8" />
+                            <text class="dg-t" x="610" y="100">SvelteKit app</text>
+                            <text class="dg-s" x="610" y="122">dashboard + /frame page</text>
+
+                            <rect class="dg-box" x="470" y="170" width="280" height="130" rx="8" />
+                            <text class="dg-t" x="610" y="197">11 .NET services</text>
+                            <text class="dg-s" x="610" y="221">Tasks · Calendar · Weather · Photos</text>
+                            <text class="dg-s" x="610" y="240">Almanac · Birds · Quote · RSS</text>
+                            <text class="dg-s" x="610" y="259">Trains · Spotify · Display</text>
+                            <text class="dg-m" x="610" y="285">each with its own SQLite file</text>
+
+                            <rect class="dg-box hot" x="470" y="330" width="280" height="70" rx="8" />
+                            <text class="dg-t" x="610" y="360">Renderer</text>
+                            <text class="dg-s" x="610" y="382">headless Chromium → six-ink dither</text>
+
+                            <rect class="dg-box" x="820" y="150" width="179" height="170" rx="8" />
+                            <text class="dg-t" x="910" y="180">Upstream APIs</text>
+                            <text class="dg-s" x="910" y="204">Open-Meteo</text>
+                            <text class="dg-s" x="910" y="223">Unsplash</text>
+                            <text class="dg-s" x="910" y="242">Google Calendar</text>
+                            <text class="dg-s" x="910" y="261">Spotify · eBird</text>
+                            <text class="dg-s" x="910" y="280">Transitland</text>
+                            <text class="dg-s" x="910" y="299">ZenQuotes · RSS</text>
+
+                            <line class="dg-line" x1="170" y1="100" x2="289" y2="100" marker-end="url(#dg-arrow)" />
+                            <text class="dg-l" x="230" y="91">HTTPS</text>
+
+                            <line class="dg-line hot" x1="170" y1="345" x2="289" y2="345" marker-end="url(#dg-arrow-hot)" />
+                            <text class="dg-l hot" x="230" y="336">GET /display/frame</text>
+                            <text class="dg-l hot" x="230" y="363">panel-sized PNG</text>
+
+                            <line class="dg-line" x1="370" y1="105" x2="469" y2="105" marker-end="url(#dg-arrow)" />
+                            <text class="dg-l" x="420" y="96">pages</text>
+
+                            <line class="dg-line" x1="370" y1="235" x2="469" y2="235" marker-end="url(#dg-arrow)" />
+                            <text class="dg-l" x="420" y="226">API calls</text>
+
+                            <line class="dg-line" x1="750" y1="235" x2="819" y2="235" marker-end="url(#dg-arrow)" />
+                            <text class="dg-l start" x="777" y="226">fetch</text>
+                            <text class="dg-l start" x="777" y="252">+ cache</text>
+
+                            <line class="dg-line hot" x1="610" y1="300" x2="610" y2="329" marker-end="url(#dg-arrow-hot)" />
+                            <text class="dg-l hot start" x="620" y="319">Display, on a schedule</text>
+
+                            <line class="dg-line hot" x1="470" y1="365" x2="371" y2="365" marker-end="url(#dg-arrow-hot)" />
+                            <text class="dg-l hot" x="420" y="356">loads /frame</text>
+                        </svg>
+
+                        <svg class="diagram-tall" viewBox="0 0 360 646" role="img" aria-labelledby="dg-title-m dg-desc-m">
+                            <title id="dg-title-m">How Hearth fits together</title>
+                            <desc id="dg-desc-m">
+                                Browsers and the e-paper frame both talk to Caddy on the host. Caddy serves the SvelteKit app
+                                and routes API calls to eleven .NET services, which fetch and cache upstream APIs. On a schedule
+                                the Display service has the renderer load the /frame page through Caddy, screenshot and dither
+                                it; the frame pulls the finished image from /display/frame.
+                            </desc>
+                            <defs>
+                                <marker id="dg-arrow-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                    <path class="dg-head" d="M0 0 10 5 0 10z" />
+                                </marker>
+                                <marker id="dg-arrow-hot-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                    <path class="dg-head hot" d="M0 0 10 5 0 10z" />
+                                </marker>
+                            </defs>
+
+                            <rect class="dg-host" x="1" y="112" width="358" height="392" rx="12" />
+                            <text class="dg-m start" x="16" y="496">The host · Docker Compose</text>
+
+                            <rect class="dg-box" x="1" y="1" width="168" height="66" rx="8" />
+                            <text class="dg-t" x="85" y="29">Phone &amp; browser</text>
+                            <text class="dg-s" x="85" y="50">dashboard · settings</text>
+
+                            <rect class="dg-box hot" x="191" y="1" width="168" height="66" rx="8" />
+                            <text class="dg-t" x="275" y="29">E-paper frame</text>
+                            <text class="dg-s" x="275" y="50">Pi + Inky, inkypull</text>
+
+                            <rect class="dg-box" x="16" y="152" width="328" height="44" rx="8" />
+                            <text class="dg-t" x="180" y="179">Caddy · one origin</text>
+
+                            <rect class="dg-box" x="16" y="246" width="148" height="62" rx="8" />
+                            <text class="dg-t" x="90" y="272">SvelteKit app</text>
+                            <text class="dg-s" x="90" y="292">dashboard + /frame</text>
+
+                            <rect class="dg-box hot" x="196" y="246" width="148" height="62" rx="8" />
+                            <text class="dg-t" x="270" y="272">Renderer</text>
+                            <text class="dg-s" x="270" y="292">Chromium → 6 inks</text>
+
+                            <rect class="dg-box" x="16" y="358" width="328" height="122" rx="8" />
+                            <text class="dg-t" x="180" y="384">11 .NET services</text>
+                            <text class="dg-s" x="180" y="406">Tasks · Calendar · Weather · Photos</text>
+                            <text class="dg-s" x="180" y="424">Almanac · Birds · Quote · RSS</text>
+                            <text class="dg-s" x="180" y="442">Trains · Spotify · Display</text>
+                            <text class="dg-m" x="180" y="466">each with its own SQLite file</text>
+
+                            <rect class="dg-box" x="16" y="552" width="328" height="92" rx="8" />
+                            <text class="dg-t" x="180" y="580">Upstream APIs</text>
+                            <text class="dg-s" x="180" y="603">Open-Meteo · Unsplash · Google Calendar</text>
+                            <text class="dg-s" x="180" y="623">Spotify · eBird · Transitland · ZenQuotes · RSS</text>
+
+                            <line class="dg-line" x1="85" y1="67" x2="85" y2="151" marker-end="url(#dg-arrow-m)" />
+                            <text class="dg-l start" x="93" y="102">HTTPS</text>
+
+                            <line class="dg-line hot" x1="275" y1="67" x2="275" y2="151" marker-end="url(#dg-arrow-hot-m)" />
+                            <text class="dg-l hot end" x="267" y="98">GET /display/frame</text>
+
+                            <line class="dg-line" x1="90" y1="196" x2="90" y2="245" marker-end="url(#dg-arrow-m)" />
+                            <text class="dg-l start" x="98" y="225">pages</text>
+
+                            <line class="dg-line" x1="180" y1="196" x2="180" y2="357" marker-end="url(#dg-arrow-m)" />
+                            <text class="dg-l end" x="172" y="337">API calls</text>
+
+                            <line class="dg-line hot" x1="270" y1="246" x2="270" y2="197" marker-end="url(#dg-arrow-hot-m)" />
+                            <text class="dg-l hot start" x="278" y="225">loads /frame</text>
+
+                            <line class="dg-line hot" x1="270" y1="358" x2="270" y2="309" marker-end="url(#dg-arrow-hot-m)" />
+                            <text class="dg-l hot start" x="278" y="337">scheduled</text>
+
+                            <line class="dg-line" x1="180" y1="480" x2="180" y2="551" marker-end="url(#dg-arrow-m)" />
+                            <text class="dg-l start" x="188" y="520">fetch + cache</text>
+                        </svg>
+
+                        <figcaption>
+                            Everything runs on one host behind Caddy. The highlighted path is the frame's: on a schedule,
+                            Display has the renderer screenshot the <code>/frame</code> page and dither it to the panel's six
+                            inks, and the frame simply pulls the finished picture.
+                        </figcaption>
+                    </figure>
                     <p class="note">
                         <strong>Where it stands:</strong> the dashboard, all six frame modes and their schedule are built
                         and run today in any browser; the host captures, dithers and serves the frame on a schedule, and the
