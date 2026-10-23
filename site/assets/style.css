@@ -641,66 +641,92 @@ section + section {
 
 /* Architecture diagram */
 .diagram {
-    display: grid;
-    gap: 1rem;
-    align-items: stretch;
+    margin: 0;
 }
-@media (min-width: 900px) {
-    .diagram {
-        grid-template-columns: 1fr auto 1.6fr auto 1fr;
+.diagram svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    font-family: var(--body);
+}
+.diagram .diagram-tall {
+    max-width: 420px;
+    margin-inline: auto;
+}
+@media (min-width: 860px) {
+    .diagram .diagram-tall {
+        display: none;
     }
 }
-.node {
-    border: 1px solid var(--border);
-    background: var(--paper);
-    border-radius: 8px;
-    padding: 1.25rem;
+@media (max-width: 859px) {
+    .diagram .diagram-wide {
+        display: none;
+    }
 }
-.node h3 {
-    font-family: var(--body);
-    font-size: 1rem;
+.diagram text {
+    text-anchor: middle;
+}
+.diagram text.start {
+    text-anchor: start;
+}
+.diagram text.end {
+    text-anchor: end;
+}
+.dg-box {
+    fill: var(--paper);
+    stroke: var(--border);
+    stroke-width: 1.5;
+}
+.dg-box.hot {
+    stroke: var(--accent);
+}
+.dg-host {
+    fill: none;
+    stroke: var(--text-1);
+    stroke-width: 2;
+}
+.dg-t {
+    fill: var(--text-1);
+    font-size: 15px;
     font-weight: 600;
-    margin-bottom: 0.35rem;
 }
-.node p {
+.dg-s {
+    fill: var(--text-2);
+    font-size: 13px;
+}
+.dg-m {
+    fill: var(--text-3);
+    font-size: 12px;
+}
+.dg-line {
+    stroke: var(--text-3);
+    stroke-width: 1.5;
+}
+.dg-head {
+    fill: var(--text-3);
+}
+.dg-line.hot {
+    stroke: var(--accent);
+}
+.dg-head.hot {
+    fill: var(--accent);
+}
+.dg-l {
+    fill: var(--text-2);
+    font-size: 12px;
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+}
+.dg-l.hot {
+    fill: var(--accent);
+}
+.diagram figcaption {
+    margin-top: 1.25rem;
     font-size: 0.9rem;
     color: var(--text-2);
-}
-.node ul {
-    list-style: none;
-    margin: 0.75rem 0 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-.node li {
-    font-size: 0.75rem;
-    padding: 0.2em 0.6em;
-    border-radius: 3px;
-    background: var(--surface);
-    color: var(--text-2);
-}
-.node.host {
-    border: 2px solid var(--text-1);
-}
-.arrow {
-    display: grid;
-    place-items: center;
-    color: var(--text-3);
-    font-size: 0.75rem;
-    text-align: center;
-    gap: 0.25rem;
-    padding: 0.25rem;
-}
-.arrow svg {
-    width: 28px;
-    height: 28px;
-}
-@media (max-width: 899px) {
-    .arrow svg {
-        transform: rotate(90deg);
-    }
+    max-width: var(--measure);
 }
 
 /* Stat strip */

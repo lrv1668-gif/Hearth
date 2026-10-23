@@ -4,6 +4,34 @@ A calm, self-hosted home dashboard designed to look beautiful and recede into th
 
 **Project site:** [hearth.lucas-vertrees.me](https://hearth.lucas-vertrees.me/) — a tour of the frame, the dashboard and how to build one. Its source is in [`site/`](site/).
 
+## How it works
+
+One host runs everything behind Caddy; browsers and the e-paper frame are just clients of it. The frame never renders anything itself — the Display service has the renderer screenshot `/frame` on a schedule and the frame pulls the finished, dithered picture.
+
+```mermaid
+flowchart LR
+    browser["Phone / browser<br/>dashboard · settings"]
+    frame["E-paper frame<br/>Pi Zero 2 W + Inky 13.3″<br/>runs inkypull"]
+    apis["Upstream APIs<br/>Open-Meteo · Unsplash · Google Calendar<br/>Spotify · eBird · Transitland · ZenQuotes · RSS"]
+
+    subgraph host["Host — Docker Compose"]
+        caddy["Caddy<br/>one origin"]
+        web["SvelteKit app<br/>dashboard + /frame page"]
+        services["11 .NET services<br/>Tasks · Calendar · Weather · Photos<br/>Almanac · Birds · Quote · RSS<br/>Trains · Spotify · Display<br/>(own SQLite each)"]
+        renderer["Renderer<br/>headless Chromium → 6-ink dither"]
+    end
+
+    browser -->|HTTPS| caddy
+    frame -->|"GET /display/frame (PNG)"| caddy
+    caddy -->|pages| web
+    caddy -->|"/tasks, /weather, …"| services
+    services -->|fetch + cache| apis
+    services -->|"Display, on a schedule"| renderer
+    renderer -->|"loads /frame"| caddy
+```
+
+See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for how each piece works.
+
 ## Pages
 
 | Route | What it shows |
