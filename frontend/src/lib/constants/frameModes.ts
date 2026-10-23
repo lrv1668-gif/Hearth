@@ -53,13 +53,13 @@ export function isPhotoInterval(value: unknown): value is number {
 
 /** Schedule rule days, Sunday first — Display's ModeRule.DayIds. */
 export const modeDays = [
-    { id: 'sun', label: 'S' },
-    { id: 'mon', label: 'M' },
-    { id: 'tue', label: 'T' },
-    { id: 'wed', label: 'W' },
-    { id: 'thu', label: 'T' },
-    { id: 'fri', label: 'F' },
-    { id: 'sat', label: 'S' },
+    { id: 'sun', label: 'S', name: 'Sunday' },
+    { id: 'mon', label: 'M', name: 'Monday' },
+    { id: 'tue', label: 'T', name: 'Tuesday' },
+    { id: 'wed', label: 'W', name: 'Wednesday' },
+    { id: 'thu', label: 'T', name: 'Thursday' },
+    { id: 'fri', label: 'F', name: 'Friday' },
+    { id: 'sat', label: 'S', name: 'Saturday' },
 ] as const;
 
 export type ModeDay = (typeof modeDays)[number]['id'];

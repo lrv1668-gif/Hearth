@@ -1,8 +1,10 @@
 <script lang="ts">
     import type { CalendarItem } from '$lib/api';
     import { formatTime, providerLabel } from '$lib/utils';
-    import { CalendarDays, ExternalLink, MapPin, Plug, TextAlignStart, X } from '@lucide/svelte';
+    import { CalendarDays, ExternalLink, MapPin, Plug, TextAlignStart } from '@lucide/svelte';
     import DOMPurify from 'dompurify';
+    import Button from '../ui/Button.svelte';
+    import Modal from '../ui/Modal.svelte';
 
     interface Props {
         event: CalendarItem | null;
@@ -12,14 +14,6 @@
     let { event, onClose }: Props = $props();
 
     const safeDescription = $derived(event?.description ? DOMPurify.sanitize(event.description) : '');
-
-    let dialog = $state<HTMLDialogElement | null>(null);
-
-    $effect(() => {
-        if (!dialog) return;
-        if (event) dialog.showModal();
-        else if (dialog.open) dialog.close();
-    });
 
     function formatDateRange(e: CalendarItem): string {
         if (!e.start) return 'No date';
@@ -45,28 +39,9 @@
     }
 </script>
 
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<dialog
-    bind:this={dialog}
-    onclose={onClose}
-    onclick={(e) => e.target === dialog && onClose()}
-    class="sheet w-full max-w-lg bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
->
+<Modal open={!!event} onclose={onClose} title={event?.title ?? ''}>
     {#if event}
-        <div
-            class="mx-4 max-h-[70vh] space-y-3 overflow-y-auto rounded-2xl border border-(--border) bg-(--bg) p-5 shadow-xl"
-        >
-            <div class="flex items-start justify-between gap-3">
-                <h2 class="type-title min-w-0 font-semibold break-words text-(--text-1)">{event.title}</h2>
-                <button
-                    onclick={onClose}
-                    class="-m-2 flex h-10 w-10 flex-shrink-0 items-center justify-center text-(--text-1) transition-colors hover:text-(--text-1)"
-                    aria-label="Close"
-                >
-                    <X class="icon-sm" />
-                </button>
-            </div>
-
+        <div class="space-y-3">
             <div class="flex items-center gap-2">
                 <CalendarDays class="icon-sm text-(--text-1)" />
                 <p class="type-body text-(--text-1)">{formatDateRange(event)}</p>
@@ -94,19 +69,14 @@
                     <p class="type-body text-(--text-2)">{providerLabel(event.provider)}</p>
                 </div>
                 {#if event.html_link}
-                    <a
-                        href={event.html_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="type-label flex items-center gap-1 text-(--accent) transition-opacity hover:opacity-70"
-                    >
+                    <Button variant="link" href={event.html_link} target="_blank" rel="noopener noreferrer">
                         Open <ExternalLink class="icon-xs" />
-                    </a>
+                    </Button>
                 {/if}
             </div>
         </div>
     {/if}
-</dialog>
+</Modal>
 
 <style>
     /* break-words doesn't cascade into {@html} children — target them explicitly */

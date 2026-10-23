@@ -103,6 +103,18 @@ dialog:modal {
 }
 
 /* ── Semantic type utilities ─────────────────────────────────────────────── */
+/* A small-caps heading over a group of settings or a list: <p class="eyebrow">. In the
+   components layer so a utility (a margin, a different colour) still wins. */
+@layer components {
+    .eyebrow {
+        font-size: var(--font-label);
+        font-weight: var(--weight-semibold);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-2);
+    }
+}
+
 /* A progress bar (the Almanac's season): <div class="meter"><div style="width: N%"></div></div>.
    Rounded and tinted here; the frame route restyles it as an outlined pure-ink bar. */
 .meter {
@@ -174,9 +186,9 @@ dialog:modal {
 }
 
 /* ── Modal sheet ─────────────────────────────────────────────────────────── */
-/* <dialog class="sheet"> with one panel <div> inside: centred on wider screens, a bottom sheet
-   on phones so it sits within thumb reach and clear of the on-screen keyboard. Unlayered, so it
-   beats the panel's mx-4/rounded utilities. */
+/* <dialog class="sheet"> with one panel <div> inside (ui/Modal.svelte): centred on wider screens,
+   a bottom sheet on phones so it sits within thumb reach and clear of the on-screen keyboard.
+   Unlayered, so it beats the panel's mx-4/rounded utilities. */
 @media (max-width: 639px) {
     dialog.sheet {
         margin: auto 0 0;
@@ -189,7 +201,7 @@ dialog:modal {
         overflow-y: auto;
         border-bottom: none;
         border-radius: 1rem 1rem 0 0;
-        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
     }
 }
 

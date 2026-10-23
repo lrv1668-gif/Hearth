@@ -45,7 +45,7 @@
                 class="flex items-center justify-between border-t px-2.5 py-2 sm:px-4 sm:py-2.5"
             >
                 <span style="color: {t.colors.text1};" class="type-label font-medium">{t.label}</span>
-                <span style="color: {t.colors.text3};" class="type-label hidden tracking-widest uppercase sm:inline">
+                <span style="color: {t.colors.text2};" class="type-label hidden tracking-widest uppercase sm:inline">
                     {t.group === 'Black & White' ? 'B&W' : 'Color'}
                 </span>
             </div>

@@ -5,7 +5,6 @@
         ArrowLeft,
         ArrowRight,
         Calendar as CalendarIcon,
-        Check,
         ChevronLeft,
         ChevronRight,
         Plus,
@@ -14,6 +13,9 @@
     import { MediaQuery } from 'svelte/reactivity';
     import DayOverflowModal from './modals/DayOverflowModal.svelte';
     import DayItemList from './DayItemList.svelte';
+    import TaskCheckbox from './TaskCheckbox.svelte';
+    import Button from './ui/Button.svelte';
+    import IconButton from './ui/IconButton.svelte';
     import { DAY_NAMES, MONTH_NAMES } from '$lib/constants/calendar';
 
     interface Props {
@@ -181,23 +183,15 @@
         const [y, m, d] = key.split('-').map(Number);
         return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     }
-
-    // The visible dot is 8px; the ::after widens the tap target to 24px without moving the layout.
-    const dot =
-        "relative h-2 w-2 flex-shrink-0 rounded-full transition-colors after:absolute after:-inset-2 after:content-['']";
 </script>
 
 <div class="flex min-h-0 flex-1 flex-col gap-4 sm:gap-6">
     <!-- Month navigation: the title between its arrows, 40px tap targets -->
     <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
         <div class="flex min-w-0 items-center">
-            <button
-                onclick={showPrevMonth}
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-(--text-2) transition-colors hover:bg-(--surface) hover:text-(--text-1)"
-                aria-label="Previous month"
-            >
+            <IconButton label="Previous month" onclick={showPrevMonth} class="hover:bg-(--surface)">
                 <ChevronLeft class="icon-md" />
-            </button>
+            </IconButton>
             <!-- Fixed width (in em, so it scales with type) keeps the arrows still between months;
                  it can shrink and truncate rather than push the next arrow off a narrow screen -->
             <h2
@@ -206,42 +200,29 @@
                 {MONTH_NAMES[viewMonth]}
                 {viewYear}
             </h2>
-            <button
-                onclick={showNextMonth}
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-(--text-2) transition-colors hover:bg-(--surface) hover:text-(--text-1)"
-                aria-label="Next month"
-            >
+            <IconButton label="Next month" onclick={showNextMonth} class="hover:bg-(--surface)">
                 <ChevronRight class="icon-md" />
-            </button>
+            </IconButton>
         </div>
 
         <!-- Hidden (not removed) in the current month so nothing shifts -->
-        <button
-            onclick={goToToday}
-            disabled={isCurrentMonth}
-            class="type-label flex min-h-10 items-center gap-1 rounded-lg border border-(--border) px-2.5 tracking-wide text-(--text-2) transition-colors hover:border-(--text-3) hover:bg-(--surface) hover:text-(--text-1)
-             {isCurrentMonth ? 'invisible' : ''}"
-        >
+        <Button onclick={goToToday} disabled={isCurrentMonth} class={isCurrentMonth ? 'invisible' : ''}>
             {#if todayArrowDir === 'left'}
                 <ArrowLeft class="icon-sm" />
             {:else}
                 <ArrowRight class="icon-sm" />
             {/if}
             Today
-        </button>
+        </Button>
 
         <div class="flex-1"></div>
 
         <!-- Narrow screens add from the selected day's heading instead, so there's one "+" -->
         {#if isWide.current}
-            <button
-                onclick={onNewTask}
-                class="type-label flex min-h-10 items-center gap-1.5 rounded-lg bg-(--accent) px-3 font-medium
-                 whitespace-nowrap text-(--accent-fg) transition-colors hover:bg-(--accent-hi)"
-            >
+            <Button variant="primary" onclick={onNewTask}>
                 <Plus class="icon-md" />
                 New Task
-            </button>
+            </Button>
         {/if}
     </div>
 
@@ -324,16 +305,15 @@
                         <ul class="w-full space-y-1">
                             {#each dayTasks.slice(0, 4) as task (task.id)}
                                 <li class="flex min-w-0 items-center gap-1.5">
-                                    <button
-                                        onclick={(e) => {
+                                    <TaskCheckbox
+                                        variant="dot"
+                                        checked={task.done}
+                                        title={task.title}
+                                        ontoggle={(e) => {
                                             e.stopPropagation();
                                             onToggle(task);
                                         }}
-                                        class="{dot} {task.done
-                                            ? 'bg-(--done-bg)'
-                                            : 'bg-(--text-3) hover:bg-(--text-1)'}"
-                                        aria-label="Toggle {task.title}"
-                                    ></button>
+                                    />
                                     <button
                                         onclick={(e) => {
                                             e.stopPropagation();
@@ -352,8 +332,12 @@
                             {#each dayCalItems.slice(0, Math.max(0, 4 - dayTasks.length)) as calItem (calItem.id)}
                                 <li class="flex min-w-0 items-center gap-1.5">
                                     {#if calItem.kind === 'task'}
-                                        <button
-                                            onclick={(e) => {
+                                        <TaskCheckbox
+                                            variant="dot"
+                                            external
+                                            checked={calItem.is_completed ?? false}
+                                            title={calItem.title}
+                                            ontoggle={(e) => {
                                                 e.stopPropagation();
                                                 if (calItem.task_list_id)
                                                     onToggleCalendarTask?.(
@@ -362,11 +346,7 @@
                                                         !calItem.is_completed
                                                     );
                                             }}
-                                            class="{dot} {calItem.is_completed
-                                                ? 'bg-(--done-bg)'
-                                                : 'bg-(--accent) hover:opacity-80'}"
-                                            aria-label="Toggle {calItem.title}"
-                                        ></button>
+                                        />
                                         <span
                                             class="type-label min-w-0 truncate
                                                    {calItem.is_completed
@@ -431,14 +411,14 @@
         <section class="space-y-3">
             <div class="flex items-center justify-between gap-2">
                 <h3 class="type-body font-semibold text-(--text-1)">{dayLabel(selectedKey)}</h3>
-                <button
+                <Button
+                    variant="primary"
                     onclick={() => onDateClick(selectedKey)}
-                    class="type-label flex min-h-10 items-center gap-1.5 rounded-lg bg-(--accent) px-3 font-medium text-(--accent-fg) transition-colors hover:bg-(--accent-hi)"
                     aria-label="Add task on {dayLabel(selectedKey)}"
                 >
                     <Plus class="icon-md" />
                     Add task
-                </button>
+                </Button>
             </div>
             {#if selectedItems.length > 0}
                 <DayItemList items={selectedItems} {onToggle} {onEdit} {onEventClick} {onToggleCalendarTask} />
@@ -450,20 +430,11 @@
     <!-- Undated tasks -->
     {#if undatedTasks.length > 0}
         <div class="space-y-3">
-            <h3 class="type-label font-medium tracking-widest text-(--text-2) uppercase">No due date</h3>
+            <h3 class="eyebrow">No due date</h3>
             <ul class="space-y-1.5">
                 {#each undatedTasks as task (task.id)}
                     <li class="group flex items-center gap-3 rounded-lg bg-(--surface) px-3 py-2.5">
-                        <button
-                            onclick={() => onToggle(task)}
-                            class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
-                     {task.done ? 'border-(--done-bg) bg-(--done-bg)' : 'border-(--text-3) hover:border-(--text-1)'}"
-                            aria-label="Toggle {task.title}"
-                        >
-                            {#if task.done}
-                                <Check class="icon-xs text-(--bg)" />
-                            {/if}
-                        </button>
+                        <TaskCheckbox checked={task.done} title={task.title} ontoggle={() => onToggle(task)} />
 
                         <button
                             onclick={() => onEdit(task)}
@@ -473,14 +444,15 @@
                             {task.title}
                         </button>
 
-                        <button
+                        <IconButton
+                            label="Delete {task.title}"
+                            size="sm"
+                            reveal
+                            class="-my-2"
                             onclick={() => onDelete(task.id)}
-                            class="text-(--text-3) opacity-0
-                     transition group-hover:opacity-100 hover:text-(--text-2) focus-visible:opacity-100 pointer-coarse:opacity-100"
-                            aria-label="Delete {task.title}"
                         >
                             <X class="icon-sm" />
-                        </button>
+                        </IconButton>
                     </li>
                 {/each}
             </ul>

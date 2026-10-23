@@ -8,7 +8,11 @@
     import { loadTasks, taskStore } from '$lib/stores/TaskStore.svelte.ts';
     import { modeStore, setOverride } from '$lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '$lib/constants/settingsSections';
-    import SegmentedControl from './SegmentedControl.svelte';
+    import Button from '../ui/Button.svelte';
+    import { fieldClass } from '../ui/field';
+    import SegmentedControl from '../ui/SegmentedControl.svelte';
+    import Select from '../ui/Select.svelte';
+    import TextInput from '../ui/TextInput.svelte';
 
     let uploads = $state<UploadedPhoto[]>([]);
     let loaded = $state(false);
@@ -23,8 +27,6 @@
     const NOTE_BODY_MAX = 600;
     const NOTE_LINES_MAX = 12;
     const noteLines = $derived(frameSettings.noteBody ? frameSettings.noteBody.split('\n').length : 0);
-    const field =
-        'type-label rounded-lg border border-(--border) bg-(--surface) px-2.5 py-1.5 text-(--text-1) outline-none focus:border-(--text-3)';
 
     const countdowns = $derived(upcomingCountdowns(taskStore.tasks, new Date(), Infinity));
     // Ids that were chosen but have since been deleted don't count
@@ -41,7 +43,7 @@ Saved with the rest of the frame settings.
 -->
 <div class="@container flex flex-col gap-6">
     <div>
-        <p class="type-label mb-1 font-semibold tracking-widest text-(--text-2) uppercase">New photo every</p>
+        <p class="eyebrow mb-1">New photo every</p>
         <p class="type-label mb-3 text-(--text-2)">
             Ambient and Photo mode on the panel. Each change is a full e-paper refresh, about 30 seconds of flashing.
         </p>
@@ -49,11 +51,12 @@ Saved with the rest of the frame settings.
             options={photoIntervals.map((i) => ({ value: String(i.minutes), label: i.label }))}
             value={String(frameSettings.photoIntervalMinutes)}
             onchange={(v) => (frameSettings.photoIntervalMinutes = Number(v))}
+            label="New photo every"
         />
     </div>
 
     <div>
-        <p class="type-label mb-1 font-semibold tracking-widest text-(--text-2) uppercase">Photo</p>
+        <p class="eyebrow mb-1">Photo</p>
         <p class="type-label mb-3 text-(--text-2)">
             {#if !loaded}
                 Loading your photos…
@@ -90,26 +93,27 @@ Saved with the rest of the frame settings.
             options={photoCards.map((c) => ({ value: c.value, label: c.label }))}
             value={frameSettings.photoCard}
             onchange={(v) => (frameSettings.photoCard = v)}
+            label="Photo card"
         />
     </div>
 
     <div>
-        <p class="type-label mb-1 font-semibold tracking-widest text-(--text-2) uppercase">Countdown</p>
+        <p class="eyebrow mb-1">Countdown</p>
         <label class="type-label flex flex-wrap items-center gap-2 text-(--text-2)">
             Show
-            <select
+            <Select
+                size="sm"
                 value={frameSettings.countdownId ?? ''}
                 onchange={(e) => {
                     const value = (e.target as HTMLSelectElement).value;
                     frameSettings.countdownId = value === '' ? null : Number(value);
                 }}
-                class="type-label rounded-lg border border-(--border) bg-(--surface) px-2.5 py-1.5 text-(--text-1) outline-none focus:border-(--text-3)"
             >
                 <option value="">The next one coming up</option>
                 {#each countdowns as { task, days } (task.id)}
                     <option value={task.id}>{task.title} — {days === 0 ? 'today' : `${days} d`}</option>
                 {/each}
-            </select>
+            </Select>
         </label>
         {#if loaded && countdowns.length === 0}
             <p class="type-caption mt-2 text-(--text-2)">No countdowns yet — add one from the dashboard’s tasks.</p>
@@ -117,19 +121,22 @@ Saved with the rest of the frame settings.
     </div>
 
     <div>
-        <p class="type-label mb-1 font-semibold tracking-widest text-(--text-2) uppercase">Note</p>
+        <p class="eyebrow mb-1">Note</p>
         <p class="type-label mb-3 text-(--text-2)">
             House rules, a welcome, a reminder. Each line stays its own line, and a blank line adds space. The text
             sizes itself to fill the frame.
         </p>
-        <input
+        <TextInput
+            size="sm"
             type="text"
             bind:value={frameSettings.noteTitle}
             maxlength={NOTE_TITLE_MAX}
             placeholder="Heading, e.g. House rules"
             aria-label="Note heading"
-            class="{field} mb-2 w-full"
+            class="mb-2 w-full"
         />
+        <!-- A raw <textarea> (with the shared field look): its oninput trims el.value in place,
+             which a bound TextArea would undo -->
         <textarea
             value={frameSettings.noteBody}
             oninput={(e) => {
@@ -143,7 +150,7 @@ Saved with the rest of the frame settings.
             rows="7"
             placeholder={'Shoes off at the door\nDrinks in the kitchen\nPlease keep the music down after 11'}
             aria-label="Note text"
-            class="{field} w-full resize-y"></textarea>
+            class="{fieldClass('sm')} w-full resize-y"></textarea>
         <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
             <p class="type-caption text-(--text-2)">
                 {noteLines} / {NOTE_LINES_MAX} lines · {frameSettings.noteBody.length} / {NOTE_BODY_MAX} characters
@@ -151,13 +158,13 @@ Saved with the rest of the frame settings.
             {#if modeStore.current?.mode === 'note' && modeStore.current.reason === 'override'}
                 <p class="type-label font-medium text-(--text-1)">Showing on the frame</p>
             {:else}
-                <button
+                <Button
+                    variant="primary"
                     onclick={() => setOverride({ mode: 'note', until: null })}
                     disabled={!frameSettings.noteTitle.trim() && !frameSettings.noteBody.trim()}
-                    class="type-label rounded-lg bg-(--accent) px-4 py-1.5 font-semibold text-(--accent-fg) transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                     Show this note
-                </button>
+                </Button>
             {/if}
         </div>
     </div>

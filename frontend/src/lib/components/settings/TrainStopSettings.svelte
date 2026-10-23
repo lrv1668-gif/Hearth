@@ -7,7 +7,12 @@
     } from '$lib/stores/SettingsStore.svelte.ts';
     import { api } from '$lib/api';
     import type { TrainStop } from '$lib/constants/trains';
-    import { ChevronDown, ChevronUp, Trash2 } from '@lucide/svelte';
+    import { ChevronDown, ChevronUp } from '@lucide/svelte';
+    import Button from '../ui/Button.svelte';
+    import Field from '../ui/Field.svelte';
+    import IconButton from '../ui/IconButton.svelte';
+    import ListRow from '../ui/ListRow.svelte';
+    import TextInput from '../ui/TextInput.svelte';
 
     let newLabel = $state('');
     let newStopKey = $state('');
@@ -84,88 +89,84 @@
     <div class="flex flex-col gap-1">
         <p class="type-body font-medium text-(--text-1)">Watched stops</p>
         <div class="mt-2 flex flex-col">
-            {#if settings.trainStops.length === 0}
-                <p class="type-label py-4 text-center text-(--text-3)">No stops added yet.</p>
-            {:else}
-                {#each settings.trainStops as stop}
-                    <div class="flex flex-col">
-                        <div class="group flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-(--surface-hi)">
-                            <div class="min-w-0 flex-1">
-                                <p class="type-body font-medium text-(--text-1)">{stop.label}</p>
-                                <p class="type-label truncate text-(--text-2)">{stop.stopKey}</p>
-                                {#if stop.lineFilter}
-                                    <p class="type-label text-(--text-3)">
-                                        {stop.lineFilter.length} line{stop.lineFilter.length === 1 ? '' : 's'} shown
-                                    </p>
-                                {/if}
-                            </div>
-                            <button
+            {#each settings.trainStops as stop}
+                {@const expanded = expandedStopKey === stop.stopKey}
+                <div class="flex flex-col">
+                    <ListRow
+                        title={stop.label}
+                        subtitle={stop.stopKey}
+                        onremove={() => unsubscribeFromTrainStop(stop.stopKey)}
+                    >
+                        {#snippet meta()}
+                            {#if stop.lineFilter}
+                                <p class="type-label text-(--text-2)">
+                                    {stop.lineFilter.length} line{stop.lineFilter.length === 1 ? '' : 's'} shown
+                                </p>
+                            {/if}
+                        {/snippet}
+                        {#snippet actions()}
+                            <IconButton
+                                label="Filter lines for {stop.label}"
+                                aria-expanded={expanded}
                                 onclick={() => toggleExpand(stop)}
-                                class="shrink-0 text-(--text-2) transition-colors hover:text-(--text-1)"
-                                aria-label="Filter lines for {stop.label}"
                             >
-                                {#if expandedStopKey === stop.stopKey}
+                                {#if expanded}
                                     <ChevronUp class="icon-sm" />
                                 {:else}
                                     <ChevronDown class="icon-sm" />
                                 {/if}
-                            </button>
-                            <button
-                                onclick={() => unsubscribeFromTrainStop(stop.stopKey)}
-                                class="shrink-0 text-(--text-2) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--text-1) focus-visible:opacity-100 pointer-coarse:opacity-100"
-                                aria-label="Remove {stop.label}"
-                            >
-                                <Trash2 class="icon-sm" />
-                            </button>
-                        </div>
-                        {#if expandedStopKey === stop.stopKey}
-                            <div class="ml-3 flex flex-col gap-2 border-l border-(--border) py-2 pl-4">
-                                {#if linesByStop[stop.stopKey] === 'loading'}
-                                    <p class="type-label text-(--text-3)">Loading lines…</p>
-                                {:else if linesByStop[stop.stopKey] === 'empty' || !linesByStop[stop.stopKey]}
-                                    <p class="type-label text-(--text-3)">
-                                        No departures right now to pick from — try again during service hours.
-                                    </p>
-                                {:else}
-                                    {@const lines = linesByStop[stop.stopKey] as PickerLine[]}
-                                    <div class="flex items-center justify-between">
-                                        <p class="type-label text-(--text-2)">Show these lines</p>
-                                        <div class="flex items-center gap-3">
-                                            <button
-                                                onclick={() => updateTrainStopLineFilter(stop.stopKey, undefined)}
-                                                class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)"
-                                            >
-                                                Select all
-                                            </button>
-                                            <button
-                                                onclick={() => updateTrainStopLineFilter(stop.stopKey, [])}
-                                                class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)"
-                                            >
-                                                Deselect all
-                                            </button>
-                                        </div>
+                            </IconButton>
+                        {/snippet}
+                    </ListRow>
+                    {#if expanded}
+                        <div class="ml-3 flex flex-col gap-2 border-l border-(--border) py-2 pl-4">
+                            {#if linesByStop[stop.stopKey] === 'loading'}
+                                <p class="type-label text-(--text-2)">Loading lines…</p>
+                            {:else if linesByStop[stop.stopKey] === 'empty' || !linesByStop[stop.stopKey]}
+                                <p class="type-label text-(--text-2)">
+                                    No departures right now to pick from — try again during service hours.
+                                </p>
+                            {:else}
+                                {@const lines = linesByStop[stop.stopKey] as PickerLine[]}
+                                <div class="flex items-center justify-between">
+                                    <p class="type-label text-(--text-2)">Show these lines</p>
+                                    <div class="flex items-center gap-3">
+                                        <Button
+                                            variant="link"
+                                            onclick={() => updateTrainStopLineFilter(stop.stopKey, undefined)}
+                                        >
+                                            Select all
+                                        </Button>
+                                        <Button
+                                            variant="link"
+                                            onclick={() => updateTrainStopLineFilter(stop.stopKey, [])}
+                                        >
+                                            Deselect all
+                                        </Button>
                                     </div>
-                                    {#each lines as line (line.key)}
-                                        <label class="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                checked={isLineChecked(stop, line.key)}
-                                                onchange={() => toggleLine(stop, lines, line.key)}
-                                                class="accent-(--accent)"
-                                            />
-                                            <span class="type-label text-(--text-1)">
-                                                {line.routeShortName}{#if line.headsign}
-                                                    &nbsp;→ {line.headsign}
-                                                {/if}
-                                            </span>
-                                        </label>
-                                    {/each}
-                                {/if}
-                            </div>
-                        {/if}
-                    </div>
-                {/each}
-            {/if}
+                                </div>
+                                {#each lines as line (line.key)}
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={isLineChecked(stop, line.key)}
+                                            onchange={() => toggleLine(stop, lines, line.key)}
+                                            class="h-4 w-4 accent-(--accent)"
+                                        />
+                                        <span class="type-label text-(--text-1)">
+                                            {line.routeShortName}{#if line.headsign}
+                                                &nbsp;→ {line.headsign}
+                                            {/if}
+                                        </span>
+                                    </label>
+                                {/each}
+                            {/if}
+                        </div>
+                    {/if}
+                </div>
+            {:else}
+                <p class="type-label py-4 text-center text-(--text-2)">No stops added yet.</p>
+            {/each}
         </div>
     </div>
 
@@ -185,33 +186,20 @@
             (its Onestop ID, e.g. <span class="font-medium">s-9xj5pvewxk-us36~flatironstationeastside</span>).
         </p>
         <div class="flex flex-col gap-2">
-            <label class="flex flex-col gap-1">
-                <span class="type-caption tracking-widest text-(--text-2) uppercase">Label</span>
-                <input
-                    type="text"
-                    bind:value={newLabel}
-                    placeholder="Union Station"
-                    class="type-body w-full rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-(--text-1) transition-colors outline-none placeholder:text-(--text-4) focus:border-(--text-3)"
-                />
-            </label>
-            <label class="flex flex-col gap-1">
-                <span class="type-caption tracking-widest text-(--text-2) uppercase">Stop key</span>
-                <input
+            <Field label="Label">
+                <TextInput type="text" bind:value={newLabel} placeholder="Union Station" class="w-full" />
+            </Field>
+            <Field label="Stop key">
+                <TextInput
                     type="text"
                     bind:value={newStopKey}
                     placeholder="s-9xj5pvewxk-us36~flatironstationeastside"
-                    class="type-body w-full rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-(--text-1) transition-colors outline-none placeholder:text-(--text-4) focus:border-(--text-3)"
+                    class="w-full"
                 />
-            </label>
+            </Field>
         </div>
         <div class="flex justify-end">
-            <button
-                onclick={handleAdd}
-                disabled={!isValidNewStop()}
-                class="type-label rounded-full border border-(--border) px-4 py-1.5 text-(--text-1) transition-colors hover:bg-(--surface-hi) disabled:pointer-events-none disabled:opacity-40"
-            >
-                Add stop
-            </button>
+            <Button onclick={handleAdd} disabled={!isValidNewStop()}>Add stop</Button>
         </div>
     </div>
 </div>

@@ -125,7 +125,7 @@
         <!-- Below lg there's no header outside kiosk mode, so open on a one-line date and conditions -->
         {#if !kioskStore.isKiosk && !isWide.current}
             <div class="mb-4 flex min-w-0 items-baseline justify-between gap-3">
-                <p class="type-label font-semibold tracking-widest whitespace-nowrap text-(--text-2) uppercase">
+                <p class="eyebrow whitespace-nowrap">
                     {today}
                 </p>
                 {#if weatherStore.current}

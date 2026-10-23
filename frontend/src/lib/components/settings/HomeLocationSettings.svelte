@@ -11,11 +11,10 @@
         loadHomeLocation,
         saveHomeLocation,
     } from '$lib/stores/HomeLocationStore.svelte.ts';
-
-    const inputClass =
-        'type-body w-full rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-(--text-1) transition-colors outline-none placeholder:text-(--text-4) focus:border-(--text-3)';
-    const buttonClass =
-        'type-label inline-flex items-center gap-1.5 rounded-full border border-(--border) px-4 py-1.5 text-(--text-1) transition-colors hover:bg-(--surface-hi) disabled:pointer-events-none disabled:opacity-40';
+    import Button from '../ui/Button.svelte';
+    import Field from '../ui/Field.svelte';
+    import InlineMessage from '../ui/InlineMessage.svelte';
+    import TextInput from '../ui/TextInput.svelte';
 
     // The form edits a draft; Save sends it whole.
     let latitude = $state('');
@@ -144,10 +143,10 @@
 
 <div class="flex flex-col gap-6">
     {#if homeLocation.error}
-        <p class="type-label text-(--accent)">
+        <InlineMessage tone="error">
             Can't reach the Display service — the location can't be loaded or saved. Services use their .env values
             meanwhile.
-        </p>
+        </InlineMessage>
     {:else if homeLocation.loaded && !homeLocation.saved}
         <p class="type-label text-(--text-2)">
             Nothing saved yet — the services use LATITUDE, LONGITUDE and TZ from their .env files, if set.
@@ -158,10 +157,10 @@
         <p class="type-body font-medium text-(--text-1)">Find it</p>
         <div class="flex flex-col gap-1">
             <div>
-                <button onclick={useMyLocation} disabled={!canLocate || locating} class={buttonClass}>
+                <Button onclick={useMyLocation} disabled={!canLocate || locating}>
                     <LocateFixed class="icon-sm" />
                     {locating ? 'Locating…' : 'Use my location'}
-                </button>
+                </Button>
             </div>
             {#if !canLocate}
                 <p class="type-label text-(--text-2)">
@@ -171,17 +170,17 @@
             {/if}
         </div>
         <form onsubmit={search} class="flex gap-2">
-            <input
+            <TextInput
                 type="search"
                 bind:value={query}
                 placeholder="Search for a city"
                 aria-label="Search for a city"
-                class={inputClass}
+                class="w-full"
             />
-            <button type="submit" disabled={query.trim().length < 2 || searching} class={buttonClass}>
+            <Button type="submit" disabled={query.trim().length < 2 || searching}>
                 <Search class="icon-sm" />
                 {searching ? 'Searching…' : 'Search'}
-            </button>
+            </Button>
         </form>
         {#if places}
             <div class="flex flex-col">
@@ -206,25 +205,28 @@
 
     <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
         <p class="type-body font-medium text-(--text-1)">Location</p>
-        <label class="flex flex-col gap-1">
-            <span class="type-caption tracking-widest text-(--text-2) uppercase">Name</span>
-            <input type="text" bind:value={name} placeholder="Optional, e.g. Home" maxlength="100" class={inputClass} />
-        </label>
+        <Field label="Name">
+            <TextInput type="text" bind:value={name} placeholder="Optional, e.g. Home" maxlength={100} class="w-full" />
+        </Field>
         <div class="grid grid-cols-2 gap-2">
-            <label class="flex flex-col gap-1">
-                <span class="type-caption tracking-widest text-(--text-2) uppercase">Latitude</span>
-                <input type="text" inputmode="decimal" bind:value={latitude} placeholder="39.7392" class={inputClass} />
-            </label>
-            <label class="flex flex-col gap-1">
-                <span class="type-caption tracking-widest text-(--text-2) uppercase">Longitude</span>
-                <input
+            <Field label="Latitude">
+                <TextInput
+                    type="text"
+                    inputmode="decimal"
+                    bind:value={latitude}
+                    placeholder="e.g. 39.7392"
+                    class="w-full"
+                />
+            </Field>
+            <Field label="Longitude">
+                <TextInput
                     type="text"
                     inputmode="decimal"
                     bind:value={longitude}
-                    placeholder="-104.9903"
-                    class={inputClass}
+                    placeholder="e.g. -104.9903"
+                    class="w-full"
                 />
-            </label>
+            </Field>
         </div>
     </div>
 
@@ -233,31 +235,27 @@
             <p class="type-body font-medium text-(--text-1)">Time zone</p>
             <p class="type-label text-(--text-2)">The frame's date and clock, and the almanac's sunrise milestones.</p>
         </div>
-        <label class="flex flex-col gap-1">
-            <span class="type-caption tracking-widest text-(--text-2) uppercase">IANA zone</span>
-            <input
+        <Field label="IANA zone">
+            <TextInput
                 type="text"
                 list="home-time-zones"
                 bind:value={timeZone}
                 placeholder={thisBrowser}
                 autocomplete="off"
                 spellcheck="false"
-                class={inputClass}
+                class="w-full"
             />
             <datalist id="home-time-zones">
                 {#each zones as zone}<option value={zone}></option>{/each}
             </datalist>
-        </label>
+        </Field>
         {#if homeLocation.loaded && !homeLocation.timeZone && timeZone === thisBrowser}
             <p class="type-label text-(--text-2)">From this browser — saved along with the location.</p>
         {:else if timeZone !== thisBrowser}
             <div>
-                <button
-                    onclick={() => (timeZone = thisBrowser)}
-                    class="type-label text-(--accent) transition-colors hover:text-(--accent-hi)"
-                >
+                <Button variant="link" onclick={() => (timeZone = thisBrowser)}>
                     Use this browser's zone ({thisBrowser})
-                </button>
+                </Button>
             </div>
         {/if}
     </div>
@@ -270,13 +268,13 @@
             {problem ?? status?.text ?? ''}
         </p>
         <div class="flex justify-end">
-            <button
+            <Button
+                variant="primary"
                 onclick={save}
                 disabled={!!problem || saving || !homeLocation.loaded || homeLocation.error}
-                class={buttonClass}
             >
                 {saving ? 'Saving…' : 'Save'}
-            </button>
+            </Button>
         </div>
     </div>
 </div>

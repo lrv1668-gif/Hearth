@@ -2,8 +2,11 @@
     import { onMount } from 'svelte';
     import { page } from '$app/state';
     import { MediaQuery } from 'svelte/reactivity';
-    import { ChevronLeft, ChevronRight, Eye, Monitor, MapPin, LayoutList, Image, Plug, Tv, X } from '@lucide/svelte';
-    import Toggle from '$lib/components/Toggle.svelte';
+    import { ChevronLeft, ChevronRight, Eye, Monitor, MapPin, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
+    import Button from '$lib/components/ui/Button.svelte';
+    import InlineMessage from '$lib/components/ui/InlineMessage.svelte';
+    import Modal from '$lib/components/ui/Modal.svelte';
+    import ToggleRow from '$lib/components/ui/ToggleRow.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import FontThemePicker from '$lib/components/settings/FontThemePicker.svelte';
     import FontSizeSlider from '$lib/components/settings/FontSizeSlider.svelte';
@@ -128,16 +131,10 @@
         measured && frameColumnWidth >= 56 * parseFloat(getComputedStyle(document.documentElement).fontSize)
     );
     let previewOpen = $state(false);
-    let previewDialog = $state<HTMLDialogElement | null>(null);
     $effect(() => {
         // Grown wide enough for the inline preview: drop the sheet, so it can't reopen by
         // itself if the width shrinks again.
         if (previewInline) previewOpen = false;
-    });
-    $effect(() => {
-        if (!previewDialog) return;
-        if (previewOpen) previewDialog.showModal();
-        else if (previewDialog.open) previewDialog.close();
     });
 </script>
 
@@ -308,9 +305,9 @@
                 {#snippet localPhotos()}<LocalPhotosSettings />{/snippet}
                 <div class="flex flex-col gap-4">
                     {#if frameSettings.error}
-                        <p class="type-label text-(--accent)">
+                        <InlineMessage tone="error">
                             Can't reach the Display service — photo choices here won't be saved or reach the frame.
-                        </p>
+                        </InlineMessage>
                     {/if}
                     {@render card(
                         'Photo source',
@@ -342,31 +339,17 @@
                 </div>
             {:else if active === 'frame'}
                 {#snippet kioskContent()}
-                    <label class="flex cursor-pointer items-center gap-3">
-                        <div class="mt-0.5 shrink-0">
-                            <Toggle
-                                checked={settings.kioskMode}
-                                onchange={() => (settings.kioskMode = !settings.kioskMode)}
-                            />
-                        </div>
-                        <div>
-                            <p class="type-body text-(--text-1) select-none">Kiosk Mode</p>
-                            <p class="type-label text-(--text-2) select-none">
-                                Hides the navigation bar and shows the time, date, and weather header. Best for
-                                always-on wall displays. Can also be activated with <code class="font-mono"
-                                    >?kiosk=1</code
-                                > in the URL.
-                            </p>
-                        </div>
-                    </label>
+                    <ToggleRow
+                        checked={settings.kioskMode}
+                        onchange={() => (settings.kioskMode = !settings.kioskMode)}
+                        title="Kiosk Mode"
+                    >
+                        Hides the navigation bar and shows the time, date, and weather header. Best for always-on wall
+                        displays. Can also be activated with <code class="font-mono">?kiosk=1</code> in the URL.
+                    </ToggleRow>
                     {#if settings.kioskMode}
                         <div class="mt-4 border-t border-(--border) pt-4">
-                            <a
-                                href="/"
-                                class="type-label inline-flex items-center gap-1.5 text-(--accent) hover:underline"
-                            >
-                                Go to Dashboard →
-                            </a>
+                            <Button variant="link" href="/">Go to Dashboard →</Button>
                             <p class="type-label mt-0.5 text-(--text-2)">
                                 The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.
                             </p>
@@ -375,9 +358,9 @@
                 {/snippet}
                 {#snippet frameAppearanceContent()}
                     {#if frameSettings.error}
-                        <p class="type-label mb-4 text-(--accent)">
+                        <InlineMessage tone="error" class="mb-4">
                             Can't reach the Display service — changes here won't be saved or reach the frame.
-                        </p>
+                        </InlineMessage>
                     {/if}
                     <FrameAppearanceSettings />
                 {/snippet}
@@ -495,31 +478,9 @@
                         <Eye class="icon-sm" aria-hidden="true" />
                         Preview
                     </button>
-                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-                    <dialog
-                        bind:this={previewDialog}
-                        onclose={() => (previewOpen = false)}
-                        onclick={(e) => e.target === previewDialog && (previewOpen = false)}
-                        aria-labelledby="frame-preview-title"
-                        class="sheet w-full max-w-2xl bg-transparent p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm"
-                    >
-                        <div class="mx-4 space-y-3 rounded-xl border border-(--border) bg-(--bg) p-5 shadow-xl">
-                            <div class="flex items-center justify-between">
-                                <h2 id="frame-preview-title" class="type-subtitle font-medium text-(--text-1)">
-                                    Preview
-                                </h2>
-                                <button
-                                    onclick={() => (previewOpen = false)}
-                                    class="-m-2 flex h-10 w-10 items-center justify-center text-(--text-3) transition-colors hover:text-(--text-1)"
-                                    aria-label="Close"
-                                >
-                                    <X class="icon-md" />
-                                </button>
-                            </div>
-                            <!-- Mounted only while open, so it isn't rendering behind the settings -->
-                            {#if previewOpen}<FramePreview />{/if}
-                        </div>
-                    </dialog>
+                    <Modal bind:open={previewOpen} title="Preview" size="lg">
+                        <FramePreview />
+                    </Modal>
                 {/if}
             {/if}
         </main>

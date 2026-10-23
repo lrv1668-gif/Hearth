@@ -5,12 +5,16 @@
         unsubscribeFromRssFeed,
         updateRssArticleCount,
     } from '$lib/stores/SettingsStore.svelte.ts';
-    import { Trash2 } from '@lucide/svelte';
+    import Button from '../ui/Button.svelte';
+    import ChoiceChips from '../ui/ChoiceChips.svelte';
+    import Field from '../ui/Field.svelte';
+    import ListRow from '../ui/ListRow.svelte';
+    import TextInput from '../ui/TextInput.svelte';
 
     let newRssTitle = $state('');
     let newRssUrl = $state('');
 
-    const countOptions = [5, 10, 15, 20];
+    const countOptions = [5, 10, 15, 20].map((n) => ({ value: n, label: String(n) }));
 
     function isValidNewRssFeed() {
         try {
@@ -33,18 +37,13 @@
     <div class="flex flex-col gap-2">
         <p class="type-body font-medium text-(--text-1)">Articles per feed</p>
         <p class="type-label text-(--text-2)">How many articles to show from each feed.</p>
-        <div class="flex gap-2 pt-1">
-            {#each countOptions as n}
-                <button
-                    onclick={() => updateRssArticleCount(n)}
-                    class="type-label rounded-full border px-4 py-1.5 transition-colors
-                        {settings.rssArticleCount === n
-                        ? 'pointer-events-none border-(--text-1) bg-(--text-1) text-(--bg)'
-                        : 'border-(--border) text-(--text-1) hover:border-(--text-2) hover:bg-(--surface-hi)'}"
-                >
-                    {n}
-                </button>
-            {/each}
+        <div class="pt-1">
+            <ChoiceChips
+                label="Articles per feed"
+                options={countOptions}
+                value={settings.rssArticleCount}
+                onchange={updateRssArticleCount}
+            />
         </div>
     </div>
 
@@ -52,25 +51,11 @@
     <div class="flex flex-col gap-1">
         <p class="type-body font-medium text-(--text-1)">Subscribed feeds</p>
         <div class="mt-2 flex flex-col">
-            {#if settings.rssFeeds.length === 0}
-                <p class="type-label py-4 text-center text-(--text-3)">No feeds added yet.</p>
+            {#each settings.rssFeeds as feed}
+                <ListRow title={feed.title} subtitle={feed.url} onremove={() => unsubscribeFromRssFeed(feed.title)} />
             {:else}
-                {#each settings.rssFeeds as feed}
-                    <div class="group flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-(--surface-hi)">
-                        <div class="min-w-0 flex-1">
-                            <p class="type-body font-medium text-(--text-1)">{feed.title}</p>
-                            <p class="type-label truncate text-(--text-2)">{feed.url}</p>
-                        </div>
-                        <button
-                            onclick={() => unsubscribeFromRssFeed(feed.title)}
-                            class="shrink-0 text-(--text-2) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--text-1) focus-visible:opacity-100 pointer-coarse:opacity-100"
-                            aria-label="Remove {feed.title}"
-                        >
-                            <Trash2 class="icon-sm" />
-                        </button>
-                    </div>
-                {/each}
-            {/if}
+                <p class="type-label py-4 text-center text-(--text-2)">No feeds added yet.</p>
+            {/each}
         </div>
     </div>
 
@@ -78,33 +63,20 @@
     <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
         <p class="type-body font-medium text-(--text-1)">Add a feed</p>
         <div class="flex flex-col gap-2">
-            <label class="flex flex-col gap-1">
-                <span class="type-caption tracking-widest text-(--text-2) uppercase">Title</span>
-                <input
-                    type="text"
-                    bind:value={newRssTitle}
-                    placeholder="Hacker News"
-                    class="type-body w-full rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-(--text-1) transition-colors outline-none placeholder:text-(--text-4) focus:border-(--text-3)"
-                />
-            </label>
-            <label class="flex flex-col gap-1">
-                <span class="type-caption tracking-widest text-(--text-2) uppercase">URL</span>
-                <input
+            <Field label="Title">
+                <TextInput type="text" bind:value={newRssTitle} placeholder="Hacker News" class="w-full" />
+            </Field>
+            <Field label="URL">
+                <TextInput
                     type="url"
                     bind:value={newRssUrl}
                     placeholder="https://example.com/feed.xml"
-                    class="type-body w-full rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-(--text-1) transition-colors outline-none placeholder:text-(--text-4) focus:border-(--text-3)"
+                    class="w-full"
                 />
-            </label>
+            </Field>
         </div>
         <div class="flex justify-end">
-            <button
-                onclick={handleAdd}
-                disabled={!isValidNewRssFeed()}
-                class="type-label rounded-full border border-(--border) px-4 py-1.5 text-(--text-1) transition-colors hover:bg-(--surface-hi) disabled:pointer-events-none disabled:opacity-40"
-            >
-                Add feed
-            </button>
+            <Button onclick={handleAdd} disabled={!isValidNewRssFeed()}>Add feed</Button>
         </div>
     </div>
 </div>
