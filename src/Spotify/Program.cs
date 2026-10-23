@@ -8,8 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddServicesForSpotify();
 
 var app = builder.Build();
-app.UseCors();
 
 app.InitializeWebAppForSpotify();
 
 app.Run();
+
+// For WebApplicationFactory in Spotify.Tests
+public partial class Program;

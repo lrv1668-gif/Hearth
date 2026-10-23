@@ -232,7 +232,7 @@ Three shared projects live under `src/` and are referenced by service projects v
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
 | `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton, and `SqliteDistributedCache` / `AddSqliteDistributedCache(key)` — an `IDistributedCache` over that same database, used as FusionCache's L2. The only project that references `Microsoft.Data.Sqlite`. |
-| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 10** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (CORS `AllowAnyOrigin/Method/Header` + snake_case JSON), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `AddHearthCache()` (FusionCache — see below), and `AddHearthHomeLocation()` (the shared home location — see below). |
+| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 11** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (snake_case JSON; deliberately no CORS — every service is reached same-origin through Caddy or the Vite proxy, so a cross-origin policy would only let other sites read and change household data), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `AddHearthCache()` (FusionCache — see below), and `AddHearthHomeLocation()` (the shared home location — see below). |
 
 Service projects follow this pattern:
 
@@ -280,8 +280,8 @@ The `tasks` service handles full CRUD for household tasks with optional due date
 | -------- | ------------- | --------------------------------------------------------------------------------------------|
 | `GET`    | `/tasks`      | List tasks: all done tasks + undone tasks due within 1 year + undone tasks with no due date |
 | `POST`   | `/tasks`      | Create a task; pre-generates all recurring instances up to 1 year ahead                     |
-| `PUT`    | `/tasks/{id}` | Update done status, title, due date, due time, description, or assignee                     |
-| `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes all instances of the recurring series                 |
+| `PUT`    | `/tasks/{id}` | Replace done status, title, due date, due time, description, and assignee — a null clears it |
+| `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes it and every later instance of its recurring series   |
 
 ### Recurrence Model
 
@@ -299,7 +299,7 @@ Recurring tasks use a **pre-generation** approach: when a task with a recurrence
 
 **Marking done:** Marking an instance done simply sets `done = 1` on that row. Future instances already exist and remain unaffected.
 
-**Deleting a series:** `DELETE /tasks/{id}?series=true` looks up the `series_id` of the given task and deletes all rows sharing that `series_id`.
+**Deleting a series:** `DELETE /tasks/{id}?series=true` ("All future") deletes the given task and every row of its `series_id` due on or after it, keeping earlier instances as history, then sets the series' `recurrence_end_date` to the day before so the horizon extension doesn't regrow it.
 
 **Supported intervals:**
 

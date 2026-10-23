@@ -31,8 +31,11 @@ public static class WebApplicationExtensions
             return Results.Created($"/tasks/{task.Id}", task);
         });
 
+        // A full replace: every editable field is written as sent, so a null clears it
         app.MapPut("/tasks/{id:long}", (long id, UpdateTaskRequest req, TaskStore store) =>
         {
+            if (string.IsNullOrWhiteSpace(req.Title))
+                return Results.BadRequest("title required");
             var task = store.Update(id, req.Done, req.Title, req.DueDate, req.DueTime, req.Description, req.Assignee);
             return task is null ? Results.NotFound() : Results.Ok(task);
         });

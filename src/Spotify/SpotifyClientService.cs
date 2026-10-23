@@ -1,9 +1,14 @@
 using SpotifyAPI.Web;
+using SpotifyAPI.Web.Http;
 
 namespace Spotify;
 
-public sealed class SpotifyClientService(SpotifyStore store, IConfiguration config)
+public sealed class SpotifyClientService(
+    SpotifyStore store, IConfiguration config, IHttpClientFactory? httpClients = null)
 {
+    /// <summary>The named <see cref="HttpClient"/> Spotify API calls go through.</summary>
+    public const string HttpClientName = "spotify";
+
     private readonly string _clientId     = config["SPOTIFY_CLIENT_ID"]!;
     private readonly string _clientSecret = config["SPOTIFY_CLIENT_SECRET"]!;
 
@@ -34,6 +39,9 @@ public sealed class SpotifyClientService(SpotifyStore store, IConfiguration conf
         var clientConfig = SpotifyClientConfig
             .CreateDefault()
             .WithAuthenticator(authenticator);
+        // A pooled handler, rather than the library's own HttpClient per client built every poll
+        if (httpClients is not null)
+            clientConfig = clientConfig.WithHTTPClient(new NetHttpClient(httpClients.CreateClient(HttpClientName)));
 
         return new SpotifyClient(clientConfig);
     }

@@ -40,6 +40,22 @@ namespace Tasks
 
             // Canonicalize existing recurring rows that pre-date series support
             db.NonQuery("UPDATE lu_tasks SET series_id = id WHERE recurrence_unit IS NOT NULL AND series_id IS NULL");
+
+            // Instances generated before they copied the series' end date and countdown flag
+            // take them from the series root, then drop the undone ones the horizon extension
+            // generated past that end date
+            db.NonQuery("""
+                UPDATE lu_tasks
+                SET recurrence_end_date = (SELECT r.recurrence_end_date FROM lu_tasks r WHERE r.id = lu_tasks.series_id),
+                    is_countdown        = (SELECT r.is_countdown        FROM lu_tasks r WHERE r.id = lu_tasks.series_id)
+                WHERE series_id IS NOT NULL AND id <> series_id
+                  AND EXISTS (SELECT 1 FROM lu_tasks r WHERE r.id = lu_tasks.series_id)
+                """);
+            db.NonQuery("""
+                DELETE FROM lu_tasks
+                WHERE series_id IS NOT NULL AND done = 0 AND recurrence_end_date IS NOT NULL
+                  AND date(due_date) > date(recurrence_end_date)
+                """);
         }
 
         public IEnumerable<TaskItem> List()
@@ -89,29 +105,19 @@ namespace Tasks
             {
                 db.NonQuery("UPDATE lu_tasks SET series_id = $sid WHERE id = $id",
                     cmd => { cmd.AddParam("$sid", first.Id); cmd.AddParam("$id", first.Id); });
-                GenerateInstances(first.Id, dueDate.Value, recurrenceUnit, recurrenceInterval ?? 1, recurrenceDays, recurrenceEndDate);
+                GenerateInstances(first.Id, first.Id, dueDate.Value, recurrenceUnit, recurrenceInterval ?? 1, recurrenceDays, recurrenceEndDate);
                 return first with { SeriesId = first.Id };
             }
 
             return first;
         }
 
-        public TaskItem? Update(long id, bool done, string? title, DateTime? dueDate, string? dueTime, string? description, string? assignee)
+        /// <summary>
+        /// Replaces the editable fields with the given values — a null clears that field.
+        /// Returns null when no task has this id.
+        /// </summary>
+        public TaskItem? Update(long id, bool done, string title, DateTime? dueDate, string? dueTime, string? description, string? assignee)
         {
-            var task = db.QueryOne("""
-                SELECT id, title, done, due_date, due_time, created_at,
-                       description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date, is_countdown
-                FROM lu_tasks WHERE id = $id
-                """, Map, cmd => cmd.AddParam("$id", id));
-
-            if (task is null) return null;
-
-            var newTitle       = title       ?? task.Title;
-            var newDueDate     = dueDate     ?? task.DueDate;
-            var newDueTime     = dueTime     ?? task.DueTime;
-            var newDescription = description ?? task.Description;
-            var newAssignee    = assignee    ?? task.Assignee;
-
             return db.QueryOne("""
                 UPDATE lu_tasks
                 SET done = $done, title = $title, due_date = $due_date, due_time = $due_time,
@@ -122,11 +128,11 @@ namespace Tasks
                 """, Map, cmd =>
             {
                 cmd.AddParam("$done", done ? 1 : 0);
-                cmd.AddParam("$title", newTitle);
-                cmd.AddParam("$due_date", newDueDate.HasValue ? newDueDate.Value.ToString("o") : null);
-                cmd.AddParam("$due_time", newDueTime);
-                cmd.AddParam("$description", newDescription);
-                cmd.AddParam("$assignee", newAssignee);
+                cmd.AddParam("$title", title);
+                cmd.AddParam("$due_date", dueDate.HasValue ? dueDate.Value.ToString("o") : null);
+                cmd.AddParam("$due_time", dueTime);
+                cmd.AddParam("$description", description);
+                cmd.AddParam("$assignee", assignee);
                 cmd.AddParam("$id", id);
             });
         }
@@ -135,12 +141,24 @@ namespace Tasks
         {
             if (series)
             {
-                var sid = db.QueryOne<long?>("SELECT series_id FROM lu_tasks WHERE id = $id",
-                    r => r.IsDBNull(0) ? null : r.GetInt64(0),
+                var row = db.QueryOne("SELECT series_id, due_date FROM lu_tasks WHERE id = $id",
+                    r => (SeriesId: r.Field<long?>("series_id"), DueDate: r.Field<DateTime?>("due_date")),
                     cmd => cmd.AddParam("$id", id));
-                if (sid.HasValue)
-                    db.NonQuery("DELETE FROM lu_tasks WHERE series_id = $sid",
-                        cmd => cmd.AddParam("$sid", sid.Value));
+                if (row is { SeriesId: { } sid, DueDate: { } from })
+                {
+                    // "All future": this instance and every later one; earlier ones stay as history
+                    db.NonQuery("DELETE FROM lu_tasks WHERE series_id = $sid AND date(due_date) >= date($from)", cmd =>
+                    {
+                        cmd.AddParam("$sid", sid);
+                        cmd.AddParam("$from", from.ToString("o"));
+                    });
+                    // End the series the day before, so the horizon extension doesn't regrow it
+                    db.NonQuery("UPDATE lu_tasks SET recurrence_end_date = $end WHERE series_id = $sid", cmd =>
+                    {
+                        cmd.AddParam("$sid", sid);
+                        cmd.AddParam("$end", from.Date.AddDays(-1).ToString("o"));
+                    });
+                }
                 else
                     db.NonQuery("DELETE FROM lu_tasks WHERE id = $id",
                         cmd => cmd.AddParam("$id", id));
@@ -152,7 +170,11 @@ namespace Tasks
             }
         }
 
-        private void GenerateInstances(long seriesId, DateTime start, string unit, int interval, string? days, DateTime? endDate = null)
+        /// <summary>
+        /// Inserts the series' instances after <paramref name="start"/>, up to its end date or a year out,
+        /// copying everything but the due date from the <paramref name="templateId"/> row.
+        /// </summary>
+        private void GenerateInstances(long seriesId, long templateId, DateTime start, string unit, int interval, string? days, DateTime? endDate = null)
         {
             var horizon = endDate.HasValue
                 ? endDate.Value.Date
@@ -166,14 +188,17 @@ namespace Tasks
                 if (current > horizon) break;
                 db.NonQuery("""
                     INSERT INTO lu_tasks (title, due_date, due_time, description, assignee,
-                                          recurrence_unit, recurrence_interval, recurrence_days, series_id)
+                                          recurrence_unit, recurrence_interval, recurrence_days, series_id,
+                                          recurrence_end_date, is_countdown)
                     SELECT title, $due_date, due_time, description, assignee,
-                           recurrence_unit, recurrence_interval, recurrence_days, $sid
-                    FROM lu_tasks WHERE id = $sid
+                           recurrence_unit, recurrence_interval, recurrence_days, $sid,
+                           recurrence_end_date, is_countdown
+                    FROM lu_tasks WHERE id = $template
                     """, cmd =>
                 {
                     cmd.AddParam("$due_date", current.ToString("o"));
                     cmd.AddParam("$sid", seriesId);
+                    cmd.AddParam("$template", templateId);
                 });
                 count++;
             }
@@ -182,26 +207,31 @@ namespace Tasks
         private void ExtendNearingSeriesHorizon()
         {
             var threshold = DateTime.UtcNow.Date.AddDays(30).ToString("o");
+            // With a single MAX() aggregate SQLite takes the bare columns (id, recurrence_*) from
+            // the tail row, which becomes the template. The end date is read across the whole
+            // series so one row missing it can't let the series run past its end.
             var nearingTails = db.Query("""
-                SELECT series_id, MAX(due_date) as tail,
-                       recurrence_unit, recurrence_interval, recurrence_days, recurrence_end_date
-                FROM lu_tasks
-                WHERE series_id IS NOT NULL AND done = 0
-                GROUP BY series_id
-                HAVING MAX(due_date) < $threshold
+                SELECT t.series_id, MAX(t.due_date) AS tail, t.id,
+                       t.recurrence_unit, t.recurrence_interval, t.recurrence_days,
+                       (SELECT MIN(e.recurrence_end_date) FROM lu_tasks e WHERE e.series_id = t.series_id) AS end_date
+                FROM lu_tasks t
+                WHERE t.series_id IS NOT NULL AND t.done = 0
+                GROUP BY t.series_id
+                HAVING MAX(t.due_date) < $threshold
                 """,
                 r => (
                     SeriesId: r.GetInt64(0),
                     Tail: r.GetDateTime(1),
-                    Unit: r.GetString(2),
-                    Interval: r.IsDBNull(3) ? 1 : r.GetInt32(3),
-                    Days: r.IsDBNull(4) ? null : r.GetString(4),
-                    EndDate: r.IsDBNull(5) ? (DateTime?)null : r.GetDateTime(5)
+                    TemplateId: r.GetInt64(2),
+                    Unit: r.GetString(3),
+                    Interval: r.IsDBNull(4) ? 1 : r.GetInt32(4),
+                    Days: r.IsDBNull(5) ? null : r.GetString(5),
+                    EndDate: r.IsDBNull(6) ? (DateTime?)null : r.GetDateTime(6)
                 ),
                 cmd => cmd.AddParam("$threshold", threshold));
 
             foreach (var s in nearingTails)
-                GenerateInstances(s.SeriesId, s.Tail, s.Unit, s.Interval, s.Days, s.EndDate);
+                GenerateInstances(s.SeriesId, s.TemplateId, s.Tail, s.Unit, s.Interval, s.Days, s.EndDate);
         }
 
         internal static DateTime ComputeNextDue(DateTime current, string unit, int interval, string? days)

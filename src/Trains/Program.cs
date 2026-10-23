@@ -8,7 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddServicesForTrains();
 
 var app = builder.Build();
-app.UseCors();
 
 app.InitializeWebAppForTrains();
 

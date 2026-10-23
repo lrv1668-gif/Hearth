@@ -6,7 +6,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddServicesForDisplay();
 
 var app = builder.Build();
-app.UseCors();
 
 // Setup each service
 app.InitializeWebAppForDisplay();

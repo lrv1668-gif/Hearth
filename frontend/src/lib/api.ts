@@ -286,23 +286,25 @@ export type AmbientPosition =
 
 class ApiClient {
     readonly tasks = {
-        list: (): Promise<Task[]> => this.get<Task[]>('/tasks').then((r) => r ?? []),
+        list: (): Promise<Task[] | null> => this.get<Task[]>('/tasks'),
 
         create: (input: CreateTaskInput): Promise<Task> => this.post<Task>('/tasks', input),
 
         update: (id: number, input: UpdateTaskInput): Promise<Task> => this.put<Task>(`/tasks/${id}`, input),
 
-        delete: (id: number, series = false): Promise<void> =>
-            this.del(`/tasks/${id}${series ? '?series=true' : ''}`).then(() => {}),
+        delete: (id: number, series = false): Promise<boolean> =>
+            this.del(`/tasks/${id}${series ? '?series=true' : ''}`),
     };
 
     readonly spotify = {
         disconnect: (): Promise<void> => this.del('/spotify/auth').then(() => {}),
 
+        /** undefined = not connected, null = nothing playing; throws when Spotify can't be reached. */
         nowPlaying: async (): Promise<NowPlaying | null | undefined> => {
             const res = await fetch('/spotify/now-playing');
             if (res.status === 401) return undefined;
             if (res.status === 204) return null;
+            if (!res.ok) throw new Error(`GET /spotify/now-playing failed: ${res.status}`);
             return res.json() as Promise<NowPlaying>;
         },
     };
@@ -419,7 +421,7 @@ class ApiClient {
 
         googleDisconnect: (): Promise<boolean> => this.del('/calendar/google/auth'),
 
-        items: (): Promise<CalendarItem[]> => this.get<CalendarItem[]>('/calendar/items').then((r) => r ?? []),
+        items: (): Promise<CalendarItem[] | null> => this.get<CalendarItem[]>('/calendar/items'),
 
         toggleTask: (taskListId: string, taskId: string, completed: boolean): Promise<boolean> =>
             this.patch(`/calendar/google/tasks/${taskListId}/${taskId}`, { completed }),
@@ -469,10 +471,15 @@ class ApiClient {
             this.patch(`/photos/uploads/${id}`, { caption }),
     };
 
+    /** null when the service can't be reached or doesn't answer with JSON. */
     private async get<T>(url: string): Promise<T | null> {
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        return res.json() as Promise<T>;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            return (await res.json()) as T;
+        } catch {
+            return null;
+        }
     }
 
     private async post<T>(url: string, body: unknown): Promise<T> {

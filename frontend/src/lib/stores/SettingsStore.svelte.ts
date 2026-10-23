@@ -3,11 +3,13 @@ import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
 import { DEFAULT_TRAIN_STOPS, type TrainStop } from '$lib/constants/trains';
 import { LEGACY_FRAME_SETTINGS_KEY } from '$lib/stores/FrameSettingsStore.svelte.ts';
 import {
+    ALL_WIDGET_IDS,
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
     type WidgetId,
     type AllWidgetId,
 } from '$lib/constants/widgets';
+import { mergeNewWidgets } from '$lib/widgetLayout';
 
 const STORAGE_KEY = 'hearth-settings';
 
@@ -59,6 +61,7 @@ function createSettings(): SettingsStore {
                 photoSource,
                 photoCategories,
                 showAttribution: _attribution, // dropped: Unsplash credit is always shown
+                knownWidgetIds,
                 ...rest
             } = JSON.parse(raw);
             Object.assign(store, rest);
@@ -82,24 +85,16 @@ function createSettings(): SettingsStore {
                 );
             }
 
-            // Merge any widgets added after this settings snapshot was saved.
-            const storedIds = new Set([...store.widgetColumns.left, ...store.widgetColumns.right]);
-            for (const col of ['left', 'right'] as const) {
-                for (const id of DEFAULT_WIDGET_COLUMNS[col]) {
-                    if (!storedIds.has(id)) {
-                        store.widgetColumns = {
-                            ...store.widgetColumns,
-                            [col]: [...store.widgetColumns[col], id],
-                        };
-                        storedIds.add(id);
-                    }
-                }
-            }
-            for (const id of DEFAULT_ENABLED_WIDGETS_IDS) {
-                if (!store.enabledWidgets.includes(id)) {
-                    store.enabledWidgets = [...store.enabledWidgets, id];
-                }
-            }
+            // Merge any widgets added after this settings snapshot was saved. Snapshots from
+            // before knownWidgetIds re-merged every default on each load, so they already
+            // hold every current widget.
+            const merged = mergeNewWidgets(
+                { columns: store.widgetColumns, enabled: store.enabledWidgets },
+                Array.isArray(knownWidgetIds) ? knownWidgetIds : ALL_WIDGET_IDS,
+                { columns: DEFAULT_WIDGET_COLUMNS, enabled: DEFAULT_ENABLED_WIDGETS_IDS }
+            );
+            store.widgetColumns = merged.columns;
+            store.enabledWidgets = merged.enabled;
         }
     } catch {
         // fall back to defaults
@@ -121,6 +116,8 @@ if (browser) {
                     ambientMotion: settings.ambientMotion,
                     enabledWidgets: settings.enabledWidgets,
                     widgetColumns: settings.widgetColumns,
+                    // Lets the next load tell a widget turned off from one released since
+                    knownWidgetIds: ALL_WIDGET_IDS,
                     leftColumnWidth: settings.leftColumnWidth,
                     rssArticleCount: settings.rssArticleCount,
                     rssFeeds: settings.rssFeeds,

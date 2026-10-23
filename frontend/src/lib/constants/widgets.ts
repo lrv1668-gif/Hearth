@@ -43,6 +43,8 @@ export const DEFAULT_WIDGET_COLUMNS: { left: AllWidgetId[]; right: AllWidgetId[]
     right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'almanac', 'daily-quote', 'birds', 'trains'],
 };
 
+export const ALL_WIDGET_IDS: AllWidgetId[] = allWidgets.map((w) => w.id);
+
 // Items always visible in the header and footer — not configurable.
 export const fixedHeaderWidgets = [{ label: 'Date & Time' }, { label: 'Current Conditions' }] as const;
 

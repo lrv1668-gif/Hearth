@@ -5,10 +5,13 @@ namespace ServiceDefaults;
 
 public static class HearthServiceCollectionExtensions
 {
+    /// <summary>
+    /// snake_case JSON for every endpoint. Deliberately no CORS: the browser reaches every
+    /// service same-origin (Caddy in production, the Vite proxy in dev), so a cross-origin
+    /// policy would only let other sites read and change household data.
+    /// </summary>
     public static IServiceCollection AddHearthWebDefaults(this IServiceCollection services)
     {
-        services.AddCors(opts =>
-            opts.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
         services.ConfigureHttpJsonOptions(opts =>
             opts.SerializerOptions.PropertyNamingPolicy = HearthJson.SnakeCaseLower.PropertyNamingPolicy);
 

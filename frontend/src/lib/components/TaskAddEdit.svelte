@@ -151,7 +151,6 @@
     <div class="flex flex-wrap gap-2 sm:flex-nowrap">
         <input
             bind:value={newTitle}
-            onkeydown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="What needs doing?"
             aria-label="Task"
             class="type-body w-full min-w-0 rounded-lg bg-(--surface) px-4 py-2.5
