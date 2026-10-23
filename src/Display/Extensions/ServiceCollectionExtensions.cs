@@ -12,6 +12,12 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<FrameSettingsStore>();
         serviceCollection.AddSingleton<HomeSettingsStore>();
         serviceCollection.AddSingleton<ModeStore>();
+        // The panel's frame: rendered in the background, cached beside display.db
+        serviceCollection.AddSingleton(services => new FrameCache(
+            FrameCache.DirectoryFor(Environment.GetEnvironmentVariable("DB_PATH")),
+            services.GetRequiredService<ILogger<FrameCache>>()));
+        serviceCollection.AddSingleton<FrameRenderService>();
+        serviceCollection.AddHostedService(services => services.GetRequiredService<FrameRenderService>());
         serviceCollection.TryAddSingleton(TimeProvider.System);
         serviceCollection.AddHearthCache();
         serviceCollection.AddHttpClient<GeocodingClient>(http => http.Timeout = TimeSpan.FromSeconds(10));

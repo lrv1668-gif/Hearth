@@ -150,6 +150,15 @@ export const DEFAULT_FRAME_SIZE = { width: 1600, height: 1200 } as const;
 export const MIN_FRAME_SIZE = 200;
 export const MAX_FRAME_SIZE = 4000;
 
+/** Which way a portrait frame is turned onto the panel's native landscape for
+ *  GET /display/frame, in clockwise degrees — depends on which side the frame hangs. */
+export type PortraitRotation = 90 | 270;
+export const DEFAULT_PORTRAIT_ROTATION: PortraitRotation = 90;
+
+export function isPortraitRotation(value: unknown): value is PortraitRotation {
+    return value === 90 || value === 270;
+}
+
 /** Common Inky Impression panels, by native resolution. */
 export const FRAME_SIZE_PRESETS = [
     { label: 'Inky 13.3″', width: 1600, height: 1200 },
@@ -276,6 +285,18 @@ export function dayOfYear(now: Date): number {
 
 /** How far `now` is through the daylight between sunrise and sunset (0–1), or null
  *  while the sun is down. */
+/**
+ * `d` rounded to the nearest whole hour (local time). The frame draws the sun's position
+ * at this, not the exact minute: Display re-renders Daily every 15 min, and a sun that
+ * moved a few pixels each time would redraw the whole panel (~30 s of flashing) four
+ * times an hour. Only the position snaps — dates still come from the real time.
+ */
+export function nearestHour(d: Date): Date {
+    const snapped = new Date(d);
+    snapped.setMinutes(d.getMinutes() >= 30 ? 60 : 0, 0, 0);
+    return snapped;
+}
+
 export function sunProgress(sunrise: Date, sunset: Date, now: Date): number | null {
     const span = sunset.getTime() - sunrise.getTime();
     const elapsed = now.getTime() - sunrise.getTime();

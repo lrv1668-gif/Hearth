@@ -35,6 +35,22 @@ export function isPhotoCard(value: unknown): value is PhotoCard {
     return photoCards.some((c) => c.value === value);
 }
 
+/** How long Ambient and Photo keep a photo on the panel before the next render picks
+ *  another — each change is a full ~30 s e-paper refresh. Display's photo_interval_minutes. */
+export const photoIntervals = [
+    { minutes: 30, label: '30 min' },
+    { minutes: 60, label: '1 hour' },
+    { minutes: 180, label: '3 hours' },
+    { minutes: 360, label: '6 hours' },
+] as const;
+
+export const DEFAULT_PHOTO_INTERVAL_MINUTES = 60;
+
+/** Display's FrameSettings range (15 min – a day). */
+export function isPhotoInterval(value: unknown): value is number {
+    return Number.isInteger(value) && (value as number) >= 15 && (value as number) <= 1440;
+}
+
 /** Schedule rule days, Sunday first — Display's ModeRule.DayIds. */
 export const modeDays = [
     { id: 'sun', label: 'S' },

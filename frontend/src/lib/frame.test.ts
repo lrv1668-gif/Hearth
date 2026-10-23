@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CalendarItem, CurrentWeather, ForecastDay, Task } from './api';
 import type { Pixels } from './frame';
+import { isPhotoInterval, photoIntervals } from './constants/frameModes';
 import {
     allocateLines,
     dayOfYear,
@@ -11,6 +12,8 @@ import {
     frameCanvas,
     heroCountdown,
     isFrameSize,
+    isPortraitRotation,
+    nearestHour,
     nextSunrise,
     normalizeFrameSize,
     DEFAULT_FRAME_SIZE,
@@ -491,5 +494,36 @@ describe('pickBlockInk', () => {
 
     it('falls back to the preferred ink without candidates', () => {
         expect(pickBlockInk(photo('#5e5b91'), frame, plate, [], '#5e5b91')).toBe('#5e5b91');
+    });
+});
+
+describe('panel render settings', () => {
+    it('accepts only quarter turns for portrait', () => {
+        expect(isPortraitRotation(90)).toBe(true);
+        expect(isPortraitRotation(270)).toBe(true);
+        expect(isPortraitRotation(180)).toBe(false);
+        expect(isPortraitRotation('90')).toBe(false);
+    });
+
+    it("keeps photo intervals within Display's 15 min – 1 day range", () => {
+        expect(photoIntervals.every((i) => isPhotoInterval(i.minutes))).toBe(true);
+        expect(isPhotoInterval(14)).toBe(false);
+        expect(isPhotoInterval(1441)).toBe(false);
+        expect(isPhotoInterval(30.5)).toBe(false);
+    });
+});
+
+describe('nearestHour', () => {
+    it('rounds to the nearest whole hour', () => {
+        expect(nearestHour(new Date(2026, 9, 23, 12, 29, 59))).toEqual(new Date(2026, 9, 23, 12, 0));
+        expect(nearestHour(new Date(2026, 9, 23, 12, 30))).toEqual(new Date(2026, 9, 23, 13, 0));
+    });
+
+    it('rolls over into the next day', () => {
+        expect(nearestHour(new Date(2026, 9, 23, 23, 45))).toEqual(new Date(2026, 9, 24, 0, 0));
+    });
+
+    it('keeps two renders within the same hour identical', () => {
+        expect(nearestHour(new Date(2026, 9, 23, 14, 5))).toEqual(nearestHour(new Date(2026, 9, 23, 14, 20)));
     });
 });

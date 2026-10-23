@@ -87,6 +87,18 @@
             value={frameSettings.orientation}
             onchange={(v) => (frameSettings.orientation = v)}
         />
+        {#if frameSettings.orientation === 'portrait'}
+            <!-- The panel is always sent landscape; which way to turn depends on how the frame hangs -->
+            <p class="type-label mt-4 mb-2 text-(--text-2)">Turn onto the panel</p>
+            <SegmentedControl
+                options={[
+                    { value: '90', label: 'Clockwise' },
+                    { value: '270', label: 'Counter-clockwise' },
+                ]}
+                value={String(frameSettings.portraitRotation)}
+                onchange={(v) => (frameSettings.portraitRotation = v === '270' ? 270 : 90)}
+            />
+        {/if}
     </div>
 
     <!-- Set-once options, folded away so the everyday ones stay close together -->

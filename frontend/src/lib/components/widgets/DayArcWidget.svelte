@@ -4,6 +4,11 @@
     import { taskStore } from '$lib/stores/TaskStore.svelte.ts';
     import { calendarStore } from '$lib/stores/CalendarStore.svelte.ts';
     import { eventDateKey, localDateKey } from '$lib/utils';
+    import { nearestHour } from '$lib/frame';
+
+    /** `hourly`: the e-paper frame's copy — the "now" dot (and which marks have passed)
+     *  moves in whole hours, so a re-render within the hour keeps the same pixels. */
+    let { hourly = false }: { hourly?: boolean } = $props();
 
     interface Mark {
         at: Date;
@@ -18,6 +23,8 @@
     });
 
     const todayKey = $derived(localDateKey(now));
+    // Where "now" is drawn on the ribbon; the day itself always comes from the real time
+    const nowAt = $derived(hourly ? nearestHour(now) : now);
     const todayForecast = $derived(weatherStore.forecast.find((f) => f.date === todayKey) ?? null);
 
     // Open-Meteo returns local ISO times without an offset ("2026-07-17T05:43"),
@@ -103,7 +110,7 @@
             <!-- event and task marks -->
             {#each marks as mark (mark.title + mark.at.getTime())}
                 <div
-                    class="absolute top-0.5 h-1.5 w-1.5 rounded-full {mark.at < now
+                    class="absolute top-0.5 h-1.5 w-1.5 rounded-full {mark.at < nowAt
                         ? 'bg-(--text-4)'
                         : 'bg-(--text-2)'}"
                     style="left: calc({pct(mark.at)}% - 3px)"
@@ -114,7 +121,7 @@
             <!-- now -->
             <div
                 class="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-(--accent) ring-2 ring-(--bg)"
-                style="left: calc({pct(now)}% - 6px)"
+                style="left: calc({pct(nowAt)}% - 6px)"
             ></div>
         </div>
 

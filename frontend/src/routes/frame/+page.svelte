@@ -32,6 +32,8 @@
     //                                (default: what the Display service resolves now —
     //                                 an override, the schedule, or its default mode —
     //                                 else ambient; see constants/frameModes.ts)
+    //   ?pin=<photo id>              (with ?mode=photo: the upload "Show on frame" pinned —
+    //                                 Display passes it with the mode it resolved)
     //   ?palette=color|bw            (default color — the Color ↔ B&W mode)
     //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
     //                                 B&W follows its lightness)
@@ -60,8 +62,8 @@
     const modeParam = params.get('mode');
     // Null until resolved: the URL's mode, else Display's (onMount).
     let mode = $state<FrameModeId | null>(isFrameMode(modeParam) ? modeParam : null);
-    // The upload "Show on frame" pinned, when Display resolved to it.
-    let pinnedPhotoId: string | null = null;
+    // The upload "Show on frame" pinned, when Display resolved to it (or named it in ?pin=).
+    let pinnedPhotoId: string | null = isFrameMode(modeParam) ? params.get('pin') || null : null;
     const palette = params.get('palette') === 'bw' ? 'bw' : 'color';
     const themeParam = params.get('theme');
     const theme = $derived(isValidFrameThemeId(themeParam) ? themeParam : frameSettings.theme);

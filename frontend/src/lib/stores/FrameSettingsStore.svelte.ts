@@ -1,9 +1,22 @@
 import { browser } from '$app/environment';
 import { api, type AmbientPosition, type FrameSettings } from '$lib/api';
-import { DEFAULT_AMBIENT_POSITION, DEFAULT_FRAME_SIZE, isAmbientPosition, isFrameSize } from '$lib/frame';
+import {
+    DEFAULT_AMBIENT_POSITION,
+    DEFAULT_FRAME_SIZE,
+    DEFAULT_PORTRAIT_ROTATION,
+    isAmbientPosition,
+    isFrameSize,
+    isPortraitRotation,
+    type PortraitRotation,
+} from '$lib/frame';
 import { categoryOptions } from '$lib/constants/ambient';
 import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
-import { isPhotoCard, type PhotoCard } from '$lib/constants/frameModes';
+import {
+    DEFAULT_PHOTO_INTERVAL_MINUTES,
+    isPhotoCard,
+    isPhotoInterval,
+    type PhotoCard,
+} from '$lib/constants/frameModes';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '$lib/constants/frameThemes';
 import { DEFAULT_FONT_THEME, isValidFontThemeId, type FontThemeId } from '$lib/constants/fontThemes';
 import {
@@ -48,6 +61,9 @@ class FrameSettingsStore {
     /** Note mode: a heading and a body, kept as typed (line breaks included). */
     noteTitle = $state('');
     noteBody = $state('');
+    /** The panel render: minutes Ambient and Photo keep a photo, and which way portrait turns. */
+    photoIntervalMinutes = $state(DEFAULT_PHOTO_INTERVAL_MINUTES);
+    portraitRotation = $state<PortraitRotation>(DEFAULT_PORTRAIT_ROTATION);
     /** True once the Display service has answered (or failed to). */
     loaded = $state(false);
     /** The Display service couldn't be reached — showing (and not saving) defaults. */
@@ -93,6 +109,8 @@ class FrameSettingsStore {
             countdown_id: this.countdownId,
             note_title: this.noteTitle || null,
             note_body: this.noteBody || null,
+            photo_interval_minutes: this.photoIntervalMinutes,
+            portrait_rotation: this.portraitRotation,
         };
     }
 
@@ -103,6 +121,8 @@ class FrameSettingsStore {
         if (saved.countdown_id !== undefined) this.countdownId = saved.countdown_id;
         if (saved.note_title !== undefined) this.noteTitle = saved.note_title ?? '';
         if (saved.note_body !== undefined) this.noteBody = saved.note_body ?? '';
+        if (isPhotoInterval(saved.photo_interval_minutes)) this.photoIntervalMinutes = saved.photo_interval_minutes;
+        if (isPortraitRotation(saved.portrait_rotation)) this.portraitRotation = saved.portrait_rotation;
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
         if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
         if (saved.orientation === 'landscape' || saved.orientation === 'portrait') this.orientation = saved.orientation;

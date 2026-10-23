@@ -55,7 +55,7 @@ Switching modes is a first-class feature, not a setting buried in config. The ri
 The display shows a full-frame image — a curated photo, your own image, or a generated piece — with a minimal overlay anchored to one corner:
 
 - Current temperature + weather icon
-- Date and time (small, unobtrusive)
+- Date, and when the frame was last drawn (small, unobtrusive — on e-paper it's an "Updated" time rather than a clock, since the panel only redraws when the picture changes)
 - A subtle plant indicator if anything is overdue for watering (a single wilting icon, not a list)
 
 Nothing else. The art is the display. Information is peripheral.
@@ -111,7 +111,7 @@ The web UI (phone browser, no app install) has four screens:
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
-The `/settings` route is implemented and currently houses the theme picker, the household's home location and time zone (shared by every device and service; `.env` values remain a fallback), the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, the e-paper frame's mode (what it shows now, a manual choice with an expiry, and the time-of-day schedule), Photo mode's album and Countdown mode's countdown, and its appearance (an ink-safe colour theme, typeface, orientation, panel size) with a live preview. Additional settings will move here as features are built out.
+The `/settings` route is implemented and currently houses the theme picker, the household's home location and time zone (shared by every device and service; `.env` values remain a fallback), the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, the e-paper frame's mode (what it shows now, a manual choice with an expiry, and the time-of-day schedule), Photo mode's album and Countdown mode's countdown, how often Ambient and Photo change photo on the panel, and its appearance (an ink-safe colour theme, typeface, orientation and which way a portrait frame is turned, panel size) with a live preview. Additional settings will move here as features are built out.
 
 All screens are usable one-handed on a phone. No dense forms.
 
@@ -144,7 +144,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 
 - Art display: Unsplash integration, your own photos, or a local image folder — dithered and optimized for e-paper rendering
 - Weather: current conditions + today's forecast + 5-day (Open-Meteo or similar free API, no key required); includes sunrise and sunset times for the current day
-- Clock and date, always present in both modes
+- Date in every mode; a live clock in the browser, an "Updated" time on the e-paper frame (which only redraws when its picture changes)
 - Countdown events: one-off events tracked by days remaining; five nearest upcoming events shown in a dedicated widget
 - Moon phase: front-end computed lunar phase with phase name, illumination %, SVG visualization, and countdown to the next major phase
 - Today's arc: an ambient ribbon showing the shape of the day — night, daylight, golden hours, solar noon — with today's events and timed tasks as quiet marks and a dot for "now"
