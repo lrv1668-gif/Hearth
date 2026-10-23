@@ -173,6 +173,26 @@ dialog:modal {
     }
 }
 
+/* ── Modal sheet ─────────────────────────────────────────────────────────── */
+/* <dialog class="sheet"> with one panel <div> inside: centred on wider screens, a bottom sheet
+   on phones so it sits within thumb reach and clear of the on-screen keyboard. Unlayered, so it
+   beats the panel's mx-4/rounded utilities. */
+@media (max-width: 639px) {
+    dialog.sheet {
+        margin: auto 0 0;
+        max-width: none;
+        max-height: 92dvh;
+    }
+    dialog.sheet > div {
+        margin: 0;
+        max-height: 92dvh;
+        overflow-y: auto;
+        border-bottom: none;
+        border-radius: 1rem 1rem 0 0;
+        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    }
+}
+
 /* ── Scrollbar utility ───────────────────────────────────────────────────── */
 .scroll-thin::-webkit-scrollbar {
     width: 3px;

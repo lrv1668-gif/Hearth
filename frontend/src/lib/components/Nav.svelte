@@ -39,10 +39,9 @@
     </div>
 </header>
 
-<!-- Mobile bottom nav. On Settings its section tabs sit on top, so a hairline joins the two into one tray. -->
+<!-- Mobile bottom nav -->
 <nav
-    class="fixed right-0 bottom-0 left-0 flex min-h-max justify-around border-(--border) bg-(--bg) pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden
-    {page.url.pathname === '/settings' ? 'border-t' : 'border-t-2'}"
+    class="fixed right-0 bottom-0 left-0 flex min-h-max justify-around border-t-2 border-(--border) bg-(--bg) pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden"
 >
     {#each links as link (link.href)}
         <a

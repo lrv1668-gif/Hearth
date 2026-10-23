@@ -190,7 +190,8 @@
                 {chromeVisible ? 'opacity-100' : 'opacity-0'}"
             aria-hidden={!chromeVisible}
         >
-            Click or press any key to exit
+            <span class="pointer-coarse:hidden">Click or press any key to exit</span>
+            <span class="hidden pointer-coarse:inline">Tap anywhere to exit</span>
         </p>
     {:else}
         <p class="type-body tracking-widest text-white/40 uppercase">No photos available</p>

@@ -4,7 +4,8 @@
     import { MINUTE, poll } from '$lib/utils';
     import { taskStore, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore.svelte.ts';
     import { calendarStore, toggleCalendarTask } from '$lib/stores/CalendarStore.svelte.ts';
-    import { loadWeather } from '$lib/stores/WeatherStore.svelte.ts';
+    import { loadWeather, weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
+    import { weatherIcon } from '$lib/constants/weather';
     import { kioskStore } from '$lib/stores/KioskStore.svelte.ts';
     import UpcomingTasksWidget from '$lib/components/widgets/UpcomingTasksWidget.svelte';
     import TaskModal from '$lib/components/modals/TaskModal.svelte';
@@ -32,6 +33,11 @@
         loadWeather();
         return poll(loadWeather, 30 * MINUTE);
     });
+
+    // The phone header's date; rechecked each minute so an always-on screen rolls over at midnight.
+    let now = $state(new Date());
+    onMount(() => poll(() => (now = new Date()), MINUTE));
+    const today = $derived(now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -116,6 +122,24 @@
     {/if}
 
     <main class="mx-auto min-h-0 w-full max-w-7xl overflow-x-hidden overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+        <!-- Below lg there's no header outside kiosk mode, so open on a one-line date and conditions -->
+        {#if !kioskStore.isKiosk && !isWide.current}
+            <div class="mb-4 flex min-w-0 items-baseline justify-between gap-3">
+                <p class="type-label font-semibold tracking-widest whitespace-nowrap text-(--text-2) uppercase">
+                    {today}
+                </p>
+                {#if weatherStore.current}
+                    {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}
+                    <p class="type-body flex min-w-0 items-center gap-1.5 text-(--text-2)">
+                        <WeatherIcon class="icon-sm shrink-0 self-center" aria-hidden="true" />
+                        <span class="font-semibold text-(--text-1)">
+                            {Math.round(weatherStore.current.temperature_f)}°
+                        </span>
+                        <span class="truncate">{weatherStore.current.description}</span>
+                    </p>
+                {/if}
+            </div>
+        {/if}
         <!-- Below lg the footer is hidden, so Now Playing moves up here (DashboardFooter still does the polling) -->
         {#if spotifyStore.nowPlaying}
             <p

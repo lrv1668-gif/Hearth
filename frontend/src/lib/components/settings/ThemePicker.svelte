@@ -3,7 +3,8 @@
     import { themeStore, setTheme } from '$lib/stores/ThemeStore.svelte.ts';
 </script>
 
-<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+<!-- Phones get a denser three-up grid: swatches and name only -->
+<div class="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-4">
     {#each themes as t}
         {@const selected = themeStore.theme === t.id}
         {@const swatches = [
@@ -26,25 +27,25 @@
                 {selected ? '' : 'opacity-85 hover:opacity-100'}"
         >
             <!-- Preview body -->
-            <div class="flex flex-1 flex-col gap-3 p-4">
+            <div class="flex flex-1 flex-col gap-2 p-2.5 sm:gap-3 sm:p-4">
                 <!-- Accent bar -->
                 <div style="background: {t.colors.accent};" class="h-0.5 w-8 rounded-full"></div>
                 <!-- Fake widget text -->
-                <p style="color: {t.colors.text1};" class="type-label font-medium">71° Clear</p>
+                <p style="color: {t.colors.text1};" class="type-label hidden font-medium sm:block">71° Clear</p>
                 <!-- Color swatches -->
-                <div class="flex gap-1.5">
+                <div class="flex gap-1 sm:gap-1.5">
                     {#each swatches as color}
-                        <span style="background: {color};" class="h-5 w-full rounded-sm"></span>
+                        <span style="background: {color};" class="h-4 w-full rounded-sm sm:h-5"></span>
                     {/each}
                 </div>
             </div>
             <!-- Footer -->
             <div
                 style="border-color: {t.colors.border};"
-                class="flex items-center justify-between border-t px-4 py-2.5"
+                class="flex items-center justify-between border-t px-2.5 py-2 sm:px-4 sm:py-2.5"
             >
                 <span style="color: {t.colors.text1};" class="type-label font-medium">{t.label}</span>
-                <span style="color: {t.colors.text3};" class="type-label tracking-widest uppercase">
+                <span style="color: {t.colors.text3};" class="type-label hidden tracking-widest uppercase sm:inline">
                     {t.group === 'Black & White' ? 'B&W' : 'Color'}
                 </span>
             </div>

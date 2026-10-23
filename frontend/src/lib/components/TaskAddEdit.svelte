@@ -147,22 +147,24 @@
         handleSubmit();
     }}
 >
-    <!-- Main row -->
-    <div class="flex gap-2">
+    <!-- Main row — wraps on phones so the date and Add button stay on screen -->
+    <div class="flex flex-wrap gap-2 sm:flex-nowrap">
         <input
             bind:value={newTitle}
             onkeydown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder="Enter description..."
-            class="type-body flex-1 rounded-lg bg-(--surface)
-             px-4 py-2.5 text-(--text-1) placeholder-(--text-2) transition
-             outline-none focus:ring-1 focus:ring-(--border)"
+            placeholder="What needs doing?"
+            aria-label="Task"
+            class="type-body w-full min-w-0 rounded-lg bg-(--surface) px-4 py-2.5
+             text-(--text-1) placeholder-(--text-2) transition outline-none focus:ring-1
+             focus:ring-(--border) sm:w-auto sm:flex-1"
         />
         <input
             type="date"
             value={newDueDate}
             oninput={handleDateChange}
-            class="type-body rounded-lg bg-(--surface) px-3 py-2.5 text-(--text-2)
-             transition outline-none focus:ring-1 focus:ring-(--border)"
+            aria-label="Due date"
+            class="type-body min-w-0 flex-1 rounded-lg bg-(--surface) px-3 py-2.5 text-(--text-2) transition
+             outline-none focus:ring-1 focus:ring-(--border) sm:flex-none"
         />
         <button
             type="submit"
@@ -219,7 +221,8 @@
             <!-- Description -->
             <textarea
                 bind:value={description}
-                placeholder="Description (optional)"
+                placeholder="Notes (optional)"
+                aria-label="Notes"
                 rows={2}
                 class="type-body mt-1 w-full resize-none
                        rounded-lg bg-(--surface) px-4 py-2.5 text-(--text-1) placeholder-(--text-2)
@@ -229,6 +232,7 @@
             <input
                 bind:value={assignee}
                 placeholder="Assign to (optional)"
+                aria-label="Assign to"
                 class="type-body w-full rounded-lg bg-(--surface)
                        px-4 py-2.5 text-(--text-1) placeholder-(--text-2) transition
                        outline-none focus:ring-1 focus:ring-(--border)"
