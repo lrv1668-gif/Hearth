@@ -120,11 +120,11 @@
                 <div class="wrap">
                     <div class="section-head">
                         <span class="kicker">On the wall</span>
-                        <h2>Two ways to be in the room.</h2>
+                        <h2>Six ways to be in the room.</h2>
                         <p class="lede">
-                            The frame alternates between a full-bleed picture and a structured morning edition —
-                            Ambient by default, Daily when you want the day laid out. Or a photo you pin, one big
-                            countdown, a note of your own, or a quiet night page — on a schedule you set.
+                            Most of the time the frame is a full-bleed picture or a structured morning edition —
+                            Ambient by default, Daily when you want the day laid out. Four quieter modes fill in
+                            around them, and a schedule you set decides which one is up.
                         </p>
                     </div>
                     <div class="modes">
@@ -137,7 +137,7 @@
                                             width="1600"
                                             height="1200"
                                             loading="lazy"
-                                            alt="Ambient mode: a misty meadow with a single large tree at sunrise, with a small card in the corner showing the date, time, temperature and photo credit."
+                                            alt="Ambient mode: a lone tree standing in a still lake below mountains at dusk, with a small card in the corner showing the date, time, temperature and photo credit."
                                         />
                                     </div>
                                 </div>
@@ -173,6 +173,31 @@
                             </p>
                         </article>
                     </div>
+                    <div class="themes more-modes">
+                        <figure class="theme-card">
+                            <a href="assets/img/mode-countdown.jpg">
+                                <img src="assets/img/mode-countdown-sm.jpg" width="800" height="600" loading="lazy" alt="Countdown mode: a large 9, the words days to go, and Road trip, Sunday, November 1." />
+                                <figcaption><strong>Countdown</strong><span>One date you're waiting for, as a poster</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/mode-night.jpg">
+                                <img src="assets/img/mode-night-sm.jpg" width="800" height="600" loading="lazy" alt="Night mode: a yellow waxing gibbous moon on black, with tomorrow's sunrise time and the temperature." />
+                                <figcaption><strong>Night</strong><span>Tonight's moon, the next sunrise</span></figcaption>
+                            </a>
+                        </figure>
+                        <figure class="theme-card">
+                            <a href="assets/img/mode-note.jpg">
+                                <img src="assets/img/mode-note-sm.jpg" width="800" height="600" loading="lazy" alt="Note mode: the heading Welcome home above five house notes for a guest." />
+                                <figcaption><strong>Note</strong><span>Your own words, sized to fill the panel</span></figcaption>
+                            </a>
+                        </figure>
+                    </div>
+                    <p class="note">
+                        Plus <strong>Photo</strong>: pin one of your own uploads, or an album of them, and it stays up
+                        until you switch it off. Daily on weekday mornings and Night after ten, say, with Ambient the rest
+                        of the time — or pick one by hand from Settings.
+                    </p>
                 </div>
             </section>
 
@@ -297,6 +322,26 @@
                             </p>
                         </div>
                     </div>
+                    <div class="feature-row">
+                        <div class="window">
+                            <div class="bar"><i></i><i></i><i></i></div>
+                            <img src="assets/img/settings-frame.jpg" width="1600" height="1100" loading="lazy" alt="Settings → Frame: the Mode card with what's showing now, a manual override and a schedule of Daily on weekday mornings and Night overnight, beside a preview of the Daily layout dithered to the panel's six inks." />
+                        </div>
+                        <div>
+                            <span class="kicker">Settings → Frame</span>
+                            <h3>See it the way the panel will.</h3>
+                            <p>
+                                The frame's settings live on the host, so every phone and browser in the house edits the
+                                same frame. The Mode card shows what's up now, takes a manual override for an hour or
+                                until you change it back, and holds the schedule.
+                            </p>
+                            <p>
+                                Beside it, the preview switches between the live page and the host's own capture,
+                                dithered down to the six inks — with a Paper view that mimics e-paper's greyer, softer
+                                colors.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -366,8 +411,13 @@
                             <span class="kicker">Phone</span>
                             <h3>The frame's remote control.</h3>
                             <p>
-                                On a phone the dashboard becomes a single column with a tab bar — the quickest way to
-                                add a task, pick a frame theme or check what's coming up.
+                                On a phone the dashboard becomes a single column under a one-line date and weather
+                                header, with a tab bar along the bottom — the quickest way to add a task, switch the
+                                frame's mode or check what's coming up.
+                            </p>
+                            <p>
+                                Settings opens as a list of sections, dialogs slide up as sheets, and the frame preview
+                                waits behind a button until you want it.
                             </p>
                         </div>
                     </div>
@@ -444,9 +494,10 @@
                         </div>
                     </div>
                     <p class="note">
-                        <strong>Where it stands:</strong> the dashboard and the frame layouts are built and run today
-                        in any browser, and the inkypull client is written. The host-side step that captures and dithers
-                        the frame for the panel is next — nothing has been printed on real e-paper yet.
+                        <strong>Where it stands:</strong> the dashboard, all six frame modes and their schedule are built
+                        and run today in any browser; the host already captures and dithers the frame, and the inkypull
+                        client is written. The endpoint that hands the panel its image is next — nothing has been printed
+                        on real e-paper yet.
                         <a href="build.html#status">Project status</a>
                     </p>
                 </div>
