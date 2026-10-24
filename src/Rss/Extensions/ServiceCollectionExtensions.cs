@@ -15,5 +15,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<RssFeeds>();
 
         services.AddHearthWebDefaults();
+        services.AddHealthChecks().AddDatabase("rss");
     }
 }

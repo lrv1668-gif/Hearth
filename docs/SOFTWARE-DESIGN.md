@@ -20,6 +20,7 @@ Browser
         ├── /almanac*  → Almanac    :8089
         ├── /display*  → Display    :8090
         ├── /trains*   → Trains     :8091
+        ├── /logs*     → Dozzle     :8080  (container logs, opt-in, own login)
         └── /*         → Frontend   :3000
 ```
 
@@ -66,7 +67,7 @@ Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks 
 | `/`         | Dashboard — configurable widget columns (tasks, weather, countdowns, moon phase, news, quote) |
 | `/calendar` | Calendar view with month grid and per-day task overflow modal                             |
 | `/ambient`  | Fullscreen photo slideshow; click or any keypress returns to `/`                          |
-| `/settings` | Sections (`?section=`): theme and type pickers, kiosk mode, home location and time zone, ambient photo cadence, categories, widget layout and visibility — a sidebar on wide screens, a drill-in list on phones |
+| `/settings` | Sections (`?section=`): theme and type pickers, kiosk mode, home location and time zone, ambient photo cadence, categories, widget layout and visibility, service health and a link to the logs (Diagnostics) — a sidebar on wide screens, a drill-in list on phones |
 | `/frame`    | E-paper render target — panel-sized canvas (default 1600×1200), no nav (see below)        |
 
 The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one (left column first, then right), the bottom tab bar replaces the masthead, the kiosk footer is hidden (Now Playing moves to the top of the dashboard), a one-line date and current conditions open the dashboard outside kiosk mode, and `ScrollFadeList` lists (news, birds, trains) clip with a Show more/less toggle instead of scrolling inside the page. Settings opens on a section list there, with a back link from each section, in place of the sidebar. On wide screens the sidebar lists the active section's cards under it (`SettingsSubnav.svelte`) and highlights the one in view; it reads them off the page — every titled card rendered through the page's `card` snippet is listed — so a new card needs no nav code, and a new section is one entry in `constants/settingsSections.ts` plus its `{:else if}` block. The calendar switches earlier, at `md` (768px): below it day cells show marks instead of titles (squares for tasks, circles for events), a horizontal swipe on the grid changes month, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows — with an Add task button in place of the header's New Task. Below `sm` (640px) every modal (`ui/Modal.svelte`, a `<dialog class="sheet">`) becomes a bottom sheet (`app.css`), and the agenda puts each time above its title.
@@ -258,13 +259,13 @@ Three shared projects live under `src/` and are referenced by service projects v
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
 | `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton, and `SqliteDistributedCache` / `AddSqliteDistributedCache(key)` — an `IDistributedCache` over that same database, used as FusionCache's L2. The only project that references `Microsoft.Data.Sqlite`. |
-| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 11** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (snake_case JSON; deliberately no CORS — every service is reached same-origin through Caddy or the Vite proxy, so a cross-origin policy would only let other sites read and change household data), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `AddHearthCache()` (FusionCache — see below), and `AddHearthHomeLocation()` (the shared home location — see below). |
+| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 11** services, including the 1 with no database (Almanac). Provides `AddHearthWebDefaults()` (snake_case JSON; deliberately no CORS — every service is reached same-origin through Caddy or the Vite proxy, so a cross-origin policy would only let other sites read and change household data), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `AddHearthCache()` (FusionCache — see below), `AddHearthHomeLocation()` (the shared home location — see below), and the health checks behind Settings → Diagnostics (`MapHearthHealth` — see below). |
 
 Service projects follow this pattern:
 
 - Reference `Data.Abstractions` for the `IDatabase` type used in stores and handlers
 - Reference `Data` for the 9 SQLite-backed services, calling `services.AddSqliteDatabase("key", "service.db")` once in `ServiceCollectionExtensions.cs`
-- Reference `ServiceDefaults` and call `services.AddHearthWebDefaults()` once in `ServiceCollectionExtensions.cs`
+- Reference `ServiceDefaults` and call `services.AddHearthWebDefaults()` once in `ServiceCollectionExtensions.cs`, add the service's health checks with `services.AddHealthChecks()…`, and call `app.MapHearthHealth("<prefix>")` in `WebApplicationExtensions.cs`
 - Never reference `Microsoft.Data.Sqlite` directly
 
 JSON responses use `JsonNamingPolicy.SnakeCaseLower` (via `HearthJson.SnakeCaseLower` / `AddHearthWebDefaults()`) so property names match frontend conventions (e.g. `created_at`, `due_date`).
@@ -295,6 +296,22 @@ Endpoints that depend on config (API keys, coordinates, OAuth secrets) validate 
 
 - `config.RequireOrFail(logger, respond, "VAR1", "VAR2")` — logs the missing vars, and if any are missing, returns the `IResult` built by the caller's `respond` factory (each service keeps its own response shape — e.g. Weather/Birds/Spotify/Trains return `Results.Json(new { error = ... }, statusCode: 503)`, Calendar returns `Results.Problem(...)`)
 - `config.WarnIfMissing(logger, message, "VAR1", "VAR2")` — logs only, never fails the request; used by Almanac, where missing coordinates degrade the response (`daylight: null`) rather than failing it
+
+### Health checks (Settings → Diagnostics)
+
+Every service answers `GET /<prefix>/health` (`app.MapHearthHealth(prefix)`) with ASP.NET Core's built-in health checks, written as snake_case JSON: `{ status, checks: [{ name, status, description }] }`, where a status is `healthy`, `degraded` or `unhealthy`. It is always `200` — a service that answers with a problem is different from one that doesn't answer, which the page shows as Not responding. `AddHearthWebDefaults()` registers an empty set; each service adds what matters to it in `ServiceCollectionExtensions.cs` with the `IHealthChecksBuilder` extensions in `ServiceDefaults/HearthHealth.cs`:
+
+- `AddDatabase(key)` — `SELECT 1` against the keyed `IDatabase`; Unhealthy when it fails.
+- `AddRequiredConfig("VAR", …)` — Degraded, naming the unset env vars (never their values). Integrations are optional, so a household that never set up trains sees a warning, not a failure.
+- `AddHomeLocation()` — Degraded when neither Settings → Home nor the env vars give coordinates (Weather, Birds, Almanac).
+- `upstream` — added by `AddHearthCache()`: `UpstreamFailures` listens to FusionCache's factory error/success events and is Degraded while a key's refresh has failed and not succeeded since (within the last hour), naming the source by the key's prefix (`weather`, `birds`, …). Fail-safe hides these from the widgets, so this is where a dead API key or an outage shows.
+- Display's `frame` check (`FrameHealthCheck`) — when the panel last rendered and the frame last checked in; Degraded while the last render failed.
+
+The frontend lists the services in `lib/constants/services.ts`, fetches each report through `api.health.service(id)` every 30 seconds, and turns it into a row with `summarizeHealth()` in `lib/diagnostics.ts`: Running, Not set up (only `config` is degraded — shown muted and left out of the "need attention" count, since integrations are optional), Needs attention, Not working, or Not responding. Calendar's health route needs its own Caddy and Vite proxy entry, because `/calendar` is a frontend page.
+
+### Logs (Dozzle)
+
+The `dozzle` container ([Dozzle](https://dozzle.dev), `amir20/dozzle`) streams live, searchable logs for every container on the host at `/logs` (`DOZZLE_BASE=/logs`; Caddy's `handle /logs*` keeps the prefix). It reads the Docker socket (read-only mount, which still exposes the whole Docker API) and has container actions and shells off (Dozzle's defaults). So it's **opt-in**: the service is in the `logs` Compose profile, and only runs when the root `.env` sets `COMPOSE_PROFILES=logs`. Compose reads that itself, so `docker compose up` and `deploy/update.sh` need no flag. The health checks stay on regardless — they cost nothing until asked and expose no logs. Settings → Diagnostics' Logs card (`LogsSettings.svelte`) asks `api.logs.running()` whether `/logs/` answers (Caddy 502s when Dozzle isn't running) and shows Open logs, or how to turn them on. Hearth has no login of its own, so Dozzle uses its simple file auth (`DOZZLE_AUTH_PROVIDER=simple`): `dozzle/users.yml` holds a bcrypt hash, written by `deploy/dozzle-user.sh <name>`, which prompts for the password. The `dozzle/` folder is bind-mounted as `/data` (Dozzle saves user settings there too) and gitignored apart from `.gitkeep`. Nothing depends on Dozzle, so without a login only `/logs` is down. The frame's Raspberry Pi is a separate machine: its client's logs stay in its own journal (`journalctl`).
 
 ## Tasks Service
 
@@ -914,6 +931,7 @@ Deployed hosts never build: they pull images that CI publishes.
    ```
 
    To roll back, set `HEARTH_TAG=sha-<short>` in `.env` and run `deploy/update.sh`.
+4. **Optionally, turn on the logs.** Add `COMPOSE_PROFILES=logs` to `.env`, then run `deploy/dozzle-user.sh <name>` in the checkout. It prompts for a password, writes `dozzle/users.yml` and starts or restarts Dozzle; run it again to change the login. Settings → Diagnostics links to `/logs`. Without the profile, the script saves the login for later and leaves Dozzle off.
 
 `FRONTEND_URL` (where Spotify and Calendar redirect after OAuth) is read from the root `.env` and defaults to `http://localhost`. On a host, also update the redirect URIs in those services' `.env` files and register each one with its provider:
 

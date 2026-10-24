@@ -20,6 +20,7 @@ public static class WebApplicationExtensions
         // Pre-FusionCache cache table — its contents are superseded by the distributed_cache table.
         app.Services.GetRequiredKeyedService<IDatabase>("trains").NonQuery("DROP TABLE IF EXISTS trains_cache");
         app.AddTrainsEndpoints();
+        app.MapHearthHealth("trains");
     }
 
     private static void AddTrainsEndpoints(this WebApplication app)

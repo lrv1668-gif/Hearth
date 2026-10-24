@@ -15,5 +15,6 @@ public static class ServiceCollectionExtensions
         services.AddHearthHomeLocation();
 
         services.AddHearthWebDefaults();
+        services.AddHealthChecks().AddDatabase("birds").AddRequiredConfig("EBIRD_API_KEY").AddHomeLocation();
     }
 }

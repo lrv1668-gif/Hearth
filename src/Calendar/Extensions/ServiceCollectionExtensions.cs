@@ -23,5 +23,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICalendarProvider>(sp => sp.GetRequiredService<GoogleCalendarProvider>());
 
         services.AddHearthWebDefaults();
+        services.AddHealthChecks().AddDatabase("calendar").AddRequiredConfig("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI");
     }
 }

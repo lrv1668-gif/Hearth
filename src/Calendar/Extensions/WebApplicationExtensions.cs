@@ -13,6 +13,7 @@ public static class WebApplicationExtensions
     {
         app.Services.GetRequiredService<CalendarStore>().Migrate();
         app.AddCalendarEndpoints();
+        app.MapHearthHealth("calendar");
     }
 
     private static void AddCalendarEndpoints(this WebApplication app)

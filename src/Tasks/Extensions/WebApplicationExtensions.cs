@@ -1,3 +1,4 @@
+using ServiceDefaults;
 using Tasks;
 using Tasks.Records;
 
@@ -9,6 +10,7 @@ public static class WebApplicationExtensions
     {
         app.MigrateTaskStore();
         app.AddTasksEndpoints();
+        app.MapHearthHealth("tasks");
     }
 
     private static void MigrateTaskStore(this WebApplication app)

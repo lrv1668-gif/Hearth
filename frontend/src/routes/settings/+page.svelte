@@ -44,6 +44,8 @@
     import FrameModeOptions from '$lib/components/settings/FrameModeOptions.svelte';
     import { loadModes } from '$lib/stores/ModeStore.svelte.ts';
     import HomeLocationSettings from '$lib/components/settings/HomeLocationSettings.svelte';
+    import ServiceHealthSettings from '$lib/components/settings/ServiceHealthSettings.svelte';
+    import LogsSettings from '$lib/components/settings/LogsSettings.svelte';
     import SettingsSubnav from '$lib/components/settings/SettingsSubnav.svelte';
     import {
         parseSettingsSection,
@@ -421,6 +423,21 @@
                         <FramePreview />
                     </Modal>
                 {/if}
+            {:else if active === 'diagnostics'}
+                {#snippet servicesContent()}<ServiceHealthSettings />{/snippet}
+                {#snippet logsContent()}<LogsSettings />{/snippet}
+                <div class="flex flex-col gap-4">
+                    {@render card(
+                        'Services',
+                        'Each part of Hearth checks itself: its database, the keys it needs, and whether its outside source is answering. Checked every 30 seconds.',
+                        servicesContent
+                    )}
+                    {@render card(
+                        'Logs',
+                        'Live logs from every container on the host, searchable, in Dozzle.',
+                        logsContent
+                    )}
+                </div>
             {/if}
         </main>
     {/if}

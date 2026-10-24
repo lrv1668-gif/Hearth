@@ -13,5 +13,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<TrainsFetcher>();
 
         services.AddHearthWebDefaults();
+        services.AddHealthChecks().AddDatabase("trains").AddRequiredConfig("TRANSITLAND_API_KEY");
     }
 }

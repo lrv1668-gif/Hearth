@@ -14,6 +14,8 @@ public static class HearthServiceCollectionExtensions
     {
         services.ConfigureHttpJsonOptions(opts =>
             opts.SerializerOptions.PropertyNamingPolicy = HearthJson.SnakeCaseLower.PropertyNamingPolicy);
+        // GET /<service>/health (HearthHealth.MapHearthHealth); services add their own checks
+        services.AddHealthChecks();
 
         return services;
     }

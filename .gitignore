@@ -32,3 +32,6 @@ Thumbs.db
 .vs/
 # Root compose .env (deployed-host settings)
 /.env
+# Dozzle's login and saved settings (deploy/dozzle-user.sh)
+/dozzle/*
+!/dozzle/.gitkeep

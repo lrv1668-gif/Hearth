@@ -39,7 +39,8 @@ See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for how each piece work
 | `/` | Dashboard — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing, calendar agenda, news feed, daily quote, day arc, nearby bird sightings, almanac facts, nearby transit departures |
 | `/calendar` | Month grid with per-day task lists and a detail modal |
 | `/ambient` | Fullscreen photo slideshow at a configurable cadence |
-| `/settings` | Theme picker, font theme picker, photo cadence and categories, attribution toggle, widget visibility and layout, integrations, subscribed train stops, e-paper frame appearance and layout with live preview |
+| `/settings` | Theme picker, font theme picker, photo cadence and categories, attribution toggle, widget visibility and layout, integrations, subscribed train stops, e-paper frame appearance and layout with live preview, and Diagnostics: each service's health plus a link to the live logs |
+| `/logs` | Optional live, searchable container logs ([Dozzle](https://dozzle.dev)), behind its own login — turn on with `COMPOSE_PROFILES=logs` in the root `.env`, then set a login with `deploy/dozzle-user.sh <name>` |
 | `/frame` | E-paper render target (panel-sized, default 1600×1200): Ambient photo, a Daily layout of frame widgets — Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played (the latest Spotify track and its album art) — a pinned Photo or album, one big Countdown, Night (moon and sunrise), or a Note of your own text sized to fill the panel. The mode follows a schedule and manual override set in Settings → Frame |
 
 ## Prerequisites

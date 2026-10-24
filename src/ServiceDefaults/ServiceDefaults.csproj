@@ -9,4 +9,9 @@
     <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- IDatabase for the health check's database probe; no SQLite dependency -->
+    <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

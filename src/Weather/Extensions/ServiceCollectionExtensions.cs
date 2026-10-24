@@ -15,5 +15,6 @@ public static class ServiceCollectionExtensions
         services.AddHearthHomeLocation();
 
         services.AddHearthWebDefaults();
+        services.AddHealthChecks().AddDatabase("weather").AddHomeLocation();
     }
 }

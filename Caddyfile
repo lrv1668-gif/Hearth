@@ -27,6 +27,9 @@
     handle /calendar/items* {
         reverse_proxy calendar:8087
     }
+    handle /calendar/health {
+        reverse_proxy calendar:8087
+    }
     handle /quote* {
         reverse_proxy quote:8086
     }
@@ -41,6 +44,10 @@
     }
     handle /display* {
         reverse_proxy display:8090
+    }
+    # Dozzle's live container logs, behind its own login (dozzle/users.yml)
+    handle /logs* {
+        reverse_proxy dozzle:8080
     }
     handle {
         reverse_proxy frontend:3000
