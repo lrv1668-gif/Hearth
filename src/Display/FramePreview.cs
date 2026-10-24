@@ -11,7 +11,7 @@ namespace Display;
 public static class FramePreview
 {
     /// <summary>Preview-only params — everything else is passed on to /frame.</summary>
-    private static readonly string[] OwnParams = ["look", "kernel"];
+    private static readonly string[] OwnParams = ["look", "kernel", "dither"];
 
     /// <summary>
     /// The page size, resolved the way /frame does it: the URL's orientation and native
@@ -42,6 +42,14 @@ public static class FramePreview
     /// Ordered for the flat-UI modes, Daily, Countdown, Night and Note (tints become an even texture); error diffusion for
     /// the photo modes, Ambient (also /frame's fallback) and Photo.
     /// </summary>
+    /// <summary>
+    /// The URL's <c>dither=</c> (ordered, errorDiffusion or none — the renderer rejects
+    /// anything else), else the mode's method. <c>none</c> leaves the raw screenshot, e.g.
+    /// for comparing inky's own dithering against Hearth's.
+    /// </summary>
+    public static string DitherFor(IQueryCollection query) =>
+        query["dither"].FirstOrDefault() is { Length: > 0 } method ? method : DitherFor(query["mode"]);
+
     public static string DitherFor(string? mode) =>
         mode is FrameModes.Daily or FrameModes.Countdown or FrameModes.Night or FrameModes.Note
             ? "ordered"

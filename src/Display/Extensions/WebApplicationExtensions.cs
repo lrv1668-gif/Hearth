@@ -185,7 +185,8 @@ public static class WebApplicationExtensions
         });
 
         // The frame dithered to the panel's six inks — the same pixels the panel gets.
-        // Takes /frame's params, plus look=screen|paper and an optional error-diffusion kernel.
+        // Takes /frame's params, plus look=screen|paper, an optional error-diffusion kernel and
+        // dither= to override the mode's method (none: the raw screenshot).
         app.MapGet("/display/preview", async (
             HttpRequest request, RendererClient renderer, FrameSettingsStore store, HomeSettingsStore home,
             IConfiguration config, CancellationToken ct) =>
@@ -204,7 +205,7 @@ public static class WebApplicationExtensions
             {
                 var png = await renderer.RenderAsync(
                     FramePreview.FramePath(request.Query), width, height,
-                    FramePreview.DitherFor(request.Query["mode"]), request.Query["kernel"].FirstOrDefault(), look,
+                    FramePreview.DitherFor(request.Query), request.Query["kernel"].FirstOrDefault(), look,
                     // The household's zone, so the frame's date and clock aren't drawn in UTC
                     home.Get()?.TimeZone, ct: ct);
                 return Results.File(png, "image/png");
