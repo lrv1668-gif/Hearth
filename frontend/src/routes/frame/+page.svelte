@@ -240,25 +240,27 @@
        Type multiplies by the font preset's --font-scale (its optical correction,
        from the data-font block) but deliberately not the dashboard's user size
        slider, which is a per-browser preference. The reading sizes (title down to
-       caption) and icons also take --frame-text, the frame's own shared text size;
-       the display faces don't — they're sized to fit the masthead and hero rows. */
+       caption) and icons also take --frame-text, the frame's own shared text size.
+       The display faces take it too (--frame-display-text) in every mode but Daily,
+       whose masthead and stamps are sized to fit their rows. */
     .frame {
         position: relative;
         overflow: hidden;
         --spacing: calc(0.25rem * var(--frame-scale, 1));
 
-        --font-display: calc(112px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --frame-display-text: 1;
+        --font-display: calc(var(--frame-display-text) * 112px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-title: calc(var(--frame-text, 1) * 48px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-subtitle: calc(var(--frame-text, 1) * 38px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-body: calc(var(--frame-text, 1) * 32px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-label: calc(var(--frame-text, 1) * 26px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-caption: calc(var(--frame-text, 1) * 22px * var(--font-scale, 1) * var(--frame-scale, 1));
         /* Frame-only display sizes (.type-weekday/-date/-hero/-stamp/-poster), set in --display-family */
-        --font-weekday: calc(112px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-date: calc(128px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-hero: calc(100px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-stamp: calc(80px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-poster: calc(400px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-weekday: calc(var(--frame-display-text) * 112px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-date: calc(var(--frame-display-text) * 128px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-hero: calc(var(--frame-display-text) * 100px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-stamp: calc(var(--frame-display-text) * 80px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-poster: calc(var(--frame-display-text) * 400px * var(--font-scale, 1) * var(--frame-scale, 1));
 
         --icon-lg: calc(var(--frame-text, 1) * 56px * var(--frame-scale, 1));
         --icon-md: calc(var(--frame-text, 1) * 40px * var(--frame-scale, 1));
@@ -266,9 +268,13 @@
         --icon-xs: calc(var(--frame-text, 1) * 24px * var(--frame-scale, 1));
     }
 
+    .frame:not([data-mode='daily']) {
+        --frame-display-text: var(--frame-text, 1);
+    }
+
     .frame.portrait {
         /* Smaller weekday so the masthead stays one row beside the compact sun path */
-        --font-weekday: calc(88px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-weekday: calc(var(--frame-display-text) * 88px * var(--font-scale, 1) * var(--frame-scale, 1));
     }
 
     /* B&W mode greyscales the ambient photo. Keyed off data-theme (not a prop) so

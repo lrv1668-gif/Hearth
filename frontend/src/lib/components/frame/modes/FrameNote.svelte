@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { fitFontSize, getFrameScale } from '$lib/frame';
+    import { fitFontSize, getFrameScale, MAX_FRAME_TEXT_SIZE } from '$lib/frame';
 
     let { title = '', body = '' }: { title?: string; body?: string } = $props();
 
@@ -26,7 +26,7 @@
         if (!box || !content) return;
         const el = content;
         const area = box;
-        const largest = (whiteSpace: string) =>
+        const largest = (whiteSpace: string, max = MAX_PX * scale()) =>
             fitFontSize(
                 (px) => {
                     el.style.fontSize = `${px}px`;
@@ -34,18 +34,25 @@
                     return el.scrollHeight <= area.clientHeight && el.scrollWidth <= area.clientWidth;
                 },
                 MIN_PX * scale(),
-                MAX_PX * scale()
+                max
             );
         const wrapped = largest('normal');
         const unwrapped = largest('nowrap');
         const keepLines = unwrapped >= wrapped * NO_WRAP_SHARE;
-        size = keepLines ? unwrapped : wrapped;
-        el.style.whiteSpace = keepLines ? 'nowrap' : 'normal';
+        // The note already fills the panel, so the frame's text size (--frame-text) moves
+        // a kept-lines note from its unwrapped size towards the wrapped one in proportion:
+        // larger trades unbroken lines for bigger, wrapped text, a step at a time.
+        const textSize = Number(getComputedStyle(area).getPropertyValue('--frame-text')) || 1;
+        const share = Math.min(1, Math.max(0, (textSize - 1) / (MAX_FRAME_TEXT_SIZE / 100 - 1)));
+        const target = Math.round(unwrapped + (wrapped - unwrapped) * share);
+        const grow = keepLines && target > unwrapped;
+        size = !keepLines ? wrapped : grow ? largest('normal', target) : unwrapped;
+        el.style.whiteSpace = keepLines && !grow ? 'nowrap' : 'normal';
         el.style.fontSize = `${size}px`;
     }
 
     // Refit when the words change, once web fonts have loaded, and when the Settings
-    // preview swaps the font preset in place (the root's data-font).
+    // preview swaps the font preset or text size in place (the root's data-font, style).
     $effect(() => {
         void heading;
         void text;
@@ -54,7 +61,7 @@
         document.fonts.ready.then(() => live && fit());
         const root = box?.closest<HTMLElement>('.frame');
         const observer = new MutationObserver(fit);
-        if (root) observer.observe(root, { attributes: true, attributeFilter: ['data-font'] });
+        if (root) observer.observe(root, { attributes: true, attributeFilter: ['data-font', 'style'] });
         return () => {
             live = false;
             observer.disconnect();
