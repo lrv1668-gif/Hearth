@@ -39,8 +39,8 @@ public static class WebApplicationExtensions
     private static void AddFrameEndpoints(this WebApplication app)
     {
         app.MapGet("/display/frame", async (
-            FrameCache cache, FrameRenderService renderer, IConfiguration config, TimeProvider clock,
-            HttpResponse response, CancellationToken ct) =>
+            FrameCache cache, FrameRenderService renderer, FramePolls polls, IConfiguration config,
+            TimeProvider clock, HttpRequest request, HttpResponse response, CancellationToken ct) =>
         {
             if (config.RequireOrFail(
                     app.Logger,
@@ -59,18 +59,23 @@ public static class WebApplicationExtensions
                 // Serve what's cached; the next poll picks the change up
             }
 
-            if (cache.Current is not { } frame)
+            var frame = cache.Current;
+            // Whatever the answer, the frame checked in; a 304 leaves it holding the same ETag
+            polls.Record(new FramePoll(clock.GetUtcNow(), ClientAddress(request),
+                request.Headers.UserAgent.ToString() is { Length: > 0 } agent ? agent : null, frame?.Info.ETag));
+            if (frame is not { } current)
             {
                 response.Headers.RetryAfter = "60";
                 return Results.Json(new { error = "no frame rendered yet" }, statusCode: 503);
             }
             response.Headers.CacheControl = "no-cache";
             // With an ETag, a matching If-None-Match gets a 304
-            return Results.File(frame.Png, "image/png",
-                lastModified: frame.Info.RenderedAt, entityTag: EntityTagHeaderValue.Parse(frame.Info.ETag));
+            return Results.File(current.Png, "image/png",
+                lastModified: current.Info.RenderedAt, entityTag: EntityTagHeaderValue.Parse(current.Info.ETag));
         });
 
-        app.MapGet("/display/frame/status", (FrameRenderService renderer) => Results.Ok(renderer.Status()));
+        app.MapGet("/display/frame/status", (FrameRenderService renderer, FramePolls polls) =>
+            Results.Ok(renderer.Status() with { LastPoll = polls.Last }));
 
         // Render now — e.g. a long press on the frame's Button A
         app.MapPost("/display/frame/refresh", (FrameRenderService renderer) =>
@@ -79,6 +84,15 @@ public static class WebApplicationExtensions
             return Results.Accepted();
         });
     }
+
+    /// <summary>
+    /// Who asked: Caddy's X-Forwarded-For (its first hop) when proxied, else the connection's
+    /// address. Only shown in Settings, never trusted for anything.
+    /// </summary>
+    private static string? ClientAddress(HttpRequest request) =>
+        request.Headers["X-Forwarded-For"].ToString().Split(',')[0].Trim() is { Length: > 0 } forwarded
+            ? forwarded
+            : request.HttpContext.Connection.RemoteIpAddress?.ToString();
 
     /// <summary>
     /// What the frame shows: a manual override (with an optional expiry) beats the

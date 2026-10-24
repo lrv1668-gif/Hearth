@@ -281,6 +281,29 @@ export interface FrameSettings {
     portrait_rotation: PortraitRotation;
     /** GET /display/frame: dithered by Hearth, or sent undithered for the frame client to dither. */
     dithering: FrameDithering;
+    /** GET /display/frame: a nightly "HH:mm" window (home time) with no interval redraws; both or neither. */
+    quiet_start: string | null;
+    quiet_end: string | null;
+}
+
+/** The frame client's last GET /display/frame (Display keeps it in memory only). */
+export interface FramePoll {
+    at: string;
+    address: string | null;
+    user_agent: string | null;
+    /** The picture the frame was left holding; null when nothing was served. */
+    etag: string | null;
+}
+
+/** GET /display/frame/status: the panel render, and the frame's last check-in. */
+export interface FrameStatus {
+    mode: FrameModeId | null;
+    rendered_at: string | null;
+    checked_at: string | null;
+    next_render_at: string | null;
+    etag: string | null;
+    last_error: string | null;
+    last_poll: FramePoll | null;
 }
 
 /** A time-of-day schedule rule ("HH:mm", household time); an end before the start
@@ -396,6 +419,9 @@ class ApiClient {
             const res = await fetch('/display/mode/next', { method: 'POST' }).catch(() => null);
             return res?.ok ? (res.json() as Promise<ResolvedMode>) : null;
         },
+
+        /** The panel render and the frame's last check-in; null when Display can't be reached. */
+        frameStatus: (): Promise<FrameStatus | null> => this.get<FrameStatus>('/display/frame/status'),
 
         /** The saved home location; null when none is saved yet, undefined when the
          *  Display service can't be reached. */

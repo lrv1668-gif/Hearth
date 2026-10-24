@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
             FrameCache.DirectoryFor(Environment.GetEnvironmentVariable("DB_PATH")),
             services.GetRequiredService<ILogger<FrameCache>>()));
         serviceCollection.AddSingleton<FrameRenderService>();
+        serviceCollection.AddSingleton<FramePolls>();
         serviceCollection.AddHostedService(services => services.GetRequiredService<FrameRenderService>());
         serviceCollection.TryAddSingleton(TimeProvider.System);
         serviceCollection.AddHearthCache();

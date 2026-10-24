@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { CalendarItem, CurrentWeather, ForecastDay, Task } from './api';
+import type { CalendarItem, CurrentWeather, ForecastDay, FrameStatus, Task } from './api';
 import type { Pixels } from './frame';
 import { isPhotoInterval, photoIntervals } from './constants/frameModes';
 import {
     allocateLines,
+    checkIn,
     dayOfYear,
     durationLabel,
     forecastBars,
@@ -17,6 +18,8 @@ import {
     nearestHour,
     nextSunrise,
     normalizeFrameSize,
+    timeAgo,
+    toQuietHours,
     DEFAULT_FRAME_SIZE,
     isAmbientPosition,
     itemsThatFit,
@@ -540,5 +543,70 @@ describe('nearestHour', () => {
 
     it('keeps two renders within the same hour identical', () => {
         expect(nearestHour(new Date(2026, 9, 23, 14, 5))).toEqual(nearestHour(new Date(2026, 9, 23, 14, 20)));
+    });
+});
+
+describe('toQuietHours', () => {
+    it('reads a saved window', () => {
+        expect(toQuietHours('23:00', '06:00')).toEqual({ start: '23:00', end: '06:00' });
+    });
+
+    it('is off when either end is missing, malformed or equal', () => {
+        expect(toQuietHours(null, null)).toBeNull();
+        expect(toQuietHours('23:00', null)).toBeNull();
+        expect(toQuietHours('25:00', '06:00')).toBeNull();
+        expect(toQuietHours('06:00', '06:00')).toBeNull();
+    });
+});
+
+describe('checkIn', () => {
+    const now = new Date('2026-10-24T12:00:00Z');
+    const status = (poll: FrameStatus['last_poll'], etag = '"a"'): FrameStatus => ({
+        mode: 'daily',
+        rendered_at: null,
+        checked_at: null,
+        next_render_at: null,
+        etag,
+        last_error: null,
+        last_poll: poll,
+    });
+    const polled = (minutesAgo: number, etag: string | null = '"a"') => ({
+        at: new Date(now.getTime() - minutesAgo * 60_000).toISOString(),
+        address: '192.168.1.42',
+        user_agent: 'inkypull',
+        etag,
+    });
+
+    it('says when the frame has the latest picture', () => {
+        expect(checkIn(status(polled(3)), now)).toEqual({
+            text: 'The frame checked in 3 min ago and has the latest picture.',
+            stale: false,
+        });
+    });
+
+    it('says the latest picture is on its way when the frame holds an older one', () => {
+        expect(checkIn(status(polled(0, '"old"')), now).text).toBe(
+            'The frame checked in just now; the latest picture reaches it on its next check.'
+        );
+    });
+
+    it('warns once the frame has been quiet for over an hour', () => {
+        expect(checkIn(status(polled(180)), now)).toEqual({
+            text: 'The frame checked in 3 hours ago. Check its power and Wi-Fi.',
+            stale: true,
+        });
+    });
+
+    it('warns when nothing has polled since Hearth started', () => {
+        expect(checkIn(status(null), now).stale).toBe(true);
+    });
+});
+
+describe('timeAgo', () => {
+    it('counts minutes, hours and days', () => {
+        expect(timeAgo(30_000)).toBe('just now');
+        expect(timeAgo(59 * 60_000)).toBe('59 min ago');
+        expect(timeAgo(60 * 60_000)).toBe('1 hour ago');
+        expect(timeAgo(49 * 60 * 60_000)).toBe('2 days ago');
     });
 });

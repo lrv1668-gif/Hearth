@@ -11,19 +11,21 @@ public sealed class FrameRenderServiceTests
     private static readonly FrameSettings Saved =
         new("almanac", "inter", "landscape", [], [], 50, PhotoIntervalMinutes: 180);
 
+    private static readonly TimeZoneInfo Utc = TimeZoneInfo.Utc;
+
     private static RenderedFrame Frame(string mode, string? photoId = null) =>
         new("\"abc\"", mode, photoId, Noon.AddHours(-1), Noon);
 
     [Fact]
     public void Due_NothingCached_IsNow()
     {
-        Assert.Equal(DateTimeOffset.MinValue, FrameRenderService.Due(null, new(FrameModes.Daily, "default", null), Saved, null));
+        Assert.Equal(DateTimeOffset.MinValue, FrameRenderService.Due(null, new(FrameModes.Daily, "default", null), Saved, null, Noon, Utc));
     }
 
     [Fact]
     public void Due_ModeMoved_IsNow()
     {
-        var due = FrameRenderService.Due(Frame(FrameModes.Daily), new(FrameModes.Night, "schedule", null), Saved, null);
+        var due = FrameRenderService.Due(Frame(FrameModes.Daily), new(FrameModes.Night, "schedule", null), Saved, null, Noon, Utc);
         Assert.Equal(DateTimeOffset.MinValue, due);
     }
 
@@ -31,7 +33,7 @@ public sealed class FrameRenderServiceTests
     public void Due_PinnedPhotoChanged_IsNow()
     {
         var due = FrameRenderService.Due(
-            Frame(FrameModes.Photo, "a1"), new(FrameModes.Photo, "override", null, "b2"), Saved, null);
+            Frame(FrameModes.Photo, "a1"), new(FrameModes.Photo, "override", null, "b2"), Saved, null, Noon, Utc);
         Assert.Equal(DateTimeOffset.MinValue, due);
     }
 
@@ -42,7 +44,7 @@ public sealed class FrameRenderServiceTests
     [InlineData(FrameModes.Note)]
     public void Due_FlatMode_FlatIntervalAfterTheLastRender(string mode)
     {
-        var due = FrameRenderService.Due(Frame(mode), new(mode, "default", null), Saved, null);
+        var due = FrameRenderService.Due(Frame(mode), new(mode, "default", null), Saved, null, Noon, Utc);
         Assert.Equal(Noon + FrameRenderService.FlatInterval, due);
     }
 
@@ -51,14 +53,14 @@ public sealed class FrameRenderServiceTests
     [InlineData(FrameModes.Photo)]
     public void Due_PhotoMode_PhotoIntervalAfterTheLastRender(string mode)
     {
-        var due = FrameRenderService.Due(Frame(mode), new(mode, "default", null), Saved, null);
+        var due = FrameRenderService.Due(Frame(mode), new(mode, "default", null), Saved, null, Noon, Utc);
         Assert.Equal(Noon.AddMinutes(180), due);
     }
 
     [Fact]
     public void Due_PhotoModeNothingSaved_UsesTheDefaultInterval()
     {
-        var due = FrameRenderService.Due(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), null, null);
+        var due = FrameRenderService.Due(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), null, null, Noon, Utc);
         Assert.Equal(Noon.AddMinutes(FrameSettings.DefaultPhotoIntervalMinutes), due);
     }
 
@@ -66,7 +68,7 @@ public sealed class FrameRenderServiceTests
     public void Due_ModeEndsBeforeTheInterval_IsItsUntil()
     {
         var due = FrameRenderService.Due(
-            Frame(FrameModes.Ambient), new(FrameModes.Ambient, "schedule", Noon.AddMinutes(20)), Saved, null);
+            Frame(FrameModes.Ambient), new(FrameModes.Ambient, "schedule", Noon.AddMinutes(20)), Saved, null, Noon, Utc);
         Assert.Equal(Noon.AddMinutes(20), due);
     }
 
@@ -74,14 +76,14 @@ public sealed class FrameRenderServiceTests
     public void Due_AfterAFailure_RetriesAfterTheRetryDelay()
     {
         var due = FrameRenderService.Due(
-            Frame(FrameModes.Daily), new(FrameModes.Daily, "default", null), Saved, new(Noon, FrameModes.Daily, null));
+            Frame(FrameModes.Daily), new(FrameModes.Daily, "default", null), Saved, new(Noon, FrameModes.Daily, null), Noon, Utc);
         Assert.Equal(Noon + FrameRenderService.RetryDelay, due);
     }
 
     [Fact]
     public void Due_FailedWithNothingCached_RetriesSoon()
     {
-        var due = FrameRenderService.Due(null, new(FrameModes.Ambient, "default", null), Saved, new(Noon, FrameModes.Ambient, null));
+        var due = FrameRenderService.Due(null, new(FrameModes.Ambient, "default", null), Saved, new(Noon, FrameModes.Ambient, null), Noon, Utc);
         Assert.Equal(Noon + FrameRenderService.FirstRetryDelay, due);
     }
 
@@ -90,8 +92,58 @@ public sealed class FrameRenderServiceTests
     {
         // A schedule boundary during a renderer outage still gets its attempt straight away
         var due = FrameRenderService.Due(
-            Frame(FrameModes.Daily), new(FrameModes.Night, "schedule", null), Saved, new(Noon, FrameModes.Daily, null));
+            Frame(FrameModes.Daily), new(FrameModes.Night, "schedule", null), Saved, new(Noon, FrameModes.Daily, null), Noon, Utc);
         Assert.Equal(DateTimeOffset.MinValue, due);
+    }
+
+    // Saved with quiet hours 23:00–06:00 (UTC)
+    private static readonly FrameSettings Quiet = Saved with { QuietStart = "23:00", QuietEnd = "06:00" };
+
+    private static RenderedFrame FrameAt(string mode, DateTimeOffset checkedAt) =>
+        new("\"abc\"", mode, null, checkedAt, checkedAt);
+
+    [Fact]
+    public void Due_IntervalLandsInQuietHours_WaitsForThemToEnd()
+    {
+        var lastRender = Noon.AddHours(10).AddMinutes(50);
+        var due = FrameRenderService.Due(
+            FrameAt(FrameModes.Daily, lastRender), new(FrameModes.Daily, "default", null), Quiet, null, lastRender, Utc);
+        Assert.Equal(Noon.AddHours(18), due);
+    }
+
+    [Fact]
+    public void Due_IntervalBeforeQuietHours_IsUnchanged()
+    {
+        var due = FrameRenderService.Due(Frame(FrameModes.Daily), new(FrameModes.Daily, "default", null), Quiet, null, Noon, Utc);
+        Assert.Equal(Noon + FrameRenderService.FlatInterval, due);
+    }
+
+    [Fact]
+    public void Due_OverdueDuringQuietHours_WaitsForThemToEnd()
+    {
+        // Host was down since yesterday afternoon and comes back at 02:00: no redraw until 06:00
+        var now = Noon.AddHours(14);
+        var due = FrameRenderService.Due(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), Quiet, null, now, Utc);
+        Assert.Equal(Noon.AddHours(18), due);
+    }
+
+    [Fact]
+    public void Due_ModeMovedDuringQuietHours_IsNow()
+    {
+        var now = Noon.AddHours(11);
+        var due = FrameRenderService.Due(Frame(FrameModes.Daily), new(FrameModes.Night, "schedule", null), Quiet, null, now, Utc);
+        Assert.Equal(DateTimeOffset.MinValue, due);
+    }
+
+    [Fact]
+    public void Due_ModeEndsDuringQuietHours_IsItsUntil()
+    {
+        // The schedule may change the mode inside the window, and that still draws
+        var now = Noon.AddHours(11);
+        var until = now.AddHours(1);
+        var due = FrameRenderService.Due(
+            FrameAt(FrameModes.Daily, now), new(FrameModes.Daily, "schedule", until), Quiet, null, now, Utc);
+        Assert.Equal(until, due);
     }
 
     [Fact]
