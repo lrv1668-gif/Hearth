@@ -1,7 +1,9 @@
 <script lang="ts">
     import { dndzone, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
     import { settleDrop, type Columns, type Side } from '$lib/widgetLayout';
-    import { GripVertical, Grip, Lock } from '@lucide/svelte';
+    import { GripVertical, Grip, Lock, Plus, X } from '@lucide/svelte';
+    import Chip from '../ui/Chip.svelte';
+    import IconButton from '../ui/IconButton.svelte';
 
     type DragItem = { id: string; label: string };
 
@@ -19,17 +21,43 @@
         maxPerColumn?: number;
         /** Distinguishes this editor's drag zones from another editor's on the same page. */
         dragType: string;
+        /** Every widget that can be shown or hidden; those not in a column wait in the Hidden tray. */
+        widgets: readonly { id: string; label: string; description: string }[];
+        /** Shows a hidden widget (in a column with room) or hides a placed one. */
+        ontoggle: (id: string) => void;
     }
 
-    let { columns, labelFor, onchange, width, onwidthchange, header, footer, maxPerColumn, dragType }: Props = $props();
+    let {
+        columns,
+        labelFor,
+        onchange,
+        width,
+        onwidthchange,
+        header,
+        footer,
+        maxPerColumn,
+        dragType,
+        widgets,
+        ontoggle,
+    }: Props = $props();
+
+    const hidden = $derived(
+        widgets
+            .filter((w) => !columns.left.includes(w.id) && !columns.right.includes(w.id))
+            .toSorted((a, b) => a.label.localeCompare(b.label))
+    );
+    // With a column limit, a widget can only be added while one column still has room.
+    const full = $derived(
+        maxPerColumn !== undefined && Math.min(columns.left.length, columns.right.length) >= maxPerColumn
+    );
 
     const toItems = (ids: string[]): DragItem[] => ids.map((id) => ({ id, label: labelFor(id) }));
 
     let leftItems = $state<DragItem[]>([]);
     let rightItems = $state<DragItem[]>([]);
 
-    // Re-sync when the columns change outside the editor (e.g. from the visibility
-    // toggles). During a drag only leftItems/rightItems change — `columns` stays
+    // Re-sync when the columns change outside the editor (e.g. a widget shown or
+    // hidden). During a drag only leftItems/rightItems change — `columns` stays
     // stable — so this doesn't fire mid-drag and disturb the dndzone state.
     $effect(() => {
         leftItems = toItems(columns.left);
@@ -103,7 +131,9 @@ Drag-and-drop two-column layout editor with a resizable column split and locked
 header/footer strips — shared by the Dashboard and Frame settings.
 -->
 {#snippet strip(title: string, items: readonly { label: string }[])}
-    <div class="flex items-center gap-2 rounded border border-dashed border-(--border) bg-(--surface) px-3 py-2">
+    <div
+        class="flex flex-wrap items-center gap-2 rounded border border-dashed border-(--border) bg-(--surface) px-3 py-2"
+    >
         <Lock class="icon-xs shrink-0 text-(--text-3)" />
         <span class="type-label text-(--text-2)">{title} —</span>
         {#each items as w (w.label)}
@@ -126,9 +156,12 @@ header/footer strips — shared by the Dashboard and Frame settings.
         class="min-h-16 space-y-1"
     >
         {#each items as item (item.id)}
-            <div class="flex cursor-grab items-center gap-2 py-1.5 select-none active:cursor-grabbing">
+            <div class="flex cursor-grab items-center gap-2 py-0.5 select-none active:cursor-grabbing">
                 <Grip class="icon-sm shrink-0 text-(--text-2)" />
-                <span class="type-body text-(--text-1)">{item.label}</span>
+                <span class="type-body min-w-0 flex-1 truncate text-(--text-1)">{item.label}</span>
+                <IconButton label="Hide {item.label}" size="sm" onclick={() => ontoggle(item.id)}>
+                    <X class="icon-sm" />
+                </IconButton>
             </div>
         {/each}
     </div>
@@ -165,4 +198,29 @@ header/footer strips — shared by the Dashboard and Frame settings.
     </div>
 
     {@render strip('Footer', footer)}
+
+    <div class="mt-4 border-t border-(--border) pt-4">
+        <p class="eyebrow mb-2">Hidden</p>
+        {#if hidden.length === 0}
+            <p class="type-label text-(--text-2)">Every widget is showing.</p>
+        {:else}
+            <div class="flex flex-wrap gap-2" role="group" aria-label="Hidden widgets">
+                {#each hidden as w (w.id)}
+                    <Chip
+                        pressed={false}
+                        disabled={full}
+                        title={w.description}
+                        aria-label="Show {w.label}"
+                        onclick={() => ontoggle(w.id)}
+                    >
+                        <Plus class="icon-xs" aria-hidden="true" />
+                        {w.label}
+                    </Chip>
+                {/each}
+            </div>
+            <p class="type-caption mt-2 text-(--text-2)">
+                {full ? 'Both columns are full — hide a widget to add another.' : 'Tap one to add it.'}
+            </p>
+        {/if}
+    </div>
 </div>

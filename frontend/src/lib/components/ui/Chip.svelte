@@ -19,7 +19,7 @@ its own attributes (e.g. the typeface chips' data-font).
 <button
     {type}
     aria-pressed={pressed}
-    class="type-label inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 transition-colors
+    class="type-label inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 transition-colors disabled:pointer-events-none disabled:opacity-50
         {pressed
         ? 'border-(--accent) bg-(--accent) font-semibold text-(--accent-fg)'
         : 'border-(--border) text-(--text-2) hover:border-(--text-2) hover:text-(--text-1)'}

@@ -17,7 +17,6 @@
     import LocalPhotosSettings from '$lib/components/settings/LocalPhotosSettings.svelte';
     import { settings } from '$lib/stores/SettingsStore.svelte.ts';
     import { frameSettings, loadFrameSettings, syncFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import WidgetVisibilityList from '$lib/components/settings/WidgetVisibilityList.svelte';
     import WidgetLayoutEditor from '$lib/components/settings/WidgetLayoutEditor.svelte';
     import FramePreview from '$lib/components/settings/FramePreview.svelte';
     import {
@@ -54,13 +53,10 @@
         settingsSections as sections,
     } from '$lib/constants/settingsSections';
 
-    // Shared by the Dashboard and Frame sections' Visibility and Layout cards.
+    // Shared by the Dashboard and Frame sections' Widgets cards.
     const dashboardLabel = (id: string) => allWidgets.find((w) => w.id === id)?.label ?? id;
     const frameLabel = (id: string) => frameWidgets.find((w) => w.id === id)?.label ?? id;
     const frameLayout = $derived(normalizeFrameLayout(frameSettings.layout));
-    const frameUsed = (id: string) =>
-        frameLayout.left.includes(id as FrameWidgetId) || frameLayout.right.includes(id as FrameWidgetId);
-    const frameFull = $derived(Math.min(frameLayout.left.length, frameLayout.right.length) >= MAX_COLUMN_WIDGETS);
 
     // Frame settings are shared through the Display service: load them, then save
     // each change back.
@@ -192,30 +188,7 @@
             {/snippet}
 
             {#if active === 'dashboard'}
-                {#snippet visibility()}
-                    <WidgetVisibilityList
-                        widgets={toggleableWidgets}
-                        isOn={(id) =>
-                            settings.widgetColumns.left.includes(id as AllWidgetId) ||
-                            settings.widgetColumns.right.includes(id as AllWidgetId)}
-                        ontoggle={(id) => settings.toggleWidget(id as WidgetId)}
-                        fixed={[
-                            ...fixedHeaderWidgets.map((w) => ({
-                                label: w.label,
-                                caption: 'Fixed in the dashboard header',
-                            })),
-                            // The footer is hidden on phones; Now Playing moves above the widgets there.
-                            ...fixedFooterWidgets.map((w) => ({
-                                label: w.label,
-                                caption:
-                                    w.label === 'Now Playing'
-                                        ? 'Fixed in the dashboard footer — above the widgets on phones'
-                                        : 'Fixed in the dashboard footer — wide screens only',
-                            })),
-                        ]}
-                    />
-                {/snippet}
-                {#snippet layout()}
+                {#snippet widgets()}
                     <WidgetLayoutEditor
                         dragType="dashboard-widget"
                         columns={settings.widgetColumns}
@@ -229,26 +202,50 @@
                         onwidthchange={(w) => (settings.leftColumnWidth = w)}
                         header={fixedHeaderWidgets}
                         footer={fixedFooterWidgets}
+                        widgets={toggleableWidgets}
+                        ontoggle={(id) => settings.toggleWidget(id as WidgetId)}
                     />
                 {/snippet}
                 {#snippet feeds()}<FeedSettings />{/snippet}
                 {#snippet trainStops()}<TrainStopSettings />{/snippet}
-                <div class="flex flex-col gap-4">
-                    {@render card('Visibility', 'Enable or disable widgets on the dashboard page.', visibility)}
-                    {@render card(
-                        'Layout',
-                        'Drag widgets between columns and adjust the column width ratio. Phones show one column: the left column first, then the right.',
-                        layout
-                    )}
-                    {@render card('News Feeds', 'Manage RSS feeds and how many articles to show.', feeds)}
-                    {@render card(
-                        'Trains & Buses',
-                        'Manage the transit stops you want to see departures for.',
-                        trainStops
-                    )}
+                <!-- Two columns of cards once the content area is wide enough -->
+                <div class="@container">
+                    <div class="grid grid-cols-1 gap-4 @4xl:grid-cols-2 @4xl:items-start">
+                        <div class="@4xl:col-span-2">
+                            {@render card(
+                                'Widgets',
+                                'Drag widgets between columns, hide the ones you don’t need, and adjust the column width. Phones show one column — the left first, then the right — with Now Playing above it; the rest of the footer shows on wide screens only.',
+                                widgets
+                            )}
+                        </div>
+                        {@render card('News Feeds', 'Manage RSS feeds and how many articles to show.', feeds)}
+                        {@render card(
+                            'Trains & Buses',
+                            'Manage the transit stops you want to see departures for.',
+                            trainStops
+                        )}
+                    </div>
                 </div>
             {:else if active === 'display'}
                 {#snippet themeContent()}<ThemePicker />{/snippet}
+                {#snippet kioskContent()}
+                    <ToggleRow
+                        checked={settings.kioskMode}
+                        onchange={() => (settings.kioskMode = !settings.kioskMode)}
+                        title="Kiosk Mode"
+                    >
+                        Hides the navigation bar and shows the time, date, and weather header. Best for always-on wall
+                        displays. Can also be activated with <code class="font-mono">?kiosk=1</code> in the URL.
+                    </ToggleRow>
+                    {#if settings.kioskMode}
+                        <div class="mt-4 border-t border-(--border) pt-4">
+                            <Button variant="link" href="/">Go to Dashboard →</Button>
+                            <p class="type-label mt-0.5 text-(--text-2)">
+                                The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.
+                            </p>
+                        </div>
+                    {/if}
+                {/snippet}
                 {#snippet fontContent()}
                     <FontThemePicker />
                     <p class="type-body mt-6 mb-1 font-medium text-(--text-1)">Size</p>
@@ -271,6 +268,7 @@
                         'Each font theme sets typeface, weight, and size. Pick one to preview — applies instantly.',
                         fontContent
                     )}
+                    {@render card('Kiosk mode', 'How Hearth presents in this browser.', kioskContent)}
                 </div>
             {:else if active === 'home'}
                 {#snippet homeContent()}<HomeLocationSettings />{/snippet}
@@ -284,32 +282,35 @@
                 {#snippet cadence()}<AmbientCadenceSettings />{/snippet}
                 {#snippet categories()}<AmbientCategorySettings />{/snippet}
                 {#snippet localPhotos()}<LocalPhotosSettings />{/snippet}
-                <div class="flex flex-col gap-4">
-                    {#if frameSettings.error}
-                        <InlineMessage tone="error">
-                            Can't reach the Display service — photo choices here won't be saved or reach the frame.
-                        </InlineMessage>
-                    {/if}
-                    {@render card(
-                        'Photo source',
-                        'Curated Unsplash photos, your own uploads, or a mix of both — for the frame and every device.',
-                        source
-                    )}
-                    {#if frameSettings.photoSource === 'unsplash' || frameSettings.photoSource === 'both'}
+                {#if frameSettings.error}
+                    <InlineMessage tone="error" class="mb-4">
+                        Can't reach the Display service — photo choices here won't be saved or reach the frame.
+                    </InlineMessage>
+                {/if}
+                <!-- Two columns of cards once the content area is wide enough -->
+                <div class="@container">
+                    <div class="grid grid-cols-1 gap-4 @4xl:grid-cols-2 @4xl:items-start">
                         {@render card(
-                            'Categories',
-                            'Which Unsplash photos to draw from. Shared with the frame.',
-                            categories
+                            'Photo source',
+                            'Curated Unsplash photos, your own uploads, or a mix of both — for the frame and every device.',
+                            source
                         )}
-                    {/if}
-                    {#if frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both'}
-                        {@render card('My photos', 'Upload and manage your local photo collection.', localPhotos)}
-                    {/if}
-                    {@render card(
-                        'Browser slideshow',
-                        'How often the /ambient slideshow in this browser changes photo — slower at night — and whether photos drift. The frame keeps its own schedule.',
-                        cadence
-                    )}
+                        {#if frameSettings.photoSource === 'unsplash' || frameSettings.photoSource === 'both'}
+                            {@render card(
+                                'Categories',
+                                'Which Unsplash photos to draw from. Shared with the frame.',
+                                categories
+                            )}
+                        {/if}
+                        {#if frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both'}
+                            {@render card('My photos', 'Upload and manage your local photo collection.', localPhotos)}
+                        {/if}
+                        {@render card(
+                            'Browser slideshow',
+                            'How often the /ambient slideshow in this browser changes photo — slower at night — and whether photos drift. The frame keeps its own schedule.',
+                            cadence
+                        )}
+                    </div>
                 </div>
             {:else if active === 'connections'}
                 {#snippet spotifyContent()}<SpotifyConnectionSettings />{/snippet}
@@ -319,24 +320,6 @@
                     {@render card('Calendar', 'Sync events to the calendar and upcoming views.', calendarContent)}
                 </div>
             {:else if active === 'frame'}
-                {#snippet kioskContent()}
-                    <ToggleRow
-                        checked={settings.kioskMode}
-                        onchange={() => (settings.kioskMode = !settings.kioskMode)}
-                        title="Kiosk Mode"
-                    >
-                        Hides the navigation bar and shows the time, date, and weather header. Best for always-on wall
-                        displays. Can also be activated with <code class="font-mono">?kiosk=1</code> in the URL.
-                    </ToggleRow>
-                    {#if settings.kioskMode}
-                        <div class="mt-4 border-t border-(--border) pt-4">
-                            <Button variant="link" href="/">Go to Dashboard →</Button>
-                            <p class="type-label mt-0.5 text-(--text-2)">
-                                The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.
-                            </p>
-                        </div>
-                    {/if}
-                {/snippet}
                 {#snippet frameAppearanceContent()}
                     {#if frameSettings.error}
                         <InlineMessage tone="error" class="mb-4">
@@ -344,24 +327,6 @@
                         </InlineMessage>
                     {/if}
                     <FrameAppearanceSettings />
-                {/snippet}
-                {#snippet frameVisibility()}
-                    <WidgetVisibilityList
-                        widgets={frameWidgets}
-                        isOn={frameUsed}
-                        ontoggle={(id) => frameSettings.toggleWidget(id as FrameWidgetId)}
-                        isBlocked={() => frameFull}
-                        fixed={[
-                            ...fixedFrameHeader.map((w) => ({
-                                label: w.label,
-                                caption: 'Fixed at the top of the frame',
-                            })),
-                            ...fixedFrameFooter.map((w) => ({
-                                label: w.label,
-                                caption: 'Fixed along the bottom of the frame',
-                            })),
-                        ]}
-                    />
                 {/snippet}
                 {#snippet frameLayoutContent()}
                     <WidgetLayoutEditor
@@ -374,6 +339,8 @@
                         header={fixedFrameHeader}
                         footer={fixedFrameFooter}
                         maxPerColumn={MAX_COLUMN_WIDGETS}
+                        widgets={frameWidgets}
+                        ontoggle={(id) => frameSettings.toggleWidget(id as FrameWidgetId)}
                     />
                     <p class="type-caption mt-2 text-(--text-2)">
                         Lists shrink to fit what shares their column. Portrait keeps the two columns side by side, so
@@ -420,23 +387,9 @@
                             </div>
                             <div class="order-3">
                                 {@render card(
-                                    'Visibility',
-                                    'Choose which widgets appear on the frame in Daily mode.',
-                                    frameVisibility
-                                )}
-                            </div>
-                            <div class="order-4">
-                                {@render card(
-                                    'Layout',
-                                    'Drag widgets between columns and adjust the column width ratio.',
+                                    'Widgets',
+                                    'What Daily mode shows: drag widgets between columns, hide the ones you don’t need, and adjust the column width ratio.',
                                     frameLayoutContent
-                                )}
-                            </div>
-                            <div class="order-5">
-                                {@render card(
-                                    'Display mode',
-                                    'Control how Hearth presents on this device.',
-                                    kioskContent
                                 )}
                             </div>
                         </div>

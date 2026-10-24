@@ -5,6 +5,7 @@
         unsubscribeFromRssFeed,
         updateRssArticleCount,
     } from '$lib/stores/SettingsStore.svelte.ts';
+    import { Plus } from '@lucide/svelte';
     import Button from '../ui/Button.svelte';
     import ChoiceChips from '../ui/ChoiceChips.svelte';
     import Field from '../ui/Field.svelte';
@@ -13,6 +14,9 @@
 
     let newRssTitle = $state('');
     let newRssUrl = $state('');
+    // The add form folds behind a button once there's a feed, so the list stays short.
+    let adding = $state(false);
+    const formOpen = $derived(adding || settings.rssFeeds.length === 0);
 
     const countOptions = [5, 10, 15, 20].map((n) => ({ value: n, label: String(n) }));
 
@@ -29,6 +33,7 @@
         subscribeToRssFeed(newRssTitle.trim(), newRssUrl.trim());
         newRssTitle = '';
         newRssUrl = '';
+        adding = false;
     }
 </script>
 
@@ -60,23 +65,32 @@
     </div>
 
     <!-- Add feed form -->
-    <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
-        <p class="type-body font-medium text-(--text-1)">Add a feed</p>
-        <div class="flex flex-col gap-2">
-            <Field label="Title">
-                <TextInput type="text" bind:value={newRssTitle} placeholder="Hacker News" class="w-full" />
-            </Field>
-            <Field label="URL">
-                <TextInput
-                    type="url"
-                    bind:value={newRssUrl}
-                    placeholder="https://example.com/feed.xml"
-                    class="w-full"
-                />
-            </Field>
+    {#if !formOpen}
+        <div class="border-t border-(--border) pt-4">
+            <Button onclick={() => (adding = true)}><Plus class="icon-sm" /> Add a feed</Button>
         </div>
-        <div class="flex justify-end">
-            <Button onclick={handleAdd} disabled={!isValidNewRssFeed()}>Add feed</Button>
+    {:else}
+        <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
+            <p class="type-body font-medium text-(--text-1)">Add a feed</p>
+            <div class="flex flex-col gap-2">
+                <Field label="Title">
+                    <TextInput type="text" bind:value={newRssTitle} placeholder="Hacker News" class="w-full" />
+                </Field>
+                <Field label="URL">
+                    <TextInput
+                        type="url"
+                        bind:value={newRssUrl}
+                        placeholder="https://example.com/feed.xml"
+                        class="w-full"
+                    />
+                </Field>
+            </div>
+            <div class="flex justify-end gap-2">
+                {#if settings.rssFeeds.length > 0}
+                    <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
+                {/if}
+                <Button onclick={handleAdd} disabled={!isValidNewRssFeed()}>Add feed</Button>
+            </div>
         </div>
-    </div>
+    {/if}
 </div>

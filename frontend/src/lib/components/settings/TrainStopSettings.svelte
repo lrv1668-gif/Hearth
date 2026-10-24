@@ -7,7 +7,7 @@
     } from '$lib/stores/SettingsStore.svelte.ts';
     import { api } from '$lib/api';
     import type { TrainStop } from '$lib/constants/trains';
-    import { ChevronDown, ChevronUp } from '@lucide/svelte';
+    import { ChevronDown, ChevronUp, Plus } from '@lucide/svelte';
     import Button from '../ui/Button.svelte';
     import Field from '../ui/Field.svelte';
     import IconButton from '../ui/IconButton.svelte';
@@ -16,6 +16,9 @@
 
     let newLabel = $state('');
     let newStopKey = $state('');
+    // The add form folds behind a button once there's a stop, so the list stays short.
+    let adding = $state(false);
+    const formOpen = $derived(adding || settings.trainStops.length === 0);
 
     function isValidNewStop() {
         return newLabel.trim() !== '' && newStopKey.trim() !== '';
@@ -25,6 +28,7 @@
         subscribeToTrainStop(newLabel.trim(), newStopKey.trim());
         newLabel = '';
         newStopKey = '';
+        adding = false;
     }
 
     interface PickerLine {
@@ -171,35 +175,44 @@
     </div>
 
     <!-- Add stop form -->
-    <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
-        <p class="type-body font-medium text-(--text-1)">Add a stop</p>
-        <p class="type-label text-(--text-2)">
-            The stop key is a Transitland stop identifier, not a plain stop name — look yours up at
-            <a
-                href="https://www.transit.land/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-(--accent) transition-colors hover:text-(--accent-hi)"
-            >
-                transit.land
-            </a>
-            (its Onestop ID, e.g. <span class="font-medium">s-9xj5pvewxk-us36~flatironstationeastside</span>).
-        </p>
-        <div class="flex flex-col gap-2">
-            <Field label="Label">
-                <TextInput type="text" bind:value={newLabel} placeholder="Union Station" class="w-full" />
-            </Field>
-            <Field label="Stop key">
-                <TextInput
-                    type="text"
-                    bind:value={newStopKey}
-                    placeholder="s-9xj5pvewxk-us36~flatironstationeastside"
-                    class="w-full"
-                />
-            </Field>
+    {#if !formOpen}
+        <div class="border-t border-(--border) pt-4">
+            <Button onclick={() => (adding = true)}><Plus class="icon-sm" /> Add a stop</Button>
         </div>
-        <div class="flex justify-end">
-            <Button onclick={handleAdd} disabled={!isValidNewStop()}>Add stop</Button>
+    {:else}
+        <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
+            <p class="type-body font-medium text-(--text-1)">Add a stop</p>
+            <p class="type-label text-(--text-2)">
+                The stop key is a Transitland stop identifier, not a plain stop name — look yours up at
+                <a
+                    href="https://www.transit.land/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-(--accent) transition-colors hover:text-(--accent-hi)"
+                >
+                    transit.land
+                </a>
+                (its Onestop ID, e.g. <span class="font-medium">s-9xj5pvewxk-us36~flatironstationeastside</span>).
+            </p>
+            <div class="flex flex-col gap-2">
+                <Field label="Label">
+                    <TextInput type="text" bind:value={newLabel} placeholder="Union Station" class="w-full" />
+                </Field>
+                <Field label="Stop key">
+                    <TextInput
+                        type="text"
+                        bind:value={newStopKey}
+                        placeholder="s-9xj5pvewxk-us36~flatironstationeastside"
+                        class="w-full"
+                    />
+                </Field>
+            </div>
+            <div class="flex justify-end gap-2">
+                {#if settings.trainStops.length > 0}
+                    <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
+                {/if}
+                <Button onclick={handleAdd} disabled={!isValidNewStop()}>Add stop</Button>
+            </div>
         </div>
-    </div>
+    {/if}
 </div>
