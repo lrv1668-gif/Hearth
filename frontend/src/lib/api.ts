@@ -94,6 +94,13 @@ export interface UploadedPhoto {
     caption: string | null;
 }
 
+/** A named set of uploads (Photos service), for picking several at once. */
+export interface PhotoGroup {
+    id: string;
+    name: string;
+    photo_ids: string[];
+}
+
 export interface BatchFileResult {
     file_name: string;
     status: 'ok' | 'duplicate' | 'error';
@@ -475,6 +482,16 @@ class ApiClient {
 
         setCaption: (id: string, caption: string | null): Promise<boolean> =>
             this.patch(`/photos/uploads/${id}`, { caption }),
+
+        groups: (): Promise<PhotoGroup[]> => this.get<PhotoGroup[]>('/photos/groups').then((r) => r ?? []),
+
+        createGroup: (name: string, photoIds: string[]): Promise<PhotoGroup> =>
+            this.post<PhotoGroup>('/photos/groups', { name, photo_ids: photoIds }),
+
+        updateGroup: (id: string, name: string, photoIds: string[]): Promise<PhotoGroup> =>
+            this.put<PhotoGroup>(`/photos/groups/${id}`, { name, photo_ids: photoIds }),
+
+        deleteGroup: (id: string): Promise<boolean> => this.del(`/photos/groups/${id}`),
     };
 
     /** null when the service can't be reached or doesn't answer with JSON. */

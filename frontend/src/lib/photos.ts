@@ -1,4 +1,4 @@
-import { api, type Photo, type UploadedPhoto } from '$lib/api';
+import { api, type Photo, type PhotoGroup, type UploadedPhoto } from '$lib/api';
 import type { PhotoSource } from '$lib/constants/photos';
 
 /** Ambient photo choice shared by the frame's Ambient mode and the /ambient slideshow. */
@@ -37,6 +37,42 @@ export function pickPinned(
 ): Photo | null {
     const chosen = uploads.filter((up) => ids.includes(up.id));
     return chosen.length > 0 ? uploadToPhoto(chosen[Math.floor(random * chosen.length)]) : null;
+}
+
+/** How Photo mode's picker treats a click: `one` picks just that photo, `several` adds or removes it. */
+export type PickMode = 'one' | 'several';
+
+/**
+ * The picked ids after clicking `id`. In `several` mode a `range` click (shift) adds every
+ * photo from `anchor` (the last one clicked) through `id`, in the grid's `order`.
+ */
+export function pickPhotoIn(
+    picked: readonly string[],
+    id: string,
+    mode: PickMode,
+    order: readonly string[] = [],
+    anchor: string | null = null,
+    range = false
+): string[] {
+    if (mode === 'one') return picked.length === 1 && picked[0] === id ? [] : [id];
+    const from = anchor ? order.indexOf(anchor) : -1;
+    const to = order.indexOf(id);
+    if (range && from >= 0 && to >= 0) {
+        const run = order.slice(Math.min(from, to), Math.max(from, to) + 1);
+        return [...picked, ...run.filter((r) => !picked.includes(r))];
+    }
+    return picked.includes(id) ? picked.filter((p) => p !== id) : [...picked, id];
+}
+
+/** Whether all of a group's photos are picked (an empty group never is). */
+export function isGroupPicked(picked: readonly string[], group: PhotoGroup): boolean {
+    return group.photo_ids.length > 0 && group.photo_ids.every((id) => picked.includes(id));
+}
+
+/** Adds a group's photos to the pick, or takes them out when they're all in it already. */
+export function toggleGroup(picked: readonly string[], group: PhotoGroup): string[] {
+    if (isGroupPicked(picked, group)) return picked.filter((id) => !group.photo_ids.includes(id));
+    return [...picked, ...group.photo_ids.filter((id) => !picked.includes(id))];
 }
 
 /** /frame's ?photo= param (a JSON Photo — Settings' preview pins one so Live, Screen

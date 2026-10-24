@@ -84,8 +84,30 @@ public static class WebApplicationExtensions
         app.MapPatch("/photos/uploads/{id}", (string id, CaptionUpdate update, UploadStore uploads) =>
             uploads.SetCaption(id, update.Caption) ? Results.NoContent() : Results.NotFound());
 
-        app.MapDelete("/photos/uploads/{id}", (string id, UploadStore uploads) =>
-            uploads.Delete(id) ? Results.NoContent() : Results.NotFound());
+        app.MapDelete("/photos/uploads/{id}", (string id, UploadStore uploads, PhotoGroupStore groups) =>
+        {
+            if (!uploads.Delete(id)) return Results.NotFound();
+            groups.RemovePhoto(id);
+            return Results.NoContent();
+        });
+
+        app.MapGet("/photos/groups", (PhotoGroupStore groups) => Results.Ok(groups.List()));
+
+        app.MapPost("/photos/groups", (PhotoGroupInput input, PhotoGroupStore groups) =>
+        {
+            var (group, error) = groups.Create(input);
+            return group is null ? Results.BadRequest(new { error }) : Results.Ok(group);
+        });
+
+        app.MapPut("/photos/groups/{id}", (string id, PhotoGroupInput input, PhotoGroupStore groups) =>
+        {
+            var (found, group, error) = groups.Update(id, input);
+            if (!found) return Results.NotFound();
+            return group is null ? Results.BadRequest(new { error }) : Results.Ok(group);
+        });
+
+        app.MapDelete("/photos/groups/{id}", (string id, PhotoGroupStore groups) =>
+            groups.Delete(id) ? Results.NoContent() : Results.NotFound());
 
         app.MapGet("/photos/files/{filename}", (string filename, UploadStore uploads, HttpContext ctx) =>
         {
