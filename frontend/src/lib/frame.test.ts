@@ -12,6 +12,7 @@ import {
     frameCanvas,
     heroCountdown,
     isFrameSize,
+    isFrameDithering,
     isPortraitRotation,
     nearestHour,
     nextSunrise,
@@ -499,6 +500,13 @@ describe('pickBlockInk', () => {
 });
 
 describe('panel render settings', () => {
+    it('accepts only the two dithering choices', () => {
+        expect(isFrameDithering('hearth')).toBe(true);
+        expect(isFrameDithering('frame')).toBe(true);
+        expect(isFrameDithering('inky')).toBe(false);
+        expect(isFrameDithering(undefined)).toBe(false);
+    });
+
     it('accepts only quarter turns for portrait', () => {
         expect(isPortraitRotation(90)).toBe(true);
         expect(isPortraitRotation(270)).toBe(true);

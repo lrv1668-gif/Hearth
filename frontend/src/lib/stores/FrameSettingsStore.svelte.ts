@@ -2,13 +2,16 @@ import { browser } from '$app/environment';
 import { api, type AmbientPosition, type FrameSettings } from '$lib/api';
 import {
     DEFAULT_AMBIENT_POSITION,
+    DEFAULT_FRAME_DITHERING,
     DEFAULT_FRAME_SIZE,
     DEFAULT_FRAME_TEXT_SIZE,
     DEFAULT_PORTRAIT_ROTATION,
     isAmbientPosition,
+    isFrameDithering,
     isFrameSize,
     isFrameTextSize,
     isPortraitRotation,
+    type FrameDithering,
     type PortraitRotation,
 } from '$lib/frame';
 import { categoryOptions } from '$lib/constants/ambient';
@@ -68,6 +71,8 @@ class FrameSettingsStore {
     /** The panel render: minutes Ambient and Photo keep a photo, and which way portrait turns. */
     photoIntervalMinutes = $state(DEFAULT_PHOTO_INTERVAL_MINUTES);
     portraitRotation = $state<PortraitRotation>(DEFAULT_PORTRAIT_ROTATION);
+    /** Who dithers the panel's frame: Hearth, or the frame client (inky). */
+    dithering = $state<FrameDithering>(DEFAULT_FRAME_DITHERING);
     /** True once the Display service has answered (or failed to). */
     loaded = $state(false);
     /** The Display service couldn't be reached — showing (and not saving) defaults. */
@@ -112,6 +117,7 @@ class FrameSettingsStore {
             note_body: this.noteBody || null,
             photo_interval_minutes: this.photoIntervalMinutes,
             portrait_rotation: this.portraitRotation,
+            dithering: this.dithering,
         };
     }
 
@@ -124,6 +130,7 @@ class FrameSettingsStore {
         if (saved.note_body !== undefined) this.noteBody = saved.note_body ?? '';
         if (isPhotoInterval(saved.photo_interval_minutes)) this.photoIntervalMinutes = saved.photo_interval_minutes;
         if (isPortraitRotation(saved.portrait_rotation)) this.portraitRotation = saved.portrait_rotation;
+        if (isFrameDithering(saved.dithering)) this.dithering = saved.dithering;
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
         if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
         if (isFrameTextSize(saved.text_size)) this.textSize = saved.text_size;

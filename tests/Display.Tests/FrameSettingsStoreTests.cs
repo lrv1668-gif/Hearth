@@ -49,6 +49,7 @@ public sealed class FrameSettingsStoreTests
         Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
         Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
         Assert.Equal(FrameSettings.DefaultTextSize, saved.TextSize);
+        Assert.Equal(FrameSettings.DefaultDithering, saved.Dithering);
     }
 
     [Fact]
@@ -71,6 +72,7 @@ public sealed class FrameSettingsStoreTests
         Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
         Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
         Assert.Equal(FrameSettings.DefaultTextSize, saved.TextSize);
+        Assert.Equal(FrameSettings.DefaultDithering, saved.Dithering);
     }
 
     [Fact]
@@ -79,12 +81,13 @@ public sealed class FrameSettingsStoreTests
         using var tmp = new TempDatabase();
         var store = Migrated(tmp);
 
-        store.Save(Sample with { PhotoIntervalMinutes = 180, PortraitRotation = 270, TextSize = 125 });
+        store.Save(Sample with { PhotoIntervalMinutes = 180, PortraitRotation = 270, TextSize = 125, Dithering = "frame" });
 
         var saved = store.Get()!;
         Assert.Equal(180, saved.PhotoIntervalMinutes);
         Assert.Equal(270, saved.PortraitRotation);
         Assert.Equal(125, saved.TextSize);
+        Assert.Equal("frame", saved.Dithering);
     }
 
     [Fact]

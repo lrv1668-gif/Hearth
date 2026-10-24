@@ -40,6 +40,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             "ALTER TABLE frame_settings ADD COLUMN photo_interval_minutes INTEGER NOT NULL DEFAULT 60",
             "ALTER TABLE frame_settings ADD COLUMN portrait_rotation INTEGER NOT NULL DEFAULT 90",
             "ALTER TABLE frame_settings ADD COLUMN text_size INTEGER NOT NULL DEFAULT 100",
+            "ALTER TABLE frame_settings ADD COLUMN dithering TEXT NOT NULL DEFAULT 'hearth'",
         })
         {
             try { db.NonQuery(col); }
@@ -55,7 +56,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
         db.QueryOne("""
             SELECT theme, font, orientation, left_ids, right_ids, split, ambient_position, photo_source, photo_categories,
                    width, height, photo_ids, photo_card, countdown_id, note_title, note_body,
-                   photo_interval_minutes, portrait_rotation, text_size
+                   photo_interval_minutes, portrait_rotation, text_size, dithering
             FROM frame_settings WHERE id = 1
             """, r => new FrameSettings(
                 r.GetString(0),
@@ -76,7 +77,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.IsDBNull(15) ? null : r.GetString(15),
                 r.GetInt32(16),
                 r.GetInt32(17),
-                r.GetInt32(18)));
+                r.GetInt32(18),
+                r.GetString(19)));
 
     public FrameSettings Save(FrameSettings settings)
     {
@@ -84,11 +86,11 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             INSERT INTO frame_settings (id, theme, font, orientation, left_ids, right_ids, split, ambient_position,
                                         photo_source, photo_categories, width, height, photo_ids, photo_card,
                                         countdown_id, note_title, note_body, photo_interval_minutes,
-                                        portrait_rotation, text_size, updated_at)
+                                        portrait_rotation, text_size, dithering, updated_at)
             VALUES (1, $theme, $font, $orientation, $left, $right, $split, $ambient_position,
                     $photo_source, $photo_categories, $width, $height, $photo_ids, $photo_card,
                     $countdown_id, $note_title, $note_body, $photo_interval_minutes,
-                    $portrait_rotation, $text_size, CURRENT_TIMESTAMP)
+                    $portrait_rotation, $text_size, $dithering, CURRENT_TIMESTAMP)
             ON CONFLICT (id) DO UPDATE SET
                 theme = excluded.theme, font = excluded.font, orientation = excluded.orientation,
                 left_ids = excluded.left_ids, right_ids = excluded.right_ids, split = excluded.split,
@@ -98,7 +100,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 countdown_id = excluded.countdown_id, note_title = excluded.note_title,
                 note_body = excluded.note_body, photo_interval_minutes = excluded.photo_interval_minutes,
                 portrait_rotation = excluded.portrait_rotation, text_size = excluded.text_size,
-                updated_at = excluded.updated_at
+                dithering = excluded.dithering, updated_at = excluded.updated_at
             """, cmd =>
         {
             cmd.AddParam("$theme", settings.Theme);
@@ -120,6 +122,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             cmd.AddParam("$photo_interval_minutes", settings.PhotoIntervalMinutes);
             cmd.AddParam("$portrait_rotation", settings.PortraitRotation);
             cmd.AddParam("$text_size", settings.TextSize);
+            cmd.AddParam("$dithering", settings.Dithering);
         });
         return Get()!;
     }

@@ -102,6 +102,10 @@ public sealed class FrameRenderService(
         return "/frame" + query.ToQueryString();
     }
 
+    /// <summary>The mode's method, or none when the frame client dithers (Settings → Frame).</summary>
+    public static string DitherFor(ResolvedMode mode, FrameSettings? saved) =>
+        saved?.Dithering == "frame" ? "none" : FramePreview.DitherFor(mode.Mode);
+
     /// <summary>The last failed render: when, and which frame it was for.</summary>
     public sealed record RenderFailure(DateTimeOffset At, string Mode, string? PhotoId);
 
@@ -183,7 +187,7 @@ public sealed class FrameRenderService(
             var (width, height) = FramePreview.Canvas(QueryCollection.Empty, saved);
             var rotate = width < height ? saved?.PortraitRotation ?? FrameSettings.DefaultPortraitRotation : 0;
             var png = await services.GetRequiredService<RendererClient>().RenderAsync(
-                FramePath(mode), width, height, FramePreview.DitherFor(mode.Mode), kernel: null, look: "screen",
+                FramePath(mode), width, height, DitherFor(mode, saved), kernel: null, look: "screen",
                 home.Get()?.TimeZone, rotate, stop);
             var info = cache.Store(png, mode.Mode, mode.PhotoId, clock.GetUtcNow());
             logger.LogInformation("Rendered the {Mode} frame ({ETag})", mode.Mode, info.ETag);

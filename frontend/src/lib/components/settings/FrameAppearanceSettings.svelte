@@ -139,7 +139,7 @@
     <Disclosure>
         {#snippet summary()}
             <span class="eyebrow">
-                Panel size &amp; ambient card
+                Panel size, dithering &amp; ambient card
                 <span class="font-normal tracking-normal normal-case tabular-nums">
                     · {frameSettings.width}×{frameSettings.height}
                 </span>
@@ -190,6 +190,25 @@
                 </div>
                 <p class="type-caption mt-2 text-(--text-2)">
                     The panel's native resolution, long edge first. Type and spacing scale to match.
+                </p>
+            </div>
+
+            <!-- Who dithers the panel's frame (GET /display/frame) -->
+            <div>
+                <p class="eyebrow mb-2">Dithering</p>
+                <SegmentedControl
+                    options={[
+                        { value: 'hearth', label: 'Hearth' },
+                        { value: 'frame', label: 'On the frame' },
+                    ]}
+                    value={frameSettings.dithering}
+                    onchange={(v) => (frameSettings.dithering = v)}
+                    label="Dithering"
+                />
+                <p class="type-caption mt-2 text-(--text-2)">
+                    {frameSettings.dithering === 'hearth'
+                        ? 'Hearth dithers each mode to the six inks — crisp text and even tints.'
+                        : 'The frame gets the undithered picture and dithers it itself (inky’s Floyd–Steinberg). The preview still shows Hearth’s.'}
                 </p>
             </div>
 
