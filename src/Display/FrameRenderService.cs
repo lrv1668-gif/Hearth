@@ -6,12 +6,13 @@ using ServiceDefaults;
 
 namespace Display;
 
-/// <summary>What GET /display/frame/status reports.</summary>
+/// <summary>What GET /display/frame/status reports: the render side, plus the frame client's last poll.</summary>
 public sealed record FrameStatus(
     string? Mode, DateTimeOffset? RenderedAt, DateTimeOffset? CheckedAt, DateTimeOffset? NextRenderAt,
     // "etag", not snake_case's "e_tag"
     [property: JsonPropertyName("etag")] string? ETag,
-    string? LastError);
+    string? LastError,
+    FramePoll? LastPoll = null);
 
 /// <summary>
 /// Renders the panel's frame in the background, so GET /display/frame serves a cached
@@ -26,7 +27,8 @@ public sealed record FrameStatus(
 /// changes made during a render are coalesced into one more. A failed render keeps the
 /// last frame and retries after <see cref="RetryDelay"/> (<see cref="FirstRetryDelay"/>
 /// while nothing is cached, e.g. the renderer is still starting), or as soon as the mode
-/// moves on.
+/// moves on. Inside Settings → Frame's quiet hours the interval renders wait for them to end
+/// (<see cref="QuietHours"/>).
 /// A failure reading the settings or schedule is logged and retried; it never stops the service.
 /// </para>
 /// </summary>
@@ -78,9 +80,13 @@ public sealed class FrameRenderService(
 
     /// <summary>
     /// When the next render is due — <see cref="DateTimeOffset.MinValue"/> for now — given
-    /// the cached frame, the mode that should be on the panel and the last failure.
+    /// the cached frame, the mode that should be on the panel and the last failure. An
+    /// interval render that would land in the quiet hours waits for them to end; a mode
+    /// change doesn't (e.g. a Night rule that starts with them still draws).
     /// </summary>
-    public static DateTimeOffset Due(RenderedFrame? last, ResolvedMode mode, FrameSettings? saved, RenderFailure? failure)
+    public static DateTimeOffset Due(
+        RenderedFrame? last, ResolvedMode mode, FrameSettings? saved, RenderFailure? failure,
+        DateTimeOffset now, TimeZoneInfo zone)
     {
         // Back off while the same frame keeps failing; a mode that has since moved on gets
         // one attempt now (its failure then backs off in turn, so this can't spin)
@@ -91,6 +97,7 @@ public sealed class FrameRenderService(
             ? TimeSpan.FromMinutes(saved?.PhotoIntervalMinutes ?? FrameSettings.DefaultPhotoIntervalMinutes)
             : FlatInterval;
         var next = last.CheckedAt + interval;
+        if (QuietHours.EndOf(saved, next > now ? next : now, zone) is { } quietEnd) next = quietEnd;
         return mode.Until is { } until && until < next ? until : next;
     }
 
@@ -130,14 +137,15 @@ public sealed class FrameRenderService(
             try
             {
                 var now = clock.GetUtcNow();
-                var mode = Resolve(now);
+                var zone = HomeZones.Resolve(home.Get(), config);
+                var mode = ModeResolver.Resolve(modes.GetSchedule(), modes.GetOverride(), now, zone);
                 var saved = settings.Get();
                 bool queued;
                 DateTimeOffset due;
                 lock (_lock)
                 {
                     queued = _queued is not null;
-                    due = Due(cache.Current?.Info, mode, saved, _failure);
+                    due = Due(cache.Current?.Info, mode, saved, _failure, now, zone);
                     _nextRenderAt = queued || due <= now ? now : due;
                 }
 

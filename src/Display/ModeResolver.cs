@@ -55,7 +55,7 @@ public static class ModeResolver
     }
 
     /// <summary>A household wall-clock time as an instant; a time skipped by DST moves past the gap.</summary>
-    private static DateTimeOffset ToInstant(DateTime local, TimeZoneInfo zone)
+    internal static DateTimeOffset ToInstant(DateTime local, TimeZoneInfo zone)
     {
         var unspecified = DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
         while (zone.IsInvalidTime(unspecified)) unspecified = unspecified.AddMinutes(30);

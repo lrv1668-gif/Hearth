@@ -87,6 +87,10 @@ What the frame shows is decided in one place, shared by every device:
 2. **The schedule** — time-of-day rules on chosen days (e.g. Daily 7–9am on weekdays, Night from 11pm to 6am). The first matching rule wins.
 3. **The default mode** — Ambient unless you change it.
 
+**Quiet hours** (Settings → Frame → Mode, e.g. 11pm–6am) hold the picture overnight: no redraws on the 15-minute or photo timer, so the panel doesn't flash while people sleep. A mode change from the schedule, a button press or a settings change still redraws it, so a Night rule that starts with the quiet hours still goes up.
+
+The same card says whether the frame is still checking in: "The frame checked in 3 min ago and has the latest picture", or a warning once it has been silent for an hour.
+
 Ideas for later modes: **Guest** (a Wi-Fi QR code and house notes), a full **Week/Month** calendar, **Gallery** art (public-domain paintings with a museum placard), and **Occasion** cards on birthdays and holidays.
 
 ---
@@ -210,7 +214,7 @@ Hearth's gap: **self-hosted + e-paper-native + beautiful + accessible to non-dev
 These need to be decided before or early in development:
 
 - **Art in Daily Mode:** Current spec says no art in Daily Mode — the layout is full-frame structured content. Is this correct, or should there be a small art pane?
-- **Presence-aware refresh:** A full refresh flickers for tens of seconds, so the best time to refresh is when nobody's looking. Leading idea: while the room is empty, rotate Ambient photos freely; when someone is present, hold the current image (or switch to Daily once, with a minimum dwell time) and suppress further refreshes; with the lights off, skip refreshes entirely. Needs an optional sensor in the frame (mmWave radar preferred — it detects people sitting still and needs no hole) reporting to the Display service, which owns the policy. See `HARDWARE.md`.
+- **Presence-aware refresh:** A full refresh flickers for tens of seconds, so the best time to refresh is when nobody's looking. Leading idea: while the room is empty, rotate Ambient photos freely; when someone is present, hold the current image (or switch to Daily once, with a minimum dwell time) and suppress further refreshes; with the lights off, skip refreshes entirely. Quiet hours already cover the predictable part (overnight) on a clock, with no sensor. Needs an optional sensor in the frame (mmWave radar preferred — it detects people sitting still and needs no hole) reporting to the Display service, which owns the policy. See `HARDWARE.md`.
 
 ### Resolved
 

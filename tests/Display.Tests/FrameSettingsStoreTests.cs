@@ -91,6 +91,19 @@ public sealed class FrameSettingsStoreTests
     }
 
     [Fact]
+    public void Save_QuietHours_RoundTrip()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save(Sample with { QuietStart = "23:00", QuietEnd = "06:30" });
+        Assert.Equal(("23:00", "06:30"), (store.Get()!.QuietStart, store.Get()!.QuietEnd));
+
+        store.Save(Sample);
+        Assert.Null(store.Get()!.QuietStart);
+    }
+
+    [Fact]
     public void Save_PhotoAndCountdownChoices_RoundTrip()
     {
         using var tmp = new TempDatabase();

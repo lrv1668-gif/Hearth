@@ -144,6 +144,41 @@ public sealed class FrameEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task GetStatus_NoPollYet_HasNoLastPoll()
+    {
+        Assert.Null((await Status()).LastPoll);
+    }
+
+    [Fact]
+    public async Task GetStatus_AfterAPoll_ReportsTheClientAndItsETag()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "/display/frame");
+        request.Headers.UserAgent.ParseAdd("inkypull/0.3");
+        request.Headers.Add("X-Forwarded-For", "192.168.1.42, 10.0.0.1");
+        var etag = (await Client.SendAsync(request)).Headers.ETag!.Tag;
+
+        var poll = (await Status()).LastPoll!;
+
+        Assert.Equal(Noon, poll.At);
+        Assert.Equal("192.168.1.42", poll.Address);
+        Assert.Equal("inkypull/0.3", poll.UserAgent);
+        Assert.Equal(etag, poll.ETag);
+    }
+
+    [Fact]
+    public async Task GetStatus_PollGot304_StillRecordsIt()
+    {
+        var etag = (await Frame()).Headers.ETag!.Tag;
+        _clock.Advance(TimeSpan.FromMinutes(5));
+
+        await Frame(etag);
+
+        var poll = (await Status()).LastPoll!;
+        Assert.Equal(Noon.AddMinutes(5), poll.At);
+        Assert.Equal(etag, poll.ETag);
+    }
+
+    [Fact]
     public async Task PostRefresh_SamePixels_KeepsTheETag()
     {
         var first = await Frame();

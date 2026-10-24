@@ -11,7 +11,9 @@ import {
     isFrameSize,
     isFrameTextSize,
     isPortraitRotation,
+    toQuietHours,
     type FrameDithering,
+    type QuietHours,
     type PortraitRotation,
 } from '$lib/frame';
 import { categoryOptions } from '$lib/constants/ambient';
@@ -73,6 +75,8 @@ class FrameSettingsStore {
     portraitRotation = $state<PortraitRotation>(DEFAULT_PORTRAIT_ROTATION);
     /** Who dithers the panel's frame: Hearth, or the frame client (inky). */
     dithering = $state<FrameDithering>(DEFAULT_FRAME_DITHERING);
+    /** Quiet hours ("HH:mm", home time): no interval redraws in between. Null when off. */
+    quietHours = $state<QuietHours | null>(null);
     /** True once the Display service has answered (or failed to). */
     loaded = $state(false);
     /** The Display service couldn't be reached — showing (and not saving) defaults. */
@@ -118,6 +122,8 @@ class FrameSettingsStore {
             photo_interval_minutes: this.photoIntervalMinutes,
             portrait_rotation: this.portraitRotation,
             dithering: this.dithering,
+            quiet_start: this.quietHours?.start ?? null,
+            quiet_end: this.quietHours?.end ?? null,
         };
     }
 
@@ -131,6 +137,7 @@ class FrameSettingsStore {
         if (isPhotoInterval(saved.photo_interval_minutes)) this.photoIntervalMinutes = saved.photo_interval_minutes;
         if (isPortraitRotation(saved.portrait_rotation)) this.portraitRotation = saved.portrait_rotation;
         if (isFrameDithering(saved.dithering)) this.dithering = saved.dithering;
+        if (saved.quiet_start !== undefined) this.quietHours = toQuietHours(saved.quiet_start, saved.quiet_end);
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
         if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
         if (isFrameTextSize(saved.text_size)) this.textSize = saved.text_size;

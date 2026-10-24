@@ -170,4 +170,23 @@ public sealed class FrameSettingsTests
     {
         Assert.Null((Valid with { Width = 800, Height = 480 }).Validate());
     }
+
+    [Theory]
+    [InlineData("23:00", "06:00")]
+    [InlineData("01:00", "05:30")]
+    public void Validate_QuietHours_ReturnsNull(string start, string end)
+    {
+        Assert.Null((Valid with { QuietStart = start, QuietEnd = end }).Validate());
+    }
+
+    [Theory]
+    [InlineData("23:00", null)]
+    [InlineData(null, "06:00")]
+    [InlineData("23:00", "23:00")]
+    [InlineData("11pm", "06:00")]
+    [InlineData("25:00", "06:00")]
+    public void Validate_BadQuietHours_ReturnsError(string? start, string? end)
+    {
+        Assert.NotNull((Valid with { QuietStart = start, QuietEnd = end }).Validate());
+    }
 }

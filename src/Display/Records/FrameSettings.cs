@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text.Json.Serialization;
+
 namespace Display.Records;
 
 /// <summary>
@@ -43,7 +46,11 @@ public sealed record FrameSettings(
     int TextSize = FrameSettings.DefaultTextSize,
     // GET /display/frame: who dithers it — "hearth" (the renderer, per mode) or "frame"
     // (sent undithered, so a client like inkypull lets inky Floyd–Steinberg it on the Pi).
-    string Dithering = FrameSettings.DefaultDithering
+    string Dithering = FrameSettings.DefaultDithering,
+    // GET /display/frame: a nightly "HH:mm" window (household time) in which the panel keeps
+    // its picture instead of redrawing on the interval; both or neither. See QuietHours.
+    string? QuietStart = null,
+    string? QuietEnd = null
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -73,6 +80,14 @@ public sealed record FrameSettings(
 
     public const string DefaultDithering = "hearth";
     public static readonly string[] Ditherings = ["hearth", "frame"];
+
+    [JsonIgnore] public TimeOnly? QuietStartTime => ParseTime(QuietStart);
+    [JsonIgnore] public TimeOnly? QuietEndTime => ParseTime(QuietEnd);
+
+    private static TimeOnly? ParseTime(string? value) =>
+        TimeOnly.TryParseExact(value, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)
+            ? time
+            : null;
 
     public const int DefaultWidth = 1600;
     public const int DefaultHeight = 1200;
@@ -117,6 +132,10 @@ public sealed record FrameSettings(
         if (PortraitRotation is not (90 or 270)) return "portrait_rotation must be 90 or 270";
         if (TextSize is < MinTextSize or > MaxTextSize) return $"text_size must be {MinTextSize}–{MaxTextSize}";
         if (!Ditherings.Contains(Dithering)) return $"dithering must be one of {string.Join(", ", Ditherings)}";
+        if ((QuietStart is null) != (QuietEnd is null)) return "quiet_start and quiet_end go together";
+        if (QuietStart is not null && (QuietStartTime is null || QuietEndTime is null))
+            return "quiet_start and quiet_end must be HH:mm";
+        if (QuietStart is not null && QuietStartTime == QuietEndTime) return "quiet hours must not start and end at the same time";
         return null;
     }
 }

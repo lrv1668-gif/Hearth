@@ -1,9 +1,14 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { Plus, X } from '@lucide/svelte';
     import type { ModeRule } from '$lib/api';
     import { frameModeLabel, frameModes, modeDays, type FrameModeId, type ModeDay } from '$lib/constants/frameModes';
     import { clearOverride, modeStore, saveSchedule, setOverride } from '$lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '$lib/constants/settingsSections';
+    import { checkIn, DEFAULT_QUIET_HOURS } from '$lib/frame';
+    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
+    import { frameStatusStore, loadFrameStatus } from '$lib/stores/FrameStatusStore.svelte.ts';
+    import { poll } from '$lib/utils';
     import Button from '../ui/Button.svelte';
     import ChoiceChips from '../ui/ChoiceChips.svelte';
     import DayPicker from '../ui/DayPicker.svelte';
@@ -12,6 +17,7 @@
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import Select from '../ui/Select.svelte';
     import TextInput from '../ui/TextInput.svelte';
+    import ToggleRow from '../ui/ToggleRow.svelte';
 
     const HOUR_MS = 60 * 60 * 1000;
     const WEEKDAYS: ModeDay[] = ['mon', 'tue', 'wed', 'thu', 'fri'];
@@ -20,6 +26,24 @@
     let hold = $state<'hour' | 'midnight' | 'forever'>('hour');
 
     const current = $derived(modeStore.current);
+
+    // The frame's last check-in; `now` ticks with each refresh so "3 min ago" stays true
+    const STATUS_REFRESH_MS = 60_000;
+    let now = $state(new Date());
+    onMount(() => {
+        loadFrameStatus();
+        return poll(() => {
+            now = new Date();
+            loadFrameStatus();
+        }, STATUS_REFRESH_MS);
+    });
+    const frameCheckIn = $derived(frameStatusStore.status ? checkIn(frameStatusStore.status, now) : null);
+
+    function setQuiet(patch: Partial<{ start: string; end: string }>) {
+        const next = { ...(frameSettings.quietHours ?? DEFAULT_QUIET_HOURS), ...patch };
+        // Display refuses a window that starts and ends at the same time; keep the last good one
+        if (next.start && next.end && next.start !== next.end) frameSettings.quietHours = next;
+    }
 
     function timeLabel(iso: string): string {
         const at = new Date(iso);
@@ -75,8 +99,10 @@
 @component
 What the frame shows and when: the mode showing now (with why, and a manual choice
 that beats the schedule for an hour, until midnight, or until changed), then the
-default mode and the time-of-day rules. Held by the Display service, shared by every
-device; the frame's Button B steps to the next mode the same way.
+default mode and the time-of-day rules, and the quiet hours (saved with the frame
+settings) when the panel holds its picture. Held by the Display service, shared by every
+device; the frame's Button B steps to the next mode the same way. Under "Showing now",
+whether the frame is still checking in for its picture.
 -->
 <div class="@container flex flex-col gap-6">
     {#if modeStore.error}
@@ -95,6 +121,10 @@ device; the frame's Button B steps to the next mode the same way.
             {/if}
         {:else if modeStore.loaded}
             <p class="type-body text-(--text-2)">Unknown.</p>
+        {/if}
+        {#if frameCheckIn}
+            <InlineMessage tone={frameCheckIn.stale ? 'error' : 'muted'} class="mt-2">{frameCheckIn.text}</InlineMessage
+            >
         {/if}
     </div>
 
@@ -203,5 +233,35 @@ device; the frame's Button B steps to the next mode the same way.
             The first matching time wins. A time that ends before it starts runs past midnight. Times are in your home’s
             time zone, set under <a href={settingsHref('home')} class="underline">Home</a>.
         </p>
+    </div>
+
+    <div>
+        <p class="eyebrow mb-2">Quiet hours</p>
+        <ToggleRow
+            checked={frameSettings.quietHours !== null}
+            onchange={() => (frameSettings.quietHours = frameSettings.quietHours ? null : { ...DEFAULT_QUIET_HOURS })}
+            title="Hold the picture overnight"
+            description="No redraws on the timer, so the panel doesn't flash while you sleep. A mode change from the schedule, a button press or a change here still redraws it."
+            disabled={frameSettings.error}
+        />
+        {#if frameSettings.quietHours}
+            <span class="mt-3 flex items-center gap-1.5">
+                <TextInput
+                    size="sm"
+                    type="time"
+                    value={frameSettings.quietHours.start}
+                    onchange={(e) => setQuiet({ start: (e.target as HTMLInputElement).value })}
+                    aria-label="Quiet from"
+                />
+                <span class="type-label text-(--text-2)">to</span>
+                <TextInput
+                    size="sm"
+                    type="time"
+                    value={frameSettings.quietHours.end}
+                    onchange={(e) => setQuiet({ end: (e.target as HTMLInputElement).value })}
+                    aria-label="Quiet until"
+                />
+            </span>
+        {/if}
     </div>
 </div>
