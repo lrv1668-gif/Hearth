@@ -2,8 +2,8 @@
     import { frameThemes } from '$lib/constants/frameThemes';
     import { fontThemes } from '$lib/constants/fontThemes';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { ChevronRight } from '@lucide/svelte';
     import Chip from '../ui/Chip.svelte';
+    import Disclosure from '../ui/Disclosure.svelte';
     import { fieldClass } from '../ui/field';
     import PickerCard from '../ui/PickerCard.svelte';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
@@ -17,6 +17,8 @@
         MIN_FRAME_TEXT_SIZE,
         normalizeFrameSize,
     } from '$lib/frame';
+
+    const currentTheme = $derived(frameThemes.find((t) => t.id === frameSettings.theme) ?? frameThemes[0]);
 
     let widthInput = $state<HTMLInputElement>();
     let heightInput = $state<HTMLInputElement>();
@@ -36,25 +38,43 @@
 <div class="@container flex flex-col gap-6">
     <!-- Colour theme -->
     <div>
-        <p class="eyebrow mb-2">Colour theme</p>
-        <!-- Container-based columns: this card may sit in a narrow column beside the preview -->
-        <div class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @lg:grid-cols-4 @3xl:grid-cols-5">
-            {#each frameThemes as t (t.id)}
-                {@const selected = frameSettings.theme === t.id}
-                <PickerCard pressed={selected} onclick={() => (frameSettings.theme = t.id)}>
-                    <!-- Swatches are the theme's real inks, shown on its own paper colour -->
-                    <div class="flex gap-1 p-3" style="background: {t.swatches[0]}">
-                        {#each t.swatches.slice(1) as color}
-                            <span class="h-6 flex-1 rounded-sm" style="background: {color}"></span>
-                        {/each}
-                    </div>
-                    <div class="border-t border-(--border) px-3 py-2">
-                        <p class="type-label font-medium text-(--text-1)">{t.label}</p>
-                        <p class="type-caption text-(--text-2)">{t.description}</p>
-                    </div>
-                </PickerCard>
-            {/each}
-        </div>
+        <p class="eyebrow mb-1">Colour theme</p>
+        <!-- Folded to the current theme; opens to the full grid -->
+        <Disclosure>
+            {#snippet summary()}
+                <span
+                    class="flex w-16 shrink-0 gap-0.5 rounded-md border border-(--border) p-1.5"
+                    style="background: {currentTheme.swatches[0]}"
+                    aria-hidden="true"
+                >
+                    {#each currentTheme.swatches.slice(1, 5) as color}
+                        <span class="h-3 flex-1 rounded-sm" style="background: {color}"></span>
+                    {/each}
+                </span>
+                <span class="min-w-0">
+                    <span class="type-body block font-medium text-(--text-1)">{currentTheme.label}</span>
+                    <span class="type-caption block truncate text-(--text-2)">{currentTheme.description}</span>
+                </span>
+            {/snippet}
+            <!-- Container-based columns: this card may sit in a narrow column beside the preview -->
+            <div class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @lg:grid-cols-4 @3xl:grid-cols-5">
+                {#each frameThemes as t (t.id)}
+                    {@const selected = frameSettings.theme === t.id}
+                    <PickerCard pressed={selected} onclick={() => (frameSettings.theme = t.id)}>
+                        <!-- Swatches are the theme's real inks, shown on its own paper colour -->
+                        <div class="flex gap-1 p-3" style="background: {t.swatches[0]}">
+                            {#each t.swatches.slice(1) as color}
+                                <span class="h-6 flex-1 rounded-sm" style="background: {color}"></span>
+                            {/each}
+                        </div>
+                        <div class="border-t border-(--border) px-3 py-2">
+                            <p class="type-label font-medium text-(--text-1)">{t.label}</p>
+                            <p class="type-caption text-(--text-2)">{t.description}</p>
+                        </div>
+                    </PickerCard>
+                {/each}
+            </div>
+        </Disclosure>
     </div>
 
     <!-- Typeface -->
@@ -116,17 +136,16 @@
     </div>
 
     <!-- Set-once options, folded away so the everyday ones stay close together -->
-    <details class="group">
-        <summary
-            class="eyebrow flex min-h-10 cursor-pointer list-none items-center gap-1.5 transition-colors hover:text-(--text-1) [&::-webkit-details-marker]:hidden"
-        >
-            <ChevronRight class="icon-sm shrink-0 transition-transform group-open:rotate-90" aria-hidden="true" />
-            Panel size &amp; ambient card
-            <span class="font-normal tracking-normal normal-case tabular-nums">
-                · {frameSettings.width}×{frameSettings.height}
+    <Disclosure>
+        {#snippet summary()}
+            <span class="eyebrow">
+                Panel size &amp; ambient card
+                <span class="font-normal tracking-normal normal-case tabular-nums">
+                    · {frameSettings.width}×{frameSettings.height}
+                </span>
             </span>
-        </summary>
-        <div class="mt-3 flex flex-col gap-6">
+        {/snippet}
+        <div class="flex flex-col gap-6">
             <!-- Panel size: the native (landscape) resolution; Orientation swaps it -->
             <div>
                 <p class="eyebrow mb-2">Panel size</p>
@@ -203,5 +222,5 @@
                 </p>
             </div>
         </div>
-    </details>
+    </Disclosure>
 </div>
