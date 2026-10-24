@@ -62,7 +62,7 @@ public sealed class NowPlayingEndpointTests : IDisposable
     private HttpClient Connected()
     {
         var client = _factory.CreateClient();
-        _factory.Services.GetRequiredService<SpotifyStore>().Save("access", "refresh", DateTime.UtcNow.AddHours(1));
+        _factory.Services.GetRequiredService<SpotifyStore>().Save("access", "refresh", DateTime.UtcNow.AddHours(1), string.Join(' ', SpotifyScopes.Required));
         return client;
     }
 

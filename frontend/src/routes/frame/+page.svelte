@@ -9,6 +9,7 @@
     import { loadAlmanac } from '$lib/stores/AlmanacStore.svelte.ts';
     import { loadDailyQuote } from '$lib/stores/DailyQuoteStore.svelte.ts';
     import { loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
+    import { loadLastPlayed } from '$lib/stores/LastPlayedStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
     import { SECOND } from '$lib/utils';
     import {
@@ -115,6 +116,7 @@
     const widgetLoaders: Partial<Record<FrameWidgetId, () => Promise<void>>> = {
         quote: loadDailyQuote,
         birds: loadBirds,
+        'last-played': loadLastPlayed,
     };
 
     const now = new Date();

@@ -21,13 +21,49 @@ public sealed class SpotifyStoreTests
         var store = Migrated(tmp);
         var expiresAt = new DateTime(2026, 6, 28, 12, 0, 0, DateTimeKind.Utc);
 
-        store.Save("access-1", "refresh-1", expiresAt);
+        store.Save("access-1", "refresh-1", expiresAt, null);
 
         var token = store.Load();
         Assert.NotNull(token);
         Assert.Equal("access-1", token!.AccessToken);
         Assert.Equal("refresh-1", token.RefreshToken);
         Assert.Equal(expiresAt, token.ExpiresAt, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public void SaveThenLoad_WithEveryScope_HasRequiredScopes()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save("access-1", "refresh-1", DateTime.UtcNow, string.Join(' ', SpotifyScopes.Required));
+
+        Assert.True(store.Load()!.HasRequiredScopes);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("user-read-currently-playing user-read-playback-state")]
+    public void Load_LoginMissingHistoryScopes_DoesNotHaveRequiredScopes(string? scope)
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save("access-1", "refresh-1", DateTime.UtcNow, scope);
+
+        Assert.False(store.Load()!.HasRequiredScopes);
+    }
+
+    [Fact]
+    public void Migrate_RunTwice_KeepsTheScopeColumn()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Migrate();
+        store.Save("access-1", "refresh-1", DateTime.UtcNow, "user-top-read");
+
+        Assert.Equal("user-top-read", store.Load()!.Scope);
     }
 
     [Fact]
@@ -45,8 +81,8 @@ public sealed class SpotifyStoreTests
         using var tmp = new TempDatabase();
         var store = Migrated(tmp);
 
-        store.Save("access-1", "refresh-1", DateTime.UtcNow);
-        store.Save("access-2", "refresh-2", DateTime.UtcNow);
+        store.Save("access-1", "refresh-1", DateTime.UtcNow, null);
+        store.Save("access-2", "refresh-2", DateTime.UtcNow, null);
 
         var token = store.Load();
         Assert.NotNull(token);
@@ -58,7 +94,7 @@ public sealed class SpotifyStoreTests
     {
         using var tmp = new TempDatabase();
         var store = Migrated(tmp);
-        store.Save("access-1", "refresh-1", DateTime.UtcNow);
+        store.Save("access-1", "refresh-1", DateTime.UtcNow, null);
 
         store.Clear();
 

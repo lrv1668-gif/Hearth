@@ -38,7 +38,7 @@ public sealed class SpotifyClientServiceTests
     {
         using var tmp = new TempDatabase();
         var store = MakeStore(tmp);
-        store.Save("access-1", "refresh-1", DateTime.UtcNow.AddHours(1));
+        store.Save("access-1", "refresh-1", DateTime.UtcNow.AddHours(1), null);
         var clientService = new SpotifyClientService(store, MakeConfig());
 
         Assert.NotNull(clientService.TryGetClient());
@@ -49,7 +49,7 @@ public sealed class SpotifyClientServiceTests
     {
         using var tmp = new TempDatabase();
         var store = MakeStore(tmp);
-        store.Save("access-1", "refresh-1", DateTime.UtcNow.AddHours(-1));
+        store.Save("access-1", "refresh-1", DateTime.UtcNow.AddHours(-1), null);
         var clientService = new SpotifyClientService(store, MakeConfig());
 
         // The client is still constructed (with an expired-marker ExpiresIn) so it can

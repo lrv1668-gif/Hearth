@@ -1,6 +1,7 @@
 /* Widgets that can fill the e-paper frame's Daily-mode columns. The frame redraws
    on a schedule, not live, so only widgets that stay correct for an hour or more
-   belong here — no trains, no now-playing. The edition bar, masthead (date block,
+   belong here — no trains, no now-playing (Last Played shows the listening history
+   instead, cached for an hour so it doesn't redraw the panel every track). The edition bar, masthead (date block,
    weather and the sun path) and the forecast band are fixed and not listed. */
 export const frameWidgets = [
     { id: 'arc', label: "Today's Arc", description: 'Daylight, golden hours and today’s events as a ribbon' },
@@ -12,6 +13,7 @@ export const frameWidgets = [
     { id: 'moon', label: 'Moon Phase', description: 'Tonight’s moon and the next phase' },
     { id: 'quote', label: 'Daily Quote', description: 'One quote a day' },
     { id: 'birds', label: 'Birds Nearby', description: 'Recent sightings from eBird' },
+    { id: 'last-played', label: 'Last Played', description: 'The latest track from Spotify, with its album art' },
 ] as const;
 
 export type FrameWidgetId = (typeof frameWidgets)[number]['id'];

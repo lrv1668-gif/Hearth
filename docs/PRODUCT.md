@@ -163,7 +163,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 
 ### Phase 3 — The Pulse
 
-- Music: show what's playing on Spotify (track, artist) on the web dashboard — deliberately not on the frame, which refreshes too rarely to keep it current
+- Music: show what's playing on Spotify (track, artist) on the web dashboard. The frame refreshes too rarely for now-playing, so it gets a Last Played card instead — the latest track from the listening history with its album art, when it played ("last night"), and this month's top artist — which stays true between refreshes
 - Household calendar: pull from Google/Apple Calendar, show next 2–3 events
 - Birds nearby: recent bird sightings around the home from eBird — the frame quietly reflects the living world outside the window; rare sightings gently highlighted
 - Nearby transit: upcoming departures for user-subscribed bus/train stops via Transitland, with per-line filtering so only the routes that matter to the household show up
