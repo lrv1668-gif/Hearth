@@ -7,15 +7,49 @@ on:
       - "**/*.md"
       - "docs/**"
       - "site/**"
+  # No paths-ignore here: a docs-only PR still runs, and the `changes` job skips
+  # every stack, so required checks report as passed instead of staying pending
   pull_request:
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "site/**"
 
 jobs:
+  # PRs only run the stacks they touch; pushes to main always run everything,
+  # so every published image comes from a fully tested commit
+  changes:
+    name: Detect changed stacks
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      backend: ${{ github.event_name == 'push' || steps.filter.outputs.backend == 'true' }}
+      frontend: ${{ github.event_name == 'push' || steps.filter.outputs.frontend == 'true' }}
+      renderer: ${{ github.event_name == 'push' || steps.filter.outputs.renderer == 'true' }}
+    steps:
+      # On PRs the filter reads the changed files from the API, so no checkout
+      - name: Filter paths
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            workflow: &workflow
+              - .github/workflows/ci.yml
+            backend:
+              - *workflow
+              - src/**
+              - tests/**
+              - Hearth.slnx
+              - global.json
+            frontend:
+              - *workflow
+              - frontend/**
+            renderer:
+              - *workflow
+              - renderer/**
+
   backend-tests:
     name: Backend build & test
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,6 +80,8 @@ jobs:
 
   frontend-checks:
     name: Frontend build & typecheck
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     # A normal run takes about a minute; a stalled npm registry call shouldn't hang for hours
     timeout-minutes: 15
@@ -81,6 +117,8 @@ jobs:
 
   renderer-tests:
     name: Renderer dither tests
+    needs: changes
+    if: needs.changes.outputs.renderer == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
