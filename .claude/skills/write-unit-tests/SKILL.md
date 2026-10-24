@@ -38,7 +38,7 @@ Before writing any code, read the service source to understand its dependencies:
 | Service type | Example | Test approach |
 |---|---|---|
 | HTTP-backed | `QuoteFetcher`, `WeatherFetcher` | `FakeHttpMessageHandler` |
-| Database-backed | `TaskStore`, `RssStore` | `TempDatabase` (real SQLite) |
+| Database-backed | `TaskStore`, `ModeStore` | `TempDatabase` (real SQLite) |
 | Pure logic | WMO mapping, recurrence math | Direct instantiation, no fakes |
 
 ---

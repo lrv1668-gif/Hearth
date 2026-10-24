@@ -276,7 +276,7 @@ Services that proxy a third-party API with a simple "fetch, cache, serve" shape 
 - **SQLite L2** when the service registered one via `AddSqliteDistributedCache(key)` (a `distributed_cache` table in the service's own `DB_PATH` file), so cached values survive container restarts. Without one (Quote), the cache is memory-only.
 - `HearthJson.SnakeCaseLower` serialization for the L2 payloads.
 
-Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint. RSS and Calendar keep their own relational SQLite caches (articles per feed, items per provider); Photos keeps its in-memory `IMemoryCache` batch.
+Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint. Calendar keeps its own relational SQLite cache (items per provider); Photos keeps its in-memory `IMemoryCache` batch.
 
 ### Home location and time zone
 
@@ -440,14 +440,14 @@ The `photos` service fetches portrait or landscape photos from the [Unsplash API
 | `GET`    | `/photos/random`        | Returns one random `PhotoResponse` from cache; refetches if cache is stale or query changed  |
 | `GET`    | `/photos/sources`       | Returns the list of available photo source names                                             |
 | `GET`    | `/photos/uploads`       | Returns the list of user-uploaded photos                                                      |
-| `POST`   | `/photos/uploads`       | Uploads a photo (multipart/form-data; max 200 MB)                                            |
+| `POST`   | `/photos/uploads`       | Uploads a photo (multipart/form-data; max 200 MB). Stored upright (EXIF orientation applied) as WebP, at most 2560 px plus a 400 px thumb |
 | `DELETE` | `/photos/uploads/{id}`  | Deletes a user-uploaded photo by ID (and drops it from every group)                           |
 | `GET`    | `/photos/groups`        | Lists the photo groups (`id`, `name`, `photo_ids`) — only uploads that still exist             |
 | `POST`   | `/photos/groups`        | Creates a group from `{ name, photo_ids }` (name 1–40 characters; at most 50 groups; unknown ids dropped) |
 | `PUT`    | `/photos/groups/{id}`   | Replaces a group's name and photos and returns it; `404` if there's no such group             |
 | `DELETE` | `/photos/groups/{id}`   | Deletes a group (its photos stay)                                                             |
 
-Photo groups are named sets of uploads ("Winter", "Family", …) that Settings → Frame's Photo mode picker (`PhotoModePicker.svelte`) uses to pick several photos in one tap. They're kept in `groups.json` beside `captions.json` under `DATA_PATH` (`PhotoGroupStore`). Picking a group copies its photos into the frame settings' `photo_ids`; the picker also picks one photo at a time or several (shift-click adds a run), with select all/none.
+Photo groups are named sets of uploads ("Winter", "Family", …) that Settings → Frame's Photo mode picker (`PhotoModePicker.svelte`) uses to pick several photos in one tap. They're kept in `groups.json` beside `captions.json` under `DATA_PATH` (`PhotoGroupStore`); both files are written atomically (`JsonFile`), and one that can't be read is set aside as `<name>.bad` rather than stopping the service. Picking a group copies its photos into the frame settings' `photo_ids`; the picker also picks one photo at a time or several (shift-click adds a run), with select all/none.
 
 Query param `query` (default: `nature`) is forwarded to the Unsplash random photo endpoint. The cache is keyed by query — changing categories busts the cache.
 
@@ -526,7 +526,7 @@ If the cached quote is from a prior UTC day (or absent), the service re-fetches 
 
 ## RSS Service
 
-The `rss` service fetches articles from one or more user-configured RSS/Atom feed URLs and caches them in SQLite to avoid redundant fetches.
+The `rss` service fetches articles from one or more user-configured RSS/Atom feed URLs and caches them per feed with FusionCache (SQLite L2, so the cache survives restarts).
 
 ### Endpoints
 
@@ -536,13 +536,13 @@ The `rss` service fetches articles from one or more user-configured RSS/Atom fee
 
 Every supplied `url` is validated by `FeedUrlValidator` before any fetch (SSRF protection): only absolute `http`/`https` URLs are accepted, and the host — after DNS resolution when it is not an IP literal — must resolve exclusively to publicly routable addresses. Loopback, RFC 1918 private, link-local (including the `169.254.169.254` cloud metadata IP), CGNAT, multicast, and the IPv6 equivalents (`::1`, `fc00::/7`, `fe80::/10`, IPv4-mapped) are rejected. Any invalid or disallowed URL causes the endpoint to return `400 Bad Request` with an `error` message.
 
-If a feed's cache is stale (older than 30 minutes) or empty, the service re-fetches from the upstream URL before responding. On fetch failure, the endpoint returns whatever is in the cache (possibly empty).
+Feeds are fetched in parallel (`RssFeeds`, 15 s timeout each). A feed is re-fetched once its 30-minute entry expires, by one request at a time however many screens ask. When a refresh fails, fail-safe keeps serving the last good copy for up to a day and retries every 5 minutes; a feed that has never been fetched successfully is left out of the response.
 
 ### Caching
 
 | Field  | Value                                            |
 | ------ | --------------------------------------------------|
-| TTL    | 30 minutes per feed URL                          |
+| TTL    | 30 minutes per feed URL; fail-safe up to 1 day   |
 | Format | Atom 1.0 (XDocument parsing; RSS 2.0 fallback)   |
 
 ### Environment variables

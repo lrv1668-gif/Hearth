@@ -118,6 +118,63 @@ public sealed class TaskStoreTests
     }
 
     [Fact]
+    public void List_SeriesWithDoneTail_DoesNotRegenerateDoneDays()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+        var start = DateTime.UtcNow.Date;
+        var end = start.AddDays(10);
+        var created = store.Create("Course", start, null, null, null, "day", 1, null, end);
+        // Ticking off the last few days leaves an earlier undone row as the tail
+        tmp.Db.NonQuery($"UPDATE lu_tasks SET done = 1 WHERE series_id = {created.Id} AND date(due_date) > date('{start.AddDays(7):o}')");
+
+        var instances = store.List().Where(t => t.SeriesId == created.SeriesId).ToList();
+
+        Assert.Equal(11, instances.Count);
+        Assert.Equal(instances.Count, instances.Select(t => t.DueDate).Distinct().Count());
+    }
+
+    [Fact]
+    public void List_CalledInParallel_GeneratesEachDayOnce()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+        var start = DateTime.UtcNow.Date;
+        var created = store.Create("Water plants", start, null, null, null, "day", 1, null, start.AddDays(20));
+        // Back to just the root, so every List() below finds the series nearing its tail
+        tmp.Db.NonQuery($"DELETE FROM lu_tasks WHERE series_id = {created.Id} AND id <> series_id");
+
+        Parallel.For(0, 8, _ => store.List().ToList());
+
+        var instances = store.List().Where(t => t.SeriesId == created.SeriesId).ToList();
+        Assert.Equal(21, instances.Count);
+        Assert.Equal(instances.Count, instances.Select(t => t.DueDate).Distinct().Count());
+    }
+
+    [Fact]
+    public void Migrate_DuplicateInstances_KeepsTheDoneOneElseTheOldest()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+        var start = DateTime.UtcNow.Date;
+        var created = store.Create("Course", start, null, null, null, "day", 1, null, start.AddDays(2));
+        // What overlapping List() calls left behind: a second copy of day 1 and of day 2,
+        // where day 2's original is undone and the copy is done
+        tmp.Db.NonQuery($"""
+            INSERT INTO lu_tasks (title, due_date, recurrence_unit, recurrence_interval, series_id, recurrence_end_date)
+            SELECT title, due_date, recurrence_unit, recurrence_interval, series_id, recurrence_end_date
+            FROM lu_tasks WHERE series_id = {created.Id} AND id <> series_id
+            """);
+        tmp.Db.NonQuery($"UPDATE lu_tasks SET done = 1 WHERE id = (SELECT MAX(id) FROM lu_tasks WHERE date(due_date) = date('{start.AddDays(2):o}'))");
+
+        store.Migrate();
+
+        var instances = store.List().Where(t => t.SeriesId == created.SeriesId).OrderBy(t => t.DueDate).ToList();
+        Assert.Equal(3, instances.Count);
+        Assert.True(instances[2].Done);
+    }
+
+    [Fact]
     public void Migrate_LegacyInstancesMissingEndDate_BackfillsAndDropsOverrun()
     {
         using var tmp = new TempDatabase();

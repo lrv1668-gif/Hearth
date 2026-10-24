@@ -6,6 +6,9 @@ namespace Tasks
 {
     public sealed class TaskStore([FromKeyedServices("tasks")] IDatabase db)
     {
+        // List() extends series as it reads, and every screen polls it: one extension at a time
+        private readonly Lock _extendLock = new();
+
         public void Migrate()
         {
             db.NonQuery("""
@@ -55,6 +58,19 @@ namespace Tasks
                 DELETE FROM lu_tasks
                 WHERE series_id IS NOT NULL AND done = 0 AND recurrence_end_date IS NOT NULL
                   AND date(due_date) > date(recurrence_end_date)
+                """);
+
+            // Overlapping List() calls (and a done tail, which the extension used to grow
+            // past again) generated a second instance for days a series already had. Keep the
+            // done one, else the oldest; never drop a done instance.
+            db.NonQuery("""
+                DELETE FROM lu_tasks
+                WHERE series_id IS NOT NULL AND id <> series_id AND done = 0 AND due_date IS NOT NULL
+                  AND EXISTS (
+                      SELECT 1 FROM lu_tasks k
+                      WHERE k.series_id = lu_tasks.series_id AND k.id <> lu_tasks.id
+                        AND date(k.due_date) = date(lu_tasks.due_date)
+                        AND (k.done = 1 OR k.id < lu_tasks.id))
                 """);
         }
 
@@ -194,6 +210,9 @@ namespace Tasks
                            recurrence_unit, recurrence_interval, recurrence_days, $sid,
                            recurrence_end_date, is_countdown
                     FROM lu_tasks WHERE id = $template
+                      AND NOT EXISTS (
+                          SELECT 1 FROM lu_tasks e
+                          WHERE e.series_id = $sid AND date(e.due_date) = date($due_date))
                     """, cmd =>
                 {
                     cmd.AddParam("$due_date", current.ToString("o"));
@@ -205,6 +224,11 @@ namespace Tasks
         }
 
         private void ExtendNearingSeriesHorizon()
+        {
+            lock (_extendLock) ExtendNearingSeriesHorizonLocked();
+        }
+
+        private void ExtendNearingSeriesHorizonLocked()
         {
             var threshold = DateTime.UtcNow.Date.AddDays(30).ToString("o");
             // With a single MAX() aggregate SQLite takes the bare columns (id, recurrence_*) from

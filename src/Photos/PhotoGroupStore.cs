@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace Photos;
 
 /// <summary>
@@ -16,13 +14,11 @@ public sealed class PhotoGroupStore
     private readonly Lock _lock = new();
     private List<PhotoGroup> _groups;
 
-    public PhotoGroupStore(IConfiguration config, UploadStore uploads)
+    public PhotoGroupStore(IConfiguration config, UploadStore uploads, ILogger<PhotoGroupStore> logger)
     {
         _uploads = uploads;
         _path = Path.Combine(config["DATA_PATH"] ?? "/data", "groups.json");
-        _groups = File.Exists(_path)
-            ? JsonSerializer.Deserialize<List<PhotoGroup>>(File.ReadAllText(_path)) ?? []
-            : [];
+        _groups = JsonFile.Read<List<PhotoGroup>>(_path, logger) ?? [];
     }
 
     public IReadOnlyList<PhotoGroup> List()
@@ -97,7 +93,7 @@ public sealed class PhotoGroupStore
         return (ids ?? []).Where(known.Contains).Distinct().ToList();
     }
 
-    private void Persist() => File.WriteAllText(_path, JsonSerializer.Serialize(_groups));
+    private void Persist() => JsonFile.Write(_path, _groups);
 }
 
 public record PhotoGroup(string Id, string Name, IReadOnlyList<string> PhotoIds);
