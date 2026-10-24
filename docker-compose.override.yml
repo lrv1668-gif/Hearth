@@ -47,6 +47,10 @@ services:
     ports:
       - "127.0.0.1:8092:3000"
 
+  dozzle:
+    ports:
+      - "127.0.0.1:8093:8080"
+
   frontend:
     build:
       context: ./frontend
@@ -63,6 +67,7 @@ services:
       - ALMANAC_URL=http://almanac:8089
       - TRAINS_URL=http://trains:8091
       - DISPLAY_URL=http://display:8090
+      - LOGS_URL=http://dozzle:8080
       - HMR_CLIENT_PORT=80
     develop:
       watch:

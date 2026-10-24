@@ -18,5 +18,6 @@ public static class ServiceCollectionExtensions
         services.Configure<FormOptions>(o => o.MultipartBodyLengthLimit = 200L * 1024 * 1024);
 
         services.AddHearthWebDefaults();
+        services.AddHealthChecks().AddRequiredConfig("UNSPLASH_ACCESS_KEY");
     }
 }

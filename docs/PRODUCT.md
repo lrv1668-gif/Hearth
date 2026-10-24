@@ -106,6 +106,10 @@ Ideas for later modes: **Guest** (a Wi-Fi QR code and house notes), a full **Wee
 
 Optional integrations (Spotify, Google Calendar, etc.) are surfaced in a separate "Connections" screen — not during first run. The frame should look good before any accounts are connected.
 
+### When Something's Off
+
+Settings → Diagnostics answers "is everything OK?" without SSH: each service reports whether it's running, what isn't set up yet (a missing key or home location shows as a warning, not a failure, since every integration is optional), and whether its outside source has stopped answering behind the cached data. For the details, it links to live container logs at `/logs` (Dozzle), behind a login of their own since Hearth itself has none. The logs are opt-in — they can read every container on the host, so whoever runs the host turns them on (`COMPOSE_PROFILES=logs`); the health view is always there.
+
 ### Day-to-Day Phone Interaction
 
 The web UI (phone browser, no app install) has four screens:

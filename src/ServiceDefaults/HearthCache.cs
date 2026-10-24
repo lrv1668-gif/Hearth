@@ -26,6 +26,13 @@ public static class HearthCache
             .WithSerializer(new FusionCacheSystemTextJsonSerializer(HearthJson.SnakeCaseLower))
             .TryWithRegisteredDistributedCache();
 
+        // Settings → Diagnostics: an upstream that keeps failing behind the fail-safe
+        if (services.All(d => d.ServiceType != typeof(UpstreamFailures)))
+        {
+            services.AddSingleton(sp => new UpstreamFailures(sp.GetRequiredService<IFusionCache>(), sp.GetService<TimeProvider>()));
+            services.AddHealthChecks().AddCheck<UpstreamFailures>("upstream");
+        }
+
         return services;
     }
 }

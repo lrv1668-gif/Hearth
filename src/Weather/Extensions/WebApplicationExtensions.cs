@@ -25,6 +25,7 @@ public static class WebApplicationExtensions
         // Pre-FusionCache cache table — its contents are superseded by the distributed_cache table.
         app.Services.GetRequiredKeyedService<IDatabase>("weather").NonQuery("DROP TABLE IF EXISTS weather_cache");
         app.AddWeatherEndpoints();
+        app.MapHearthHealth("weather");
     }
 
     private static void AddWeatherEndpoints(this WebApplication app)

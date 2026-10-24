@@ -187,6 +187,24 @@ services:
             # Settings → Home; UTC when neither is set
             - TZ=${TZ:-}
 
+    # Live logs for every container on the host at /logs (Dozzle), linked from Settings →
+    # Diagnostics. Opt-in, since it reads the Docker socket: COMPOSE_PROFILES=logs in the
+    # root .env. Its login lives in dozzle/users.yml — create it with deploy/dozzle-user.sh.
+    # Nothing waits on it: without a login only /logs is down.
+    dozzle:
+        <<: *defaults
+        profiles: [logs]
+        image: amir20/dozzle:v11.3.5
+        environment:
+            - DOZZLE_BASE=/logs
+            - DOZZLE_AUTH_PROVIDER=simple
+            - DOZZLE_AUTH_TTL=720h
+            - DOZZLE_NO_ANALYTICS=true
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            # A folder, not users.yml itself: Docker would create a missing file as a directory
+            - ./dozzle:/data
+
     frontend:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-frontend:${HEARTH_TAG:-latest}

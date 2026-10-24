@@ -1,3 +1,4 @@
+using ServiceDefaults;
 namespace Photos.Extensions;
 
 public record CaptionUpdate(string? Caption);
@@ -9,6 +10,7 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForPhotos(this WebApplication app)
     {
         app.AddPhotoEndpoints();
+        app.MapHearthHealth("photos");
     }
 
     private static void AddPhotoEndpoints(this WebApplication app)

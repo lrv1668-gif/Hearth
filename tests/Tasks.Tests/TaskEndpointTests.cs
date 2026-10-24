@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Tasks.Tests;
 
-/// <summary>PUT /tasks/{id} replace semantics, and the service's cross-origin stance.</summary>
+/// <summary>PUT /tasks/{id} replace semantics, the service's cross-origin stance, and its health endpoint.</summary>
 public sealed class TaskEndpointTests : IDisposable
 {
     private readonly TempDatabase _db = new();
@@ -96,5 +96,16 @@ public sealed class TaskEndpointTests : IDisposable
 
         response.EnsureSuccessStatusCode();
         Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));
+    }
+
+    [Fact]
+    public async Task GetHealth_DatabaseReadable_ReturnsHealthyJson()
+    {
+        var response = await _factory.CreateClient().GetAsync("/tasks/health");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var report = await response.Content.ReadFromJsonAsync<ServiceDefaults.HealthReportJson>(ServiceDefaults.HearthJson.SnakeCaseLower);
+        Assert.Equal("healthy", report!.Status);
+        Assert.Contains(report.Checks, c => c.Name == "database" && c.Status == "healthy");
     }
 }

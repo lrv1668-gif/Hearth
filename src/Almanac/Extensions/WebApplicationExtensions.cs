@@ -9,6 +9,7 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForAlmanac(this WebApplication app)
     {
         app.AddAlmanacEndpoints();
+        app.MapHearthHealth("almanac");
     }
 
     private static void AddAlmanacEndpoints(this WebApplication app)

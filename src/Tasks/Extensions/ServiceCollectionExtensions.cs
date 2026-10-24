@@ -12,5 +12,6 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<TaskStore>();
 
         serviceCollection.AddHearthWebDefaults();
+        serviceCollection.AddHealthChecks().AddDatabase("tasks");
     }
 }

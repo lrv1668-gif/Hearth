@@ -12,6 +12,7 @@ public static class WebApplicationExtensions
     {
         app.Services.GetRequiredService<SpotifyStore>().Migrate();
         app.AddSpotifyEndpoints();
+        app.MapHearthHealth("spotify");
     }
 
     private static void AddSpotifyEndpoints(this WebApplication app)

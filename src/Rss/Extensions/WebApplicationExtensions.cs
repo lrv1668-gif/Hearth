@@ -1,3 +1,4 @@
+using ServiceDefaults;
 using Data.Abstractions;
 using Rss.Records;
 
@@ -10,6 +11,7 @@ public static class WebApplicationExtensions
         // Articles used to be cached in their own table; FusionCache's L2 holds them now
         app.Services.GetRequiredKeyedService<IDatabase>("rss").NonQuery("DROP TABLE IF EXISTS rss_articles");
         app.AddRssEndpoints();
+        app.MapHearthHealth("rss");
     }
 
     private static void AddRssEndpoints(this WebApplication app)
