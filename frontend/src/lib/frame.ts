@@ -173,6 +173,15 @@ export function isPortraitRotation(value: unknown): value is PortraitRotation {
     return value === 90 || value === 270;
 }
 
+/** Who dithers GET /display/frame: Hearth's renderer (per mode), or the frame client —
+ *  sent undithered, so inkypull lets inky Floyd–Steinberg it on the Pi. */
+export type FrameDithering = 'hearth' | 'frame';
+export const DEFAULT_FRAME_DITHERING: FrameDithering = 'hearth';
+
+export function isFrameDithering(value: unknown): value is FrameDithering {
+    return value === 'hearth' || value === 'frame';
+}
+
 /** Common Inky Impression panels, by native resolution. */
 export const FRAME_SIZE_PRESETS = [
     { label: 'Inky 13.3″', width: 1600, height: 1200 },

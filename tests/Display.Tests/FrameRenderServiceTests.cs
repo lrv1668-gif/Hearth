@@ -100,6 +100,22 @@ public sealed class FrameRenderServiceTests
         Assert.Equal("/frame?mode=daily", FrameRenderService.FramePath(new(FrameModes.Daily, "default", null)));
     }
 
+    [Theory]
+    [InlineData("hearth", FrameModes.Daily, "ordered")]
+    [InlineData("hearth", FrameModes.Ambient, "errorDiffusion")]
+    [InlineData("frame", FrameModes.Daily, "none")]
+    [InlineData("frame", FrameModes.Ambient, "none")]
+    public void DitherFor_Setting_PicksMethod(string dithering, string mode, string method)
+    {
+        Assert.Equal(method, FrameRenderService.DitherFor(new(mode, "default", null), Saved with { Dithering = dithering }));
+    }
+
+    [Fact]
+    public void DitherFor_NothingSaved_UsesTheModesMethod()
+    {
+        Assert.Equal("ordered", FrameRenderService.DitherFor(new(FrameModes.Daily, "default", null), null));
+    }
+
     [Fact]
     public void FramePath_PinnedPhoto_AddsPin()
     {

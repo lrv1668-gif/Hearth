@@ -38,6 +38,14 @@ public sealed class FrameSettingsTests
         Assert.NotNull((Valid with { TextSize = percent }).Validate());
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("inky")]
+    public void Validate_UnknownDithering_ReturnsError(string dithering)
+    {
+        Assert.NotNull((Valid with { Dithering = dithering }).Validate());
+    }
+
     [Fact]
     public void Validate_CounterClockwisePortrait_ReturnsNull()
     {
