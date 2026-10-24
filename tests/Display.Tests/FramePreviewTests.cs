@@ -59,6 +59,21 @@ public sealed class FramePreviewTests
         Assert.Equal(method, FramePreview.DitherFor(mode));
     }
 
+    [Theory]
+    [InlineData("none", "none")]
+    [InlineData("errorDiffusion", "errorDiffusion")]
+    [InlineData("", "ordered")]
+    public void DitherFor_QueryDither_OverridesMode(string dither, string method)
+    {
+        Assert.Equal(method, FramePreview.DitherFor(Query(("mode", "daily"), ("dither", dither))));
+    }
+
+    [Fact]
+    public void DitherFor_NoQueryDither_UsesMode()
+    {
+        Assert.Equal("ordered", FramePreview.DitherFor(Query(("mode", "daily"))));
+    }
+
     [Fact]
     public void FramePath_DropsPreviewOnlyParams()
     {
@@ -68,6 +83,7 @@ public sealed class FramePreviewTests
             ["left"] = "arc,today",
             ["look"] = "paper",
             ["kernel"] = "atkinson",
+            ["dither"] = "none",
         });
 
         Assert.Equal("/frame?mode=daily&left=arc,today", FramePreview.FramePath(query));
