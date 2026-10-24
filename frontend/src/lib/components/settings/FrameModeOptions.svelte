@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Check } from '@lucide/svelte';
+    import { Check, Images } from '@lucide/svelte';
     import { api, type UploadedPhoto } from '$lib/api';
     import { photoCards, photoIntervals } from '$lib/constants/frameModes';
     import { upcomingCountdowns } from '$lib/frame';
@@ -9,6 +9,7 @@
     import { modeStore, setOverride } from '$lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '$lib/constants/settingsSections';
     import Button from '../ui/Button.svelte';
+    import Modal from '../ui/Modal.svelte';
     import { fieldClass } from '../ui/field';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import Select from '../ui/Select.svelte';
@@ -30,7 +31,11 @@
 
     const countdowns = $derived(upcomingCountdowns(taskStore.tasks, new Date(), Infinity));
     // Ids that were chosen but have since been deleted don't count
-    const chosen = $derived(uploads.filter((u) => frameSettings.photoIds.includes(u.id)).length);
+    const picked = $derived(uploads.filter((u) => frameSettings.photoIds.includes(u.id)));
+    const chosen = $derived(picked.length);
+    // The picker grows with every upload, so it opens in a sheet; the card shows a strip of the picks.
+    const STRIP_MAX = 6;
+    let picking = $state(false);
 </script>
 
 <!--
@@ -69,25 +74,54 @@ Saved with the rest of the frame settings.
             {/if}
         </p>
         {#if uploads.length > 0}
-            <div class="mb-3 grid grid-cols-4 gap-2 @sm:grid-cols-6">
-                {#each uploads as u (u.id)}
-                    {@const on = frameSettings.photoIds.includes(u.id)}
-                    <button
-                        onclick={() => frameSettings.togglePhoto(u.id)}
-                        aria-pressed={on}
-                        aria-label={u.caption ?? 'Photo'}
-                        class="relative aspect-square overflow-hidden rounded-lg border-2 transition-all
-                            {on ? 'border-(--accent)' : 'border-transparent opacity-70 hover:opacity-100'}"
-                    >
-                        <img src={u.thumb_url} alt="" class="absolute inset-0 h-full w-full object-cover" />
-                        {#if on}
-                            <span class="absolute top-1 right-1 rounded-full bg-(--accent) p-0.5 text-(--accent-fg)">
-                                <Check class="icon-xs" />
-                            </span>
-                        {/if}
-                    </button>
+            <div class="mb-3 flex flex-wrap items-center gap-2">
+                {#each picked.slice(0, STRIP_MAX) as u (u.id)}
+                    <img src={u.thumb_url} alt={u.caption ?? ''} class="size-12 rounded-lg object-cover" />
                 {/each}
+                {#if chosen > STRIP_MAX}
+                    <span class="type-label px-1 text-(--text-2) tabular-nums">+{chosen - STRIP_MAX}</span>
+                {/if}
+                <Button onclick={() => (picking = true)}>
+                    <Images class="icon-sm" />
+                    {chosen === 0 ? 'Choose photos' : 'Change'}
+                </Button>
             </div>
+            <Modal
+                bind:open={picking}
+                title="Photo mode"
+                subtitle={chosen === 0 ? 'None picked — shows Ambient’s photos' : `${chosen} picked`}
+                size="xl"
+                divided
+            >
+                {#snippet actions()}
+                    {#if chosen > 0}
+                        <Button variant="link" onclick={() => (frameSettings.photoIds = [])}>Clear</Button>
+                    {/if}
+                {/snippet}
+                <div class="@container">
+                    <div class="grid grid-cols-4 gap-2 @sm:grid-cols-6">
+                        {#each uploads as u (u.id)}
+                            {@const on = frameSettings.photoIds.includes(u.id)}
+                            <button
+                                onclick={() => frameSettings.togglePhoto(u.id)}
+                                aria-pressed={on}
+                                aria-label={u.caption ?? 'Photo'}
+                                class="relative aspect-square overflow-hidden rounded-lg border-2 transition-all
+                                    {on ? 'border-(--accent)' : 'border-transparent opacity-70 hover:opacity-100'}"
+                            >
+                                <img src={u.thumb_url} alt="" class="absolute inset-0 h-full w-full object-cover" />
+                                {#if on}
+                                    <span
+                                        class="absolute top-1 right-1 rounded-full bg-(--accent) p-0.5 text-(--accent-fg)"
+                                    >
+                                        <Check class="icon-xs" />
+                                    </span>
+                                {/if}
+                            </button>
+                        {/each}
+                    </div>
+                </div>
+            </Modal>
         {/if}
         <SegmentedControl
             options={photoCards.map((c) => ({ value: c.value, label: c.label }))}

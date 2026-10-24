@@ -9,10 +9,11 @@ export const settingsSections = [
     {
         id: 'display',
         label: 'Display',
-        subtitle: 'Theme · type',
+        subtitle: 'Theme · type · kiosk',
         icon: Monitor,
         heading: 'How Hearth looks',
-        description: 'The theme drives every surface, type colour, and accent across the dashboard and the frame.',
+        description:
+            'The theme drives every surface, type colour, and accent across the dashboard and the frame. Kiosk mode applies to this browser only.',
     },
     {
         id: 'home',
@@ -51,7 +52,7 @@ export const settingsSections = [
     {
         id: 'frame',
         label: 'Frame',
-        subtitle: 'E-paper look · kiosk',
+        subtitle: 'Modes · e-paper look',
         icon: Tv,
         heading: 'Frame',
         description:

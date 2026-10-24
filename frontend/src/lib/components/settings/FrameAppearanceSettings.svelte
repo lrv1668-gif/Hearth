@@ -38,7 +38,7 @@
     <div>
         <p class="eyebrow mb-2">Colour theme</p>
         <!-- Container-based columns: this card may sit in a narrow column beside the preview -->
-        <div class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @3xl:grid-cols-5">
+        <div class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @lg:grid-cols-4 @3xl:grid-cols-5">
             {#each frameThemes as t (t.id)}
                 {@const selected = frameSettings.theme === t.id}
                 <PickerCard pressed={selected} onclick={() => (frameSettings.theme = t.id)}>
