@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Rss.Tests;
@@ -134,15 +133,14 @@ public sealed class RssFetcherTests
     }
 
     [Fact]
-    public async Task FetchAsync_ConnectionRefused_ReturnsNull()
+    public async Task FetchAsync_ConnectionRefused_Throws()
     {
-        var fetcher = new RssFetcher(NullLogger<RssFetcher>.Instance);
+        var fetcher = new RssFetcher();
 
         // Port 1 (tcpmux) on loopback: nothing listens there, so the connect fails
         // immediately (refused) instead of hanging on a timeout.
-        var result = await fetcher.FetchAsync("https://example.com:1/feed", IPAddress.Loopback);
-
-        Assert.Null(result);
+        await Assert.ThrowsAnyAsync<HttpRequestException>(
+            () => fetcher.FetchAsync("https://example.com:1/feed", IPAddress.Loopback));
     }
 
     [Fact]
@@ -170,7 +168,7 @@ public sealed class RssFetcherTests
             await stream.WriteAsync(body);
         });
 
-        var fetcher = new RssFetcher(NullLogger<RssFetcher>.Instance);
+        var fetcher = new RssFetcher();
         var result = await fetcher
             .FetchAsync("http://this-host-does-not-resolve.invalid:" + port + "/feed", IPAddress.Loopback)
             .WaitAsync(TimeSpan.FromSeconds(10));
@@ -178,9 +176,8 @@ public sealed class RssFetcherTests
         await serverTask.WaitAsync(TimeSpan.FromSeconds(5));
         listener.Stop();
 
-        Assert.NotNull(result);
-        Assert.Equal("Example Atom", result!.Value.FeedTitle);
-        var article = Assert.Single(result.Value.Articles);
+        Assert.Equal("Example Atom", result.FeedTitle);
+        var article = Assert.Single(result.Articles);
         Assert.Equal("First Post", article.Title);
     }
 }

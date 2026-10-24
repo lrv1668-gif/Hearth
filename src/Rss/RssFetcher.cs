@@ -5,9 +5,12 @@ using Rss.Records;
 
 namespace Rss;
 
-public sealed class RssFetcher(ILogger<RssFetcher> logger)
+public sealed class RssFetcher
 {
     private static readonly XNamespace Atom = "http://www.w3.org/2005/Atom";
+
+    // One slow feed shouldn't hold up the whole widget
+    private static readonly TimeSpan FetchTimeout = TimeSpan.FromSeconds(15);
 
     /// <summary>
     /// Fetches and parses a feed, connecting to <paramref name="pinnedAddress"/> rather
@@ -17,31 +20,34 @@ public sealed class RssFetcher(ILogger<RssFetcher> logger)
     /// validation and fetch (DNS rebinding). TLS/SNI and the Host header still use the
     /// URL's original hostname, so HTTPS virtual hosting and certificate validation are
     /// unaffected. Redirects are not followed, since a redirect target hasn't been validated.
+    /// Throws when the feed can't be fetched or parsed, so <see cref="RssFeeds"/>' fail-safe
+    /// can keep serving the last good copy.
     /// </summary>
-    public async Task<(string FeedTitle, IEnumerable<ArticleItem> Articles)?> FetchAsync(string url, IPAddress pinnedAddress)
+    public async Task<Feed> FetchAsync(string url, IPAddress pinnedAddress, CancellationToken ct = default)
     {
-        try
+        using var handler = new SocketsHttpHandler
         {
-            using var handler = new SocketsHttpHandler
+            AllowAutoRedirect = false,
+            ConnectCallback = async (context, token) =>
             {
-                AllowAutoRedirect = false,
-                ConnectCallback = async (context, ct) =>
+                var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                try
                 {
-                    var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(pinnedAddress, context.DnsEndPoint.Port, ct);
-                    return new NetworkStream(socket, ownsSocket: true);
-                },
-            };
-            using var http = new HttpClient(handler);
+                    await socket.ConnectAsync(pinnedAddress, context.DnsEndPoint.Port, token);
+                }
+                catch
+                {
+                    socket.Dispose();
+                    throw;
+                }
+                return new NetworkStream(socket, ownsSocket: true);
+            },
+        };
+        using var http = new HttpClient(handler) { Timeout = FetchTimeout };
 
-            var content = await http.GetStringAsync(new Uri(url));
-            return ParseFeed(url, content);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to fetch RSS feed: {Url}", url);
-            return null;
-        }
+        var content = await http.GetStringAsync(new Uri(url), ct);
+        var (title, articles) = ParseFeed(url, content);
+        return new Feed(title, articles.ToList());
     }
 
     internal static (string FeedTitle, IEnumerable<ArticleItem> Articles) ParseFeed(string url, string xml)

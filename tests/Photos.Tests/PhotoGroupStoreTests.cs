@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -21,7 +22,7 @@ public sealed class PhotoGroupStoreTests : IDisposable
 
     public void Dispose() => Directory.Delete(_dataPath, recursive: true);
 
-    private PhotoGroupStore MakeStore(UploadStore? uploads = null) => new(_config, uploads ?? new UploadStore(_config));
+    private PhotoGroupStore MakeStore(UploadStore? uploads = null) => new(_config, uploads ?? new UploadStore(_config, NullLogger<UploadStore>.Instance), NullLogger<PhotoGroupStore>.Instance);
 
     [Fact]
     public void Create_KnownAndUnknownIds_KeepsOnlyUploadsOnce()
@@ -104,7 +105,7 @@ public sealed class PhotoGroupStoreTests : IDisposable
     [Fact]
     public void List_UploadDeletedElsewhere_HidesIt()
     {
-        var uploads = new UploadStore(_config);
+        var uploads = new UploadStore(_config, NullLogger<UploadStore>.Instance);
         var store = MakeStore(uploads);
         store.Create(new PhotoGroupInput("One", ["a", "b"]));
 

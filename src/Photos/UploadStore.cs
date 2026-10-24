@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
-using System.Text.Json;
 using SkiaSharp;
 
 namespace Photos;
@@ -20,18 +19,15 @@ public sealed class UploadStore
     private readonly ConcurrentDictionary<string, string> _captions = new();
     private readonly Lock _captionsFileLock = new();
 
-    public UploadStore(IConfiguration config)
+    public UploadStore(IConfiguration config, ILogger<UploadStore> logger)
     {
         var dataPath = config["DATA_PATH"] ?? "/data";
         _uploadsDir = Path.Combine(dataPath, "uploads");
         Directory.CreateDirectory(_uploadsDir);
 
         _captionsPath = Path.Combine(dataPath, "captions.json");
-        if (File.Exists(_captionsPath))
-        {
-            var stored = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(_captionsPath));
-            foreach (var (id, caption) in stored ?? []) _captions[id] = caption;
-        }
+        foreach (var (id, caption) in JsonFile.Read<Dictionary<string, string>>(_captionsPath, logger) ?? [])
+            _captions[id] = caption;
 
         foreach (var file in Directory.EnumerateFiles(_uploadsDir))
         {
@@ -58,7 +54,7 @@ public sealed class UploadStore
         var record = MakeRecord(id);
         if (!_index.TryAdd(id, record)) return null; // duplicate — atomic gate
 
-        using var bitmap = SKBitmap.Decode(bytes);
+        using var bitmap = Decode(bytes);
         if (bitmap is null)
         {
             _index.TryRemove(id, out _);
@@ -116,7 +112,7 @@ public sealed class UploadStore
     {
         lock (_captionsFileLock)
         {
-            File.WriteAllText(_captionsPath, JsonSerializer.Serialize(_captions.ToDictionary()));
+            JsonFile.Write(_captionsPath, _captions.ToDictionary());
         }
     }
 
@@ -129,6 +125,89 @@ public sealed class UploadStore
         using var image   = SKImage.FromBitmap(resized);
         using var data    = image.Encode(SKEncodedImageFormat.Webp, WebpQuality);
         await File.WriteAllBytesAsync(Path.Combine(_uploadsDir, filename), data.ToArray());
+    }
+
+    /// <summary>
+    /// Decodes upright and no bigger than it needs to be: JPEGs decode at the smallest size
+    /// that still covers <see cref="FullMaxDim"/> (a 48 MP photo is ~190 MB at full size),
+    /// and the EXIF orientation is applied — the WebP re-encode drops it, so a phone's
+    /// portrait shot would otherwise be stored on its side.
+    /// </summary>
+    private static SKBitmap? Decode(byte[] bytes)
+    {
+        using var data = SKData.CreateCopy(bytes);
+        using var codec = SKCodec.Create(data);
+        if (codec is null) return null;
+
+        var size = DecodeSize(codec);
+        var decoded = SKBitmap.Decode(codec, codec.Info.WithSize(size.Width, size.Height));
+        if (decoded is null) return null;
+
+        var upright = Orient(decoded, codec.EncodedOrigin);
+        if (!ReferenceEquals(upright, decoded)) decoded.Dispose();
+        return upright;
+    }
+
+    /// <summary>
+    /// The smallest size the codec can decode to (eighths, for JPEG) that still covers
+    /// <see cref="FullMaxDim"/>; the resize to the stored sizes happens after.
+    /// </summary>
+    private static SKSizeI DecodeSize(SKCodec codec)
+    {
+        var target = Math.Min(FullMaxDim, Math.Max(codec.Info.Width, codec.Info.Height));
+        for (var eighths = 1; eighths < 8; eighths++)
+        {
+            var size = codec.GetScaledDimensions(eighths / 8f);
+            if (Math.Max(size.Width, size.Height) >= target) return size;
+        }
+        return codec.Info.Size;
+    }
+
+    /// <summary><paramref name="src"/> turned upright for its EXIF origin (itself when already upright).</summary>
+    private static SKBitmap Orient(SKBitmap src, SKEncodedOrigin origin)
+    {
+        if (origin is SKEncodedOrigin.TopLeft) return src;
+
+        var sideways = origin is SKEncodedOrigin.LeftTop or SKEncodedOrigin.RightTop
+            or SKEncodedOrigin.RightBottom or SKEncodedOrigin.LeftBottom;
+        var (w, h) = sideways ? (src.Height, src.Width) : (src.Width, src.Height);
+        var dst = new SKBitmap(new SKImageInfo(w, h, src.ColorType, src.AlphaType, src.ColorSpace));
+        using var canvas = new SKCanvas(dst);
+        // Canvas transforms apply last-first to the source pixels
+        switch (origin)
+        {
+            case SKEncodedOrigin.TopRight: // mirrored
+                canvas.Translate(w, 0);
+                canvas.Scale(-1, 1);
+                break;
+            case SKEncodedOrigin.BottomRight: // upside down
+                canvas.Translate(w, h);
+                canvas.RotateDegrees(180);
+                break;
+            case SKEncodedOrigin.BottomLeft: // mirrored upside down
+                canvas.Translate(0, h);
+                canvas.Scale(1, -1);
+                break;
+            case SKEncodedOrigin.LeftTop: // transposed
+                canvas.RotateDegrees(90);
+                canvas.Scale(1, -1);
+                break;
+            case SKEncodedOrigin.RightTop: // needs a quarter turn clockwise
+                canvas.Translate(w, 0);
+                canvas.RotateDegrees(90);
+                break;
+            case SKEncodedOrigin.RightBottom: // transverse
+                canvas.Translate(w, h);
+                canvas.RotateDegrees(90);
+                canvas.Scale(-1, 1);
+                break;
+            case SKEncodedOrigin.LeftBottom: // needs a quarter turn anticlockwise
+                canvas.Translate(0, h);
+                canvas.RotateDegrees(-90);
+                break;
+        }
+        canvas.DrawBitmap(src, 0, 0, SKSamplingOptions.Default);
+        return dst;
     }
 
     private static (int w, int h) Scale(int origW, int origH, int maxDim)

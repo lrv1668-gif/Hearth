@@ -38,7 +38,7 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
     && mkdir /data
 
 # chiseled: no shell/package manager, non-root by default; -extra adds ICU + tzdata
-# (TimeZoneInfo is used for local-time math in Almanac, Birds, Photos, CacheFreshness)
+# (TimeZoneInfo is used for local-time math in Almanac, Birds, Photos)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra
 WORKDIR /app
 COPY --from=builder /out .
