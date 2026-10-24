@@ -283,7 +283,13 @@ export function frameParams(o: FrameOptions): URLSearchParams {
 export const COLUMN_LINES = { landscape: 15, portrait: 20 } as const;
 const HEADING_LINES = 1.05;
 const GAP_LINES = 0.85;
-const FIXED_LINES: Partial<Record<FrameWidgetId, number>> = { arc: 1.7, moon: 2.7, countdowns: 4.5 };
+// Last Played is a 5-line album square plus its 3px border, whatever the column has.
+const FIXED_LINES: Partial<Record<FrameWidgetId, number>> = {
+    arc: 1.7,
+    moon: 2.7,
+    countdowns: 4.5,
+    'last-played': 5.3,
+};
 
 /** Content lines (excluding its heading) each widget in a column gets. */
 export function allocateLines(column: readonly FrameWidgetId[], totalLines: number): Map<FrameWidgetId, number> {

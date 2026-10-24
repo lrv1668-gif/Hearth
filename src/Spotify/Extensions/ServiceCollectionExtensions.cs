@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SpotifyStore>();
         services.AddSingleton<SpotifyClientService>();
         services.AddSingleton<NowPlayingService>();
+        services.AddSingleton<LastPlayedService>();
         services.AddHttpClient(SpotifyClientService.HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(10));
 
         services.AddHearthWebDefaults();

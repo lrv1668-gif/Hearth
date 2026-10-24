@@ -1,6 +1,6 @@
 # Hearth
 
-A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing, news, a daily quote, nearby bird sightings, and nearby transit departures. The long-term target is an always-on e-paper frame — a Pimoroni Inky Impression 13.3" driven by a Raspberry Pi Zero 2 W, fed by a home server running the stack (see [`docs/HARDWARE.md`](docs/HARDWARE.md)).
+A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing (and, on the frame, what you last played), news, a daily quote, nearby bird sightings, and nearby transit departures. The long-term target is an always-on e-paper frame — a Pimoroni Inky Impression 13.3" driven by a Raspberry Pi Zero 2 W, fed by a home server running the stack (see [`docs/HARDWARE.md`](docs/HARDWARE.md)).
 
 **Project site:** [hearth.lucas-vertrees.me](https://hearth.lucas-vertrees.me/) — a tour of the frame, the dashboard and how to build one. Its source is in [`site/`](site/).
 
@@ -40,7 +40,7 @@ See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for how each piece work
 | `/calendar` | Month grid with per-day task lists and a detail modal |
 | `/ambient` | Fullscreen photo slideshow at a configurable cadence |
 | `/settings` | Theme picker, font theme picker, photo cadence and categories, attribution toggle, widget visibility and layout, integrations, subscribed train stops, e-paper frame appearance and layout with live preview |
-| `/frame` | E-paper render target (panel-sized, default 1600×1200): Ambient photo, a Daily layout of frame widgets — Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby — a pinned Photo or album, one big Countdown, Night (moon and sunrise), or a Note of your own text sized to fill the panel. The mode follows a schedule and manual override set in Settings → Frame |
+| `/frame` | E-paper render target (panel-sized, default 1600×1200): Ambient photo, a Daily layout of frame widgets — Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played (the latest Spotify track and its album art) — a pinned Photo or album, one big Countdown, Night (moon and sunrise), or a Note of your own text sized to fill the panel. The mode follows a schedule and manual override set in Settings → Frame |
 
 ## Prerequisites
 

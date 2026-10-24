@@ -34,7 +34,8 @@ public sealed class SpotifyClientService(
             store.Save(
                 refreshed.AccessToken,
                 refreshed.RefreshToken ?? token.RefreshToken,
-                DateTime.UtcNow.AddSeconds(refreshed.ExpiresIn));
+                DateTime.UtcNow.AddSeconds(refreshed.ExpiresIn),
+                refreshed.Scope ?? token.Scope);
 
         var clientConfig = SpotifyClientConfig
             .CreateDefault()
@@ -54,6 +55,7 @@ public sealed class SpotifyClientService(
         store.Save(
             response.AccessToken,
             response.RefreshToken,
-            DateTime.UtcNow.AddSeconds(response.ExpiresIn));
+            DateTime.UtcNow.AddSeconds(response.ExpiresIn),
+            response.Scope);
     }
 }

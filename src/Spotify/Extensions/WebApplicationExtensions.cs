@@ -37,7 +37,7 @@ public static class WebApplicationExtensions
                 config["SPOTIFY_CLIENT_ID"]!,
                 LoginRequest.ResponseType.Code)
             {
-                Scope = [Scopes.UserReadCurrentlyPlaying, Scopes.UserReadPlaybackState],
+                Scope = SpotifyScopes.Required,
                 State = state,
             };
 
@@ -48,6 +48,7 @@ public static class WebApplicationExtensions
             string code,
             string state,
             SpotifyClientService clientService,
+            LastPlayedService lastPlayed,
             IConfiguration config) =>
         {
             if (config.RequireOrFail(
@@ -63,6 +64,7 @@ public static class WebApplicationExtensions
 
             // RequireOrFail above guarantees this is present.
             await clientService.SaveTokensFromCode(code, config["SPOTIFY_REDIRECT_URI"]!);
+            await lastPlayed.ForgetAsync();
 
             var frontendUrl = config["FRONTEND_URL"] ?? "/";
             return Results.Redirect(frontendUrl);
@@ -86,12 +88,46 @@ public static class WebApplicationExtensions
             }
         });
 
-        app.MapGet("/spotify/status", (SpotifyClientService clientService) =>
-            Results.Ok(new StatusResponse(clientService.TryGetClient() is not null)));
+        // For the frame: 401 when not linked, 403 when the login predates the history scopes
+        // (Settings asks to reconnect), 204 with no history yet, 502 when Spotify can't be reached
+        app.MapGet("/spotify/recent", async (LastPlayedService lastPlayed, CancellationToken ct) =>
+        {
+            try
+            {
+                var result = await lastPlayed.GetAsync(ct);
+                return result.State switch
+                {
+                    LastPlayedState.Disconnected   => Results.Unauthorized(),
+                    LastPlayedState.NeedsReconnect => Results.Json(new { error = "reconnect spotify" }, statusCode: 403),
+                    _ => result.Response is { Track: null, TopArtist: null } ? Results.NoContent() : Results.Ok(result.Response),
+                };
+            }
+            catch (APIUnauthorizedException)
+            {
+                return Results.Unauthorized();
+            }
+            catch (APIException ex) when (LastPlayedService.IsMissingScope(ex))
+            {
+                return Results.Json(new { error = "reconnect spotify" }, statusCode: 403);
+            }
+            catch (Exception ex) when ((ex is APIException or HttpRequestException or TaskCanceledException)
+                                       && !ct.IsCancellationRequested)
+            {
+                app.Logger.LogWarning(ex, "Spotify listening history unavailable");
+                return Results.Json(new { error = "spotify unavailable" }, statusCode: 502);
+            }
+        });
 
-        app.MapDelete("/spotify/auth", (SpotifyStore store) =>
+        app.MapGet("/spotify/status", (SpotifyStore store) =>
+        {
+            var token = store.Load();
+            return Results.Ok(new StatusResponse(token is not null, token is { HasRequiredScopes: false }));
+        });
+
+        app.MapDelete("/spotify/auth", async (SpotifyStore store, LastPlayedService lastPlayed) =>
         {
             store.Clear();
+            await lastPlayed.ForgetAsync();
             return Results.NoContent();
         });
     }

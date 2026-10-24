@@ -271,6 +271,12 @@ describe('allocateLines', () => {
         expect(allocateLines(['countdowns', 'today'], 12).get('countdowns')).toBe(4.5);
     });
 
+    it('gives Last Played its album square and the rest to its neighbour', () => {
+        const lines = allocateLines(['last-played', 'today'], 20);
+        expect(lines.get('last-played')).toBe(5.3);
+        expect(lines.get('today')).toBeCloseTo(20 - 2 * 1.05 - 0.85 - 5.3);
+    });
+
     it('never hands out negative space', () => {
         expect(allocateLines(['today', 'week', 'quote'], 2).get('today')).toBe(0);
     });

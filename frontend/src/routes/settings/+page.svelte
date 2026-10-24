@@ -316,7 +316,11 @@
                 {#snippet spotifyContent()}<SpotifyConnectionSettings />{/snippet}
                 {#snippet calendarContent()}<GoogleCalendarConnectionSettings />{/snippet}
                 <div class="flex flex-col gap-4">
-                    {@render card('Music', 'Show your currently playing track on the dashboard.', spotifyContent)}
+                    {@render card(
+                        'Music',
+                        'Show what’s playing on the dashboard, and what you last played on the frame.',
+                        spotifyContent
+                    )}
                     {@render card('Calendar', 'Sync events to the calendar and upcoming views.', calendarContent)}
                 </div>
             {:else if active === 'frame'}
