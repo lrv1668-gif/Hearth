@@ -40,7 +40,10 @@ public sealed record FrameSettings(
     int PortraitRotation = FrameSettings.DefaultPortraitRotation,
     // The frame's reading type (titles down to captions) and icons, as a percent of the
     // panel's tuned sizes — larger fills a big panel at the cost of list items per widget.
-    int TextSize = FrameSettings.DefaultTextSize
+    int TextSize = FrameSettings.DefaultTextSize,
+    // GET /display/frame: who dithers it — "hearth" (the renderer, per mode) or "frame"
+    // (sent undithered, so a client like inkypull lets inky Floyd–Steinberg it on the Pi).
+    string Dithering = FrameSettings.DefaultDithering
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -67,6 +70,9 @@ public sealed record FrameSettings(
     public const int DefaultTextSize = 100;
     public const int MinTextSize = 100;
     public const int MaxTextSize = 150;
+
+    public const string DefaultDithering = "hearth";
+    public static readonly string[] Ditherings = ["hearth", "frame"];
 
     public const int DefaultWidth = 1600;
     public const int DefaultHeight = 1200;
@@ -110,6 +116,7 @@ public sealed record FrameSettings(
             return $"photo_interval_minutes must be {MinPhotoIntervalMinutes}–{MaxPhotoIntervalMinutes}";
         if (PortraitRotation is not (90 or 270)) return "portrait_rotation must be 90 or 270";
         if (TextSize is < MinTextSize or > MaxTextSize) return $"text_size must be {MinTextSize}–{MaxTextSize}";
+        if (!Ditherings.Contains(Dithering)) return $"dithering must be one of {string.Join(", ", Ditherings)}";
         return null;
     }
 }

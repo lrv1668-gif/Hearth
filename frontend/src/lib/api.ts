@@ -1,4 +1,4 @@
-import { frameParams, type FrameOptions, type PortraitRotation } from '$lib/frame';
+import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '$lib/frame';
 import type { FrameModeId, ModeDay, PhotoCard } from '$lib/constants/frameModes';
 
 // ---- Types ----
@@ -259,6 +259,8 @@ export interface FrameSettings {
     photo_interval_minutes: number;
     /** GET /display/frame: clockwise degrees a portrait frame is turned onto the panel. */
     portrait_rotation: PortraitRotation;
+    /** GET /display/frame: dithered by Hearth, or sent undithered for the frame client to dither. */
+    dithering: FrameDithering;
 }
 
 /** A time-of-day schedule rule ("HH:mm", household time); an end before the start
