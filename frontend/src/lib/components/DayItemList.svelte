@@ -2,6 +2,7 @@
     import type { Task, CalendarItem, Item } from '$lib/api';
     import { formatTime, providerLabel } from '$lib/utils';
     import { Calendar as CalendarIcon } from '@lucide/svelte';
+    import TaskCheckbox from './TaskCheckbox.svelte';
 
     interface Props {
         items: Item[];
@@ -14,10 +15,6 @@
     }
 
     let { items, onToggle, onEdit, onEventClick, onToggleCalendarTask, onOpen }: Props = $props();
-
-    // The visible dot is 8px; the ::after widens the tap target to 24px without moving the layout.
-    const dot =
-        "relative h-2 w-2 flex-shrink-0 rounded-full transition-colors after:absolute after:-inset-2 after:content-['']";
 </script>
 
 <!--
@@ -29,11 +26,7 @@ One day's tasks and calendar items as rows — shared by the day overflow modal 
         {#if item.kind === 'task'}
             {@const task = item.data}
             <li class="flex min-w-0 items-center gap-2">
-                <button
-                    onclick={() => onToggle(task)}
-                    class="{dot} {task.done ? 'bg-(--done-bg)' : 'bg-(--text-3) hover:bg-(--text-1)'}"
-                    aria-label="Toggle {task.title}"
-                ></button>
+                <TaskCheckbox variant="dot" checked={task.done} title={task.title} ontoggle={() => onToggle(task)} />
                 <button
                     onclick={() => {
                         onEdit(task);
@@ -52,14 +45,16 @@ One day's tasks and calendar items as rows — shared by the day overflow modal 
             {@const calItem = item.data}
             {#if calItem.kind === 'task'}
                 <li class="flex min-w-0 items-center gap-2">
-                    <button
-                        onclick={() => {
+                    <TaskCheckbox
+                        variant="dot"
+                        external
+                        checked={calItem.is_completed ?? false}
+                        title={calItem.title}
+                        ontoggle={() => {
                             if (calItem.task_list_id)
                                 onToggleCalendarTask?.(calItem.task_list_id, calItem.id, !calItem.is_completed);
                         }}
-                        class="{dot} {calItem.is_completed ? 'bg-(--done-bg)' : 'bg-(--accent) hover:opacity-80'}"
-                        aria-label="Toggle {calItem.title}"
-                    ></button>
+                    />
                     <span
                         class="type-body min-w-0 flex-1 truncate
                                {calItem.is_completed ? 'text-(--done) line-through' : 'text-(--text-1)'}"

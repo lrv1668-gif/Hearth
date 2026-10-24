@@ -1,6 +1,11 @@
 <script lang="ts">
     import type { Task } from '$lib/api';
     import { ChevronDown, ChevronUp, RefreshCw, Timer } from '@lucide/svelte';
+    import Button from './ui/Button.svelte';
+    import ChoiceChips from './ui/ChoiceChips.svelte';
+    import DayPicker from './ui/DayPicker.svelte';
+    import TextArea from './ui/TextArea.svelte';
+    import TextInput from './ui/TextInput.svelte';
 
     interface Props {
         task?: Task;
@@ -38,7 +43,16 @@
     let recurrenceDays = $state<string[]>([]);
     let recurrenceEndDate = $state('');
 
-    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    // Ids are what the Tasks service stores in recurrence_days
+    const weekdays = [
+        { id: 'Mon', label: 'Mon', name: 'Monday' },
+        { id: 'Tue', label: 'Tue', name: 'Tuesday' },
+        { id: 'Wed', label: 'Wed', name: 'Wednesday' },
+        { id: 'Thu', label: 'Thu', name: 'Thursday' },
+        { id: 'Fri', label: 'Fri', name: 'Friday' },
+        { id: 'Sat', label: 'Sat', name: 'Saturday' },
+        { id: 'Sun', label: 'Sun', name: 'Sunday' },
+    ];
 
     $effect(() => {
         if (!task) newDueDate = initialDate ?? '';
@@ -82,6 +96,15 @@
         { unit: 'month', interval: 1, label: 'Monthly' },
         { unit: 'month', interval: 12, label: 'Yearly' },
     ];
+    // ChoiceChips wants one value per option: "unit:interval"
+    const repeatChoices = repeatOptions.map((o) => ({ value: `${o.unit}:${o.interval}`, label: o.label }));
+
+    function chooseRepeat(value: string) {
+        const opt = repeatOptions.find((o) => `${o.unit}:${o.interval}` === value)!;
+        recurrenceUnit = opt.unit;
+        recurrenceInterval = opt.interval;
+        recurrenceDays = [];
+    }
 
     function handleDateChange(e: Event) {
         newDueDate = (e.target as HTMLInputElement).value;
@@ -149,37 +172,27 @@
 >
     <!-- Main row — wraps on phones so the date and Add button stay on screen -->
     <div class="flex flex-wrap gap-2 sm:flex-nowrap">
-        <input
+        <TextInput
             bind:value={newTitle}
             placeholder="What needs doing?"
             aria-label="Task"
-            class="type-body w-full min-w-0 rounded-lg bg-(--surface) px-4 py-2.5
-             text-(--text-1) placeholder-(--text-2) transition outline-none focus:ring-1
-             focus:ring-(--border) sm:w-auto sm:flex-1"
+            class="w-full sm:w-auto sm:flex-1"
         />
-        <input
+        <TextInput
             type="date"
             value={newDueDate}
             oninput={handleDateChange}
             aria-label="Due date"
-            class="type-body min-w-0 flex-1 rounded-lg bg-(--surface) px-3 py-2.5 text-(--text-2) transition
-             outline-none focus:ring-1 focus:ring-(--border) sm:flex-none"
+            class="flex-1 sm:flex-none"
         />
-        <button
-            type="submit"
-            disabled={!!newDueDate && !allDay && !newDueTime}
-            class="type-body rounded-lg bg-(--accent) px-4 py-2.5
-             font-medium text-(--accent-fg) transition-colors hover:bg-(--accent-hi)
-             disabled:cursor-not-allowed disabled:opacity-40"
-        >
+        <Button type="submit" variant="primary" size="lg" disabled={!!newDueDate && !allDay && !newDueTime}>
             {isEdit ? 'Save' : 'Add'}
-        </button>
+        </Button>
     </div>
 
     <!-- Time row -->
     {#if newDueDate}
-        <div class="flex items-center gap-3">
-            <div class="flex-1"></div>
+        <div class="flex items-center justify-end gap-3">
             <label class="type-body flex cursor-pointer items-center gap-2 text-(--text-2) select-none">
                 <input
                     type="checkbox"
@@ -188,64 +201,47 @@
                         allDay = (e.target as HTMLInputElement).checked;
                         if (allDay) newDueTime = '';
                     }}
-                    class="cursor-pointer rounded accent-(--accent)"
+                    class="h-4 w-4 cursor-pointer accent-(--accent)"
                 />
                 All day
             </label>
             {#if !allDay}
-                <input
-                    type="time"
-                    bind:value={newDueTime}
-                    step="900"
-                    class="type-body rounded-lg bg-(--surface) px-3 py-2 text-(--text-3)
-                           transition outline-none focus:ring-1 focus:ring-(--border)"
-                />
+                <TextInput type="time" bind:value={newDueTime} step="900" aria-label="Due time" />
             {/if}
         </div>
     {/if}
 
     <!-- More options toggle -->
-    <button
-        type="button"
-        onclick={() => (showMore = !showMore)}
-        class="type-label flex items-center gap-1 text-(--text-2) transition-colors hover:text-(--text-1)"
-    >
-        {#if showMore}<ChevronUp class="icon-sm" />{:else}
-            <ChevronDown class="icon-sm" />{/if}
+    <Button variant="ghost" aria-expanded={showMore} onclick={() => (showMore = !showMore)}>
+        {#if showMore}<ChevronUp class="icon-sm" />{:else}<ChevronDown class="icon-sm" />{/if}
         More options
-    </button>
+    </Button>
 
     {#if showMore}
-        <div class="space-y-3 border-t border-(--border) pt-1">
-            <!-- Description -->
-            <textarea
+        <div class="space-y-3 border-t border-(--border) pt-3">
+            <TextArea
                 bind:value={description}
                 placeholder="Notes (optional)"
                 aria-label="Notes"
                 rows={2}
-                class="type-body mt-1 w-full resize-none
-                       rounded-lg bg-(--surface) px-4 py-2.5 text-(--text-1) placeholder-(--text-2)
-                       transition outline-none focus:ring-1 focus:ring-(--border)"></textarea>
-
-            <!-- Assignee -->
-            <input
-                bind:value={assignee}
-                placeholder="Assign to (optional)"
-                aria-label="Assign to"
-                class="type-body w-full rounded-lg bg-(--surface)
-                       px-4 py-2.5 text-(--text-1) placeholder-(--text-2) transition
-                       outline-none focus:ring-1 focus:ring-(--border)"
+                class="w-full resize-none"
             />
+
+            <TextInput bind:value={assignee} placeholder="Assign to (optional)" aria-label="Assign to" class="w-full" />
 
             <!-- Countdown toggle (add mode) / indicator (edit mode) -->
             {#if isEdit && task?.is_countdown}
-                <div class="type-body flex items-center gap-2 text-(--text-3)">
+                <div class="type-body flex items-center gap-2 text-(--text-2)">
                     <Timer class="icon-sm" />
                     <span>Event countdown</span>
                 </div>
             {:else if !isEdit}
                 <label class="group flex cursor-pointer items-center gap-3">
-                    <input type="checkbox" bind:checked={isCountdown} class="h-4 w-4 accent-(--accent)" />
+                    <input
+                        type="checkbox"
+                        bind:checked={isCountdown}
+                        class="h-4 w-4 cursor-pointer accent-(--accent)"
+                    />
                     <span class="type-body text-(--text-2) transition-colors select-none group-hover:text-(--text-1)">
                         Event countdown
                     </span>
@@ -254,60 +250,35 @@
 
             <!-- Recurrence -->
             {#if isEdit && task?.recurrence_unit}
-                <div class="type-body flex items-center gap-2 text-(--text-3)">
+                <div class="type-body flex flex-wrap items-center gap-2 text-(--text-2)">
                     <RefreshCw class="icon-sm" />
                     <span>{recurrenceLabel(task)}</span>
-                    <span class="type-label text-(--text-4)">(recurrence cannot be changed)</span>
+                    <span class="type-label">(recurrence cannot be changed)</span>
                 </div>
             {:else if !isEdit && !isCountdown}
                 <div class="space-y-2">
-                    <p class="type-label tracking-wide text-(--text-2) uppercase">Repeat</p>
-                    <div class="flex flex-wrap gap-2">
-                        {#each repeatOptions as opt}
-                            <button
-                                type="button"
-                                onclick={() => {
-                                    recurrenceUnit = opt.unit;
-                                    recurrenceInterval = opt.interval;
-                                    recurrenceDays = [];
-                                }}
-                                class="type-label rounded-full px-3 py-1 transition-colors
-                                       {recurrenceUnit === opt.unit && recurrenceInterval === opt.interval
-                                    ? 'bg-(--accent) text-(--accent-fg)'
-                                    : 'bg-(--surface) text-(--text-2) hover:bg-(--text-4) hover:text-(--text-1)'}"
-                            >
-                                {opt.label}
-                            </button>
-                        {/each}
-                    </div>
+                    <p class="eyebrow">Repeat</p>
+                    <ChoiceChips
+                        label="Repeat"
+                        options={repeatChoices}
+                        value={`${recurrenceUnit}:${recurrenceInterval}`}
+                        onchange={chooseRepeat}
+                    />
 
                     {#if recurrenceUnit === 'week' && recurrenceInterval === 1}
-                        <div class="flex flex-wrap gap-1">
-                            {#each weekdays as day}
-                                <button
-                                    type="button"
-                                    onclick={() => toggleDay(day)}
-                                    class="type-label rounded px-2 py-1 transition-colors
-                                           {recurrenceDays.includes(day)
-                                        ? 'bg-(--accent) text-(--accent-fg)'
-                                        : 'bg-(--surface) text-(--text-2) hover:bg-(--text-4) hover:text-(--text-1)'}"
-                                >
-                                    {day}
-                                </button>
-                            {/each}
-                        </div>
+                        <DayPicker days={weekdays} selected={recurrenceDays} ontoggle={toggleDay} label="Repeat on" />
                     {/if}
 
                     {#if recurrenceUnit && recurrenceUnit !== 'week'}
                         <div class="type-body flex items-center gap-2 text-(--text-2)">
                             <span>Every</span>
-                            <input
+                            <TextInput
                                 type="number"
                                 bind:value={recurrenceInterval}
                                 min={1}
                                 max={365}
-                                class="type-body w-16 rounded-lg bg-(--surface) px-3 py-1.5 text-center
-                                       text-(--text-2) outline-none focus:ring-1 focus:ring-(--border)"
+                                aria-label="Repeat interval"
+                                class="w-20 text-center"
                             />
                             <span
                                 >{recurrenceUnit === 'day'
@@ -319,25 +290,18 @@
                         </div>
                     {/if}
 
-                    <div class="type-body flex items-center gap-2 text-(--text-2)">
+                    <div class="type-body flex flex-wrap items-center gap-2 text-(--text-2)">
                         <span>Ends on</span>
-                        <input
+                        <TextInput
                             type="date"
                             bind:value={recurrenceEndDate}
                             min={newDueDate || undefined}
-                            class="type-body rounded-lg bg-(--surface) px-3 py-1.5 placeholder-(--text-2)
-                                   transition outline-none focus:ring-1 focus:ring-(--border)"
+                            aria-label="Repeat ends on"
                         />
                         {#if recurrenceEndDate}
-                            <button
-                                type="button"
-                                onclick={() => (recurrenceEndDate = '')}
-                                class="type-label text-(--text-2) transition hover:text-(--text-1)"
-                            >
-                                Clear
-                            </button>
+                            <Button variant="ghost" onclick={() => (recurrenceEndDate = '')}>Clear</Button>
                         {:else}
-                            <span class="type-label text-(--text-2)">optional</span>
+                            <span class="type-label">optional</span>
                         {/if}
                     </div>
                 </div>

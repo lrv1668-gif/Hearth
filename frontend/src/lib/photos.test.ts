@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { photoQuery, pickPinned, resolveSource, uploadToPhoto } from './photos';
+import { checkPhotoFiles, photoQuery, pickPinned, resolveSource, summarizeUploadErrors, uploadToPhoto } from './photos';
 
 const upload = (id: string) => ({ id, url: `/${id}.jpg`, thumb_url: `/${id}-t.jpg`, caption: null });
 
@@ -53,5 +53,34 @@ describe('uploadToPhoto', () => {
             source: 'local',
             photographer_name: null,
         });
+    });
+});
+
+describe('checkPhotoFiles', () => {
+    const file = (name: string, type: string, mb: number) =>
+        new File([new Uint8Array(Math.round(mb * 1024 * 1024))], name, { type });
+
+    it('keeps images and explains the rest', () => {
+        const { valid, errors, batchError } = checkPhotoFiles([
+            file('a.jpg', 'image/jpeg', 0.01),
+            file('b.gif', 'image/gif', 0.01),
+            file('c.png', 'image/png', 26),
+        ]);
+        expect(valid.map((f) => f.name)).toEqual(['a.jpg']);
+        expect(errors).toEqual(['b.gif: not a JPEG, PNG, or WebP', 'c.png: exceeds 25 MB']);
+        expect(batchError).toBeNull();
+    });
+
+    it('refuses a batch over the size cap', () => {
+        const big = Array.from({ length: 8 }, (_, i) => file(`${i}.jpg`, 'image/jpeg', 24));
+        expect(checkPhotoFiles(big).batchError).toMatch(/^Selected files total 192 MB/);
+    });
+});
+
+describe('summarizeUploadErrors', () => {
+    it('shows one problem as-is and counts several', () => {
+        expect(summarizeUploadErrors([])).toBeNull();
+        expect(summarizeUploadErrors(['a.gif: nope'])).toBe('a.gif: nope');
+        expect(summarizeUploadErrors(['x', 'y'])).toBe('2 files had issues.');
     });
 });

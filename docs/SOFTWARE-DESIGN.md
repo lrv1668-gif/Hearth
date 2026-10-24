@@ -36,6 +36,27 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 - API calls are centralised in `frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
 - In development, Vite proxies each API path (`/tasks`, `/weather`, `/spotify`, `/photos`, `/rss`, `/quote`, `/calendar`, `/birds`, `/almanac`, `/trains`) to its service's `$<NAME>_URL` env var; in production, Caddy handles the same routing
 
+### Shared UI components
+
+Form controls and other repeated pieces live in `frontend/src/lib/components/ui/` — use them rather than restyling native elements per screen:
+
+| Component | Use |
+| --- | --- |
+| `Button` (+ `buttonClass()` in `button.ts`) | `primary` (accent fill, one per group), `secondary` (outlined pill, default), `link`, `ghost`; renders an `<a>` when given `href`; defaults to `type="button"` |
+| `IconButton` | Icon-only button with a required `label`; `reveal` hides it until its `group` row is hovered (always shown on touch) |
+| `TextInput`, `TextArea`, `Select` (+ `fieldClass()` in `field.ts`) | The one bordered field style, `sm`/`md`; a raw element with `fieldClass()` when a handler rewrites `el.value` in place |
+| `Field` | Small-caps label above a control |
+| `Chip`, `ChoiceChips` | Pick-one chips — accent fill while chosen, `aria-pressed` |
+| `SegmentedControl` | Two to four short options as one control |
+| `DayPicker` | Any-number-of days of the week |
+| `Toggle`, `ToggleRow` | A switch; the row names and describes it by its title and description, and supports `disabled` |
+| `PickerCard` | Large option card in a preview grid (typeface, frame theme) |
+| `Modal` | `<dialog class="sheet">` with a titled header, close button and scrolling body mounted only while open |
+| `ListRow`, `ConnectionRow` | A settings list row with remove/extra actions; an outside service with its status and buttons |
+| `FileUploadButton`, `InlineMessage` | A file picker styled as a secondary button; an error (accent, `role="alert"`) or muted note |
+
+Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks (`box` or `dot`, `role="checkbox"`), and `PhotoUploadButton` validates (`checkPhotoFiles` in `lib/photos.ts`) and uploads photos for both the Ambient settings and the photo collection. Small-caps group headings use the `.eyebrow` class from `app.css`.
+
 ### Routes
 
 | Route       | Description                                                                               |
@@ -46,7 +67,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 | `/settings` | Sections (`?section=`): theme picker, home location and time zone, ambient photo cadence, categories, widget visibility — a sidebar on wide screens, a drill-in list on phones |
 | `/frame`    | E-paper render target — panel-sized canvas (default 1600×1200), no nav (see below)        |
 
-The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one (left column first, then right), the bottom tab bar replaces the masthead, the kiosk footer is hidden (Now Playing moves to the top of the dashboard), a one-line date and current conditions open the dashboard outside kiosk mode, and `ScrollFadeList` lists (news, birds, trains) clip with a Show more/less toggle instead of scrolling inside the page. Settings opens on a section list there, with a back link from each section, in place of the sidebar. The calendar switches earlier, at `md` (768px): below it day cells show marks instead of titles (squares for tasks, circles for events), a horizontal swipe on the grid changes month, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows — with an Add task button in place of the header's New Task. Below `sm` (640px) every modal `<dialog class="sheet">` becomes a bottom sheet (`app.css`), and the agenda puts each time above its title.
+The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one (left column first, then right), the bottom tab bar replaces the masthead, the kiosk footer is hidden (Now Playing moves to the top of the dashboard), a one-line date and current conditions open the dashboard outside kiosk mode, and `ScrollFadeList` lists (news, birds, trains) clip with a Show more/less toggle instead of scrolling inside the page. Settings opens on a section list there, with a back link from each section, in place of the sidebar. The calendar switches earlier, at `md` (768px): below it day cells show marks instead of titles (squares for tasks, circles for events), a horizontal swipe on the grid changes month, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows — with an Add task button in place of the header's New Task. Below `sm` (640px) every modal (`ui/Modal.svelte`, a `<dialog class="sheet">`) becomes a bottom sheet (`app.css`), and the agenda puts each time above its title.
 
 #### Frame route
 

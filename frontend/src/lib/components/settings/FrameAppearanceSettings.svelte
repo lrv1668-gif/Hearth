@@ -3,7 +3,10 @@
     import { fontThemes } from '$lib/constants/fontThemes';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { ChevronRight } from '@lucide/svelte';
-    import SegmentedControl from './SegmentedControl.svelte';
+    import Chip from '../ui/Chip.svelte';
+    import { fieldClass } from '../ui/field';
+    import PickerCard from '../ui/PickerCard.svelte';
+    import SegmentedControl from '../ui/SegmentedControl.svelte';
     import {
         AMBIENT_POSITIONS,
         FRAME_SIZE_PRESETS,
@@ -30,18 +33,12 @@
 <div class="@container flex flex-col gap-6">
     <!-- Colour theme -->
     <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Colour theme</p>
+        <p class="eyebrow mb-2">Colour theme</p>
         <!-- Container-based columns: this card may sit in a narrow column beside the preview -->
         <div class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @3xl:grid-cols-5">
             {#each frameThemes as t (t.id)}
                 {@const selected = frameSettings.theme === t.id}
-                <button
-                    onclick={() => (frameSettings.theme = t.id)}
-                    aria-pressed={selected}
-                    style={selected ? 'outline: 2px solid var(--accent); outline-offset: 2px;' : ''}
-                    class="flex flex-col overflow-hidden rounded-xl border-2 bg-(--surface) text-left transition-all
-                        {selected ? 'border-(--accent)' : 'border-(--border) opacity-85 hover:opacity-100'}"
-                >
+                <PickerCard pressed={selected} onclick={() => (frameSettings.theme = t.id)}>
                     <!-- Swatches are the theme's real inks, shown on its own paper colour -->
                     <div class="flex gap-1 p-3" style="background: {t.swatches[0]}">
                         {#each t.swatches.slice(1) as color}
@@ -52,33 +49,31 @@
                         <p class="type-label font-medium text-(--text-1)">{t.label}</p>
                         <p class="type-caption text-(--text-2)">{t.description}</p>
                     </div>
-                </button>
+                </PickerCard>
             {/each}
         </div>
     </div>
 
     <!-- Typeface -->
     <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Typeface</p>
-        <div class="flex flex-wrap gap-2">
+        <p class="eyebrow mb-2">Typeface</p>
+        <div class="flex flex-wrap gap-2" role="group" aria-label="Typeface">
             {#each fontThemes as f (f.id)}
                 <!-- data-font scopes the preset's [data-font] block to this chip -->
-                <button
+                <Chip
                     data-font={f.id}
+                    pressed={frameSettings.font === f.id}
                     onclick={() => (frameSettings.font = f.id)}
-                    aria-pressed={frameSettings.font === f.id}
-                    class="type-label rounded-lg border border-(--border) px-3 py-1.5 text-(--text-2) transition-colors
-                        hover:text-(--text-1) aria-pressed:border-(--accent) aria-pressed:font-semibold aria-pressed:text-(--text-1)"
                 >
                     {f.label}
-                </button>
+                </Chip>
             {/each}
         </div>
     </div>
 
     <!-- Orientation -->
     <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Orientation</p>
+        <p class="eyebrow mb-2">Orientation</p>
         <SegmentedControl
             options={[
                 { value: 'landscape', label: 'Landscape' },
@@ -86,6 +81,7 @@
             ]}
             value={frameSettings.orientation}
             onchange={(v) => (frameSettings.orientation = v)}
+            label="Orientation"
         />
         {#if frameSettings.orientation === 'portrait'}
             <!-- The panel is always sent landscape; which way to turn depends on how the frame hangs -->
@@ -97,6 +93,7 @@
                 ]}
                 value={String(frameSettings.portraitRotation)}
                 onchange={(v) => (frameSettings.portraitRotation = v === '270' ? 270 : 90)}
+                label="Turn onto the panel"
             />
         {/if}
     </div>
@@ -104,7 +101,7 @@
     <!-- Set-once options, folded away so the everyday ones stay close together -->
     <details class="group">
         <summary
-            class="type-label flex min-h-10 cursor-pointer list-none items-center gap-1.5 font-semibold tracking-widest text-(--text-2) uppercase transition-colors hover:text-(--text-1) [&::-webkit-details-marker]:hidden"
+            class="eyebrow flex min-h-10 cursor-pointer list-none items-center gap-1.5 transition-colors hover:text-(--text-1) [&::-webkit-details-marker]:hidden"
         >
             <ChevronRight class="icon-sm shrink-0 transition-transform group-open:rotate-90" aria-hidden="true" />
             Panel size &amp; ambient card
@@ -115,7 +112,7 @@
         <div class="mt-3 flex flex-col gap-6">
             <!-- Panel size: the native (landscape) resolution; Orientation swaps it -->
             <div>
-                <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Panel size</p>
+                <p class="eyebrow mb-2">Panel size</p>
                 <div class="flex flex-wrap items-center gap-2">
                     <input
                         bind:this={widthInput}
@@ -126,7 +123,7 @@
                         value={frameSettings.width}
                         onchange={commitSize}
                         aria-label="Panel width in pixels"
-                        class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
+                        class="{fieldClass()} w-24 tabular-nums"
                     />
                     <span class="type-label text-(--text-2)" aria-hidden="true">×</span>
                     <input
@@ -138,23 +135,21 @@
                         value={frameSettings.height}
                         onchange={commitSize}
                         aria-label="Panel height in pixels"
-                        class="type-body w-24 rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-(--text-1) tabular-nums transition-colors outline-none focus:border-(--text-3)"
+                        class="{fieldClass()} w-24 tabular-nums"
                     />
                     <span class="type-label text-(--text-2)">px</span>
                 </div>
-                <div class="mt-2 flex flex-wrap gap-2">
+                <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="Panel size presets">
                     {#each FRAME_SIZE_PRESETS as p (p.label)}
-                        <button
+                        <Chip
+                            pressed={frameSettings.width === p.width && frameSettings.height === p.height}
                             onclick={() => {
                                 frameSettings.width = p.width;
                                 frameSettings.height = p.height;
                             }}
-                            aria-pressed={frameSettings.width === p.width && frameSettings.height === p.height}
-                            class="type-label rounded-lg border border-(--border) px-3 py-1.5 text-(--text-2) transition-colors
-                        hover:text-(--text-1) aria-pressed:border-(--accent) aria-pressed:font-semibold aria-pressed:text-(--text-1)"
                         >
                             {p.label} <span class="tabular-nums">{p.width}×{p.height}</span>
-                        </button>
+                        </Chip>
                     {/each}
                 </div>
                 <p class="type-caption mt-2 text-(--text-2)">
@@ -164,7 +159,7 @@
 
             <!-- Ambient card position: a 3×2 pad laid out like the frame -->
             <div>
-                <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Ambient card</p>
+                <p class="eyebrow mb-2">Ambient card</p>
                 <div
                     class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
                     role="radiogroup"

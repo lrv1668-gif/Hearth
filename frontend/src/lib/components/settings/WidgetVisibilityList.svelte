@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Toggle from '$lib/components/Toggle.svelte';
+    import ToggleRow from '../ui/ToggleRow.svelte';
 
     interface Props {
         widgets: readonly { id: string; label: string; description: string }[];
@@ -25,34 +25,22 @@ Frame settings so both screens behave the same.
         {#each widgets.toSorted((a, b) => a.label.localeCompare(b.label)) as widget (widget.id)}
             {@const on = isOn(widget.id)}
             {@const blocked = !on && (isBlocked?.(widget.id) ?? false)}
-            <label class="flex items-center gap-3 {blocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}">
-                <div class="mt-0.5 shrink-0">
-                    <Toggle checked={on} onchange={() => !blocked && ontoggle(widget.id)} />
-                </div>
-                <div>
-                    <p class="type-body text-(--text-1) select-none">{widget.label}</p>
-                    <p class="type-label text-(--text-2) select-none">
-                        {blocked ? 'Both columns are full — remove a widget first' : widget.description}
-                    </p>
-                </div>
-            </label>
+            <ToggleRow
+                checked={on}
+                onchange={() => ontoggle(widget.id)}
+                disabled={blocked}
+                title={widget.label}
+                description={blocked ? 'Both columns are full — remove a widget first' : widget.description}
+            />
         {/each}
     </div>
 
     <!-- Fixed widgets -->
     <div class="border-t border-(--border) pt-4">
-        <p class="type-label mb-3 font-semibold tracking-[0.12em] text-(--text-2) uppercase">Always shown</p>
+        <p class="eyebrow mb-3">Always shown</p>
         <div class="flex flex-col gap-2">
             {#each fixed as w (w.label)}
-                <div class="flex items-center gap-3 opacity-50">
-                    <div class="mt-0.5 shrink-0">
-                        <Toggle checked={true} onchange={() => {}} />
-                    </div>
-                    <div>
-                        <p class="type-body text-(--text-1) select-none">{w.label}</p>
-                        <p class="type-label text-(--text-2) select-none">{w.caption}</p>
-                    </div>
-                </div>
+                <ToggleRow checked={true} onchange={() => {}} disabled title={w.label} description={w.caption} />
             {/each}
         </div>
     </div>

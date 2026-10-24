@@ -4,7 +4,14 @@
     import { frameModeLabel, frameModes, modeDays, type FrameModeId, type ModeDay } from '$lib/constants/frameModes';
     import { clearOverride, modeStore, saveSchedule, setOverride } from '$lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '$lib/constants/settingsSections';
-    import SegmentedControl from './SegmentedControl.svelte';
+    import Button from '../ui/Button.svelte';
+    import ChoiceChips from '../ui/ChoiceChips.svelte';
+    import DayPicker from '../ui/DayPicker.svelte';
+    import IconButton from '../ui/IconButton.svelte';
+    import InlineMessage from '../ui/InlineMessage.svelte';
+    import SegmentedControl from '../ui/SegmentedControl.svelte';
+    import Select from '../ui/Select.svelte';
+    import TextInput from '../ui/TextInput.svelte';
 
     const HOUR_MS = 60 * 60 * 1000;
     const WEEKDAYS: ModeDay[] = ['mon', 'tue', 'wed', 'thu', 'fri'];
@@ -62,10 +69,6 @@
         const days = rules[i].days;
         update(i, { days: days.includes(day) ? days.filter((d) => d !== day) : [...days, day] });
     }
-
-    const chip = 'type-label rounded-lg border border-(--border) px-3 py-1.5 transition-colors';
-    const field =
-        'type-label rounded-lg border border-(--border) bg-(--surface) px-2.5 py-1.5 text-(--text-1) outline-none focus:border-(--text-3)';
 </script>
 
 <!--
@@ -77,23 +80,18 @@ device; the frame's Button B steps to the next mode the same way.
 -->
 <div class="@container flex flex-col gap-6">
     {#if modeStore.error}
-        <p class="type-label text-(--accent)">Can't reach the Display service — modes can't be changed right now.</p>
+        <InlineMessage tone="error">Can't reach the Display service — modes can't be changed right now.</InlineMessage>
     {/if}
 
     <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Showing now</p>
+        <p class="eyebrow mb-2">Showing now</p>
         {#if current}
             <p class="type-body text-(--text-1)">
                 <span class="font-semibold">{frameModeLabel(current.mode)}</span>
                 <span class="text-(--text-2)">· {why}</span>
             </p>
             {#if current.reason === 'override'}
-                <button
-                    onclick={() => clearOverride()}
-                    class="type-label mt-2 text-(--accent) underline-offset-2 hover:underline"
-                >
-                    Back to schedule
-                </button>
+                <Button variant="link" class="mt-2" onclick={() => clearOverride()}>Back to schedule</Button>
             {/if}
         {:else if modeStore.loaded}
             <p class="type-body text-(--text-2)">Unknown.</p>
@@ -101,21 +99,14 @@ device; the frame's Button B steps to the next mode the same way.
     </div>
 
     <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Show instead</p>
-        <div class="mb-3 flex flex-wrap gap-2">
-            {#each frameModes as m (m.id)}
-                <button
-                    onclick={() => (chosen = m.id)}
-                    aria-pressed={chosen === m.id}
-                    title={m.description}
-                    aria-label={m.label}
-                    class="{chip} {chosen === m.id
-                        ? 'border-(--accent) bg-(--surface-hi) font-semibold text-(--text-1)'
-                        : 'text-(--text-2) hover:text-(--text-1)'}"
-                >
-                    {m.label}
-                </button>
-            {/each}
+        <p class="eyebrow mb-2">Show instead</p>
+        <div class="mb-3">
+            <ChoiceChips
+                label="Mode to show"
+                options={frameModes.map((m) => ({ value: m.id, label: m.label, description: m.description }))}
+                value={chosen}
+                onchange={(v) => (chosen = v)}
+            />
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <SegmentedControl
@@ -126,98 +117,88 @@ device; the frame's Button B steps to the next mode the same way.
                 ]}
                 value={hold}
                 onchange={(v) => (hold = v)}
+                label="How long"
             />
-            <button
-                onclick={show}
-                disabled={modeStore.error}
-                class="type-label rounded-lg bg-(--accent) px-4 py-1.5 font-semibold text-(--accent-fg) transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
+            <Button variant="primary" onclick={show} disabled={modeStore.error}>
                 Show {frameModeLabel(chosen)}
-            </button>
+            </Button>
         </div>
     </div>
 
     <div>
-        <p class="type-label mb-2 font-semibold tracking-widest text-(--text-2) uppercase">Schedule</p>
+        <p class="eyebrow mb-2">Schedule</p>
         <label class="type-label mb-3 flex flex-wrap items-center gap-2 text-(--text-2)">
             Otherwise show
-            <select
+            <Select
+                size="sm"
                 value={modeStore.schedule.default_mode}
                 onchange={(e) =>
                     saveSchedule({
                         ...modeStore.schedule,
                         default_mode: (e.target as HTMLSelectElement).value as FrameModeId,
                     })}
-                class={field}
             >
                 {#each frameModes as m (m.id)}<option value={m.id}>{m.label}</option>{/each}
-            </select>
+            </Select>
         </label>
 
         <div class="flex flex-col gap-3">
             {#each rules as rule, i (i)}
                 <div class="flex flex-wrap items-center gap-2 rounded-lg border border-(--border) p-3">
-                    <select
+                    <Select
+                        size="sm"
                         value={rule.mode}
                         onchange={(e) => update(i, { mode: (e.target as HTMLSelectElement).value as FrameModeId })}
                         aria-label="Mode"
-                        class={field}
                     >
                         {#each frameModes as m (m.id)}<option value={m.id}>{m.label}</option>{/each}
-                    </select>
-                    <div class="flex gap-1" role="group" aria-label="Days">
-                        {#each modeDays as d (d.id)}
-                            <button
-                                onclick={() => toggleDay(i, d.id)}
-                                aria-pressed={rule.days.includes(d.id)}
-                                aria-label={d.id}
-                                class="type-caption h-7 w-7 rounded-full border border-(--border) transition-colors {rule.days.includes(
-                                    d.id
-                                )
-                                    ? 'border-(--accent) bg-(--accent) font-semibold text-(--accent-fg)'
-                                    : 'text-(--text-2) hover:text-(--text-1)'}"
-                            >
-                                {d.label}
-                            </button>
-                        {/each}
-                    </div>
+                    </Select>
+                    <DayPicker
+                        days={modeDays}
+                        selected={rule.days}
+                        ontoggle={(d) => toggleDay(i, d)}
+                        label="Days for time {i + 1}"
+                    />
                     <span class="flex items-center gap-1.5">
-                        <input
+                        <TextInput
+                            size="sm"
                             type="time"
                             value={rule.start}
                             onchange={(e) => update(i, { start: (e.target as HTMLInputElement).value })}
                             aria-label="From"
-                            class={field}
                         />
                         <span class="type-label text-(--text-2)">to</span>
-                        <input
+                        <TextInput
+                            size="sm"
                             type="time"
                             value={rule.end}
                             onchange={(e) => update(i, { end: (e.target as HTMLInputElement).value })}
                             aria-label="To"
-                            class={field}
                         />
                     </span>
-                    <button
+                    <IconButton
+                        label="Remove rule"
+                        size="sm"
+                        class="ml-auto"
                         onclick={() => commit(rules.filter((_, j) => j !== i))}
-                        aria-label="Remove rule"
-                        class="ml-auto p-1 text-(--text-3) transition-colors hover:text-(--text-1)"
                     >
                         <X class="icon-sm" />
-                    </button>
+                    </IconButton>
                     {#if rule.days.length === 0}
-                        <p class="type-caption w-full text-(--accent)">Pick at least one day to save this rule.</p>
+                        <InlineMessage tone="error" class="w-full"
+                            >Pick at least one day to save this rule.</InlineMessage
+                        >
                     {/if}
                 </div>
             {/each}
         </div>
-        <button
+        <Button
+            class="mt-3"
             onclick={() => commit([...rules, { mode: 'daily', days: [...WEEKDAYS], start: '07:00', end: '09:00' }])}
             disabled={modeStore.error}
-            class="type-label mt-3 flex items-center gap-1.5 rounded-full border border-(--border) px-4 py-1.5 text-(--text-1) transition-colors hover:border-(--text-2) hover:bg-(--surface-hi) disabled:opacity-50"
         >
             <Plus class="icon-sm" /> Add a time
-        </button>
+        </Button>
         <p class="type-caption mt-2 text-(--text-2)">
             The first matching time wins. A time that ends before it starts runs past midnight. Times are in your home’s
             time zone, set under <a href={settingsHref('home')} class="underline">Home</a>.

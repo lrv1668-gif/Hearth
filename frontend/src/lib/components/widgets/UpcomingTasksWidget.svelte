@@ -1,8 +1,11 @@
 <script lang="ts">
     import type { Task, CalendarItem, Item } from '$lib/api';
     import { formatTime, eventDateKey, stripHtml, localDateKey as dateKey } from '$lib/utils';
-    import { Calendar as CalendarIcon, Check, ExternalLink, RefreshCw, X } from '@lucide/svelte';
+    import { Calendar as CalendarIcon, ExternalLink, RefreshCw, X } from '@lucide/svelte';
     import ProviderIcon from '$lib/components/ProviderIcon.svelte';
+    import TaskCheckbox from '$lib/components/TaskCheckbox.svelte';
+    import Button from '$lib/components/ui/Button.svelte';
+    import IconButton from '$lib/components/ui/IconButton.svelte';
 
     interface Props {
         tasks: Task[];
@@ -138,30 +141,13 @@
     <div class="space-y-4">
         {#each groups as group (group.key)}
             <div class="space-y-1">
-                <div class="">
-                    <div class="flex items-center gap-3">
-                        <h2 class="type-label font-semibold tracking-wider whitespace-nowrap text-(--text-2) uppercase">
-                            {group.label}
-                        </h2>
-                    </div>
-                </div>
+                <h2 class="eyebrow whitespace-nowrap">{group.label}</h2>
                 <ul class="space-y-2">
                     {#each group.items as item (item.kind === 'task' ? `t-${item.data.id}` : `e-${item.data.id}`)}
                         {#if item.kind === 'task'}
                             {@const task = item.data}
-                            <li class="group/row flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5">
-                                <button
-                                    onclick={() => onToggle(task)}
-                                    class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors
-                           {task.done
-                                        ? 'border-(--done-bg) bg-(--done-bg)'
-                                        : 'border-(--text-3) hover:border-(--text-1)'}"
-                                    aria-label="Toggle {task.title}"
-                                >
-                                    {#if task.done}
-                                        <Check class="icon-xs text-(--bg)" />
-                                    {/if}
-                                </button>
+                            <li class="group flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5">
+                                <TaskCheckbox checked={task.done} title={task.title} ontoggle={() => onToggle(task)} />
 
                                 {#if task.due_time}
                                     <span
@@ -217,34 +203,38 @@
 
                                 {#if confirmDeleteId === task.id}
                                     <div class="flex flex-shrink-0 items-center gap-1">
-                                        <button
+                                        <Button
+                                            size="sm"
                                             onclick={() => {
                                                 onDelete(task.id);
                                                 confirmDeleteId = null;
                                             }}
-                                            class="type-label rounded bg-(--surface-hi) px-2 py-0.5 text-(--text-2) transition hover:text-(--text-1)"
                                         >
                                             Just this
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
+                                            size="sm"
                                             onclick={() => {
                                                 onDelete(task.id, true);
                                                 confirmDeleteId = null;
                                             }}
-                                            class="type-label rounded bg-(--surface-hi) px-2 py-0.5 text-(--text-2) transition hover:text-(--text-1)"
                                         >
                                             All future
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <IconButton
+                                            label="Cancel delete"
+                                            size="sm"
                                             onclick={() => (confirmDeleteId = null)}
-                                            class="text-(--text-3) transition hover:text-(--text-2)"
-                                            aria-label="Cancel"
                                         >
                                             <X class="icon-sm" />
-                                        </button>
+                                        </IconButton>
                                     </div>
                                 {:else}
-                                    <button
+                                    <IconButton
+                                        label="Delete {task.title}"
+                                        size="sm"
+                                        reveal
+                                        class="-my-2"
                                         onclick={() => {
                                             if (task.series_id !== null) {
                                                 confirmDeleteId = task.id;
@@ -252,22 +242,20 @@
                                                 onDelete(task.id);
                                             }
                                         }}
-                                        class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/row:opacity-100 hover:text-(--text-1) focus-visible:opacity-100 pointer-coarse:opacity-100"
-                                        aria-label="Delete {task.title}"
                                     >
                                         <X class="icon-md" />
-                                    </button>
+                                    </IconButton>
                                 {/if}
                             </li>
                         {:else}
                             {@const calItem = item.data}
                             {#if calItem.kind === 'task'}
-                                <li
-                                    class="group/cal flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5"
-                                >
+                                <li class="group flex items-center gap-2 rounded-lg py-2 sm:gap-3 sm:px-3 sm:py-2.5">
                                     <div class="relative flex-shrink-0">
-                                        <button
-                                            onclick={() => {
+                                        <TaskCheckbox
+                                            checked={calItem.is_completed ?? false}
+                                            title={calItem.title}
+                                            ontoggle={() => {
                                                 if (calItem.task_list_id)
                                                     onToggleCalendarTask?.(
                                                         calItem.task_list_id,
@@ -275,16 +263,7 @@
                                                         !calItem.is_completed
                                                     );
                                             }}
-                                            class="flex h-4 w-4 items-center justify-center rounded border transition-colors
-                                                   {calItem.is_completed
-                                                ? 'border-(--done-bg) bg-(--done-bg)'
-                                                : 'border-(--text-3) hover:border-(--text-1)'}"
-                                            aria-label="Toggle {calItem.title}"
-                                        >
-                                            {#if calItem.is_completed}
-                                                <Check class="icon-xs text-(--bg)" />
-                                            {/if}
-                                        </button>
+                                        />
                                         <div class="absolute -right-1 -bottom-1">
                                             <ProviderIcon provider={calItem.provider} />
                                         </div>
@@ -310,7 +289,7 @@
                                             href={calItem.html_link}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover/cal:opacity-100 hover:text-(--accent) focus-visible:opacity-100 pointer-coarse:opacity-100"
+                                            class="flex-shrink-0 text-(--text-3) opacity-0 transition group-hover:opacity-100 hover:text-(--accent) focus-visible:opacity-100 pointer-coarse:opacity-100"
                                             aria-label="Open in Google Tasks"
                                             onclick={(e) => e.stopPropagation()}
                                         >

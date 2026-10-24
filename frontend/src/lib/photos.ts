@@ -82,3 +82,37 @@ export async function pickPhoto(
     }
     return api.photos.random(photoQuery(categories), orientation, from);
 }
+
+/** What the Photos service accepts per upload. */
+export const PHOTO_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_FILE_MB = 25;
+// Under the service's 200 MB request cap, leaving room for the form overhead
+const MAX_BATCH_MB = 190;
+
+/** Splits picked files into those worth sending and a reason for each one that isn't. A
+ *  batch over the size cap is refused whole (`batchError`), since the service would. */
+export function checkPhotoFiles(files: readonly File[]): {
+    valid: File[];
+    errors: string[];
+    batchError: string | null;
+} {
+    const valid: File[] = [];
+    const errors: string[] = [];
+    for (const f of files) {
+        if (!PHOTO_UPLOAD_TYPES.includes(f.type)) errors.push(`${f.name}: not a JPEG, PNG, or WebP`);
+        else if (f.size > MAX_FILE_MB * 1024 * 1024) errors.push(`${f.name}: exceeds ${MAX_FILE_MB} MB`);
+        else valid.push(f);
+    }
+    const totalMB = valid.reduce((sum, f) => sum + f.size, 0) / (1024 * 1024);
+    const batchError =
+        totalMB > MAX_BATCH_MB
+            ? `Selected files total ${Math.round(totalMB)} MB — try uploading fewer at a time (200 MB max per batch).`
+            : null;
+    return { valid, errors, batchError };
+}
+
+/** One message for a batch's problems: the problem itself when there's one, else a count. */
+export function summarizeUploadErrors(errors: readonly string[]): string | null {
+    if (errors.length === 0) return null;
+    return errors.length === 1 ? errors[0] : `${errors.length} files had issues.`;
+}

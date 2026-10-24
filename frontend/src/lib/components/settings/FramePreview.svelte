@@ -7,7 +7,7 @@
     import { frameModes, type FrameModeId } from '$lib/constants/frameModes';
     import { api, type Photo } from '$lib/api';
     import { pickPhoto, pickPinned } from '$lib/photos';
-    import SegmentedControl from './SegmentedControl.svelte';
+    import SegmentedControl from '../ui/SegmentedControl.svelte';
 
     // Preview-only toggles: on the real frame, the mode and Color/B&W are switched by
     // the mode schedule, a manual choice or the frame's buttons, so they aren't saved here.
@@ -144,6 +144,7 @@ mode and Color/B&W toggles and the resulting frame URL.
             options={frameModes.map((m) => ({ value: m.id, label: m.label }))}
             value={previewMode}
             onchange={(v) => (previewMode = v)}
+            label="Preview mode"
         />
         <SegmentedControl
             options={[
@@ -152,6 +153,7 @@ mode and Color/B&W toggles and the resulting frame URL.
             ]}
             value={previewPalette}
             onchange={(v) => (previewPalette = v)}
+            label="Palette"
         />
         <SegmentedControl
             options={[
@@ -165,6 +167,7 @@ mode and Color/B&W toggles and the resulting frame URL.
                 if (renderFailed) renderSrc = '';
                 view = v;
             }}
+            label="Preview view"
         />
     </div>
 
