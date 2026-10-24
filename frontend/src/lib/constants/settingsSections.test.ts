@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSettingsSection, settingsHref } from './settingsSections';
+import { parseSettingsSection, settingsCardId, settingsHref } from './settingsSections';
 
 describe('parseSettingsSection', () => {
     it('returns a known section', () => {
@@ -19,5 +19,12 @@ describe('parseSettingsSection', () => {
 describe('settingsHref', () => {
     it('links to the section through the query string', () => {
         expect(settingsHref('connections')).toBe('/settings?section=connections');
+    });
+});
+
+describe('settingsCardId', () => {
+    it('slugs the card title under a settings prefix', () => {
+        expect(settingsCardId('Photo, Countdown & Note')).toBe('settings-card-photo-countdown-note');
+        expect(settingsCardId('Trains & Buses')).toBe('settings-card-trains-buses');
     });
 });

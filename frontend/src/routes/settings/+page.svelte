@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { page } from '$app/state';
     import { MediaQuery } from 'svelte/reactivity';
-    import { ChevronLeft, ChevronRight, Eye, Monitor, MapPin, LayoutList, Image, Plug, Tv } from '@lucide/svelte';
+    import { ChevronLeft, ChevronRight, Eye } from '@lucide/svelte';
     import Button from '$lib/components/ui/Button.svelte';
     import InlineMessage from '$lib/components/ui/InlineMessage.svelte';
     import Modal from '$lib/components/ui/Modal.svelte';
@@ -45,50 +45,14 @@
     import FrameModeOptions from '$lib/components/settings/FrameModeOptions.svelte';
     import { loadModes } from '$lib/stores/ModeStore.svelte.ts';
     import HomeLocationSettings from '$lib/components/settings/HomeLocationSettings.svelte';
+    import SettingsSubnav from '$lib/components/settings/SettingsSubnav.svelte';
     import {
         parseSettingsSection,
+        settingsCardId,
         settingsHref,
-        type SettingsSection as SectionId,
+        settingsSection,
+        settingsSections as sections,
     } from '$lib/constants/settingsSections';
-
-    const sections = [
-        { id: 'display' as SectionId, label: 'Display', subtitle: 'Theme · type', icon: Monitor },
-        { id: 'home' as SectionId, label: 'Home', subtitle: 'Location · time zone', icon: MapPin },
-        { id: 'dashboard' as SectionId, label: 'Dashboard', subtitle: 'Widgets · layout', icon: LayoutList },
-        { id: 'ambient' as SectionId, label: 'Ambient', subtitle: 'Photos · slideshow', icon: Image },
-        { id: 'connections' as SectionId, label: 'Connections', subtitle: 'Spotify · calendar', icon: Plug },
-        { id: 'frame' as SectionId, label: 'Frame', subtitle: 'E-paper look · kiosk', icon: Tv },
-    ] as const;
-
-    const content: Record<SectionId, { heading: string; description: string }> = {
-        display: {
-            heading: 'How Hearth looks',
-            description: 'The theme drives every surface, type colour, and accent across the dashboard and the frame.',
-        },
-        home: {
-            heading: 'Home',
-            description:
-                'Where Hearth lives — for the weather, nearby birds, daylight, and the frame’s clock. Shared by every device.',
-        },
-        dashboard: {
-            heading: 'Dashboard & Widgets',
-            description: 'Manage which widgets appear and configure their layout on the dashboard page.',
-        },
-        ambient: {
-            heading: 'Ambient Mode',
-            description:
-                'Choose the photos for Ambient mode — shared by the frame and every device — and how this browser’s slideshow plays them.',
-        },
-        connections: {
-            heading: 'Connections',
-            description: 'Connect the outside services Hearth reads from, like Spotify and Google Calendar.',
-        },
-        frame: {
-            heading: 'Frame',
-            description:
-                'Control what the e-paper frame shows, when, and how it looks. These settings are shared by every device.',
-        },
-    };
 
     // Shared by the Dashboard and Frame sections' Visibility and Layout cards.
     const dashboardLabel = (id: string) => allWidgets.find((w) => w.id === id)?.label ?? id;
@@ -115,7 +79,9 @@
 
     // The section lives in the URL so a refresh keeps it and other pages can link to one.
     const active = $derived(parseSettingsSection(page.url.searchParams.get('section')));
-    const section = $derived(content[active]);
+    const section = $derived(settingsSection(active));
+    // The scroll area, which the sidebar's sub-items read their cards from and scroll.
+    let main = $state<HTMLElement>();
     // Phones open /settings on the section list and drill into one; wide screens show the
     // sidebar and the default section side by side.
     const picking = $derived(!page.url.searchParams.has('section'));
@@ -189,12 +155,14 @@
                     <p class="type-label leading-tight text-(--text-2)">{s.subtitle}</p>
                 </div>
             </a>
+            {#if isActive && isWide.current}<SettingsSubnav container={main} />{/if}
         {/each}
     </aside>
 
     <!-- Content -->
     {#if !picking || isWide.current}
         <main
+            bind:this={main}
             class="min-h-0 flex-1 overflow-y-auto px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8
             {active === 'frame' && measured && !previewInline ? 'pb-24' : 'pb-6'}"
         >
@@ -208,8 +176,15 @@
             <h1 class="type-title mb-2 font-semibold text-(--text-1)">{section.heading}</h1>
             <p class="type-body mb-6 text-(--text-2)">{section.description}</p>
 
-            {#snippet card(title: string, description: string, children: import('svelte').Snippet)}
-                <div class="rounded-xl border-2 border-(--border) bg-(--surface) p-4 sm:p-6">
+            <!-- A titled card is listed under its section in the sidebar (SettingsSubnav) unless `listed` is false. -->
+            {#snippet card(title: string, description: string, children: import('svelte').Snippet, listed = true)}
+                {@const inNav = listed && !!title}
+                <div
+                    id={inNav ? settingsCardId(title) : undefined}
+                    data-settings-card={inNav ? title : undefined}
+                    tabindex="-1"
+                    class="scroll-mt-6 rounded-xl border-2 border-(--border) bg-(--surface) p-4 outline-none sm:p-6"
+                >
                     {#if title}<p class="type-subtitle mb-1 font-medium text-(--text-1)">{title}</p>{/if}
                     {#if description}<p class="type-body mb-4 text-(--text-2)">{description}</p>{/if}
                     {@render children()}
@@ -470,7 +445,8 @@
                                 {@render card(
                                     'Preview',
                                     'The real frame page, scaled down. Updates as you change settings.',
-                                    framePreviewContent
+                                    framePreviewContent,
+                                    false
                                 )}
                             </div>
                         {/if}
