@@ -52,7 +52,7 @@ public sealed record FrameSettings(
 
     public const string DefaultPhotoCard = "full";
     public static readonly string[] PhotoCards = ["full", "caption", "none"];
-    public const int MaxPhotoIds = 50;
+    public const int MaxPhotoIds = 500;
 
     public const int MaxNoteTitle = 80;
     public const int MaxNoteBody = 600;

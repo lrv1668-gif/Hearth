@@ -79,10 +79,6 @@ class FrameSettingsStore {
             : [...this.photoCategories, cat];
     }
 
-    togglePhoto(id: string) {
-        this.photoIds = this.photoIds.includes(id) ? this.photoIds.filter((p) => p !== id) : [...this.photoIds, id];
-    }
-
     /** Removes the widget, or adds it to the column with more room (no-op if both are full). */
     toggleWidget(id: FrameWidgetId) {
         const { left, right } = normalizeFrameLayout(this.layout);

@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { checkPhotoFiles, photoQuery, pickPinned, resolveSource, summarizeUploadErrors, uploadToPhoto } from './photos';
+import {
+    checkPhotoFiles,
+    isGroupPicked,
+    photoQuery,
+    pickPhotoIn,
+    pickPinned,
+    toggleGroup,
+    resolveSource,
+    summarizeUploadErrors,
+    uploadToPhoto,
+} from './photos';
 
 const upload = (id: string) => ({ id, url: `/${id}.jpg`, thumb_url: `/${id}-t.jpg`, caption: null });
 
@@ -82,5 +92,43 @@ describe('summarizeUploadErrors', () => {
         expect(summarizeUploadErrors([])).toBeNull();
         expect(summarizeUploadErrors(['a.gif: nope'])).toBe('a.gif: nope');
         expect(summarizeUploadErrors(['x', 'y'])).toBe('2 files had issues.');
+    });
+});
+
+describe('pickPhotoIn', () => {
+    const order = ['a', 'b', 'c', 'd'];
+
+    it('picks just the clicked photo in one-at-a-time mode, and clears it on a second click', () => {
+        expect(pickPhotoIn(['a', 'b'], 'c', 'one')).toEqual(['c']);
+        expect(pickPhotoIn(['c'], 'c', 'one')).toEqual([]);
+    });
+
+    it('adds or removes the clicked photo in several mode', () => {
+        expect(pickPhotoIn(['a'], 'c', 'several')).toEqual(['a', 'c']);
+        expect(pickPhotoIn(['a', 'c'], 'a', 'several')).toEqual(['c']);
+    });
+
+    it('adds the run from the last click on a shift-click, in either direction', () => {
+        expect(pickPhotoIn(['a'], 'c', 'several', order, 'a', true)).toEqual(['a', 'b', 'c']);
+        expect(pickPhotoIn([], 'b', 'several', order, 'd', true)).toEqual(['b', 'c', 'd']);
+    });
+
+    it('treats a shift-click with no anchor as a plain toggle', () => {
+        expect(pickPhotoIn([], 'b', 'several', order, null, true)).toEqual(['b']);
+    });
+});
+
+describe('photo groups', () => {
+    const group = { id: 'g', name: 'Winter', photo_ids: ['a', 'b'] };
+
+    it('is picked only when every photo in it is', () => {
+        expect(isGroupPicked(['a', 'b', 'c'], group)).toBe(true);
+        expect(isGroupPicked(['a'], group)).toBe(false);
+        expect(isGroupPicked([], { ...group, photo_ids: [] })).toBe(false);
+    });
+
+    it('adds the missing photos, or removes them all when the group is already picked', () => {
+        expect(toggleGroup(['a', 'c'], group)).toEqual(['a', 'c', 'b']);
+        expect(toggleGroup(['a', 'b', 'c'], group)).toEqual(['c']);
     });
 });

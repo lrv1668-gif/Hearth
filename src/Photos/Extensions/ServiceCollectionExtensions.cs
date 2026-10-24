@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddMemoryCache();
         services.AddSingleton<UploadStore>();
+        services.AddSingleton<PhotoGroupStore>();
         services.AddHttpClient<PhotoFetcher>();
 
         services.AddKeyedSingleton<IPhotoSource, UnsplashPhotoSource>("unsplash");

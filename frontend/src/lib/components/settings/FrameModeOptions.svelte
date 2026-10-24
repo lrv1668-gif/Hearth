@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Check, Images } from '@lucide/svelte';
+    import { Images } from '@lucide/svelte';
     import { api, type UploadedPhoto } from '$lib/api';
     import { photoCards, photoIntervals } from '$lib/constants/frameModes';
     import { upcomingCountdowns } from '$lib/frame';
@@ -9,7 +9,7 @@
     import { modeStore, setOverride } from '$lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '$lib/constants/settingsSections';
     import Button from '../ui/Button.svelte';
-    import Modal from '../ui/Modal.svelte';
+    import PhotoModePicker from './PhotoModePicker.svelte';
     import { fieldClass } from '../ui/field';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import Select from '../ui/Select.svelte';
@@ -68,7 +68,8 @@ Saved with the rest of the frame settings.
             {:else if uploads.length === 0}
                 No uploads yet — add some under <a href={settingsHref('ambient')} class="underline">Ambient</a>.
             {:else if chosen === 0}
-                Pick one photo to show it, or several for an album. With none picked, Photo mode shows Ambient’s photos.
+                Pick one photo to show it, several for an album, or a saved group. With none picked, Photo mode shows
+                Ambient’s photos.
             {:else}
                 {chosen === 1 ? 'Showing 1 photo.' : `An album of ${chosen} photos, one per refresh.`}
             {/if}
@@ -86,42 +87,7 @@ Saved with the rest of the frame settings.
                     {chosen === 0 ? 'Choose photos' : 'Change'}
                 </Button>
             </div>
-            <Modal
-                bind:open={picking}
-                title="Photo mode"
-                subtitle={chosen === 0 ? 'None picked — shows Ambient’s photos' : `${chosen} picked`}
-                size="xl"
-                divided
-            >
-                {#snippet actions()}
-                    {#if chosen > 0}
-                        <Button variant="link" onclick={() => (frameSettings.photoIds = [])}>Clear</Button>
-                    {/if}
-                {/snippet}
-                <div class="@container">
-                    <div class="grid grid-cols-4 gap-2 @sm:grid-cols-6">
-                        {#each uploads as u (u.id)}
-                            {@const on = frameSettings.photoIds.includes(u.id)}
-                            <button
-                                onclick={() => frameSettings.togglePhoto(u.id)}
-                                aria-pressed={on}
-                                aria-label={u.caption ?? 'Photo'}
-                                class="relative aspect-square overflow-hidden rounded-lg border-2 transition-all
-                                    {on ? 'border-(--accent)' : 'border-transparent opacity-70 hover:opacity-100'}"
-                            >
-                                <img src={u.thumb_url} alt="" class="absolute inset-0 h-full w-full object-cover" />
-                                {#if on}
-                                    <span
-                                        class="absolute top-1 right-1 rounded-full bg-(--accent) p-0.5 text-(--accent-fg)"
-                                    >
-                                        <Check class="icon-xs" />
-                                    </span>
-                                {/if}
-                            </button>
-                        {/each}
-                    </div>
-                </div>
-            </Modal>
+            <PhotoModePicker bind:open={picking} {uploads} />
         {/if}
         <SegmentedControl
             options={photoCards.map((c) => ({ value: c.value, label: c.label }))}
