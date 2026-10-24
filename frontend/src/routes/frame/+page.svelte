@@ -11,7 +11,14 @@
     import { loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
     import { SECOND } from '$lib/utils';
-    import { frameCanvas, isAmbientPosition, isFrameSize, setFrameScale, type Pixels } from '$lib/frame';
+    import {
+        frameCanvas,
+        isAmbientPosition,
+        isFrameSize,
+        isFrameTextSize,
+        setFrameScale,
+        type Pixels,
+    } from '$lib/frame';
     import { parsePhotoParam, pickPhoto, pickPinned } from '$lib/photos';
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
@@ -27,7 +34,7 @@
     // screenshots and dithers. Everything it needs comes from the URL, because a
     // headless renderer starts with empty localStorage. A param the URL leaves out
     // falls back to the shared Settings → Frame choices held by the Display service
-    // (theme, font, orientation, panel size, layout), then to the defaults:
+    // (theme, font, text size, orientation, panel size, layout), then to the defaults:
     //   ?mode=ambient|daily|photo|countdown|night|note
     //                                (default: what the Display service resolves now —
     //                                 an override, the schedule, or its default mode —
@@ -38,6 +45,8 @@
     //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
     //                                 B&W follows its lightness)
     //   ?font=inter|lora|…           (any font preset from constants/fontThemes.ts)
+    //   ?text=100–150                (percent on the reading type and icons — Settings →
+    //                                 Frame's text size; see isFrameTextSize)
     //   ?orientation=landscape|portrait
     //       landscape = the panel's native shape (default); portrait swaps width and
     //       height for a frame hung on its side — the capture is rotated 90° before
@@ -69,6 +78,8 @@
     const theme = $derived(isValidFrameThemeId(themeParam) ? themeParam : frameSettings.theme);
     const fontParam = params.get('font');
     const font = $derived(isValidFontThemeId(fontParam) ? fontParam : frameSettings.font);
+    const textParam = Number(params.get('text'));
+    const textSize = $derived(isFrameTextSize(textParam) ? textParam : frameSettings.textSize);
     const orientationParam = params.get('orientation');
     const orientation = $derived(
         orientationParam === 'portrait' || orientationParam === 'landscape'
@@ -197,7 +208,7 @@
     data-orientation={orientation}
     data-position={position}
     data-ready={ready}
-    style="width: {canvas.w}px; height: {canvas.h}px; --frame-scale: {canvas.scale}"
+    style="width: {canvas.w}px; height: {canvas.h}px; --frame-scale: {canvas.scale}; --frame-text: {textSize / 100}"
 >
     <!-- Wait for the shared settings so the layout is measured once, in its final shape. -->
     {#if frameSettings.loaded && mode}
@@ -228,18 +239,20 @@
        --spacing scales too, so padding and gaps keep their proportions; 3px lines don't.
        Type multiplies by the font preset's --font-scale (its optical correction,
        from the data-font block) but deliberately not the dashboard's user size
-       slider, which is a per-browser preference. */
+       slider, which is a per-browser preference. The reading sizes (title down to
+       caption) and icons also take --frame-text, the frame's own shared text size;
+       the display faces don't — they're sized to fit the masthead and hero rows. */
     .frame {
         position: relative;
         overflow: hidden;
         --spacing: calc(0.25rem * var(--frame-scale, 1));
 
         --font-display: calc(112px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-title: calc(48px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-subtitle: calc(38px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-body: calc(32px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-label: calc(26px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-caption: calc(22px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-title: calc(var(--frame-text, 1) * 48px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-subtitle: calc(var(--frame-text, 1) * 38px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-body: calc(var(--frame-text, 1) * 32px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-label: calc(var(--frame-text, 1) * 26px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-caption: calc(var(--frame-text, 1) * 22px * var(--font-scale, 1) * var(--frame-scale, 1));
         /* Frame-only display sizes (.type-weekday/-date/-hero/-stamp/-poster), set in --display-family */
         --font-weekday: calc(112px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-date: calc(128px * var(--font-scale, 1) * var(--frame-scale, 1));
@@ -247,10 +260,10 @@
         --font-stamp: calc(80px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-poster: calc(400px * var(--font-scale, 1) * var(--frame-scale, 1));
 
-        --icon-lg: calc(56px * var(--frame-scale, 1));
-        --icon-md: calc(40px * var(--frame-scale, 1));
-        --icon-sm: calc(30px * var(--frame-scale, 1));
-        --icon-xs: calc(24px * var(--frame-scale, 1));
+        --icon-lg: calc(var(--frame-text, 1) * 56px * var(--frame-scale, 1));
+        --icon-md: calc(var(--frame-text, 1) * 40px * var(--frame-scale, 1));
+        --icon-sm: calc(var(--frame-text, 1) * 30px * var(--frame-scale, 1));
+        --icon-xs: calc(var(--frame-text, 1) * 24px * var(--frame-scale, 1));
     }
 
     .frame.portrait {

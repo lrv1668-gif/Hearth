@@ -139,6 +139,20 @@ export function isAmbientPosition(value: string | null | undefined): value is Am
     return AMBIENT_POSITIONS.some((c) => c.value === value);
 }
 
+/* ── Text size ────────────────────────────────────────────────────────────────
+   A percent on the frame's reading type (titles down to captions) and icons, for a
+   panel read from closer or further than the tuned 3–4 m. Never below 100: the
+   tuned sizes are the e-paper legibility floor. Larger fits fewer list items. */
+export const DEFAULT_FRAME_TEXT_SIZE = 100;
+export const MIN_FRAME_TEXT_SIZE = 100;
+export const MAX_FRAME_TEXT_SIZE = 150;
+
+export function isFrameTextSize(value: unknown): value is number {
+    return (
+        Number.isInteger(value) && (value as number) >= MIN_FRAME_TEXT_SIZE && (value as number) <= MAX_FRAME_TEXT_SIZE
+    );
+}
+
 /* ── Panel size ───────────────────────────────────────────────────────────────
    The panel's native size is landscape (width ≥ height); portrait swaps it. The
    frame's type, icons and spacing are tuned for the 1600×1200 Inky Impression
@@ -211,6 +225,8 @@ export interface FrameOptions {
     palette: 'color' | 'bw';
     theme: string;
     font: string;
+    /** Percent on the reading type and icons (see isFrameTextSize). */
+    textSize: number;
     orientation: 'landscape' | 'portrait';
     /** The panel's native (landscape) size. */
     width: number;
@@ -235,6 +251,7 @@ export function frameParams(o: FrameOptions): URLSearchParams {
         palette: o.palette,
         theme: o.theme,
         font: o.font,
+        text: String(o.textSize),
         orientation: o.orientation,
         width: String(o.width),
         height: String(o.height),

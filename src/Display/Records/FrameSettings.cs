@@ -37,7 +37,10 @@ public sealed record FrameSettings(
     // picks another (each change is a full ~30 s panel refresh), and which way a portrait
     // frame is turned onto the panel's native landscape (clockwise degrees, 90 or 270).
     int PhotoIntervalMinutes = FrameSettings.DefaultPhotoIntervalMinutes,
-    int PortraitRotation = FrameSettings.DefaultPortraitRotation
+    int PortraitRotation = FrameSettings.DefaultPortraitRotation,
+    // The frame's reading type (titles down to captions) and icons, as a percent of the
+    // panel's tuned sizes — larger fills a big panel at the cost of list items per widget.
+    int TextSize = FrameSettings.DefaultTextSize
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -60,6 +63,10 @@ public sealed record FrameSettings(
     public const int MaxPhotoIntervalMinutes = 1440;
 
     public const int DefaultPortraitRotation = 90;
+
+    public const int DefaultTextSize = 100;
+    public const int MinTextSize = 100;
+    public const int MaxTextSize = 150;
 
     public const int DefaultWidth = 1600;
     public const int DefaultHeight = 1200;
@@ -102,6 +109,7 @@ public sealed record FrameSettings(
         if (PhotoIntervalMinutes is < MinPhotoIntervalMinutes or > MaxPhotoIntervalMinutes)
             return $"photo_interval_minutes must be {MinPhotoIntervalMinutes}–{MaxPhotoIntervalMinutes}";
         if (PortraitRotation is not (90 or 270)) return "portrait_rotation must be 90 or 270";
+        if (TextSize is < MinTextSize or > MaxTextSize) return $"text_size must be {MinTextSize}–{MaxTextSize}";
         return null;
     }
 }

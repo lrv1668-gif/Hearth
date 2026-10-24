@@ -7,11 +7,14 @@
     import { fieldClass } from '../ui/field';
     import PickerCard from '../ui/PickerCard.svelte';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
+    import SizeSlider from '../ui/SizeSlider.svelte';
     import {
         AMBIENT_POSITIONS,
         FRAME_SIZE_PRESETS,
         MAX_FRAME_SIZE,
+        MAX_FRAME_TEXT_SIZE,
         MIN_FRAME_SIZE,
+        MIN_FRAME_TEXT_SIZE,
         normalizeFrameSize,
     } from '$lib/frame';
 
@@ -69,6 +72,20 @@
                 </Chip>
             {/each}
         </div>
+    </div>
+
+    <!-- Text size -->
+    <div>
+        <p class="eyebrow mb-2">Text size</p>
+        <SizeSlider
+            value={frameSettings.textSize / 100}
+            min={MIN_FRAME_TEXT_SIZE / 100}
+            max={MAX_FRAME_TEXT_SIZE / 100}
+            oninput={(v) => (frameSettings.textSize = Math.round(v * 100))}
+        />
+        <p class="type-caption mt-2 text-(--text-2)">
+            Larger text fills a big panel; lists show fewer items to make room.
+        </p>
     </div>
 
     <!-- Orientation -->

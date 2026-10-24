@@ -51,6 +51,7 @@
         palette: previewPalette,
         theme: frameSettings.theme,
         font: frameSettings.font,
+        textSize: frameSettings.textSize,
         orientation: frameSettings.orientation,
         width: frameSettings.width,
         height: frameSettings.height,
@@ -82,7 +83,7 @@
     });
 
     // The iframe only reloads for structural changes (mode, orientation, size, layout,
-    // split, the picked photo). Theme, font and palette are applied to the loaded frame
+    // split, the picked photo). Theme, font, text size and palette are applied to the loaded frame
     // in place below — a reload would refetch everything.
     const previewSrc = $derived.by(() => {
         const structure = {
@@ -100,6 +101,7 @@
                 palette: previewPalette,
                 theme: frameSettings.theme,
                 font: frameSettings.font,
+                textSize: frameSettings.textSize,
                 position: frameSettings.ambientPosition,
             })
         );
@@ -112,12 +114,14 @@
         // the early return must not stop the $effect from tracking them.
         const theme = frameDataTheme(frameSettings.theme, previewPalette);
         const font = frameSettings.font;
+        const textSize = frameSettings.textSize;
         const position = frameSettings.ambientPosition;
         const root = iframe?.contentDocument?.querySelector<HTMLElement>('.frame');
         if (!root) return;
         root.dataset.theme = theme;
         root.dataset.font = font;
         root.dataset.position = position;
+        root.style.setProperty('--frame-text', String(textSize / 100));
     }
 
     $effect(applyLook);

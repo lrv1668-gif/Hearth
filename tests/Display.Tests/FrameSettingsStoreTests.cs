@@ -48,6 +48,7 @@ public sealed class FrameSettingsStoreTests
         Assert.Null(saved.CountdownId);
         Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
         Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
+        Assert.Equal(FrameSettings.DefaultTextSize, saved.TextSize);
     }
 
     [Fact]
@@ -69,6 +70,7 @@ public sealed class FrameSettingsStoreTests
 
         Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
         Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
+        Assert.Equal(FrameSettings.DefaultTextSize, saved.TextSize);
     }
 
     [Fact]
@@ -77,11 +79,12 @@ public sealed class FrameSettingsStoreTests
         using var tmp = new TempDatabase();
         var store = Migrated(tmp);
 
-        store.Save(Sample with { PhotoIntervalMinutes = 180, PortraitRotation = 270 });
+        store.Save(Sample with { PhotoIntervalMinutes = 180, PortraitRotation = 270, TextSize = 125 });
 
         var saved = store.Get()!;
         Assert.Equal(180, saved.PhotoIntervalMinutes);
         Assert.Equal(270, saved.PortraitRotation);
+        Assert.Equal(125, saved.TextSize);
     }
 
     [Fact]
