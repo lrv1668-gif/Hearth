@@ -201,6 +201,7 @@ Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (read
 | `ember`       | Dark — yellow and red on black, no fills                  |
 | `moss`        | Dark — white and green on black, yellow "now" mark        |
 | `lantern`     | Dark — white type, yellow rules and blocks, no fills      |
+| `roundtable`  | Dark — white and gold type, red rules and blocks, no fills |
 
 B&W mode (`?palette=bw`) ignores the theme's colours: `epaper-bw` (black on white), or `epaper-bw-night` for dark themes. Fills are two-ink mixes of similar lightness so they dither evenly; text, icons and lines are always a pure ink (`themes.test.ts` enforces both). Text, icons and thin lines are always a pure ink. The Display service's dithering strategy (ordered for Daily, error diffusion for Ambient) is in `HARDWARE.md`. Every frame block also sets `--block` / `--on-block`: the theme's boldest pure ink for large solid shapes (date block, elapsed daylight, today's rail pins) and the ink type takes on it (≥4.5:1, tested). They also set `--arc-night` / `--arc-day` / `--arc-golden` / `--arc-outline`, which `DayArcWidget` reads with fallbacks to the regular tokens, so the ribbon stays solid-coloured on the panel without changing its look elsewhere.
 

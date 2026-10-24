@@ -732,6 +732,29 @@
     --arc-golden: #f8b771;
 }
 
+[data-theme='epaper-roundtable'] {
+    /* Round Table — dark, for a castle-at-night party: white type, candle-gold
+       secondary type, red rules and blocks, green for done; no fills. */
+    --bg: #000000;
+    --surface: #000000;
+    --surface-hi: #000000;
+    --border: #f16f74;
+    --text-1: #ffffff;
+    --text-2: #ffff6e;
+    --text-3: #ffff6e;
+    --text-4: #ffff6e;
+    --done: #5a8d6c;
+    --done-bg: #5a8d6c;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --block: #f16f74;
+    --on-block: #000000;
+    --arc-night: #f16f74;
+    --arc-day: #ffff6e;
+    --arc-golden: #f8b771;
+}
+
 [data-theme='epaper-bw-night'] {
     /* B&W mode for the Night theme — pure white on black. */
     --bg: #000000;
