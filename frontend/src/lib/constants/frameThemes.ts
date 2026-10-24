@@ -98,6 +98,13 @@ export const frameThemes = [
         dark: true,
         swatches: ['#000000', '#ffffff', '#ffff6e', '#f16f74'],
     },
+    {
+        id: 'roundtable',
+        label: 'Round Table',
+        description: 'White and gold on black, red blocks',
+        dark: true,
+        swatches: ['#000000', '#ffffff', '#f16f74', '#ffff6e', '#5a8d6c'],
+    },
 ] as const;
 
 export type FrameThemeId = (typeof frameThemes)[number]['id'];
