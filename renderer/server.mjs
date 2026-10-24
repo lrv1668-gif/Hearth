@@ -13,11 +13,13 @@
 // The page is loaded from FRAME_BASE_URL (default http://caddy, whose :80 site serves
 // the frontend and every API route the frame calls) and captured once its root sets
 // data-ready="true". One render at a time — the host may be a Raspberry Pi — with at most
-// one more waiting (503 beyond that); a render whose client has gone is dropped.
+// one more waiting (503 beyond that); a render whose client has gone is dropped, and one
+// that runs past RENDER_DEADLINE_MS fails with a 504 and takes Chromium with it.
 import { createServer } from 'node:http';
 import { createCanvas, loadImage } from 'canvas';
 import { chromium } from 'playwright';
 import { dither, KERNELS, paintPaper } from './dither.mjs';
+import { createQueue } from './queue.mjs';
 import { ROTATIONS, rotatePixels } from './rotate.mjs';
 import { captureTimeZone, isTimeZone } from './timezone.mjs';
 
@@ -26,9 +28,13 @@ const FRAME_BASE_URL = process.env.FRAME_BASE_URL ?? 'http://caddy';
 // The fallback zone for requests without ?tz= (see timezone.mjs)
 const TIMEZONE = defaultTimeZone(process.env.TZ);
 // Loading the page and waiting for data-ready share one deadline. /frame flips data-ready
-// on its own deadline; this only catches a page that never gets there. Display's
-// HttpClient timeout allows for this twice over (a render running plus this one).
+// on its own deadline; this only catches a page that never gets there.
 const CAPTURE_DEADLINE_MS = 40_000;
+// The whole render — launching Chromium, the capture, dithering, closing the page. Some of
+// those steps have no timeout of their own, and one that never returns would hold the queue
+// (every later request a 503) until a restart. Display's HttpClient timeout allows for this
+// twice over (a render running plus this one).
+const RENDER_DEADLINE_MS = 50_000;
 const MAX_PENDING = 2;
 const MAX_SIDE = 4000;
 
@@ -80,14 +86,15 @@ async function screenshot(path, width, height, timezoneId, signal) {
     }
 }
 
-let queue = Promise.resolve();
-let pending = 0;
-function serialized(task) {
-    pending++;
-    const result = queue.then(task).finally(() => pending--);
-    queue = result.catch(() => {});
-    return result;
+// A render that hung likely did so inside Chromium: kill it, and the next render launches a fresh one
+function resetBrowser() {
+    const wedged = browser;
+    browser = undefined;
+    console.error(`render ran past ${RENDER_DEADLINE_MS} ms; restarting Chromium`);
+    wedged?.process()?.kill('SIGKILL');
 }
+
+const queue = createQueue({ deadlineMs: RENDER_DEADLINE_MS, onTimeout: resetBrowser });
 
 async function render(png, { method, kernel, look, rotate }) {
     const image = await loadImage(png);
@@ -156,7 +163,7 @@ createServer(async (req, res) => {
         res.writeHead(400).end(zoneError);
         return;
     }
-    if (pending >= MAX_PENDING) {
+    if (queue.pending >= MAX_PENDING) {
         res.writeHead(503).end('renderer busy');
         return;
     }
@@ -167,9 +174,10 @@ createServer(async (req, res) => {
         if (!res.writableEnded) gone.abort();
     });
     try {
-        const png = await serialized(async () => {
+        const png = await queue.run(async (timedOut) => {
             if (gone.signal.aborted) return null;
-            return render(await screenshot(path, width, height, zone, gone.signal), { method, kernel, look, rotate });
+            const signal = AbortSignal.any([gone.signal, timedOut]);
+            return render(await screenshot(path, width, height, zone, signal), { method, kernel, look, rotate });
         });
         if (gone.signal.aborted) return;
         res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' }).end(png);

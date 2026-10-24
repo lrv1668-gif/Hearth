@@ -7,7 +7,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,id=npm,target=/root/.npm,sharing=locked npm ci --omit=dev
-COPY server.mjs dither.mjs rotate.mjs timezone.mjs ./
+COPY server.mjs dither.mjs queue.mjs rotate.mjs timezone.mjs ./
 USER pwuser
 EXPOSE 3000
 CMD ["node", "server.mjs"]
