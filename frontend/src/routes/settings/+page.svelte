@@ -9,7 +9,8 @@
     import ToggleRow from '$lib/components/ui/ToggleRow.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import FontThemePicker from '$lib/components/settings/FontThemePicker.svelte';
-    import FontSizeSlider from '$lib/components/settings/FontSizeSlider.svelte';
+    import SizeSlider from '$lib/components/ui/SizeSlider.svelte';
+    import { fontSizeStore, setFontSize, MIN_FONT_SCALE, MAX_FONT_SCALE } from '$lib/stores/FontSizeStore.svelte.ts';
     import AmbientSourceSettings from '$lib/components/settings/AmbientSourceSettings.svelte';
     import AmbientCadenceSettings from '$lib/components/settings/AmbientCadenceSettings.svelte';
     import AmbientCategorySettings from '$lib/components/settings/AmbientCategorySettings.svelte';
@@ -277,7 +278,12 @@
                     <FontThemePicker />
                     <p class="type-body mt-6 mb-1 font-medium text-(--text-1)">Size</p>
                     <p class="type-label mb-4 text-(--text-2)">Scales all text and icons across the dashboard.</p>
-                    <FontSizeSlider />
+                    <SizeSlider
+                        value={fontSizeStore.scale}
+                        min={MIN_FONT_SCALE}
+                        max={MAX_FONT_SCALE}
+                        oninput={setFontSize}
+                    />
                 {/snippet}
                 <div class="flex flex-col gap-4">
                     {@render card(

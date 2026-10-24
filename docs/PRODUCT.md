@@ -70,7 +70,7 @@ The display shifts to a structured layout with distinct zones:
 
 Only widgets that stay correct between scheduled refreshes belong on the frame — no live departures, no now-playing (it changes every song and would usually be wrong).
 
-Typography is large enough to read from across the room (3–4 meters). No small print. The column layout is configured in Settings → Frame the same way as the dashboard — visibility toggles plus drag-and-drop between columns with an adjustable split — and each widget trims its list to fit the space it has.
+Typography is large enough to read from across the room (3–4 meters). No small print. A text size slider in Settings → Frame makes it larger still (up to 150%) to fill a big panel or read from further away; lists show fewer items to make room. The column layout is configured in Settings → Frame the same way as the dashboard — visibility toggles plus drag-and-drop between columns with an adjustable split — and each widget trims its list to fit the space it has.
 
 ### Photo, Countdown and Night Modes
 
@@ -111,7 +111,7 @@ The web UI (phone browser, no app install) has four screens:
 3. **Plants** — see plant list, mark as watered, add new plants
 4. **Settings** — refresh schedule, art source, integrations, display mode schedule
 
-The `/settings` route is implemented and currently houses the theme picker, the household's home location and time zone (shared by every device and service; `.env` values remain a fallback), the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, the e-paper frame's mode (what it shows now, a manual choice with an expiry, and the time-of-day schedule), Photo mode's album and Countdown mode's countdown, how often Ambient and Photo change photo on the panel, and its appearance (an ink-safe colour theme, typeface, orientation and which way a portrait frame is turned, panel size) with a live preview. Additional settings will move here as features are built out.
+The `/settings` route is implemented and currently houses the theme picker, the household's home location and time zone (shared by every device and service; `.env` values remain a fallback), the font theme picker (typography presets: typeface, weight, and size), ambient mode configuration (photo source — Unsplash, local uploads, or both mixed; day and night cycling cadence; a motion toggle for slow pan/zoom, off for e-ink; categories including a seasonal one; attribution toggle; and local photo captions), widget visibility and layout, integration connections (Spotify, Google Calendar), subscribed train/transit stops with per-line filtering, the e-paper frame's mode (what it shows now, a manual choice with an expiry, and the time-of-day schedule), Photo mode's album and Countdown mode's countdown, how often Ambient and Photo change photo on the panel, and its appearance (an ink-safe colour theme, typeface, text size, orientation and which way a portrait frame is turned, panel size) with a live preview. Additional settings will move here as features are built out.
 
 All screens are usable one-handed on a phone. No dense forms.
 

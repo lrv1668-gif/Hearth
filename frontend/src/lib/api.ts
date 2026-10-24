@@ -226,6 +226,8 @@ export interface Place {
 export interface FrameSettings {
     theme: string;
     font: string;
+    /** Percent on the frame's reading type and icons (100–150). */
+    text_size: number;
     orientation: 'landscape' | 'portrait';
     /** The panel's native (landscape) size in pixels; portrait swaps it. */
     width: number;

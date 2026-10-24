@@ -30,6 +30,14 @@ public sealed class FrameSettingsTests
         Assert.NotNull((Valid with { PortraitRotation = degrees }).Validate());
     }
 
+    [Theory]
+    [InlineData(90)]
+    [InlineData(151)]
+    public void Validate_TextSizeOutOfRange_ReturnsError(int percent)
+    {
+        Assert.NotNull((Valid with { TextSize = percent }).Validate());
+    }
+
     [Fact]
     public void Validate_CounterClockwisePortrait_ReturnsNull()
     {
@@ -113,6 +121,7 @@ public sealed class FrameSettingsTests
         Assert.Equal("bottom-left", settings.AmbientPosition);
         Assert.Equal("unsplash", settings.PhotoSource);
         Assert.Equal((1600, 1200), (settings.Width, settings.Height));
+        Assert.Equal(FrameSettings.DefaultTextSize, settings.TextSize);
         Assert.Null(settings.Validate());
     }
 

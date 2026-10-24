@@ -12,7 +12,7 @@ never dithers. `compact` is the narrower version on the Ambient plate.
 -->
 <div
     class="flex shrink-0 flex-col justify-between bg-(--block) text-(--on-block) {compact
-        ? 'w-34 px-4 pt-4 pb-3'
+        ? 'min-w-34 px-4 pt-4 pb-3'
         : 'h-46 w-46 px-5 pt-5 pb-4'}"
 >
     <p class="type-label leading-none font-semibold tracking-[0.16em] uppercase">{month}</p>

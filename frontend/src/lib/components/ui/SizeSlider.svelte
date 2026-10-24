@@ -1,5 +1,15 @@
 <script lang="ts">
-    import { fontSizeStore, setFontSize, MIN_FONT_SCALE, MAX_FONT_SCALE } from '$lib/stores/FontSizeStore.svelte.ts';
+    interface Props {
+        /** The size as a multiplier — 1 shows as 100%. */
+        value: number;
+        min: number;
+        max: number;
+        step?: number;
+        label?: string;
+        oninput: (value: number) => void;
+    }
+
+    let { value, min, max, step = 0.05, label = 'Text size', oninput }: Props = $props();
 
     function scrollParentOf(el: HTMLElement): Element {
         let node = el.parentElement;
@@ -13,30 +23,34 @@
         return document.scrollingElement ?? document.documentElement;
     }
 
-    // Rescaling grows the content above the slider, which would push it away from
-    // the pointer mid-drag — compensate the scroll position so it stays put.
+    // Rescaling the page grows the content above the slider, which would push it away
+    // from the pointer mid-drag — compensate the scroll position so it stays put.
     function handleInput(e: Event & { currentTarget: HTMLInputElement }) {
         const input = e.currentTarget;
         const before = input.getBoundingClientRect().top;
-        setFontSize(Number(input.value));
+        oninput(Number(input.value));
         scrollParentOf(input).scrollTop += input.getBoundingClientRect().top - before;
     }
 </script>
 
+<!--
+@component
+A text-size range slider between a small and a large "A", with the size as a percent.
+-->
 <div class="flex items-center gap-4">
     <span aria-hidden="true" class="type-label text-(--text-3)">A</span>
     <input
         type="range"
-        min={MIN_FONT_SCALE}
-        max={MAX_FONT_SCALE}
-        step="0.05"
-        value={fontSizeStore.scale}
+        {min}
+        {max}
+        {step}
+        {value}
         oninput={handleInput}
-        aria-label="Text size"
+        aria-label={label}
         class="h-1 flex-1 cursor-pointer accent-(--accent)"
     />
     <span aria-hidden="true" class="type-subtitle text-(--text-3)">A</span>
     <span class="type-label w-12 text-right text-(--text-2) tabular-nums">
-        {Math.round(fontSizeStore.scale * 100)}%
+        {Math.round(value * 100)}%
     </span>
 </div>

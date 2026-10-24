@@ -3,9 +3,11 @@ import { api, type AmbientPosition, type FrameSettings } from '$lib/api';
 import {
     DEFAULT_AMBIENT_POSITION,
     DEFAULT_FRAME_SIZE,
+    DEFAULT_FRAME_TEXT_SIZE,
     DEFAULT_PORTRAIT_ROTATION,
     isAmbientPosition,
     isFrameSize,
+    isFrameTextSize,
     isPortraitRotation,
     type PortraitRotation,
 } from '$lib/frame';
@@ -44,6 +46,8 @@ const SAVE_DELAY_MS = 400;
 class FrameSettingsStore {
     theme = $state<FrameThemeId>(DEFAULT_FRAME_THEME);
     font = $state<FontThemeId>(DEFAULT_FONT_THEME);
+    /** Percent on the reading type and icons; always valid (see isFrameTextSize). */
+    textSize = $state(DEFAULT_FRAME_TEXT_SIZE);
     orientation = $state<'landscape' | 'portrait'>('landscape');
     /** The panel's native (landscape) size; always valid (see isFrameSize). */
     width = $state<number>(DEFAULT_FRAME_SIZE.width);
@@ -95,6 +99,7 @@ class FrameSettingsStore {
         return {
             theme: this.theme,
             font: this.font,
+            text_size: this.textSize,
             orientation: this.orientation,
             width: this.width,
             height: this.height,
@@ -125,6 +130,7 @@ class FrameSettingsStore {
         if (isPortraitRotation(saved.portrait_rotation)) this.portraitRotation = saved.portrait_rotation;
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
         if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
+        if (isFrameTextSize(saved.text_size)) this.textSize = saved.text_size;
         if (saved.orientation === 'landscape' || saved.orientation === 'portrait') this.orientation = saved.orientation;
         if (isFrameSize(saved.width, saved.height)) {
             this.width = saved.width!;

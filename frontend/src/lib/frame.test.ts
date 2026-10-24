@@ -160,6 +160,7 @@ describe('frameUrl', () => {
                 palette: 'bw',
                 theme: 'night',
                 font: 'lora',
+                textSize: 120,
                 orientation: 'portrait',
                 width: 800,
                 height: 480,
@@ -168,7 +169,7 @@ describe('frameUrl', () => {
                 position: 'top-middle',
             })
         ).toBe(
-            '/frame?mode=daily&palette=bw&theme=night&font=lora&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&position=top-middle'
+            '/frame?mode=daily&palette=bw&theme=night&font=lora&text=120&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&position=top-middle'
         );
     });
 });

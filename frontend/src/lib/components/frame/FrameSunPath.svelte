@@ -102,7 +102,9 @@ times it falls back to the temperature alone.
                 {temperature}°
             </text>
         {/if}
-        <g class="type-label" fill="var(--text-2)">
+        <!-- Placed in the dome's fixed geometry, so they keep the tuned size whatever
+             the frame's text size (--frame-text) — larger would run together. -->
+        <g class="type-label" fill="var(--text-2)" style="font-size: calc(var(--font-label) / var(--frame-text, 1))">
             {#if compact}
                 <text x="0" y={(CY + 50) * k}>{clock(sunrise)}</text>
                 <text x={CX * k} y={(CY + 50) * k} text-anchor="middle">{durationLabel(sunrise, sunset)}</text>
