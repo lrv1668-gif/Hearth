@@ -29,6 +29,7 @@ public static class WebApplicationExtensions
         app.AddDisplayEndpoints();
         app.AddModeEndpoints();
         app.AddFrameEndpoints();
+        app.MapHearthHealth("display");
     }
 
     /// <summary>

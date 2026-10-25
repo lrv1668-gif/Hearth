@@ -7,6 +7,16 @@ x-defaults: &defaults
             max-size: "10m"
             max-file: "3"
 
+# Health check timing for the .NET services, whose chiseled images have no shell or
+# curl: each one probes itself with `/app/service --health /<prefix>/health`
+# (ServiceDefaults' HealthProbe). Degraded — e.g. an integration that isn't set up —
+# still counts as healthy; Settings → Diagnostics has the detail.
+x-probe: &probe
+    interval: 60s
+    timeout: 10s
+    start_period: 30s
+    start_interval: 2s
+
 # Image names come from the root .env (see .env.example). Locally they default to
 # hearth-<service>:latest and `--build` builds them; a deployed host sets
 # HEARTH_IMAGE_PREFIX to the registry CI pushes to and pulls instead (deploy/update.sh).
@@ -14,6 +24,9 @@ services:
     tasks:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-tasks:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/tasks/health"]
         build:
             context: ./src
             args:
@@ -27,6 +40,9 @@ services:
     spotify:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-spotify:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/spotify/health"]
         build:
             context: ./src
             args:
@@ -43,6 +59,9 @@ services:
     weather:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-weather:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/weather/health"]
         build:
             context: ./src
             args:
@@ -60,6 +79,9 @@ services:
     photos:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-photos:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/photos/health"]
         build:
             context: ./src
             args:
@@ -75,6 +97,9 @@ services:
     rss:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-rss:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/rss/health"]
         build:
             context: ./src
             args:
@@ -88,6 +113,9 @@ services:
     calendar:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-calendar:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/calendar/health"]
         build:
             context: ./src
             args:
@@ -104,6 +132,9 @@ services:
     quote:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-quote:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/quote/health"]
         build:
             context: ./src
             args:
@@ -114,6 +145,9 @@ services:
     birds:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-birds:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/birds/health"]
         build:
             context: ./src
             args:
@@ -131,6 +165,9 @@ services:
     almanac:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-almanac:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/almanac/health"]
         build:
             context: ./src
             args:
@@ -145,6 +182,9 @@ services:
     trains:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-trains:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/trains/health"]
         build:
             context: ./src
             args:
@@ -160,6 +200,9 @@ services:
     display:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-display:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/display/health"]
         build:
             context: ./src
             args:
@@ -186,6 +229,27 @@ services:
             # Fallback zone for the frame's date and clock (root .env) when none is saved in
             # Settings → Home; UTC when neither is set
             - TZ=${TZ:-}
+
+    # Live logs for every container on the host at /logs (Dozzle), linked from Settings →
+    # Diagnostics. Opt-in, since it reads the Docker socket: COMPOSE_PROFILES=logs in the
+    # root .env. Its login lives in dozzle/users.yml — create it with deploy/dozzle-user.sh.
+    # Nothing waits on it: without a login only /logs is down.
+    dozzle:
+        <<: *defaults
+        profiles: [logs]
+        image: amir20/dozzle:v11.3.5
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/dozzle", "healthcheck"]
+        environment:
+            - DOZZLE_BASE=/logs
+            - DOZZLE_AUTH_PROVIDER=simple
+            - DOZZLE_AUTH_TTL=720h
+            - DOZZLE_NO_ANALYTICS=true
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            # A folder, not users.yml itself: Docker would create a missing file as a directory
+            - ./dozzle:/data
 
     frontend:
         <<: *defaults

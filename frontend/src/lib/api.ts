@@ -1,5 +1,6 @@
 import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '$lib/frame';
 import type { FrameModeId, ModeDay, PhotoCard } from '$lib/constants/frameModes';
+import type { HearthServiceId } from '$lib/constants/services';
 
 // ---- Types ----
 
@@ -337,6 +338,14 @@ export interface ModeOverride {
     photo_id?: string | null;
 }
 
+export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
+
+/** GET /<service>/health: the service's overall status and each of its checks. */
+export interface ServiceHealth {
+    status: HealthStatus;
+    checks: { name: string; status: HealthStatus; description: string | null }[];
+}
+
 export type AmbientPosition =
     'top-left' | 'top-middle' | 'top-right' | 'bottom-left' | 'bottom-middle' | 'bottom-right';
 
@@ -554,6 +563,19 @@ class ApiClient {
             this.put<PhotoGroup>(`/photos/groups/${id}`, { name, photo_ids: photoIds }),
 
         deleteGroup: (id: string): Promise<boolean> => this.del(`/photos/groups/${id}`),
+    };
+
+    readonly logs = {
+        /** Whether Dozzle answers at /logs — off unless the host sets COMPOSE_PROFILES=logs (Caddy then 502s). */
+        running: async (): Promise<boolean> => {
+            const res = await fetch('/logs/', { signal: AbortSignal.timeout(5000) }).catch(() => null);
+            return res?.ok ?? false;
+        },
+    };
+
+    readonly health = {
+        /** null when the service doesn't answer — a problem it can see itself is still a 200. */
+        service: (id: HearthServiceId): Promise<ServiceHealth | null> => this.get<ServiceHealth>(`/${id}/health`),
     };
 
     /** null when the service can't be reached or doesn't answer with JSON. */

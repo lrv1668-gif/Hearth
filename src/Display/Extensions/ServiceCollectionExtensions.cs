@@ -32,5 +32,6 @@ public static class ServiceCollectionExtensions
         });
 
         serviceCollection.AddHearthWebDefaults();
+        serviceCollection.AddHealthChecks().AddDatabase("display").AddRequiredConfig("RENDERER_URL").AddCheck<FrameHealthCheck>("frame");
     }
 }

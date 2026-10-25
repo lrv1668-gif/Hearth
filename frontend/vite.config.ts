@@ -40,6 +40,9 @@ export default defineConfig({
             '/display': process.env.DISPLAY_URL ?? 'http://localhost:8090',
             '/calendar/google': process.env.CALENDAR_URL ?? 'http://localhost:8087',
             '/calendar/items': process.env.CALENDAR_URL ?? 'http://localhost:8087',
+            '/calendar/health': process.env.CALENDAR_URL ?? 'http://localhost:8087',
+            // Dozzle streams over SSE and websockets
+            '/logs': { target: process.env.LOGS_URL ?? 'http://localhost:8093', ws: true },
         },
         hmr: process.env.HMR_CLIENT_PORT ? { clientPort: parseInt(process.env.HMR_CLIENT_PORT) } : undefined,
     },

@@ -1,5 +1,9 @@
+using ServiceDefaults;
 using Birds.Extensions;
 using DotNetEnv;
+
+// Docker's health check runs this binary with --health (see HealthProbe)
+HealthProbe.ExitIfProbe(args);
 
 Env.Load();
 

@@ -1,5 +1,5 @@
 import type { Component } from 'svelte';
-import { Image, LayoutList, MapPin, Monitor, Plug, Tv } from '@lucide/svelte';
+import { Activity, Image, LayoutList, MapPin, Monitor, Plug, Tv } from '@lucide/svelte';
 
 // The Settings page's sections. The active one lives in the URL (`/settings?section=frame`)
 // so it survives a refresh and other pages can link straight to it. A section's cards
@@ -57,6 +57,14 @@ export const settingsSections = [
         heading: 'Frame',
         description:
             'Control what the e-paper frame shows, when, and how it looks. These settings are shared by every device.',
+    },
+    {
+        id: 'diagnostics',
+        label: 'Diagnostics',
+        subtitle: 'Health · logs',
+        icon: Activity,
+        heading: 'Diagnostics',
+        description: 'Whether each part of Hearth is running and set up, and the live logs for when something isn’t.',
     },
 ] as const satisfies readonly {
     id: string;

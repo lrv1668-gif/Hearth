@@ -14,7 +14,7 @@ Keep documentation in sync with code at all times:
 - Build UI from the shared components in `frontend/src/lib/components/ui/` (`Button`, `IconButton`, `TextInput`/`TextArea`/`Select` + `Field`, `ChoiceChips`/`Chip`, `SegmentedControl`, `DayPicker`, `Toggle`/`ToggleRow`, `Disclosure`, `Modal`, `ListRow`, `InlineMessage`, …) and the `.eyebrow` class for small-caps headings — don't hand-roll button, input or dialog class strings. The list is in `docs/SOFTWARE-DESIGN.md` → Shared UI components.
 - Widget visibility and layout settings use the shared `WidgetLayoutEditor` (columns plus a Hidden tray) for both the dashboard and the frame — keep the two screens consistent rather than adding bespoke editors.
 - When a new service needs environment variables, create `src/<Service>/.env`, add `env_file` to `docker-compose.yml` (alongside any static `environment:` values), and add a `LogError` call in the endpoint when required vars are missing.
-- When adding a new backend service: add it to `docker-compose.yml` (merge `*defaults`, `build: { context: ./src, args: { SERVICE: <Service> } }` — there are no per-service Dockerfiles; the shared `src/Dockerfile` builds them all), `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency. Reference `ServiceDefaults` and call `AddHearthWebDefaults()` in `ServiceCollectionExtensions.cs` — every service does this, including services with no database.
+- When adding a new backend service: add it to `docker-compose.yml` (merge `*defaults`, `build: { context: ./src, args: { SERVICE: <Service> } }` — there are no per-service Dockerfiles; the shared `src/Dockerfile` builds them all), `Caddyfile`, the Vite dev proxy in `frontend/vite.config.ts` (plus a localhost port mapping in `docker-compose.override.yml`), and follow the service pattern below. Do not add `Microsoft.Data.Sqlite` as a direct dependency. Reference `ServiceDefaults` and call `AddHearthWebDefaults()` in `ServiceCollectionExtensions.cs` — every service does this, including services with no database. Give it health checks (`services.AddHealthChecks().AddDatabase(...)`/`.AddRequiredConfig(...)`), call `app.MapHearthHealth("<prefix>")`, add it to `frontend/src/lib/constants/services.ts` so Settings → Diagnostics lists it, and give its `docker-compose.yml` entry the `healthcheck` (`<<: *probe`, `test: ["CMD", "/app/service", "--health", "/<prefix>/health"]`) — `Program.cs` starts with `HealthProbe.ExitIfProbe(args);`.
 - Each frontend data type gets its own `<Type>Store.svelte.ts` file (the `.svelte.ts` suffix is required for runes) — do not combine stores.
 - Use `[FromKeyedServices("key")]` to inject `IDatabase` into stores — never inject the concrete `Database` class.
 
@@ -37,7 +37,7 @@ src/                         # Backend API + shared-library projects
   Dockerfile                 # Shared image for every backend service — pick one with the SERVICE build arg
   Data.Abstractions/         # Shared interfaces — IDatabase, DbCommandExtensions (no SQLite dep)
   Data/                      # SQLite implementation of IDatabase + AddSqliteDatabase() registration helper; SqliteDistributedCache (FusionCache L2)
-  ServiceDefaults/           # Shared JSON defaults (AddHearthWebDefaults — no CORS: everything is same-origin via Caddy), AddHearthCache (FusionCache), ConfigRequirement env-var validation + HomeLocationClient (the home location saved in Display, env-var fallback) — referenced by every service
+  ServiceDefaults/           # Shared JSON defaults (AddHearthWebDefaults — no CORS: everything is same-origin via Caddy), AddHearthCache (FusionCache), ConfigRequirement env-var validation + HomeLocationClient (the home location saved in Display, env-var fallback), HearthHealth (GET /<service>/health for Settings → Diagnostics) — referenced by every service
   Tasks/                     # ASP.NET Core 10 Minimal API, port 8081
   Spotify/                   # ASP.NET Core 10 Minimal API, port 8083 — Spotify OAuth + now-playing
   Weather/                   # ASP.NET Core 10 Minimal API, port 8082 — weather fetch + cache
@@ -55,7 +55,8 @@ tests/                       # xUnit test projects — <Service>.Tests/
 docker-compose.yml
 docker-compose.override.yml  # dev overrides — auto-merged by Compose
 .env.example                 # Root compose vars for a deployed host (image prefix/tag, FRONTEND_URL)
-deploy/                      # Host auto-update: update.sh + systemd timer (pulls CI-published GHCR images)
+deploy/                      # Host auto-update: update.sh + systemd timer (pulls CI-published GHCR images); dozzle-user.sh sets the /logs login
+dozzle/                      # Dozzle's /data bind mount (users.yml login) — gitignored except .gitkeep; Dozzle itself is opt-in (COMPOSE_PROFILES=logs)
 site/                        # Static GitHub Pages showcase (no build step; deployed by .github/workflows/pages.yml) — screenshots use demo data, never real tasks/calendar/location
 Caddyfile
 ```

@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient(SpotifyClientService.HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(10));
 
         services.AddHearthWebDefaults();
+        services.AddHealthChecks().AddDatabase("spotify").AddRequiredConfig("SPOTIFY_REDIRECT_URI", "SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET");
         services.AddHearthCache();
     }
 }

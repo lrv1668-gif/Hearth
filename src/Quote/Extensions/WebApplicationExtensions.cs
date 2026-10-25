@@ -1,3 +1,4 @@
+using ServiceDefaults;
 using Quote.Records;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -17,6 +18,7 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForQuote(this WebApplication app)
     {
         app.AddQuoteEndpoints();
+        app.MapHearthHealth("quote");
     }
 
     private static void AddQuoteEndpoints(this WebApplication app)
