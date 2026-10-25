@@ -1,3 +1,12 @@
+<script lang="ts" module>
+    // Open from anywhere — the nav's keyboard button, as well as "?".
+    const sheet = $state({ open: false });
+
+    export function showShortcuts() {
+        sheet.open = true;
+    }
+</script>
+
 <script lang="ts">
     // App-wide shortcuts: "G then D/C/A/S" to go to a page, and "?" for the sheet that
     // lists every shortcut that works here. Page-level ones (Settings) live on their page.
@@ -8,8 +17,6 @@
     import { formatKeys, goToRoutes, ignoreWhileTyping, isMacPlatform, shortcuts } from '$lib/shortcuts';
 
     const mac = isMacPlatform(navigator.platform);
-
-    let open = $state(false);
 
     // Ambient exits on any key, so it gets none of these.
     const enabled = $derived(!page.url.pathname.startsWith('/ambient'));
@@ -33,7 +40,7 @@
                 ),
                 '[Shift]+?': (e) => {
                     e.preventDefault();
-                    open = true;
+                    sheet.open = true;
                 },
             },
             // A little longer than tinykeys' 1 s, for the second key of "G then …".
@@ -49,7 +56,7 @@
     >
 {/snippet}
 
-<Modal bind:open title="Keyboard shortcuts" size="sm">
+<Modal bind:open={sheet.open} title="Keyboard shortcuts" size="sm">
     <ul class="flex flex-col gap-3">
         {#each listed as s (s.description)}
             <li class="flex items-center justify-between gap-4">
