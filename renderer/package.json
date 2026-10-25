@@ -1,6 +1,7 @@
 {
     "name": "hearth-renderer",
     "private": true,
+    "license": "AGPL-3.0-only",
     "type": "module",
     "description": "Screenshots and dithers the e-paper frame route for the Display service",
     "scripts": {

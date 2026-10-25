@@ -1,12 +1,20 @@
 # Hearth
 
-A calm, self-hosted home dashboard designed to look beautiful and recede into the room rather than demand attention. It currently ships as a web dashboard showing art, weather, moon phase, tasks, countdowns, a calendar agenda, Spotify now-playing (and, on the frame, what you last played), news, a daily quote, nearby bird sightings, and nearby transit departures. The long-term target is an always-on e-paper frame — a Pimoroni Inky Impression 13.3" driven by a Raspberry Pi Zero 2 W, fed by a home server running the stack (see [`docs/HARDWARE.md`](docs/HARDWARE.md)).
+A calm, self-hosted home dashboard for a wall-mounted e-paper frame and any browser in the house.
 
-**Project site:** [hearth.lucas-vertrees.me](https://hearth.lucas-vertrees.me/) — a tour of the frame, the dashboard and how to build one. Its source is in [`site/`](site/).
+![The e-paper frame showing the Daily layout in the Almanac theme](site/assets/img/frame-almanac.jpg)
+
+**Project site:** [hearth.lucas-vertrees.me](https://hearth.lucas-vertrees.me/) — a tour of the frame, the dashboard and how to build one (source in [`site/`](site/)).
+
+## What it shows
+
+- **Dashboard widgets:** Agenda (tasks and calendar events), Weather, Countdowns, Moon Phase, Today's News (RSS), Daily Quote, Today's Arc, Birds Nearby, Almanac, Trains & Buses, plus Now Playing from Spotify.
+- **Frame modes:** Ambient, Daily (Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played), Photo, Countdown, Night and Note, on a schedule you set in Settings → Frame.
+- **Pages:** `/` dashboard, `/calendar` month grid, `/ambient` photo slideshow, `/settings`, `/frame` e-paper render target, and an optional `/logs` (Dozzle).
 
 ## How it works
 
-One host runs everything behind Caddy; browsers and the e-paper frame are just clients of it. The frame never renders anything itself — the Display service has the renderer screenshot `/frame` on a schedule and the frame pulls the finished, dithered picture.
+One host runs everything behind Caddy. The Display service has the renderer screenshot `/frame` on a schedule, and the frame pulls the finished, dithered picture.
 
 ```mermaid
 flowchart LR
@@ -30,176 +38,65 @@ flowchart LR
     renderer -->|"loads /frame"| caddy
 ```
 
-See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for how each piece works.
+## Quick start
 
-## Pages
+You need [Docker](https://docs.docker.com/get-docker/) Engine 25+ and Compose v2.22+. Compose expects each service's `.env` file to exist, even if it's empty:
 
-| Route | What it shows |
-|-------|---------------|
-| `/` | Dashboard — upcoming tasks, countdown events, moon phase, current weather + forecast, now playing, calendar agenda, news feed, daily quote, day arc, nearby bird sightings, almanac facts, nearby transit departures |
-| `/calendar` | Month grid with per-day task lists and a detail modal |
-| `/ambient` | Fullscreen photo slideshow at a configurable cadence |
-| `/settings` | Theme picker, font theme picker, photo cadence and categories, attribution toggle, widget visibility and layout, integrations, subscribed train stops, e-paper frame appearance and layout with live preview, and Diagnostics: each service's health plus a link to the live logs |
-| `/logs` | Optional live, searchable container logs ([Dozzle](https://dozzle.dev)), behind its own login — turn on with `COMPOSE_PROFILES=logs` in the root `.env`, then set a login with `deploy/dozzle-user.sh <name>` |
-| `/frame` | E-paper render target (panel-sized, default 1600×1200): Ambient photo, a Daily layout of frame widgets — Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played (the latest Spotify track and its album art) — a pinned Photo or album, one big Countdown, Night (moon and sunrise), or a Note of your own text sized to fill the panel. The mode follows a schedule and manual override set in Settings → Frame |
+```bash
+touch src/{Almanac,Birds,Calendar,Photos,Spotify,Trains,Weather}/.env
+```
 
-## Prerequisites
+```bash
+docker compose up --build
+```
 
-- [Docker](https://docs.docker.com/get-docker/) Engine 25+ (BuildKit) and Docker Compose v2.22+
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) *(for running the backend locally without Docker)*
-- [Node.js 20+](https://nodejs.org/) *(for running the frontend locally without Docker)*
+Open [http://localhost](http://localhost) and set the home location and time zone in **Settings → Home**. Tasks, quotes and news work with no keys.
 
 ## Configuration
 
-Services that need secrets use a per-service `.env` file. Create these before starting (Compose expects each to exist, even if empty).
+Add keys only for the integrations you want. Each file is read by one service:
 
-Set the home location and time zone in **Settings → Home** — use the device's location, search for a city, or type coordinates. Weather, Birds, Almanac and the frame preview all read it from the Display service. `LATITUDE`, `LONGITUDE` and `TZ` in the files below still work as fallbacks until one is saved.
+| Integration | File | Keys | Get a key |
+|---|---|---|---|
+| Unsplash photos | `src/Photos/.env` | `UNSPLASH_ACCESS_KEY` | [Unsplash developers](https://unsplash.com/developers) |
+| Spotify | `src/Spotify/.env` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` | [Spotify dashboard](https://developer.spotify.com/dashboard) |
+| Google Calendar | `src/Calendar/.env` | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | [Google Cloud console](https://console.cloud.google.com/apis/credentials) |
+| eBird | `src/Birds/.env` | `EBIRD_API_KEY` | [eBird API key](https://ebird.org/api/keygen) |
+| Transitland | `src/Trains/.env` | `TRANSITLAND_API_KEY` | [Transitland](https://www.transit.land/documentation) |
+| Frost dates (optional) | `src/Almanac/.env` | `FIRST_FROST`, `LAST_FROST` (`MM-DD`) | — |
 
-**Weather** (`src/Weather/.env`, optional fallback):
-```
-LATITUDE=40.7128
-LONGITUDE=-74.0060
-```
+`LATITUDE`, `LONGITUDE` and `TZ` in these files are only fallbacks until a home location is saved in Settings → Home. Every variable, including the redirect URIs to register, is listed per service in [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md): [Photos](docs/SOFTWARE-DESIGN.md#photos-service), [Spotify](docs/SOFTWARE-DESIGN.md#spotify-service), [Calendar](docs/SOFTWARE-DESIGN.md#calendar-service), [Birds](docs/SOFTWARE-DESIGN.md#birds-service), [Trains](docs/SOFTWARE-DESIGN.md#trains-service), [Almanac](docs/SOFTWARE-DESIGN.md#almanac-service), [Weather](docs/SOFTWARE-DESIGN.md#weather-service).
 
-**Spotify** (`src/Spotify/.env`):
-```
-SPOTIFY_CLIENT_ID=...
-SPOTIFY_CLIENT_SECRET=...
-SPOTIFY_REDIRECT_URI=http://127.0.0.1:8083/spotify/callback
-```
+## Development
 
-**Calendar** (`src/Calendar/.env`):
-```
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_REDIRECT_URI=http://127.0.0.1:8087/calendar/google/callback
-```
+`docker compose watch` runs the stack with hot reload. To run pieces natively instead (needs the [.NET 10 SDK](https://dotnet.microsoft.com/download) and [Node.js 20+](https://nodejs.org/)), start any service with `dotnet run --project src/<Service>` and the frontend with `cd frontend && npm run dev`. The ports Vite proxies to are in [`frontend/vite.config.ts`](frontend/vite.config.ts).
 
-**Birds** (`src/Birds/.env`; the location is an optional fallback):
-```
-EBIRD_API_KEY=...
-LATITUDE=40.7128
-LONGITUDE=-74.0060
-```
+Before a PR, run `dotnet build Hearth.slnx && dotnet test Hearth.slnx`, and `npm run check && npm run test` in `frontend/`. More in [Development workflow](docs/SOFTWARE-DESIGN.md#development-workflow).
 
-**Almanac** (`src/Almanac/.env`, all optional; location and zone are fallbacks):
-```
-LATITUDE=40.7128
-LONGITUDE=-74.0060
-TZ=America/New_York
-FIRST_FROST=10-15
-LAST_FROST=04-15
-```
+## Deploying
 
-**Trains** (`src/Trains/.env`):
-```
-TRANSITLAND_API_KEY=...
-```
+CI publishes amd64 and arm64 images to GHCR on every green push to `main`. A host pulls them with [`deploy/update.sh`](deploy/update.sh), run by a systemd timer. See [Deploying to a host](docs/SOFTWARE-DESIGN.md#deploying-to-a-host).
 
-Photos, Quote, RSS, and Tasks don't require a `.env` file (Photos needs `UNSPLASH_ACCESS_KEY` only if you want live photo fetching instead of local uploads).
+To build the frame itself, see [`docs/HARDWARE.md`](docs/HARDWARE.md) and the companion client [inky-pull](https://github.com/lrv1668-gif/inky-pull).
 
-See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for architecture and endpoint details.
+## Docs
 
-## Running in Docker
+- [`docs/PRODUCT.md`](docs/PRODUCT.md) — what Hearth is for and what's planned
+- [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) — architecture, services, endpoints and environment variables
+- [`docs/HARDWARE.md`](docs/HARDWARE.md) — the e-paper frame build
 
-### Development (with live reload)
+## Credits
 
-```bash
-docker compose watch
-```
+Hearth is built on these open-source projects and data providers:
 
-Compose automatically merges `docker-compose.override.yml` (dev overrides) with `docker-compose.yml`. The frontend runs the Vite dev server — file changes under `frontend/src/` and `frontend/static/` sync into the container and trigger HMR instantly. Changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a container rebuild.
+- **Frontend:** [SvelteKit](https://svelte.dev/docs/kit) and [Svelte](https://svelte.dev) (MIT), [Vite](https://vite.dev) (MIT), [Tailwind CSS](https://tailwindcss.com) (MIT), [Lucide](https://lucide.dev) via `@lucide/svelte` (ISC), [DOMPurify](https://github.com/cure53/DOMPurify) (MPL-2.0 or Apache-2.0), [svelte-dnd-action](https://github.com/isaacHagoel/svelte-dnd-action) (MIT), [Vitest](https://vitest.dev) (MIT), [Prettier](https://prettier.io) (MIT)
+- **Fonts:** [Fontsource](https://fontsource.org) builds of Inter, Fraunces, Lora, Manrope, Nunito, Source Serif 4 and Space Grotesk (SIL OFL 1.1), and Roboto Slab (Apache-2.0)
+- **Backend:** [.NET and ASP.NET Core](https://dotnet.microsoft.com) (MIT), SQLite via [Microsoft.Data.Sqlite](https://github.com/dotnet/efcore) (MIT) and [SQLitePCLRaw](https://github.com/ericsink/SQLitePCL.raw) (Apache-2.0), [FusionCache](https://github.com/ZiggyCreatures/FusionCache) (MIT), [SkiaSharp](https://github.com/mono/SkiaSharp) (MIT), [SpotifyAPI-NET](https://github.com/JohnnyCrazy/SpotifyAPI-NET) (MIT), [Google APIs .NET client](https://github.com/googleapis/google-api-dotnet-client) (Apache-2.0), [DotNetEnv](https://github.com/tonerdo/dotnet-env) (MIT), [xUnit](https://xunit.net) (Apache-2.0)
+- **Renderer:** [Playwright](https://playwright.dev) (Apache-2.0) with Chromium (BSD-3-Clause), [epdoptimize](https://github.com/paperlesspaper/epdoptimize) (Apache-2.0), [node-canvas](https://github.com/Automattic/node-canvas) (MIT)
+- **Infra:** [Caddy](https://caddyserver.com) (Apache-2.0), [Docker Compose](https://github.com/docker/compose) (Apache-2.0), [Dozzle](https://dozzle.dev) (MIT)
+- **Hardware:** Pimoroni [inky](https://github.com/pimoroni/inky) (MIT)
+- **Data:** weather from [Open-Meteo](https://open-meteo.com) (CC BY 4.0), photos from [Unsplash](https://unsplash.com), quotes from [ZenQuotes](https://zenquotes.io), sightings from [eBird](https://ebird.org) (Cornell Lab of Ornithology), departures from [Transitland](https://www.transit.land), plus [Google Calendar](https://developers.google.com/calendar) and [Spotify](https://developer.spotify.com)
 
-Open [http://localhost](http://localhost).
+## License
 
-### Production
-
-```bash
-docker compose -f docker-compose.yml up --build
-```
-
-Builds the frontend as a static bundle served by Node, and runs all backend services behind Caddy.
-
-## Running Locally (without Docker)
-
-Run each piece in its own terminal:
-
-```bash
-# Backend — tasks service
-cd src/Tasks
-dotnet run
-```
-
-```bash
-# Backend — weather service (location from Settings → Home via DISPLAY_URL=http://localhost:8090, or LATITUDE/LONGITUDE in src/Weather/.env)
-cd src/Weather
-dotnet run
-```
-
-```bash
-# Backend — Spotify service (optional; requires src/Spotify/.env)
-cd src/Spotify
-dotnet run
-```
-
-```bash
-# Backend — Photos service (optional; requires src/Photos/.env with UNSPLASH_ACCESS_KEY)
-cd src/Photos
-dotnet run
-```
-
-```bash
-# Backend — RSS service
-cd src/Rss
-dotnet run
-```
-
-```bash
-# Backend — Calendar service (optional; requires src/Calendar/.env)
-cd src/Calendar
-dotnet run
-```
-
-```bash
-# Backend — Quote service
-cd src/Quote
-dotnet run
-```
-
-```bash
-# Backend — Birds service (optional; requires src/Birds/.env with EBIRD_API_KEY; location as for Weather)
-cd src/Birds
-dotnet run
-```
-
-```bash
-# Backend — Almanac service (optional; src/Almanac/.env with FIRST_FROST, LAST_FROST; location and TZ as for Weather)
-cd src/Almanac
-dotnet run
-```
-
-```bash
-# Backend — Trains service (optional; requires src/Trains/.env with TRANSITLAND_API_KEY)
-cd src/Trains
-dotnet run
-```
-
-```bash
-# Frontend
-cd frontend
-npm install   # first time only
-npm run dev
-```
-
-Vite proxies `/tasks` → `http://localhost:8081`, `/weather` → `http://localhost:8082`, `/spotify` → `http://localhost:8083`, `/photos` → `http://localhost:8084`, `/rss` → `http://localhost:8085`, `/quote` → `http://localhost:8086`, `/calendar` → `http://localhost:8087`, `/birds` → `http://localhost:8088`, `/almanac` → `http://localhost:8089`, `/display` → `http://localhost:8090`, and `/trains` → `http://localhost:8091`, so no CORS configuration is needed. Open [http://localhost:5173](http://localhost:5173).
-
-## Tech Stack
-
-| Layer     | Technology                                              |
-|-----------|---------------------------------------------------------|
-| Frontend  | SvelteKit 2, Svelte 5 (runes), Tailwind CSS v4, Lucide Svelte |
-| Backend   | .NET 10, ASP.NET Core Minimal APIs, SQLite              |
-| Proxy     | Caddy 2                                                 |
-| Infra     | Docker Compose                                          |
-
-See [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md) for architecture decisions and [`docs/PRODUCT.md`](docs/PRODUCT.md) for the product vision.
+AGPL-3.0 — see [LICENSE](LICENSE).
