@@ -10,3 +10,5 @@ Dockerfile
 **/*.db-wal
 **/*.lscache
 **/.DS_Store
+# Claude Code guidance, not part of the image
+CLAUDE.md

@@ -16,20 +16,26 @@ Creates new widgets for the Hearth SvelteKit home dashboard.
 | `frontend/src/routes/+page.svelte` | Import + wire into the dashboard |
 | `frontend/src/lib/api.ts` | Response type + `api.<service>.<method>()` (data-fetching widgets) |
 | `frontend/src/lib/stores/YourStore.svelte.ts` | One store per data type (data-fetching widgets) |
-| `README.md`, `docs/SOFTWARE-DESIGN.md` | Add the widget to the feature list / frontend integration notes |
+| `frontend/src/lib/components/widgets/views/YourView.svelte` | Shared markup, if the widget also goes on the e-paper frame (Step 5) |
+| `frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `routes/frame/+page.svelte` | Frame registration, slot and data loader (Step 5) |
+| `README.md` (the `/` row of the Pages table, plus the `/frame` row for frame widgets), `docs/SOFTWARE-DESIGN.md` | Add the widget to the feature list / frontend integration notes |
+| `site/index.html` | The widget grid on the project site (`Frame` badge for frame widgets) |
 
-**Backend first:** domain data and math (API calls to third parties, caching, astronomy, recurrence, unit conversion) belong in a backend service under `src/`, not in the widget. If the widget needs data that no service provides yet, add a service first — follow the "When adding a new backend service" rule in `CLAUDE.md`. The frontend stays a thin renderer and never calls third-party APIs directly.
+**Backend first:** domain data and math (API calls to third parties, caching, astronomy, recurrence, unit conversion) belong in a backend service under `src/`, not in the widget. If the widget needs data that no service provides yet, add a service first — use the `hearth-service` skill. The frontend stays a thin renderer and never calls third-party APIs directly.
 
 ---
 
 ## Step 0: Explore Context First
 
-Before writing any code, read these two files to understand the current state of the dashboard:
+Before writing any code, read these files to understand the current state of the dashboard:
 
 1. `frontend/src/lib/constants/widgets.ts` — see which widget IDs already exist, what's in each column, and which are toggleable
 2. `frontend/src/routes/+page.svelte` — see the existing `renderWidget` snippet so you can match the pattern
+3. If it should also show on the e-paper frame: `frontend/src/lib/constants/frameWidgets.ts` and `components/frame/FrameDaily.svelte`
 
-Also skim one or two existing widget components in `frontend/src/lib/components/widgets/` for style reference — pick one that's similar to what you're building (e.g. an API-fetching widget if yours fetches data).
+Also skim one or two existing widget components in `frontend/src/lib/components/widgets/` for style reference — pick one that's similar to what you're building (e.g. `BirdsWidget.svelte` if yours fetches data and also appears on the frame).
+
+The Settings layout editors (`WidgetLayoutEditor`, shared by the dashboard and the frame) read these registries — a new widget shows up there without any settings code.
 
 ---
 
@@ -108,20 +114,22 @@ class YourStore {
 export const yourStore = new YourStore();
 
 export async function loadYours() {
-    yourStore.error = false;
     const items = await api.yours.list();
     if (items === null) {
-        yourStore.error = true;
+        // Only surface the error when there's nothing to show; a failed refresh keeps the last items.
+        yourStore.error = yourStore.items.length === 0;
         return;
     }
+    yourStore.error = false;
     yourStore.items = items;
 }
 ```
 
-**3. The widget:**
+**3. The widget** — loads once, then refreshes with `poll(load, ms)` from `utils.ts`, returned from `onMount` so it's cleaned up:
 ```svelte
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { MINUTE, poll } from '$lib/utils';
     import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
     import { yourStore, loadYours } from '$lib/stores/YourStore.svelte.ts';
 
@@ -129,14 +137,15 @@ export async function loadYours() {
 
     onMount(() => {
         loadPromise = loadYours();
+        return poll(loadYours, 15 * MINUTE);
     });
 </script>
 
 <SkeletonLoader promise={loadPromise}>
-    {#if yourStore.error || yourStore.items.length === 0}
-        <p class="type-label text-[var(--text-3)]">Data unavailable.</p>
+    {#if yourStore.error}
+        <p class="type-label text-(--text-2)">Your data unavailable.</p>
     {:else}
-        <!-- render yourStore.items -->
+        <!-- render yourStore.items, or <YourView items={yourStore.items} /> (Step 5) -->
     {/if}
 </SkeletonLoader>
 ```
@@ -155,17 +164,23 @@ export async function loadYours() {
 <p class="type-caption">   <!-- tiny hints, metadata -->
 ```
 
+Never raw `text-sm`-style size utilities or numeric `font-[...]` weights — use `.type-*` plus `font-medium`/`font-semibold`/`font-bold`.
+
 ### Color tokens (always via CSS variables, never hardcoded)
+
+Use Tailwind v4's `(--var)` shorthand — the codebase never uses `[var(--var)]`:
 ```html
-text-[var(--text-1)]     <!-- primary text -->
-text-[var(--text-2)]     <!-- secondary -->
-text-[var(--text-3)]     <!-- muted / tertiary -->
-text-[var(--text-4)]     <!-- dimmest -->
-text-[var(--accent)]     <!-- accent highlight -->
-bg-[var(--surface)]      <!-- card / container backgrounds -->
-bg-[var(--surface-hi)]   <!-- elevated surfaces, badges, inputs -->
-border-[var(--border)]   <!-- dividers -->
+text-(--text-1)     <!-- primary text -->
+text-(--text-2)     <!-- secondary text, empty/error states -->
+text-(--text-3)     <!-- icons and decoration only — not for text people need to read -->
+text-(--text-4)     <!-- dimmest decoration -->
+text-(--accent)     <!-- accent highlight -->
+bg-(--surface)      <!-- card / container backgrounds -->
+bg-(--surface-hi)   <!-- elevated surfaces, badges, inputs -->
+border-(--border)   <!-- dividers -->
 ```
+
+Buttons, inputs, toggles, dialogs: use the shared components in `frontend/src/lib/components/ui/` — don't hand-roll class strings.
 
 ### Lucide icon sizes
 ```html
@@ -194,6 +209,22 @@ import YourWidget from '$lib/components/widgets/YourWidget.svelte';
 
 ---
 
+## Step 5 (optional): Put it on the e-paper frame
+
+Only widgets that stay correct between scheduled refreshes (an hour or more) belong on the frame — no live clocks, departures or now-playing.
+
+**Same content as the dashboard → a shared view, not a copy.** Move the markup into `components/widgets/views/YourView.svelte` (see `BirdSightingsView.svelte`): data in via props, an optional `lines` budget that trims the list (`itemsThatFit` from `lib/frame.ts`), sizes from `type-*`/`icon-*`/em units and `--stroke` so the frame's overrides scale it. The dashboard widget becomes a thin wrapper that loads, polls and renders `<YourView items={yourStore.items} />`. Only frame-specific designs go in `components/frame/widgets/`.
+
+1. `constants/frameWidgets.ts` — add `{ id, label, description }` to `frameWidgets`
+2. `components/frame/FrameDaily.svelte` — add a branch to the `widget` snippet: `<YourView items={yourStore.items} lines={n} />`
+3. `lib/frame.ts` — if the widget has a fixed height (not a list that trims), add it to `FIXED_LINES`; otherwise `allocateLines` gives it a share of the column
+4. `routes/frame/+page.svelte` — add its loader to `widgetLoaders` (weather, tasks, calendar and almanac already always load)
+5. `README.md` `/frame` row and the `Frame` badge in `site/index.html`
+
+Check it at `/frame?mode=daily&left=your-id` with the `verify` skill.
+
+---
+
 ## Checklist
 
 - [ ] Read `widgets.ts` and `+page.svelte` before starting
@@ -203,10 +234,12 @@ import YourWidget from '$lib/components/widgets/YourWidget.svelte';
 - [ ] Added to `DEFAULT_WIDGET_COLUMNS` in the appropriate column
 - [ ] Created `YourWidget.svelte` using the appropriate data pattern
 - [ ] Pattern B: response interface + `ApiClient` method in `api.ts`, own `YourStore.svelte.ts` with an `error` flag, no `fetch()` in the component
-- [ ] Styled with type utilities + CSS variable tokens only
+- [ ] Polls with `poll(load, ms)` returned from `onMount`
+- [ ] Styled with type utilities + `text-(--token)` CSS variables only; `--text-3`/`--text-4` never on readable text
 - [ ] Imported in `+page.svelte`
 - [ ] Added to `renderWidget` snippet in `+page.svelte`
 - [ ] Wrapped in `<WidgetContainer>` with correct `title` and optional `associatedWidgetId`
 - [ ] Intervals cleaned up via `return () => clearInterval(id)` inside `$effect`
-- [ ] Widget added to `README.md` feature list and `docs/SOFTWARE-DESIGN.md`
-- [ ] `npm run check` passes and the widget was checked in the real UI with the `verify` skill
+- [ ] Frame widget (if any): shared view in `widgets/views/`, registered in `frameWidgets.ts`, slot in `FrameDaily.svelte`, loader in `widgetLoaders`
+- [ ] Widget added to `README.md` (Pages table), `docs/SOFTWARE-DESIGN.md` and the `site/index.html` widget grid
+- [ ] `npm run check` and `npm run test` pass, and the widget was checked in the real UI with the `verify` skill
