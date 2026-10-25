@@ -24,6 +24,7 @@ class SettingsStore {
     rssFeeds = $state<RssFeed[]>(DEFAULT_RSS_FEEDS);
     trainStops = $state<TrainStop[]>(DEFAULT_TRAIN_STOPS);
     kioskMode = $state(false);
+    settingsSidebarHidden = $state(false);
 
     toggleWidget(id: WidgetId) {
         const inColumns =
@@ -123,6 +124,7 @@ if (browser) {
                     rssFeeds: settings.rssFeeds,
                     trainStops: settings.trainStops,
                     kioskMode: settings.kioskMode,
+                    settingsSidebarHidden: settings.settingsSidebarHidden,
                 })
             );
         });

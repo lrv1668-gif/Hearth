@@ -126,6 +126,28 @@
 
     $effect(applyLook);
 
+    // /frame is client-rendered, so SvelteKit's start-up navigation focuses its <body> —
+    // which pulls this page's focus into the preview, out of reach of Escape, keyboard
+    // shortcuts and whatever field was being typed in. Hand it straight back.
+    $effect(() => {
+        let lastFocus: HTMLElement | null = null;
+        const onFocusIn = (e: FocusEvent) => {
+            if (e.target !== iframe) lastFocus = e.target as HTMLElement;
+        };
+        const onBlur = () =>
+            setTimeout(() => {
+                if (!iframe || document.activeElement !== iframe) return;
+                if (lastFocus?.isConnected) lastFocus.focus({ preventScroll: true });
+                else iframe.blur();
+            });
+        document.addEventListener('focusin', onFocusIn);
+        window.addEventListener('blur', onBlur);
+        return () => {
+            document.removeEventListener('focusin', onFocusIn);
+            window.removeEventListener('blur', onBlur);
+        };
+    });
+
     const size = $derived(
         frameCanvas({
             width: frameSettings.width,
