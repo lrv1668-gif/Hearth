@@ -54,12 +54,18 @@
                     </span>
                 {/if}
                 {#if weatherStore.current.uv_index != null}
-                    <span class="flex items-center gap-1 border-r border-r-(--border) pr-2">
+                    <span
+                        class="flex items-center gap-1 border-r border-r-(--border) pr-2"
+                        title={weatherStore.current.uv_category ?? undefined}
+                    >
                         <SunMedium class="icon-sm" />UV {Math.round(weatherStore.current.uv_index)}
                     </span>
                 {/if}
                 {#if weatherStore.current.us_aqi != null}
-                    <span class="flex items-center gap-1 border-r border-r-(--border) pr-2">
+                    <span
+                        class="flex items-center gap-1 border-r border-r-(--border) pr-2"
+                        title={weatherStore.current.aqi_category ?? undefined}
+                    >
                         <Leaf class="icon-sm" />AQI {weatherStore.current.us_aqi}
                     </span>
                 {/if}

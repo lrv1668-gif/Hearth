@@ -301,6 +301,8 @@ function forecast(overrides: Partial<ForecastDay>): ForecastDay {
         temp_min_f: 47,
         sunrise: '2026-10-19T07:21',
         sunset: '2026-10-19T18:24',
+        uv_index_max: null,
+        uv_max_category: null,
         ...overrides,
     };
 }
@@ -313,6 +315,8 @@ const current: CurrentWeather = {
     fetched_at: '2026-10-19T12:00:00Z',
     uv_index: null,
     us_aqi: null,
+    uv_category: null,
+    aqi_category: null,
 };
 
 describe('railDayLabel', () => {
