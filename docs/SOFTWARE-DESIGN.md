@@ -54,6 +54,7 @@ Form controls and other repeated pieces live in `frontend/src/lib/components/ui/
 | `Toggle`, `ToggleRow` | A switch; the row names and describes it by its title and description, and supports `disabled` |
 | `PickerCard` | Large option card in a preview grid (typeface, frame theme) |
 | `Disclosure` | A native `<details>` fold: a summary row (usually the current choice) that opens to the full options — the theme, type and frame-colour pickers and the frame's set-once panel size |
+| `CardColumns` | Two independent stacks of settings cards on wide screens (left above right when narrow) — use it rather than a two-column grid, whose rows leave a gap beside a short card |
 | `Modal` | `<dialog class="sheet">` with a titled header, close button and scrolling body mounted only while open |
 | `SizeSlider` | A text-size range between a small and large "A", showing the size as a percent (the dashboard's size and the frame's text size) |
 | `ListRow`, `ConnectionRow` | A settings list row with remove/extra actions; an outside service with its status and buttons |
