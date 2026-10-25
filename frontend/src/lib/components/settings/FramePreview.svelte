@@ -2,10 +2,10 @@
     import type { FrameModeId } from '$lib/constants/frameModes';
     import type { Photo } from '$lib/api';
 
-    // Shared by every preview on the page, so the full-size one opens on the same mode,
-    // palette, view and photo as the card's.
+    // Shared by every preview on the page, so the full-size one opens on the same picked
+    // mode, palette, view and photo as the card's.
     const shared = $state({
-        mode: 'daily' as FrameModeId,
+        pickedMode: null as FrameModeId | null,
         palette: 'color' as 'color' | 'bw',
         view: 'live' as 'live' | 'screen' | 'paper',
         photo: undefined as Photo | null | undefined,
@@ -20,6 +20,7 @@
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { frameCanvas, frameUrl, type FrameOptions } from '$lib/frame';
     import { frameModes } from '$lib/constants/frameModes';
+    import { modeStore } from '$lib/stores/ModeStore.svelte.ts';
     import { api } from '$lib/api';
     import { pickPhoto, pickPinned } from '$lib/photos';
     import { Maximize2 } from '@lucide/svelte';
@@ -34,6 +35,8 @@
 
     // Preview-only toggles: on the real frame, the mode and Color/B&W are switched by
     // the mode schedule, a manual choice or the frame's buttons, so they aren't saved here.
+    // The preview follows the mode the frame shows now until one is picked here.
+    const previewMode = $derived(shared.pickedMode ?? modeStore.current?.mode ?? 'daily');
     // Live is the page itself; Screen and Paper are the Display service's dithered render.
 
     const layout = $derived(normalizeFrameLayout(frameSettings.layout));
@@ -41,10 +44,10 @@
     // Ambient and Photo show a random photo, so the preview picks one itself and hands
     // it to every view: Live, Screen and Paper show the same photo. It picks again only
     // when the mode, photo choices or orientation change. Undefined while a pick loads.
-    const photoMode = $derived(shared.mode === 'ambient' || shared.mode === 'photo');
+    const photoMode = $derived(previewMode === 'ambient' || previewMode === 'photo');
     $effect(() => {
-        if (!photoMode || !frameSettings.loaded) return;
-        const mode = shared.mode;
+        if (!photoMode || !frameSettings.loaded || !modeStore.loaded) return;
+        const mode = previewMode;
         const ids = mode === 'photo' ? [...frameSettings.photoIds] : [];
         const source = frameSettings.photoSource;
         const categories = [...frameSettings.photoCategories];
@@ -62,10 +65,11 @@
             () => key === photoKey && (shared.photo = null)
         );
     });
-    const photo = $derived(photoMode ? shared.photo : null);
+    // Undefined until the current mode is known too, so nothing loads in the wrong mode first.
+    const photo = $derived(!modeStore.loaded ? undefined : photoMode ? shared.photo : null);
 
     const options = $derived<FrameOptions>({
-        mode: shared.mode,
+        mode: previewMode,
         palette: shared.palette,
         theme: frameSettings.theme,
         font: frameSettings.font,
@@ -105,7 +109,7 @@
     // in place below — a reload would refetch everything.
     const previewSrc = $derived.by(() => {
         const structure = {
-            mode: shared.mode,
+            mode: previewMode,
             orientation: frameSettings.orientation,
             width: frameSettings.width,
             height: frameSettings.height,
@@ -194,8 +198,8 @@ mode and Color/B&W toggles, an optional full-size button and the frame URL.
     <div bind:offsetHeight={controlsHeight} class="flex flex-wrap items-center gap-3 pb-3">
         <SegmentedControl
             options={frameModes.map((m) => ({ value: m.id, label: m.label }))}
-            value={shared.mode}
-            onchange={(v) => (shared.mode = v)}
+            value={previewMode}
+            onchange={(v) => (shared.pickedMode = v)}
             label="Preview mode"
         />
         <SegmentedControl
