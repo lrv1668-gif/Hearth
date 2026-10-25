@@ -2,7 +2,16 @@
 
 A calm, self-hosted home dashboard for a wall-mounted e-paper frame and any browser in the house.
 
-![The e-paper frame showing the Daily layout in the Almanac theme](site/assets/img/frame-almanac.jpg)
+<table>
+  <tr>
+    <td width="50%"><a href="site/assets/img/frame-almanac.jpg"><img src="site/assets/img/frame-almanac-sm.jpg" alt="The e-paper frame showing the Daily layout in the Almanac theme"></a></td>
+    <td width="50%"><a href="site/assets/img/settings-frame.jpg"><img src="site/assets/img/settings-frame.jpg" alt="Settings → Frame: mode schedule, colour themes and a live preview of the panel"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>The frame — Daily layout, Almanac theme</sub></td>
+    <td align="center"><sub>Settings → Frame, with a live panel preview</sub></td>
+  </tr>
+</table>
 
 **Project site:** [hearth.lucas-vertrees.me](https://hearth.lucas-vertrees.me/) — a tour of the frame, the dashboard and how to build one (source in [`site/`](site/)).
 
