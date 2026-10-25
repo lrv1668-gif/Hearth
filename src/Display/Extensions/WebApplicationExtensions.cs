@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using Display.Records;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,12 @@ public static class WebApplicationExtensions
     // enough for inkypull's 120 s request timeout
     private static readonly TimeSpan WaitForRender = TimeSpan.FromSeconds(100);
 
+    // The longest ?wait= a long poll may hold the request for; the client keeps it under its own timeout
+    private static readonly TimeSpan MaxWait = TimeSpan.FromMinutes(15);
+
+    // Retry-After lands this long after the next scheduled render, so the check finds it done
+    private static readonly TimeSpan RenderGrace = TimeSpan.FromSeconds(30);
+
     public static void InitializeWebAppForDisplay(this WebApplication app)
     {
         app.Services.GetRequiredService<FrameSettingsStore>().Migrate();
@@ -36,13 +43,17 @@ public static class WebApplicationExtensions
     /// The panel's frame, rendered on a schedule by <see cref="FrameRenderService"/> — what
     /// a frame client (inkypull) polls. A change that invalidates it (Button B, a Settings
     /// edit) is waited for, so the poll right after a button press gets the new frame.
+    /// Retry-After says when the next scheduled render will be ready, and <c>?wait=</c>
+    /// (seconds, from the request) with a matching If-None-Match long-polls until the pixels change.
     /// </summary>
     private static void AddFrameEndpoints(this WebApplication app)
     {
         app.MapGet("/display/frame", async (
             FrameCache cache, FrameRenderService renderer, FramePolls polls, IConfiguration config,
-            TimeProvider clock, HttpRequest request, HttpResponse response, CancellationToken ct) =>
+            TimeProvider clock, IHostApplicationLifetime lifetime, HttpRequest request, HttpResponse response, int? wait,
+            CancellationToken ct) =>
         {
+            var start = clock.GetUtcNow();
             if (config.RequireOrFail(
                     app.Logger,
                     _ => Results.Json(new { error = "renderer not configured" }, statusCode: 503),
@@ -60,16 +71,41 @@ public static class WebApplicationExtensions
                 // Serve what's cached; the next poll picks the change up
             }
 
+            // Taken before the frame: a render landing in between has completed this task, so
+            // the long poll below answers at once instead of missing the change
+            var changed = cache.Changed;
             var frame = cache.Current;
+            // Long poll: while the client already holds this frame, hold the request until the
+            // pixels change or ?wait= seconds (counted from the request, so the render wait
+            // above is part of them) pass, then a 304 as without it
+            var deadline = start + TimeSpan.FromSeconds(Math.Min(wait ?? 0, MaxWait.TotalSeconds));
+            if (deadline > clock.GetUtcNow() && frame is { } held && Holds(request, held.Info.ETag))
+            {
+                RecordPoll(polls, clock, request, held.Info.ETag);
+                // A shutdown (a host update) answers the held poll rather than dropping it
+                using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct, lifetime.ApplicationStopping);
+                try
+                {
+                    await changed.WaitAsync(deadline - clock.GetUtcNow(), clock, stop.Token);
+                }
+                catch (Exception ex) when (ex is TimeoutException || (ex is OperationCanceledException && !ct.IsCancellationRequested))
+                {
+                    // Nothing new: answer 304 below
+                }
+                frame = cache.Current;
+            }
+
             // Whatever the answer, the frame checked in; a 304 leaves it holding the same ETag
-            polls.Record(new FramePoll(clock.GetUtcNow(), ClientAddress(request),
-                request.Headers.UserAgent.ToString() is { Length: > 0 } agent ? agent : null, frame?.Info.ETag));
+            RecordPoll(polls, clock, request, frame?.Info.ETag);
             if (frame is not { } current)
             {
                 response.Headers.RetryAfter = "60";
                 return Results.Json(new { error = "no frame rendered yet" }, statusCode: 503);
             }
             response.Headers.CacheControl = "no-cache";
+            // Like TRMNL's refresh_rate: when to check next, so the client needn't guess an interval
+            if (NextCheck(renderer.Status().NextRenderAt, clock.GetUtcNow()) is { } seconds)
+                response.Headers.RetryAfter = seconds.ToString(CultureInfo.InvariantCulture);
             // With an ETag, a matching If-None-Match gets a 304
             return Results.File(current.Png, "image/png",
                 lastModified: current.Info.RenderedAt, entityTag: EntityTagHeaderValue.Parse(current.Info.ETag));
@@ -85,6 +121,28 @@ public static class WebApplicationExtensions
             return Results.Accepted();
         });
     }
+
+    /// <summary>
+    /// Seconds until the next scheduled render is done — what GET /display/frame sends as
+    /// Retry-After — or null before the render loop has planned one. A render can come
+    /// sooner (a Settings change, a button); a long poll (?wait=) catches those at once.
+    /// </summary>
+    public static long? NextCheck(DateTimeOffset? nextRenderAt, DateTimeOffset now) =>
+        nextRenderAt is { } next
+            ? (long)Math.Ceiling(((next > now ? next - now : TimeSpan.Zero) + RenderGrace).TotalSeconds)
+            : null;
+
+    /// <summary>Whether the request's If-None-Match names <paramref name="etag"/> (or *).</summary>
+    private static bool Holds(HttpRequest request, string etag)
+    {
+        var current = EntityTagHeaderValue.Parse(etag);
+        return request.GetTypedHeaders().IfNoneMatch.Any(tag =>
+            tag.Equals(EntityTagHeaderValue.Any) || tag.Compare(current, useStrongComparison: false));
+    }
+
+    private static void RecordPoll(FramePolls polls, TimeProvider clock, HttpRequest request, string? etag) =>
+        polls.Record(new FramePoll(clock.GetUtcNow(), ClientAddress(request),
+            request.Headers.UserAgent.ToString() is { Length: > 0 } agent ? agent : null, etag));
 
     /// <summary>
     /// Who asked: Caddy's X-Forwarded-For (its first hop) when proxied, else the connection's
