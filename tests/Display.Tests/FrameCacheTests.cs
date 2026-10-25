@@ -80,4 +80,29 @@ public sealed class FrameCacheTests : IDisposable
     {
         Assert.Equal(Path.GetFullPath("/data"), FrameCache.DirectoryFor("/data/display.db"));
     }
+
+    [Fact]
+    public void Changed_NewPixels_Completes()
+    {
+        var cache = Cache();
+        cache.Store([1, 2, 3], "daily", null, Noon);
+        var changed = cache.Changed;
+
+        cache.Store([4, 5, 6], "daily", null, Noon.AddMinutes(15));
+
+        Assert.True(changed.IsCompleted);
+        Assert.False(cache.Changed.IsCompleted);
+    }
+
+    [Fact]
+    public void Changed_SamePixels_KeepsWaiting()
+    {
+        var cache = Cache();
+        cache.Store([1, 2, 3], "daily", null, Noon);
+        var changed = cache.Changed;
+
+        cache.Store([1, 2, 3], "daily", null, Noon.AddMinutes(15));
+
+        Assert.False(changed.IsCompleted);
+    }
 }

@@ -25,6 +25,7 @@ public sealed class FrameCache(string directory, ILogger<FrameCache> logger)
     private readonly Lock _lock = new();
     private bool _loaded;
     private (RenderedFrame Info, byte[] Png)? _frame;
+    private TaskCompletionSource _changed = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private string PngPath => Path.Combine(directory, "frame.png");
     private string InfoPath => Path.Combine(directory, "frame.json");
@@ -46,6 +47,15 @@ public sealed class FrameCache(string directory, ILogger<FrameCache> logger)
         }
     }
 
+    /// <summary>Completes the next time the pixels (and so the ETag) change — what a long poll waits on.</summary>
+    public Task Changed
+    {
+        get
+        {
+            lock (_lock) return _changed.Task;
+        }
+    }
+
     /// <summary>Keeps a new render. Pixels identical to the cached ones keep their ETag and RenderedAt.</summary>
     public RenderedFrame Store(byte[] png, string mode, string? photoId, DateTimeOffset at)
     {
@@ -59,6 +69,12 @@ public sealed class FrameCache(string directory, ILogger<FrameCache> logger)
                 : new RenderedFrame(etag, mode, photoId, at, at);
             _frame = (info, unchanged ? _frame!.Value.Png : png);
             Save(info, unchanged ? null : png);
+            if (!unchanged)
+            {
+                // Continuations run asynchronously, so waking the long polls here can't re-enter the lock
+                _changed.TrySetResult();
+                _changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
             return info;
         }
     }

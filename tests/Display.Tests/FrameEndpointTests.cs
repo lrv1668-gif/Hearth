@@ -62,9 +62,9 @@ public sealed class FrameEndpointTests : IDisposable
 
     private string RenderQuery => Uri.UnescapeDataString(_renderer.LastRequestUri!.Query);
 
-    private Task<HttpResponseMessage> Frame(string? ifNoneMatch = null)
+    private Task<HttpResponseMessage> Frame(string? ifNoneMatch = null, int? wait = null)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "/display/frame");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/display/frame" + (wait is null ? "" : $"?wait={wait}"));
         if (ifNoneMatch is not null) request.Headers.IfNoneMatch.Add(EntityTagHeaderValue.Parse(ifNoneMatch));
         return Client.SendAsync(request);
     }
@@ -102,6 +102,7 @@ public sealed class FrameEndpointTests : IDisposable
         var response = await Frame(etag);
 
         Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+        Assert.NotNull(response.Headers.RetryAfter?.Delta);
     }
 
     [Fact]
@@ -231,5 +232,72 @@ public sealed class FrameEndpointTests : IDisposable
         _clock.Advance(FrameRenderService.FlatInterval);
 
         await RendersSince(renders);
+    }
+
+    [Fact]
+    public async Task GetFrame_SendsRetryAfterForTheNextCheck()
+    {
+        var response = await Frame();
+
+        Assert.NotNull(response.Headers.RetryAfter?.Delta);
+    }
+
+    [Fact]
+    public async Task GetFrame_WaitWithAStaleETag_ReturnsTheFrameAtOnce()
+    {
+        await Frame();
+
+        var response = await Frame("\"stale\"", wait: 600);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("frame-a", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task GetFrame_WaitWithTheCurrentETag_ReturnsTheNewFrameWhenItChanges()
+    {
+        var etag = (await Frame()).Headers.ETag!.Tag;
+
+        var poll = Frame(etag, wait: 600);
+        await Task.Delay(100);
+        Assert.False(poll.IsCompleted);
+        _renderer.ResponseJson = "frame-b";
+        await Client.PostAsync("/display/frame/refresh", null);
+        var response = await poll.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("frame-b", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task GetFrame_WaitWithTheCurrentETag_Returns304WhenTheWaitRunsOut()
+    {
+        var etag = (await Frame()).Headers.ETag!.Tag;
+
+        var poll = Frame(etag, wait: 60);
+        // Advance fake time until the request is waiting on it and times out
+        for (var i = 0; i < 100 && !poll.IsCompleted; i++)
+        {
+            await Task.Delay(20);
+            _clock.Advance(TimeSpan.FromSeconds(30));
+        }
+        var response = await poll.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+        Assert.NotNull(response.Headers.RetryAfter?.Delta);
+    }
+
+    [Theory]
+    [InlineData(600, 630)] // the next render in 10 min, plus the grace for it to finish
+    [InlineData(-5, 30)]   // overdue (or rendering now): just the grace
+    public void NextCheck_IsTheNextRenderPlusAGrace(int inSeconds, long expected)
+    {
+        Assert.Equal(expected, Extensions.WebApplicationExtensions.NextCheck(Noon.AddSeconds(inSeconds), Noon));
+    }
+
+    [Fact]
+    public void NextCheck_NothingPlanned_IsNull()
+    {
+        Assert.Null(Extensions.WebApplicationExtensions.NextCheck(null, Noon));
     }
 }
