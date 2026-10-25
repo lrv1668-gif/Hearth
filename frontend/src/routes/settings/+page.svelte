@@ -4,6 +4,7 @@
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
     import { MediaQuery } from 'svelte/reactivity';
+    import { innerHeight } from 'svelte/reactivity/window';
     import { tinykeys } from 'tinykeys';
     import { ChevronLeft, ChevronRight, Eye, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
     import Button from '$lib/components/ui/Button.svelte';
@@ -102,11 +103,28 @@
         measured && frameColumnWidth >= 56 * parseFloat(getComputedStyle(document.documentElement).fontSize)
     );
     let previewOpen = $state(false);
-    $effect(() => {
-        // Grown wide enough for the inline preview: drop the sheet, so it can't reopen by
-        // itself if the width shrinks again.
-        if (previewInline) previewOpen = false;
+    // The inline preview is pinned in view, so it must fit the scroll area's height: what's
+    // left after its card's title, description and padding, and a gap above and below.
+    // Those are read from where the preview starts, never from the preview's own size, so
+    // its height can't feed back into the fit.
+    let mainHeight = $state(0);
+    let previewWrap = $state<HTMLElement>();
+    const previewMaxHeight = $derived.by(() => {
+        void frameColumnWidth; // the card's description rewraps as the column changes
+        const card = previewWrap?.parentElement;
+        if (!previewWrap || !card || !mainHeight) return 0;
+        const style = getComputedStyle(card);
+        const chrome =
+            previewWrap.offsetTop -
+            card.offsetTop +
+            parseFloat(style.paddingBottom) +
+            parseFloat(style.borderBottomWidth);
+        return mainHeight - chrome - 3 * parseFloat(getComputedStyle(document.documentElement).fontSize);
     });
+    // The full-size preview fills its dialog: 85vh, less the dialog's header and padding.
+    const fullPreviewMaxHeight = $derived(
+        (innerHeight.current ?? 0) * 0.85 - 5.5 * parseFloat(getComputedStyle(document.documentElement).fontSize)
+    );
 
     // Wide screens can fold the sidebar away for more room; Mod+B (⌘B / Ctrl+B) brings it back.
     const mac = browser && isMacPlatform(navigator.platform);
@@ -239,6 +257,7 @@
     {#if !picking || isWide.current}
         <main
             bind:this={main}
+            bind:clientHeight={mainHeight}
             class="min-h-0 flex-1 overflow-y-auto px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8
             {active === 'frame' && measured && !previewInline ? 'pb-24' : 'pb-6'}"
         >
@@ -454,7 +473,9 @@
                 {#snippet frameModeContent()}<FrameModeSettings />{/snippet}
                 {#snippet frameModeOptionsContent()}<FrameModeOptions />{/snippet}
                 {#snippet framePreviewContent()}
-                    <FramePreview />
+                    <div bind:this={previewWrap}>
+                        <FramePreview maxHeight={previewMaxHeight} onexpand={() => (previewOpen = true)} />
+                    </div>
                 {/snippet}
                 <!--
                 Wide (container ≥ 56rem): options on the left, the preview pinned beside them
@@ -517,10 +538,15 @@
                         <Eye class="icon-sm" aria-hidden="true" />
                         Preview
                     </button>
-                    <Modal bind:open={previewOpen} title="Preview" size="lg">
-                        <FramePreview />
-                    </Modal>
                 {/if}
+                <!-- The full-size preview: the card's expand button on wide screens, the floating button on narrow ones -->
+                <Modal
+                    bind:open={previewOpen}
+                    title="Preview"
+                    size={frameSettings.orientation === 'portrait' ? 'xl' : 'full'}
+                >
+                    <FramePreview maxHeight={fullPreviewMaxHeight} />
+                </Modal>
             {:else if active === 'diagnostics'}
                 {#snippet servicesContent()}<ServiceHealthSettings />{/snippet}
                 {#snippet logsContent()}<LogsSettings />{/snippet}

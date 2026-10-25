@@ -9,7 +9,7 @@
         onclose?: () => void;
         title: string;
         subtitle?: string;
-        size?: 'sm' | 'md' | 'lg' | 'xl';
+        size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
         /** Rules the header off from a body that scrolls under it. */
         divided?: boolean;
         /** Buttons beside the close button. */
@@ -32,7 +32,13 @@
     }: Props = $props();
 
     const id = $props.id();
-    const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-3xl' };
+    const widths = {
+        sm: 'max-w-sm',
+        md: 'max-w-lg',
+        lg: 'max-w-2xl',
+        xl: 'max-w-3xl',
+        full: 'max-w-[min(96vw,90rem)]',
+    };
 
     let dialog = $state<HTMLDialogElement>();
 
