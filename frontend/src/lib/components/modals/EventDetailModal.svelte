@@ -43,20 +43,20 @@
     {#if event}
         <div class="space-y-3">
             <div class="flex items-center gap-2">
-                <CalendarDays class="icon-sm text-(--text-1)" />
+                <CalendarDays class="icon-sm text-(--text-2)" />
                 <p class="type-body text-(--text-1)">{formatDateRange(event)}</p>
             </div>
 
             {#if event.location}
                 <div class="flex min-w-0 items-start gap-2">
-                    <MapPin class="icon-sm mt-0.5 flex-shrink-0 text-(--text-1)" />
+                    <MapPin class="icon-sm mt-0.5 flex-shrink-0 text-(--text-2)" />
                     <span class="type-body min-w-0 break-words text-(--text-1)">{event.location}</span>
                 </div>
             {/if}
 
             {#if event.description}
                 <div class="flex min-w-0 items-start gap-2">
-                    <TextAlignStart class="icon-sm mt-0.5 flex-shrink-0 text-(--text-1)" />
+                    <TextAlignStart class="icon-sm mt-0.5 flex-shrink-0 text-(--text-2)" />
                     <p class="event-description type-body min-w-0 whitespace-pre-line text-(--text-1)">
                         {@html safeDescription}
                     </p>

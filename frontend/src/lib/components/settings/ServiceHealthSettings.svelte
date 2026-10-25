@@ -41,8 +41,8 @@
     const toneColor: Record<HealthTone, string> = {
         ok: 'text-(--done)',
         unset: 'text-(--text-3)',
-        attention: 'text-(--accent)',
-        down: 'text-(--accent)',
+        attention: 'text-(--danger)',
+        down: 'text-(--danger)',
     };
 </script>
 

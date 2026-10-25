@@ -30,9 +30,11 @@ Defined in two places — update both together:
 1. `src/themes.css` — CSS custom property block `[data-theme="id"] { ... }`
 2. `src/lib/constants/themes.ts` — entry in the `themes` array (the list of themes; don't repeat it in docs other than `docs/SOFTWARE-DESIGN.md`)
 
-Every picker theme must keep `--text-2` ≥ 4.5:1 and `--text-3` ≥ 3:1 against `--bg` (enforced by `src/lib/themes.test.ts`).
+Every picker theme must keep `--text-2` ≥ 4.5:1 and `--text-3` ≥ 3:1 against `--bg`, and `--accent`/`--danger` ≥ 4.5:1 on `--bg`, `--surface` and `--surface-hi` (enforced by `src/lib/themes.test.ts`).
 
-Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme` (for native inputs).
+Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, `--danger`, and `color-scheme` (for native inputs).
+
+`--accent` is the theme's one chromatic hue. Use it sparingly: now/today, chosen or active state, primary actions and widget titles. Never use it for errors (`--danger`) or bulk text. Icons sit one `--text-*` step quieter than the data they label.
 
 ## Frame themes
 

@@ -12,7 +12,7 @@
 </script>
 
 <p
-    class="type-label {tone === 'error' ? 'text-(--accent)' : 'text-(--text-2)'} {extra}"
+    class="type-label {tone === 'error' ? 'text-(--danger)' : 'text-(--text-2)'} {extra}"
     role={tone === 'error' ? 'alert' : undefined}
 >
     {@render children()}

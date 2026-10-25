@@ -60,6 +60,25 @@ describe('theme contrast', () => {
     it.each(themes)('$id: --text-3 meets 3:1 on --bg', ({ tokens }) => {
         expect(contrast(tokens['text-3'], tokens['bg'])).toBeGreaterThanOrEqual(3);
     });
+
+    // --accent and --danger are drawn as text (links, widget titles, errors) on the page
+    // and on the raised tiles, so they need AA body contrast on every background.
+    it.each(themes)('$id: --accent and --danger meet 4.5:1 on every background', ({ tokens }) => {
+        for (const bg of ['bg', 'surface', 'surface-hi']) {
+            expect(contrast(tokens['accent'], tokens[bg])).toBeGreaterThanOrEqual(4.5);
+            expect(contrast(tokens['danger'], tokens[bg])).toBeGreaterThanOrEqual(4.5);
+        }
+    });
+
+    it.each(themes)('$id: --accent-fg meets 4.5:1 on --accent and --accent-hi', ({ tokens }) => {
+        expect(contrast(tokens['accent-fg'], tokens['accent'])).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(tokens['accent-fg'], tokens['accent-hi'])).toBeGreaterThanOrEqual(4.5);
+    });
+
+    // A chromatic accent, not a second copy of the body text colour.
+    it.each(themes)('$id: --accent differs from --text-1', ({ tokens }) => {
+        expect(tokens['accent']).not.toBe(tokens['text-1']);
+    });
 });
 
 describe('frame palettes', () => {
