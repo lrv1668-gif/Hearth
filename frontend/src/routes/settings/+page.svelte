@@ -8,6 +8,7 @@
     import { tinykeys } from 'tinykeys';
     import { ChevronLeft, ChevronRight, Eye, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
     import Button from '$lib/components/ui/Button.svelte';
+    import CardColumns from '$lib/components/ui/CardColumns.svelte';
     import IconButton from '$lib/components/ui/IconButton.svelte';
     import InlineMessage from '$lib/components/ui/InlineMessage.svelte';
     import Modal from '$lib/components/ui/Modal.svelte';
@@ -329,28 +330,29 @@
                 {#snippet feeds()}<FeedSettings />{/snippet}
                 {#snippet trainStops()}<TrainStopSettings />{/snippet}
                 {#snippet sportsTeams()}<SportsTeamSettings />{/snippet}
-                <!-- Two columns of cards once the content area is wide enough -->
-                <div class="@container">
-                    <div class="grid grid-cols-1 gap-4 @4xl:grid-cols-2 @4xl:items-start">
-                        <div class="@4xl:col-span-2">
+                <div class="flex flex-col gap-4">
+                    {@render card(
+                        'Widgets',
+                        'Drag widgets between columns, hide the ones you don’t need, and adjust the column width. Phones show one column — the left first, then the right — with Now Playing above it; the rest of the footer shows on wide screens only.',
+                        widgets
+                    )}
+                    <CardColumns>
+                        {#snippet left()}
+                            {@render card('News Feeds', 'Manage RSS feeds and how many articles to show.', feeds)}
                             {@render card(
-                                'Widgets',
-                                'Drag widgets between columns, hide the ones you don’t need, and adjust the column width. Phones show one column — the left first, then the right — with Now Playing above it; the rest of the footer shows on wide screens only.',
-                                widgets
+                                'Sports',
+                                'The teams the Sports widget and the frame’s Last Result & Next Game follow. Shared by every device.',
+                                sportsTeams
                             )}
-                        </div>
-                        {@render card('News Feeds', 'Manage RSS feeds and how many articles to show.', feeds)}
-                        {@render card(
-                            'Trains & Buses',
-                            'Manage the transit stops you want to see departures for.',
-                            trainStops
-                        )}
-                        {@render card(
-                            'Sports',
-                            'The teams the Sports widget and the frame’s Last Result & Next Game follow. Shared by every device.',
-                            sportsTeams
-                        )}
-                    </div>
+                        {/snippet}
+                        {#snippet right()}
+                            {@render card(
+                                'Trains & Buses',
+                                'Manage the transit stops you want to see departures for.',
+                                trainStops
+                            )}
+                        {/snippet}
+                    </CardColumns>
                 </div>
             {:else if active === 'display'}
                 {#snippet themeContent()}<ThemePicker />{/snippet}
@@ -413,9 +415,8 @@
                         Can't reach the Display service — photo choices here won't be saved or reach the frame.
                     </InlineMessage>
                 {/if}
-                <!-- Two columns of cards once the content area is wide enough -->
-                <div class="@container">
-                    <div class="grid grid-cols-1 gap-4 @4xl:grid-cols-2 @4xl:items-start">
+                <CardColumns>
+                    {#snippet left()}
                         {@render card(
                             'Photo source',
                             'Curated Unsplash photos, your own uploads, or a mix of both — for the frame and every device.',
@@ -428,6 +429,8 @@
                                 categories
                             )}
                         {/if}
+                    {/snippet}
+                    {#snippet right()}
                         {#if frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both'}
                             {@render card('My photos', 'Upload and manage your local photo collection.', localPhotos)}
                         {/if}
@@ -436,8 +439,8 @@
                             'How often the /ambient slideshow in this browser changes photo — slower at night — and whether photos drift. The frame keeps its own schedule.',
                             cadence
                         )}
-                    </div>
-                </div>
+                    {/snippet}
+                </CardColumns>
             {:else if active === 'connections'}
                 {#snippet spotifyContent()}<SpotifyConnectionSettings />{/snippet}
                 {#snippet calendarContent()}<GoogleCalendarConnectionSettings />{/snippet}
