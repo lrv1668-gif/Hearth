@@ -32,7 +32,7 @@ public sealed class WeatherFetcher(HttpClient http)
         var url = string.Create(CultureInfo.InvariantCulture, $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
                   $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index" +
-                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset" +
+                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max" +
                   $"&temperature_unit=fahrenheit&wind_speed_unit=mph" +
                   $"&timezone=auto&forecast_days=7");
 
@@ -61,6 +61,8 @@ public sealed class WeatherFetcher(HttpClient http)
         var minTemps    = daily.GetProperty("temperature_2m_min");
         var sunrises    = daily.GetProperty("sunrise");
         var sunsets     = daily.GetProperty("sunset");
+        // The day's peak UV, for screens that don't refresh live; Open-Meteo leaves gaps as null.
+        var uvMaxes     = daily.TryGetProperty("uv_index_max", out var uvMaxEl) ? uvMaxEl : (JsonElement?)null;
 
         var forecast = new List<ForecastDayResponse>();
         for (int i = 0; i < dates.GetArrayLength(); i++)
@@ -73,7 +75,9 @@ public sealed class WeatherFetcher(HttpClient http)
                 maxTemps[i].GetDouble(),
                 minTemps[i].GetDouble(),
                 sunrises[i].GetString()!,
-                sunsets[i].GetString()!));
+                sunsets[i].GetString()!,
+                uvMaxes is { } uv && i < uv.GetArrayLength() && uv[i].ValueKind == JsonValueKind.Number
+                    ? uv[i].GetDouble() : null));
         }
 
         return new WeatherSnapshot(currentResponse, forecast);

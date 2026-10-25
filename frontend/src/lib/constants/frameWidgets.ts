@@ -25,7 +25,7 @@ export interface FrameLayout {
 
 // Always shown on the frame, outside the columns.
 export const fixedFrameHeader = [{ label: 'Edition, Date & Sun Path' }] as const;
-export const fixedFrameFooter = [{ label: '5-Day Forecast' }] as const;
+export const fixedFrameFooter = [{ label: 'Conditions & 5-Day Forecast' }] as const;
 
 /** Widgets per column. Each widget's item count shrinks to fit what shares its
  *  column (see allocateLines in lib/frame.ts); three is the most that stays legible. */

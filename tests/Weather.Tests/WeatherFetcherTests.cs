@@ -17,7 +17,8 @@ public sealed class WeatherFetcherTests
         "temperature_2m_min": [60.0, 58.5],
         "weather_code": [0, 999],
         "sunrise": ["2026-06-28T05:30", "2026-06-29T05:31"],
-        "sunset": ["2026-06-28T20:30", "2026-06-29T20:29"]
+        "sunset": ["2026-06-28T20:30", "2026-06-29T20:29"],
+        "uv_index_max": [7.6, null]
       }
     }
     """;
@@ -82,7 +83,33 @@ public sealed class WeatherFetcherTests
         var (current, _) = await fetcher.FetchAsync(40.0, -75.0);
 
         Assert.Equal(6.4, current.UvIndex);
+        Assert.Equal("High", current.UvCategory);
         Assert.Equal(42, current.UsAqi);
+        Assert.Equal("Good", current.AqiCategory);
+    }
+
+    [Fact]
+    public async Task FetchAsync_DailyUvIndexMax_MapsPeakAndNullGaps()
+    {
+        var fetcher = MakeFetcher(ValidJson);
+
+        var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.Equal(7.6, forecast[0].UvIndexMax);
+        Assert.Equal("Very high", forecast[0].UvMaxCategory);
+        Assert.Null(forecast[1].UvIndexMax);
+        Assert.Null(forecast[1].UvMaxCategory);
+    }
+
+    [Fact]
+    public async Task FetchAsync_DailyUvIndexMaxMissing_ReturnsNullPeak()
+    {
+        var noUvMaxJson = ValidJson.Replace("\"uv_index_max\"", "\"unused\"");
+        var fetcher = MakeFetcher(noUvMaxJson);
+
+        var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.All(forecast, day => Assert.Null(day.UvIndexMax));
     }
 
     [Fact]

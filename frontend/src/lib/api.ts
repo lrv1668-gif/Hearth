@@ -86,6 +86,9 @@ export interface CurrentWeather {
     fetched_at: string;
     uv_index: number | null;
     us_aqi: number | null;
+    /** Plain-language bands from the Weather service (WHO UV, EPA AQI). */
+    uv_category: string | null;
+    aqi_category: string | null;
 }
 
 export interface ForecastDay {
@@ -96,6 +99,9 @@ export interface ForecastDay {
     temp_min_f: number;
     sunrise: string;
     sunset: string;
+    /** The day's peak UV — what a scheduled frame shows, since the current UV is 0 at dawn. */
+    uv_index_max: number | null;
+    uv_max_category: string | null;
 }
 
 export interface Photo {
