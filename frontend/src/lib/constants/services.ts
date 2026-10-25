@@ -7,6 +7,7 @@ export const hearthServices = [
     { id: 'almanac', label: 'Almanac' },
     { id: 'birds', label: 'Birds' },
     { id: 'trains', label: 'Trains & buses' },
+    { id: 'sports', label: 'Sports' },
     { id: 'rss', label: 'News feeds' },
     { id: 'quote', label: 'Quote' },
     { id: 'spotify', label: 'Spotify' },

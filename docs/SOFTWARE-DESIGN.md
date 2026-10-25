@@ -20,6 +20,7 @@ Browser
         ├── /almanac*  → Almanac    :8089
         ├── /display*  → Display    :8090
         ├── /trains*   → Trains     :8091
+        ├── /sports*   → Sports     :8094
         ├── /logs*     → Dozzle     :8080  (container logs, opt-in, own login)
         └── /*         → Frontend   :3000
 ```
@@ -35,7 +36,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 - Tailwind v4 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
 - API calls are centralised in `frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
-- In development, Vite proxies each API path (`/tasks`, `/weather`, `/spotify`, `/photos`, `/rss`, `/quote`, `/calendar`, `/birds`, `/almanac`, `/trains`) to its service's `$<NAME>_URL` env var; in production, Caddy handles the same routing
+- In development, Vite proxies each API path (`/tasks`, `/weather`, `/spotify`, `/photos`, `/rss`, `/quote`, `/calendar`, `/birds`, `/almanac`, `/trains`, `/sports`) to its service's `$<NAME>_URL` env var; in production, Caddy handles the same routing
 
 ### Shared UI components
 
@@ -96,7 +97,7 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 - **Countdown** (`components/frame/modes/FrameCountdownHero.svelte`): one countdown as a poster — the day count at `.type-poster` (400px) in the display face, a `--block` rule, the title and date. `heroCountdown()` shows the frame settings' `countdown_id` while it's ahead, else the next one coming up.
 - **Night** (`components/frame/modes/FrameNight.svelte`): a large moon in tonight's phase (drawn like `MoonPhaseView`, from `calcMoonPhase`/`moonPath`), its name and illumination, and one line with the next sunrise (`nextSunrise()`) and the temperature. Meant for overnight schedule rules.
 - **Note** (`components/frame/modes/FrameNote.svelte`): the frame settings' `note_title` in the display face over a `--block` rule, then `note_body` one paragraph per typed line (blank lines become gaps). Sized by measuring: `fitFontSize()` in `lib/frame.ts` binary-searches the largest px size (22–320 × `--frame-scale`) at which it fits the panel, once with lines kept whole (`nowrap`) and once wrapping, and keeps the unwrapped size unless it's under 60% of the wrapped one. It refits after `document.fonts.ready` and when the preview swaps `data-font`, so sizes are inline px rather than `.type-*` classes.
-- **Daily** (`FrameDaily.svelte`), laid out as today's edition of an almanac: a compact masthead (`FrameDateBlock` — the day of the month on a solid `--block` square; `FrameEditionLine` — a small-caps line with the day-of-year issue number, the season and days to its next marker, from the Almanac service — over the weekday in the display face; `FrameSunPath` — today's daylight as a low dome with the elapsed part filled, the sun as an accent disc, the temperature under the dome, sunrise and sunset beside its base and the daylight length below a hatched horizon) and a 5-day forecast band (`FrameForecast` — a conditions line with the current wind, today's peak UV and the air quality, each with its category word, over low–high range bars on one shared scale over a hatched track; peak rather than current UV because the frame redraws on a schedule), with two configurable widget columns between them (`left`/`right`, up to 3 each, at `split`%). Frame widgets are registered in `constants/frameWidgets.ts`. Moon Phase, Daily Quote, Birds Nearby and Almanac are shared views in `components/widgets/views/` (`MoonPhaseView`, `DailyQuoteView`, `BirdSightingsView`, `AlmanacView`) that the dashboard widgets wrap with loading and polling and the frame renders directly with a `lines` budget; they size off `type-*`/`icon-*` tokens and em units, so the frame's larger tokens scale them, and the frame route sets `--stroke: 3px` and restyles their `.meter` bar as an outlined pure-ink bar. Today's Arc reuses `DayArcWidget`. Today, Coming Up, Week Ahead and Countdowns are frame-specific designs in `components/frame/widgets/` (the dashboard versions are interactive), as is Last Played (the latest Spotify track with its album art, when it played, and this month's top artist — the dashboard has live now-playing instead), sharing their selection logic through `lib/frame.ts` (e.g. both countdown widgets use `upcomingCountdowns`). Trains and now-playing are deliberately excluded — they go stale between scheduled refreshes; Last Played stands in for now-playing. In portrait the two columns stay side by side at `split`% (about 500px each at an even split; Coming Up's rail moves the day and time above each title when its column is under 640px, and the countdown stamps fit fewer per row), and the masthead keeps the edition line and weekday under the date block, beside the sun path.
+- **Daily** (`FrameDaily.svelte`), laid out as today's edition of an almanac: a compact masthead (`FrameDateBlock` — the day of the month on a solid `--block` square; `FrameEditionLine` — a small-caps line with the day-of-year issue number, the season and days to its next marker, from the Almanac service — over the weekday in the display face; `FrameSunPath` — today's daylight as a low dome with the elapsed part filled, the sun as an accent disc, the temperature under the dome, sunrise and sunset beside its base and the daylight length below a hatched horizon) and a 5-day forecast band (`FrameForecast` — a conditions line with the current wind, today's peak UV and the air quality, each with its category word, over low–high range bars on one shared scale over a hatched track; peak rather than current UV because the frame redraws on a schedule), with two configurable widget columns between them (`left`/`right`, up to 3 each, at `split`%). Frame widgets are registered in `constants/frameWidgets.ts`. Moon Phase, Daily Quote, Birds Nearby and Almanac are shared views in `components/widgets/views/` (`MoonPhaseView`, `DailyQuoteView`, `BirdSightingsView`, `AlmanacView`) that the dashboard widgets wrap with loading and polling and the frame renders directly with a `lines` budget; they size off `type-*`/`icon-*` tokens and em units, so the frame's larger tokens scale them, and the frame route sets `--stroke: 3px` and restyles their `.meter` bar as an outlined pure-ink bar. Today's Arc reuses `DayArcWidget`. Today, Coming Up, Week Ahead and Countdowns are frame-specific designs in `components/frame/widgets/` (the dashboard versions are interactive), as is Last Played (the latest Spotify track with its album art, when it played, and this month's top artist — the dashboard has live now-playing instead), sharing their selection logic through `lib/frame.ts` (e.g. both countdown widgets use `upcomingCountdowns`). Trains, now-playing and live scores are deliberately excluded — they go stale between scheduled refreshes; Last Played stands in for now-playing, and Last Result & Next Game (`FrameSports.svelte`) shows a game in progress as "Playing now" with no score. In portrait the two columns stay side by side at `split`% (about 500px each at an even split; Coming Up's rail moves the day and time above each title when its column is under 640px, and the countdown stamps fit fewer per row), and the masthead keeps the edition line and weekday under the date block, beside the sun path.
 - **Visual language:** one 3px line weight for rules, check boxes, leaders and icon strokes (`setLucideProps({ strokeWidth: 3, absoluteStrokeWidth: true })` in the route); widget kickers (tracked caps led by a `--block` square) instead of underlined headings; large shapes in the pure `--block` ink, which never dithers; tints only in the forecast band; and one texture, `.hatch` (vertical 3px pure-ink lines every 9px). Display numerals use `--display-family` with the frame-only `.type-date` / `.type-hero` / `.type-stamp` sizes. Today is a ledger (dotted leader to the due time), Coming Up a rail (day and time in the margin, a pin per event), Countdowns a row of stamps (the soonest filled with `--accent`).
 - **Fitting the space:** FrameDaily measures each column's height in lines of body text (via a hidden probe, so font presets count) and `allocateLines()` in `lib/frame.ts` splits it: every widget pays for its heading and gaps, fixed-height widgets (arc, moon, the countdown stamps, Last Played's album square) take what they need, and the rest is shared evenly. Each widget trims its list to its share — and, as a last resort, clips inside its own box rather than pushing a neighbour off the panel. Selection logic (`todayTasks`, `nextEvents`, `weekAhead`, `upcomingCountdowns`) and the masthead's small derivations (`sunProgress`, `weatherSentence`, `forecastBars`, `dayOfYear`) live in `lib/frame.ts` too.
 - Portrait is for a frame hung on its side; the Ambient photo is requested in the matching orientation, and the Display service rotates the capture to the panel's native landscape.
@@ -140,6 +141,7 @@ Shortcuts are bound with [tinykeys](https://github.com/jamiebuilds/tinykeys), wh
 | `birds`        | `BirdsStore.svelte.ts`      | Server (SQLite) | Nearby bird sightings; refreshed hourly by `BirdsWidget`              |
 | `almanac`      | `AlmanacStore.svelte.ts`    | Server (computed) | Season/daylight/frost facts; loaded by `AlmanacWidget` and the frame |
 | `trains`       | `TrainsStore.svelte.ts`     | Server (SQLite) | Departures for subscribed stops; refreshed every 60 s by `TrainsWidget` |
+| `sportsStore`  | `SportsStore.svelte.ts`     | Server (SQLite) | Followed teams' games; refreshed by `SportsWidget` every 30 s during a game, else every 5 min, and once per render by the frame |
 | `kioskStore`   | `KioskStore.svelte.ts`      | URL param       | True when `settings.kioskMode` is on or `?kiosk=1` is in the URL    |
 
 Polled stores keep their last good data when a background refresh fails — the error state only shows when there's nothing to display yet.
@@ -250,6 +252,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `almanac`  | 8089 | Implemented | Season/daylight/frost facts, computed locally (no external API, no DB) |
 | `display`  | 8090 | Partial     | Shared e-paper frame settings, the dithered frame preview and the scheduled panel render at `GET /display/frame` (via the `renderer` sidecar); presence and Color ↔ B&W endpoints are planned (`HARDWARE.md`) |
 | `trains`   | 8091 | Implemented | Transitland departures for subscribed stops, cached for 45 seconds   |
+| `sports`   | 8094 | Implemented | Followed teams' live games, results and fixtures from ESPN, cached for 30 seconds while live |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
@@ -860,6 +863,37 @@ Stored in `src/Trains/.env`.
 
 `TrainsStore.svelte.ts` loads departures for every stop key in `settings.trainStops` via `api.trains.departures()`, which builds repeated `?stop=` query params and returns `null` on any non-OK response (the store then keeps the last good board). The widget refreshes every 60 seconds. `TrainsWidget.svelte` groups departures by line, shows up to 3 upcoming times per line (e.g. "5, 20, 38 min"), clusters bus vs. train/rail lines (whichever has the soonest departure first), and applies each stop's `lineFilter`. `TrainStopSettings.svelte` is the Settings-page UI for subscribing to stops (`subscribeToTrainStop` / `unsubscribeFromTrainStop`) and configuring per-line filters.
 
+## Sports Service
+
+The `sports` service follows the household's teams through ESPN's public site API (`site.api.espn.com/apis/site/v2/sports/{sport}/{league}/…` — keyless but undocumented, so it can change without notice). The leagues it offers are listed in `Leagues.cs`: NWSL, MLS, Premier League, NFL, NBA, WNBA, MLB and NHL. Followed teams are saved in its SQLite file (`followed_teams`), not per browser, so the frame's headless render follows the same teams as every screen.
+
+### Endpoints
+
+| Method   | Path                                 | Description                                                                 |
+| -------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| `GET`    | `/sports/leagues`                    | The leagues on offer: `{ key, name, sport, path }[]`                        |
+| `GET`    | `/sports/leagues/{league}/teams`     | That league's teams, by name; `404` for an unknown league, `502` if ESPN never answered |
+| `GET`    | `/sports/followed`                   | Followed teams, in the order they were followed                             |
+| `POST`   | `/sports/followed`                   | `{ league, team_id }` — looks the team up in the league's list and saves its names and logo; returns the followed list (`400` unknown league, `404` unknown team) |
+| `DELETE` | `/sports/followed/{league}/{teamId}` | Unfollows a team (`204`)                                                    |
+| `GET`    | `/sports/games`                      | `{ teams: TeamGames[], next_poll_seconds }` — each followed team's live game, last result (with its `outcome`) and next game |
+
+Each team's games come from three ESPN calls, merged by event id with the latest copy winning: the team's schedule (results), the same schedule with `?fixture=true` (soccer only — the plain soccer schedule holds no future games) and the league's current scoreboard, which carries the live clock. `EspnFetcher` maps both of ESPN's event shapes — scores are strings on the scoreboard and `{ value }` objects on the schedule, and logos and broadcasts nest differently — into one `Game`: `state` (`pre`, `in`, `post`), `completed` (false for a postponed game), `status` (ESPN's short detail: `72'`, `HT`, `FT`, `Final/OT`…), both competitors with score, shootout score and record, the broadcast networks and a note such as a playoff round. Scores are null before kickoff. `outcome` is `win`, `loss` or `draw` from the followed team's side, with a shootout deciding a level score. One failed feed is logged and drops only its games. ESPN gzips some responses unasked, so the fetcher's handler decompresses automatically.
+
+### Caching
+
+| Entry                                | TTL                                   | Fail-safe |
+| ------------------------------------ | ------------------------------------- | --------- |
+| `sports:teams:{league}`              | 24 hours                              | 30 days   |
+| `sports:schedule:{league}:{team}:…`  | 30 minutes                            | 3 days    |
+| `sports:scoreboard:{league}`         | 30 seconds while a game is live, else 5 minutes | 6 hours |
+
+`next_poll_seconds` follows the scoreboard: 30 while any followed team is playing, 300 otherwise. No environment variables beyond `DB_PATH` (default `sports.db`) and `ASPNETCORE_HTTP_PORTS` (`8094`).
+
+### Frontend integration
+
+`SportsStore.svelte.ts` holds the board (`loadSports`) and the followed list (`loadFollowedTeams`, `followTeam`, `unfollowTeam`). `SportsWidget.svelte` (dashboard) shows each team with a live strip — status, score and network — while a game is on, then the last result and the next game; it asks again after `next_poll_seconds`. Settings → Dashboard → Sports (`SportsTeamSettings.svelte`) picks a league, then a team. The frame's Last Result & Next Game card (`FrameSports.svelte`, frame-only) shows each team's abbreviation on a `--block` tab (crests dither badly to six inks), its last result and next game, and a game in progress as "Playing now" with no score, since a live score would be wrong for most of the 15 minutes between redraws. The wording lives in `lib/sports.ts`: "Won 3–2 at Denver", "2–2 (4–3 pens)" for a soccer shootout, `playedLabel` for when it was played ("last night") and `upcomingLabel` for the next game ("Tonight 7:10 PM", "Saturday 3:00 PM").
+
 ## Routing
 
 **Caddy** acts as the reverse proxy and TLS terminator. URL-prefix routing maps paths to services:
@@ -877,6 +911,7 @@ Stored in `src/Trains/.env`.
 /almanac/*          →  almanac:8089
 /display/*          →  display:8090
 /trains/*           →  trains:8091
+/sports/*           →  sports:8094
 /                   →  frontend:3000
 ```
 

@@ -11,6 +11,7 @@
     import FrameWeek from './widgets/FrameWeek.svelte';
     import FrameCountdowns from './widgets/FrameCountdowns.svelte';
     import FrameLastPlayed from './widgets/FrameLastPlayed.svelte';
+    import FrameSports from './widgets/FrameSports.svelte';
     import AlmanacView from '$lib/components/widgets/views/AlmanacView.svelte';
     import MoonPhaseView from '$lib/components/widgets/views/MoonPhaseView.svelte';
     import DailyQuoteView from '$lib/components/widgets/views/DailyQuoteView.svelte';
@@ -80,6 +81,8 @@
             <BirdSightingsView sightings={birdsStore.sightings} {now} lines={n} />
         {:else if id === 'last-played'}
             <FrameLastPlayed {now} />
+        {:else if id === 'sports'}
+            <FrameSports {now} lines={n} />
         {/if}
     </section>
 {/snippet}

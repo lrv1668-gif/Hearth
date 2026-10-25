@@ -10,6 +10,7 @@
     import { loadDailyQuote } from '$lib/stores/DailyQuoteStore.svelte.ts';
     import { loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
     import { loadLastPlayed } from '$lib/stores/LastPlayedStore.svelte.ts';
+    import { loadSports } from '$lib/stores/SportsStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
     import { SECOND } from '$lib/utils';
     import {
@@ -117,6 +118,7 @@
         quote: loadDailyQuote,
         birds: loadBirds,
         'last-played': loadLastPlayed,
+        sports: loadSports,
     };
 
     const now = new Date();

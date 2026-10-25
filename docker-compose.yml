@@ -197,6 +197,22 @@ services:
         volumes:
             - trains-data:/data
 
+    sports:
+        <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-sports:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/sports/health"]
+        build:
+            context: ./src
+            args:
+                SERVICE: Sports
+        environment:
+            - DB_PATH=/data/sports.db
+            - ASPNETCORE_HTTP_PORTS=8094
+        volumes:
+            - sports-data:/data
+
     display:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-display:${HEARTH_TAG:-latest}
@@ -274,6 +290,7 @@ services:
             - birds
             - almanac
             - trains
+            - sports
             - display
 
     caddy:
@@ -330,6 +347,7 @@ volumes:
     calendar-data:
     birds-data:
     trains-data:
+    sports-data:
     display-data:
     caddy-data:
     caddy-config:
