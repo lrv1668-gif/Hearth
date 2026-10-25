@@ -173,6 +173,7 @@ createServer(async (req, res) => {
     res.on('close', () => {
         if (!res.writableEnded) gone.abort();
     });
+    const started = Date.now();
     try {
         const png = await queue.run(async (timedOut) => {
             if (gone.signal.aborted) return null;
@@ -180,6 +181,10 @@ createServer(async (req, res) => {
             return render(await screenshot(path, width, height, zone, signal), { method, kernel, look, rotate });
         });
         if (gone.signal.aborted) return;
+        console.log(
+            `rendered ${path} ${width}×${height} dither=${method} kernel=${kernel} look=${look} rotate=${rotate} ` +
+                `zone=${zone ?? 'UTC'} in ${Date.now() - started} ms`,
+        );
         res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' }).end(png);
     } catch (error) {
         if (gone.signal.aborted) return;
