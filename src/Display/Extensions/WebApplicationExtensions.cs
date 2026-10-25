@@ -102,8 +102,10 @@ public static class WebApplicationExtensions
     /// </summary>
     private static void AddModeEndpoints(this WebApplication app)
     {
-        app.MapGet("/display/mode", (ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock) =>
-            Results.Ok(ModeResolver.Resolve(store.GetSchedule(), store.GetOverride(), clock.GetUtcNow(), HomeZones.Resolve(home.Get(), config))));
+        app.MapGet("/display/mode", (
+            ModeStore store, FrameSettingsStore settings, HomeSettingsStore home, IConfiguration config, TimeProvider clock) =>
+            Results.Ok(ModeResolver.Resolve(
+                store.GetSchedule(), store.GetOverride(), clock.GetUtcNow(), HomeZones.Resolve(home.Get(), config), settings.Get())));
 
         app.MapGet("/display/mode/schedule", (ModeStore store) => Results.Ok(store.GetSchedule()));
 
@@ -137,17 +139,21 @@ public static class WebApplicationExtensions
             return Results.NoContent();
         });
 
-        // Step to the next mode, holding it until the schedule's next change.
+        // Step to the next mode, holding it until the schedule's next change — a rule's
+        // window ending or a rotating rule's next step, so the rotation picks up again.
         app.MapPost("/display/mode/next", (
-            ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock, FrameRenderService frame) =>
+            ModeStore store, FrameSettingsStore settings, HomeSettingsStore home, IConfiguration config,
+            TimeProvider clock, FrameRenderService frame) =>
         {
             var now = clock.GetUtcNow();
             var zone = HomeZones.Resolve(home.Get(), config);
             var schedule = store.GetSchedule();
-            var current = ModeResolver.Resolve(schedule, store.GetOverride(), now, zone);
-            store.SetOverride(new ModeOverride(FrameModes.Next(current.Mode), ModeResolver.NextBoundary(schedule, now, zone)));
+            var quiet = settings.Get();
+            var current = ModeResolver.Resolve(schedule, store.GetOverride(), now, zone, quiet);
+            var scheduled = ModeResolver.Resolve(schedule, null, now, zone, quiet);
+            store.SetOverride(new ModeOverride(FrameModes.Next(current.Mode), scheduled.Until));
             frame.Invalidate();
-            return Results.Ok(ModeResolver.Resolve(schedule, store.GetOverride(), now, zone));
+            return Results.Ok(ModeResolver.Resolve(schedule, store.GetOverride(), now, zone, quiet));
         });
     }
 

@@ -28,7 +28,7 @@ public sealed record FrameStatus(
 /// last frame and retries after <see cref="RetryDelay"/> (<see cref="FirstRetryDelay"/>
 /// while nothing is cached, e.g. the renderer is still starting), or as soon as the mode
 /// moves on. Inside Settings → Frame's quiet hours the interval renders wait for them to end
-/// (<see cref="QuietHours"/>).
+/// (<see cref="QuietHours"/>), and a rotating schedule rule holds its step until they end.
 /// A failure reading the settings or schedule is logged and retried; it never stops the service.
 /// </para>
 /// </summary>
@@ -138,8 +138,8 @@ public sealed class FrameRenderService(
             {
                 var now = clock.GetUtcNow();
                 var zone = HomeZones.Resolve(home.Get(), config);
-                var mode = ModeResolver.Resolve(modes.GetSchedule(), modes.GetOverride(), now, zone);
                 var saved = settings.Get();
+                var mode = ModeResolver.Resolve(modes.GetSchedule(), modes.GetOverride(), now, zone, saved);
                 bool queued;
                 DateTimeOffset due;
                 lock (_lock)
@@ -176,7 +176,7 @@ public sealed class FrameRenderService(
     }
 
     private ResolvedMode Resolve(DateTimeOffset now) =>
-        ModeResolver.Resolve(modes.GetSchedule(), modes.GetOverride(), now, HomeZones.Resolve(home.Get(), config));
+        ModeResolver.Resolve(modes.GetSchedule(), modes.GetOverride(), now, HomeZones.Resolve(home.Get(), config), settings.Get());
 
     private async Task RenderAsync(ResolvedMode mode, CancellationToken stop)
     {

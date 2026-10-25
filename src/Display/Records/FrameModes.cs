@@ -30,9 +30,23 @@ public static class FrameModes
 /// before Start runs past midnight into the next day; equal times mean all day.
 /// </summary>
 /// <param name="Days">"mon".."sun" — the days the window starts on.</param>
-public sealed record ModeRule(string Mode, IReadOnlyList<string> Days, string Start, string End)
+/// <param name="Rotate">
+/// Modes to step on to after <paramref name="Mode"/>, one every <paramref name="RotateMinutes"/>,
+/// wrapping round — a TRMNL-style playlist. Each window starts on <paramref name="Mode"/>.
+/// </param>
+public sealed record ModeRule(
+    string Mode, IReadOnlyList<string> Days, string Start, string End,
+    IReadOnlyList<string>? Rotate = null, int? RotateMinutes = null)
 {
     public static readonly string[] DayIds = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    public const int MaxRotate = 5;
+    public const int MinRotateMinutes = 5;
+    public const int MaxRotateMinutes = 24 * 60;
+
+    /// <summary>The modes the rule shows, in order: <see cref="Mode"/>, then <see cref="Rotate"/>.</summary>
+    [JsonIgnore] public IReadOnlyList<string> Modes => [Mode, .. Rotate ?? []];
+
+    [JsonIgnore] public bool Rotates => Rotate is { Count: > 0 };
 
     [JsonIgnore] public TimeOnly StartTime => TimeOnly.ParseExact(Start, "HH:mm", CultureInfo.InvariantCulture);
     [JsonIgnore] public TimeOnly EndTime => TimeOnly.ParseExact(End, "HH:mm", CultureInfo.InvariantCulture);
@@ -45,6 +59,11 @@ public sealed record ModeRule(string Mode, IReadOnlyList<string> Days, string St
         if (Days is null || Days.Count == 0) return "a rule needs at least one day";
         if (Days.Any(d => !DayIds.Contains(d))) return "days must be sun, mon, tue, wed, thu, fri or sat";
         if (!IsTime(Start) || !IsTime(End)) return "start and end must be HH:mm";
+        if (Rotate is not null && Rotate.Any(m => !FrameModes.IsValid(m)))
+            return $"rotate modes must be one of {string.Join(", ", FrameModes.All)}";
+        if (Rotate is { Count: > MaxRotate }) return $"a rule rotates through at most {MaxRotate + 1} modes";
+        if (Rotates && RotateMinutes is not (>= MinRotateMinutes and <= MaxRotateMinutes))
+            return $"rotate_minutes must be {MinRotateMinutes}–{MaxRotateMinutes} when a rule rotates";
         return null;
     }
 

@@ -127,6 +127,88 @@ public sealed class ModeResolverTests
         Assert.Equal(new ResolvedMode(FrameModes.Daily, "schedule", Mon(14)), resolved);
     }
 
+    private static readonly ModeRule RotatingMornings =
+        Mornings with { Rotate = [FrameModes.Photo, FrameModes.Countdown], RotateMinutes = 30 };
+
+    private static FrameSettings Quiet(string start, string end) =>
+        new("almanac", "inter", "landscape", [], [], 50, QuietStart: start, QuietEnd: end);
+
+    [Theory]
+    [InlineData(7, 0, "daily", 7, 30)]
+    [InlineData(7, 45, "photo", 8, 0)]
+    [InlineData(8, 10, "countdown", 8, 30)]
+    [InlineData(8, 40, "daily", 9, 0)] // wraps round
+    public void Resolve_RotatingRule_StepsEveryIntervalFromTheWindowStart(
+        int hour, int minute, string mode, int untilHour, int untilMinute)
+    {
+        var schedule = new ModeSchedule(FrameModes.Ambient, [RotatingMornings]);
+
+        var resolved = ModeResolver.Resolve(schedule, null, Mon(hour, minute), Utc);
+
+        Assert.Equal(new ResolvedMode(mode, "schedule", Mon(untilHour, untilMinute)), resolved);
+    }
+
+    [Fact]
+    public void Resolve_RotatingRule_LastStepEndsWithTheWindow()
+    {
+        // Steps at 07:00, 07:45, 08:30; the next (09:15) is past the window's 09:00 end
+        var schedule = new ModeSchedule(FrameModes.Ambient, [RotatingMornings with { RotateMinutes = 45 }]);
+
+        Assert.Equal(new ResolvedMode(FrameModes.Countdown, "schedule", Mon(9)), ModeResolver.Resolve(schedule, null, Mon(8, 40), Utc));
+    }
+
+    [Fact]
+    public void Resolve_RotatingOvernightRule_CountsFromTheEveningStart()
+    {
+        var schedule = new ModeSchedule(FrameModes.Ambient, [Nights with { Rotate = [FrameModes.Ambient], RotateMinutes = 60 }]);
+        var tuesday = Mon(0).AddDays(1);
+
+        Assert.Equal(FrameModes.Ambient, ModeResolver.Resolve(schedule, null, tuesday.AddMinutes(30), Utc).Mode);
+        Assert.Equal(FrameModes.Night, ModeResolver.Resolve(schedule, null, tuesday.AddMinutes(90), Utc).Mode);
+    }
+
+    [Fact]
+    public void Resolve_RotatingRuleInQuietHours_HoldsTheStepTheyBeganOnUntilTheyEnd()
+    {
+        var schedule = new ModeSchedule(FrameModes.Ambient, [Nights with { Rotate = [FrameModes.Ambient], RotateMinutes = 60 }]);
+        var tuesday = Mon(0).AddDays(1);
+        var quiet = Quiet("00:00", "05:00");
+
+        // 00:00 is the second hourly step (Ambient); it holds to 05:00, then the clock takes over again
+        Assert.Equal(new ResolvedMode(FrameModes.Ambient, "schedule", tuesday.AddHours(5)),
+            ModeResolver.Resolve(schedule, null, tuesday.AddHours(2.5), Utc, quiet));
+        Assert.Equal(new ResolvedMode(FrameModes.Night, "schedule", tuesday.AddHours(6)),
+            ModeResolver.Resolve(schedule, null, tuesday.AddHours(5.5), Utc, quiet));
+    }
+
+    [Fact]
+    public void Resolve_RotatingRuleStartingInQuietHours_HoldsItsFirstMode()
+    {
+        var schedule = new ModeSchedule(FrameModes.Ambient, [Nights with { Rotate = [FrameModes.Ambient], RotateMinutes = 60 }]);
+        var tuesday = Mon(0).AddDays(1);
+
+        Assert.Equal(new ResolvedMode(FrameModes.Night, "schedule", tuesday.AddHours(5)),
+            ModeResolver.Resolve(schedule, null, tuesday.AddHours(2), Utc, Quiet("22:00", "05:00")));
+    }
+
+    [Fact]
+    public void Resolve_QuietHours_DoNotChangeAPlainRule()
+    {
+        Assert.Equal(new ResolvedMode(FrameModes.Daily, "schedule", Mon(9)),
+            ModeResolver.Resolve(Schedule, null, Mon(8), Utc, Quiet("07:00", "10:00")));
+    }
+
+    [Fact]
+    public void RuleValidate_BadRotation_ReturnsError()
+    {
+        Assert.NotNull((RotatingMornings with { Rotate = ["poster"] }).Validate());
+        Assert.NotNull((RotatingMornings with { RotateMinutes = null }).Validate());
+        Assert.NotNull((RotatingMornings with { RotateMinutes = 1 }).Validate());
+        Assert.NotNull((RotatingMornings with { Rotate = [.. FrameModes.All] }).Validate());
+        Assert.Null(RotatingMornings.Validate());
+        Assert.Null((Mornings with { Rotate = [] }).Validate());
+    }
+
     [Theory]
     [InlineData("ambient", "daily")]
     [InlineData("night", "note")]

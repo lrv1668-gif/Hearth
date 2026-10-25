@@ -308,12 +308,15 @@ export interface FrameStatus {
 }
 
 /** A time-of-day schedule rule ("HH:mm", household time); an end before the start
- *  runs past midnight, equal times mean all day. */
+ *  runs past midnight, equal times mean all day. With `rotate`, the rule steps from
+ *  `mode` through those modes every `rotate_minutes`, starting each window on `mode`. */
 export interface ModeRule {
     mode: FrameModeId;
     days: ModeDay[];
     start: string;
     end: string;
+    rotate?: FrameModeId[] | null;
+    rotate_minutes?: number | null;
 }
 
 /** The frame's default mode plus its rules; the first matching rule wins. */
