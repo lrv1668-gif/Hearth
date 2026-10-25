@@ -42,6 +42,9 @@
     handle /trains* {
         reverse_proxy trains:8091
     }
+    handle /sports* {
+        reverse_proxy sports:8094
+    }
     handle /display* {
         reverse_proxy display:8090
     }

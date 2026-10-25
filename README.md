@@ -17,8 +17,8 @@ A calm, self-hosted home dashboard for a wall-mounted e-paper frame and any brow
 
 ## What it shows
 
-- **Dashboard widgets:** Agenda (tasks and calendar events), Weather, Countdowns, Moon Phase, Today's News (RSS), Daily Quote, Today's Arc, Birds Nearby, Almanac, Trains & Buses, plus Now Playing from Spotify.
-- **Frame modes:** Ambient, Daily (Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played), Photo, Countdown, Night and Note, on a schedule you set in Settings → Frame.
+- **Dashboard widgets:** Agenda (tasks and calendar events), Weather, Countdowns, Moon Phase, Today's News (RSS), Daily Quote, Today's Arc, Birds Nearby, Almanac, Trains & Buses, Sports, plus Now Playing from Spotify.
+- **Frame modes:** Ambient, Daily (Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played, Last Result & Next Game), Photo, Countdown, Night and Note, on a schedule you set in Settings → Frame.
 - **Pages:** `/` dashboard, `/calendar` month grid, `/ambient` photo slideshow, `/settings`, `/frame` e-paper render target, and an optional `/logs` (Dozzle).
 
 ## How it works
@@ -29,12 +29,12 @@ One host runs everything behind Caddy. The Display service has the renderer scre
 flowchart LR
     browser["Phone / browser<br/>dashboard · settings"]
     frame["E-paper frame<br/>Pi Zero 2 W + Inky 13.3″<br/>runs inkypull"]
-    apis["Upstream APIs<br/>Open-Meteo · Unsplash · Google Calendar<br/>Spotify · eBird · Transitland · ZenQuotes · RSS"]
+    apis["Upstream APIs<br/>Open-Meteo · Unsplash · Google Calendar<br/>Spotify · eBird · Transitland · ESPN · ZenQuotes · RSS"]
 
     subgraph host["Host — Docker Compose"]
         caddy["Caddy<br/>one origin"]
         web["SvelteKit app<br/>dashboard + /frame page"]
-        services["11 .NET services<br/>Tasks · Calendar · Weather · Photos<br/>Almanac · Birds · Quote · RSS<br/>Trains · Spotify · Display<br/>(own SQLite each)"]
+        services["12 .NET services<br/>Tasks · Calendar · Weather · Photos<br/>Almanac · Birds · Quote · RSS<br/>Trains · Sports · Spotify · Display<br/>(own SQLite each)"]
         renderer["Renderer<br/>headless Chromium → 6-ink dither"]
     end
 
@@ -104,7 +104,7 @@ Hearth is built on these open-source projects and data providers:
 - **Renderer:** [Playwright](https://playwright.dev) (Apache-2.0) with Chromium (BSD-3-Clause), [epdoptimize](https://github.com/paperlesspaper/epdoptimize) (Apache-2.0), [node-canvas](https://github.com/Automattic/node-canvas) (MIT)
 - **Infra:** [Caddy](https://caddyserver.com) (Apache-2.0), [Docker Compose](https://github.com/docker/compose) (Apache-2.0), [Dozzle](https://dozzle.dev) (MIT)
 - **Hardware:** Pimoroni [inky](https://github.com/pimoroni/inky) (MIT)
-- **Data:** weather from [Open-Meteo](https://open-meteo.com) (CC BY 4.0), photos from [Unsplash](https://unsplash.com), quotes from [ZenQuotes](https://zenquotes.io), sightings from [eBird](https://ebird.org) (Cornell Lab of Ornithology), departures from [Transitland](https://www.transit.land), plus [Google Calendar](https://developers.google.com/calendar) and [Spotify](https://developer.spotify.com)
+- **Data:** weather from [Open-Meteo](https://open-meteo.com) (CC BY 4.0), photos from [Unsplash](https://unsplash.com), quotes from [ZenQuotes](https://zenquotes.io), sightings from [eBird](https://ebird.org) (Cornell Lab of Ornithology), departures from [Transitland](https://www.transit.land), scores and fixtures from ESPN's public site API, plus [Google Calendar](https://developers.google.com/calendar) and [Spotify](https://developer.spotify.com)
 
 ## License
 

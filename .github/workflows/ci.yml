@@ -176,6 +176,7 @@ jobs:
           - { service: birds, project: Birds }
           - { service: almanac, project: Almanac }
           - { service: trains, project: Trains }
+          - { service: sports, project: Sports }
           - { service: display, project: Display }
           - { service: frontend }
           - { service: renderer, context: renderer }

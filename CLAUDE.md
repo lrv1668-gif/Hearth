@@ -21,7 +21,7 @@ Use the project skills in `.claude/skills/` for these workflows — they hold th
 
 ## Project Overview
 
-Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, moon phase, tasks and countdowns, a calendar agenda, Spotify now-playing, news feeds, a daily quote, bird sightings, transit departures, and almanac facts into a single quiet display. (Plant care is planned in `docs/PRODUCT.md` but not built yet — there is no plants service.) The primary target is an always-on, ambient e-paper frame — a Pimoroni Inky Impression 13.3" (Spectra 6, 1600×1200) driven by a Raspberry Pi Zero 2 W thin client that pulls a host-rendered frame (see `docs/HARDWARE.md`); the frame's panel size is configurable for other panels — though it is also accessible via web browser.
+Hearth is a calm, self-hosted home dashboard designed to be displayed on a wall-mounted frame. It aggregates art, weather, moon phase, tasks and countdowns, a calendar agenda, Spotify now-playing, news feeds, a daily quote, bird sightings, transit departures, sports scores, and almanac facts into a single quiet display. (Plant care is planned in `docs/PRODUCT.md` but not built yet — there is no plants service.) The primary target is an always-on, ambient e-paper frame — a Pimoroni Inky Impression 13.3" (Spectra 6, 1600×1200) driven by a Raspberry Pi Zero 2 W thin client that pulls a host-rendered frame (see `docs/HARDWARE.md`); the frame's panel size is configurable for other panels — though it is also accessible via web browser.
 
 Domain data and math (third-party calls, caching, astronomy, recurrence) belong in a backend service; the frontend is a thin renderer.
 
@@ -52,6 +52,7 @@ src/                         # Backend API + shared-library projects
   Birds/                     # ASP.NET Core 10 Minimal API, port 8088 — eBird nearby sightings + cache
   Almanac/                   # ASP.NET Core 10 Minimal API, port 8089 — season/daylight/frost facts, computed locally (no DB)
   Trains/                    # ASP.NET Core 10 Minimal API, port 8091 — Transitland v2 departures fetch + cache
+  Sports/                    # ASP.NET Core 10 Minimal API, port 8094 — ESPN live games, results and fixtures for followed teams + cache
   Display/                   # ASP.NET Core 10 Minimal API, port 8090 — shared home location/time zone, e-paper frame settings, dithered frame preview + the scheduled panel render (`GET /display/frame`, FrameRenderService)
 renderer/                    # Node sidecar for Display — headless Chromium (Playwright) screenshots /frame, dither.mjs reduces it to the 6 inks (epdoptimize + Bayer); `npm test`
 tests/                       # xUnit test projects — <Service>.Tests/

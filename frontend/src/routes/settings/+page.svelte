@@ -44,6 +44,7 @@
     import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
     import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
     import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
+    import SportsTeamSettings from '$lib/components/settings/SportsTeamSettings.svelte';
     import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
     import FrameModeSettings from '$lib/components/settings/FrameModeSettings.svelte';
     import FrameModeOptions from '$lib/components/settings/FrameModeOptions.svelte';
@@ -327,6 +328,7 @@
                 {/snippet}
                 {#snippet feeds()}<FeedSettings />{/snippet}
                 {#snippet trainStops()}<TrainStopSettings />{/snippet}
+                {#snippet sportsTeams()}<SportsTeamSettings />{/snippet}
                 <!-- Two columns of cards once the content area is wide enough -->
                 <div class="@container">
                     <div class="grid grid-cols-1 gap-4 @4xl:grid-cols-2 @4xl:items-start">
@@ -342,6 +344,11 @@
                             'Trains & Buses',
                             'Manage the transit stops you want to see departures for.',
                             trainStops
+                        )}
+                        {@render card(
+                            'Sports',
+                            'The teams the Sports widget and the frame’s Last Result & Next Game follow. Shared by every device.',
+                            sportsTeams
                         )}
                     </div>
                 </div>
