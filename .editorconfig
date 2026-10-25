@@ -1,0 +1,20 @@
+# Editor basics only. Frontend formatting is Prettier's job (frontend/.prettierrc);
+# C# keeps its hand-aligned columns, so there are no dotnet-format style rules here.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,slnx,xml}]
+indent_size = 2
+
+[{.github/**.{yml,yaml},docker-compose.override.yml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

@@ -7,3 +7,5 @@ build
 .env.*
 .DS_Store
 Dockerfile*
+# Claude Code guidance, not part of the image
+CLAUDE.md
