@@ -262,7 +262,7 @@
 
     <div class="flex flex-col gap-2 border-t border-(--border) pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p
-            class="type-label {status?.kind === 'error' || problem ? 'text-(--accent)' : 'text-(--text-2)'}"
+            class="type-label {status?.kind === 'error' || problem ? 'text-(--danger)' : 'text-(--text-2)'}"
             aria-live="polite"
         >
             {problem ?? status?.text ?? ''}

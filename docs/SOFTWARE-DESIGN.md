@@ -56,7 +56,7 @@ Form controls and other repeated pieces live in `frontend/src/lib/components/ui/
 | `Modal` | `<dialog class="sheet">` with a titled header, close button and scrolling body mounted only while open |
 | `SizeSlider` | A text-size range between a small and large "A", showing the size as a percent (the dashboard's size and the frame's text size) |
 | `ListRow`, `ConnectionRow` | A settings list row with remove/extra actions; an outside service with its status and buttons |
-| `FileUploadButton`, `InlineMessage` | A file picker styled as a secondary button; an error (accent, `role="alert"`) or muted note |
+| `FileUploadButton`, `InlineMessage` | A file picker styled as a secondary button; an error (`--danger`, `role="alert"`) or muted note |
 
 Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks (`box` or `dot`, `role="checkbox"`), and `PhotoUploadButton` validates (`checkPhotoFiles` in `lib/photos.ts`) and uploads photos for both the Ambient settings and the photo collection. Small-caps group headings use the `.eyebrow` class from `app.css`.
 
@@ -183,7 +183,7 @@ Eighteen built-in themes are applied via CSS custom properties on `[data-theme]`
 | `amber`      | Warm amber light mode         |
 | `ember`      | Dark ember glow                |
 
-Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, and `color-scheme`. Components reference tokens only — never hardcoded colors.
+Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, `--danger` (picker themes only), and `color-scheme`. Components reference tokens only — never hardcoded colors. Hierarchy comes from size, weight and the `--text-1`…`--text-4` steps first. Icons sit one step quieter than the data they label. `--accent` is each picker theme's one chromatic hue, kept sparing: it marks now/today, chosen or active state, primary actions and widget titles, and is never used for errors (`--danger`) or bulk text. `themes.test.ts` holds `--accent` and `--danger` to 4.5:1 on `--bg`, `--surface` and `--surface-hi`, and `--accent-fg` to 4.5:1 on `--accent` and `--accent-hi`.
 
 Themes are defined in two places that must be kept in sync: `frontend/src/themes.css` (CSS variables) and `frontend/src/lib/constants/themes.ts` (switcher metadata).
 

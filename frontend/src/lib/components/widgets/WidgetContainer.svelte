@@ -22,7 +22,7 @@ NOTE:If no widget ID is passed, then this widget will default to being displayed
 -->
 {#if !associatedWidgetId || settings.enabledWidgets.includes(associatedWidgetId)}
     <div class="min-w-0">
-        <h2 class="eyebrow mb-3 border-b border-(--border) pb-2">{title}</h2>
+        <h2 class="eyebrow mb-3 border-b border-(--border) pb-2 text-(--accent)">{title}</h2>
         {@render children()}
     </div>
 {/if}

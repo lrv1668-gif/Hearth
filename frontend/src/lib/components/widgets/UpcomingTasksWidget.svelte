@@ -141,7 +141,9 @@
     <div class="space-y-4">
         {#each groups as group (group.key)}
             <div class="space-y-1">
-                <h2 class="eyebrow whitespace-nowrap">{group.label}</h2>
+                <h2 class="eyebrow whitespace-nowrap {group.key === 'today' ? 'text-(--text-1)' : ''}">
+                    {group.label}
+                </h2>
                 <ul class="space-y-2">
                     {#each group.items as item (item.kind === 'task' ? `t-${item.data.id}` : `e-${item.data.id}`)}
                         {#if item.kind === 'task'}

@@ -186,7 +186,7 @@ header/footer strips — shared by the Dashboard and Frame settings.
             aria-valuenow={Math.round(previewWidth)}
             aria-valuemin={30}
             aria-valuemax={70}
-            class="flex cursor-col-resize items-center justify-center bg-(--accent) text-(--accent-fg) transition-colors"
+            class="flex cursor-col-resize items-center justify-center bg-(--border) text-(--text-2) transition-colors hover:bg-(--accent) hover:text-(--accent-fg)"
             onpointerdown={startResize}
         >
             <GripVertical class="icon-sm" />

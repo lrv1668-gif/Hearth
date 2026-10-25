@@ -13,7 +13,7 @@ export const themes = [
             text1: '#f2f2f2',
             text2: '#9a9a9a',
             text3: '#6a6a6a',
-            accent: '#f2f2f2',
+            accent: '#769abd',
         },
     },
     {
@@ -30,7 +30,7 @@ export const themes = [
             text1: '#131313',
             text2: '#606060',
             text3: '#868686',
-            accent: '#131313',
+            accent: '#2e5d9e',
         },
     },
     {
@@ -47,7 +47,7 @@ export const themes = [
             text1: '#eeeeee',
             text2: '#aaaaaa',
             text3: '#787878',
-            accent: '#eeeeee',
+            accent: '#8fa5c3',
         },
     },
     {
@@ -64,7 +64,7 @@ export const themes = [
             text1: '#3a2408',
             text2: '#985b18',
             text3: '#b9792f',
-            accent: '#3a2408',
+            accent: '#1d5f76',
         },
     },
     {
@@ -81,7 +81,7 @@ export const themes = [
             text1: '#2e1a1a',
             text2: '#9a6060',
             text3: '#b87878',
-            accent: '#2e1a1a',
+            accent: '#973970',
         },
     },
     {
@@ -98,7 +98,7 @@ export const themes = [
             text1: '#d8dcf0',
             text2: '#7b81a6',
             text3: '#5c648e',
-            accent: '#d8dcf0',
+            accent: '#7f90e4',
         },
     },
     {
@@ -115,7 +115,7 @@ export const themes = [
             text1: '#f5ddc0',
             text2: '#d08840',
             text3: '#a0602c',
-            accent: '#f5ddc0',
+            accent: '#d1aa0b',
         },
     },
     {
@@ -132,7 +132,7 @@ export const themes = [
             text1: '#ccddc8',
             text2: '#6a9060',
             text3: '#51724b',
-            accent: '#ccddc8',
+            accent: '#75a751',
         },
     },
     {
@@ -149,7 +149,7 @@ export const themes = [
             text1: '#1a2430',
             text2: '#506c87',
             text3: '#688aaa',
-            accent: '#1a2430',
+            accent: '#1f6292',
         },
     },
     {
@@ -166,7 +166,7 @@ export const themes = [
             text1: '#2a2018',
             text2: '#7a6a55',
             text3: '#9e8c75',
-            accent: '#2a2018',
+            accent: '#894c22',
         },
     },
     {
@@ -183,7 +183,7 @@ export const themes = [
             text1: '#262a12',
             text2: '#6a7038',
             text3: '#8a9054',
-            accent: '#262a12',
+            accent: '#6c550f',
         },
     },
     {
@@ -200,7 +200,7 @@ export const themes = [
             text1: '#f0d8e0',
             text2: '#b96a7f',
             text3: '#9e4868',
-            accent: '#f0d8e0',
+            accent: '#c970ab',
         },
     },
     {
@@ -217,7 +217,7 @@ export const themes = [
             text1: '#1a2818',
             text2: '#507050',
             text3: '#6e9068',
-            accent: '#1a2818',
+            accent: '#2c6740',
         },
     },
     {
@@ -234,7 +234,7 @@ export const themes = [
             text1: '#162030',
             text2: '#4a6a90',
             text3: '#6888b0',
-            accent: '#162030',
+            accent: '#1c59a0',
         },
     },
     {
@@ -251,7 +251,7 @@ export const themes = [
             text1: '#d8e4ec',
             text2: '#738998',
             text3: '#536c7d',
-            accent: '#d8e4ec',
+            accent: '#5e9dc9',
         },
     },
     {
@@ -268,7 +268,7 @@ export const themes = [
             text1: '#ede4d6',
             text2: '#b09878',
             text3: '#806050',
-            accent: '#ede4d6',
+            accent: '#ce9024',
         },
     },
     {
@@ -285,7 +285,7 @@ export const themes = [
             text1: '#3a2010',
             text2: '#8a5c38',
             text3: '#ac7850',
-            accent: '#3a2010',
+            accent: '#2d5d49',
         },
     },
     {
@@ -302,7 +302,7 @@ export const themes = [
             text1: '#c4dde4',
             text2: '#4a9090',
             text3: '#327171',
-            accent: '#c4dde4',
+            accent: '#39aa93',
         },
     },
 ] as const;
