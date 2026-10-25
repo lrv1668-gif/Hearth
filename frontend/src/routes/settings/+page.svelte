@@ -1,9 +1,13 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
+    import { browser } from '$app/environment';
+    import { goto } from '$app/navigation';
     import { page } from '$app/state';
     import { MediaQuery } from 'svelte/reactivity';
-    import { ChevronLeft, ChevronRight, Eye } from '@lucide/svelte';
+    import { tinykeys } from 'tinykeys';
+    import { ChevronLeft, ChevronRight, Eye, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
     import Button from '$lib/components/ui/Button.svelte';
+    import IconButton from '$lib/components/ui/IconButton.svelte';
     import InlineMessage from '$lib/components/ui/InlineMessage.svelte';
     import Modal from '$lib/components/ui/Modal.svelte';
     import ToggleRow from '$lib/components/ui/ToggleRow.svelte';
@@ -53,7 +57,9 @@
         settingsHref,
         settingsSection,
         settingsSections as sections,
+        type SettingsSection,
     } from '$lib/constants/settingsSections';
+    import { formatKeys, ignoreWhileEditing, ignoreWhileTyping, isMacPlatform, SIDEBAR_KEYS } from '$lib/shortcuts';
 
     // Shared by the Dashboard and Frame sections' Widgets cards.
     const dashboardLabel = (id: string) => allWidgets.find((w) => w.id === id)?.label ?? id;
@@ -101,13 +107,79 @@
         // itself if the width shrinks again.
         if (previewInline) previewOpen = false;
     });
+
+    // Wide screens can fold the sidebar away for more room; Mod+B (⌘B / Ctrl+B) brings it back.
+    const mac = browser && isMacPlatform(navigator.platform);
+    const sidebarHidden = $derived(settings.settingsSidebarHidden);
+    const sidebarLabel = $derived(`${sidebarHidden ? 'Show' : 'Hide'} sidebar (${formatKeys(SIDEBAR_KEYS, mac)})`);
+    let aside = $state<HTMLElement>();
+
+    async function toggleSidebar() {
+        // Hiding the sidebar under the focus would drop it on <body>: hand it to the toggle.
+        const hadFocus = !!aside?.contains(document.activeElement);
+        settings.settingsSidebarHidden = !settings.settingsSidebarHidden;
+        if (hadFocus) {
+            await tick();
+            document.getElementById('settings-sidebar-toggle')?.focus();
+        }
+    }
+
+    function goToSection(id: SettingsSection) {
+        goto(settingsHref(id), { replaceState: true, noScroll: true, keepFocus: true });
+    }
+
+    function stepSection(by: 1 | -1) {
+        const i = sections.findIndex((s) => s.id === active);
+        goToSection(sections[(i + by + sections.length) % sections.length].id);
+    }
+
+    // Mod+B toggles the sidebar; 1–7 jump to a section and J/K step through them.
+    $effect(() => {
+        const stopMod = tinykeys(
+            window,
+            {
+                '$mod+KeyB': (e) => {
+                    if (!isWide.current) return;
+                    e.preventDefault();
+                    toggleSidebar();
+                },
+            },
+            { ignore: ignoreWhileEditing }
+        );
+        const stopKeys = tinykeys(
+            window,
+            {
+                // Shift is optional so AZERTY's shifted digits count too.
+                [`[Shift]+(Digit[1-${sections.length}])`]: (e) => {
+                    e.preventDefault();
+                    goToSection(sections[Number(e.code.slice(-1)) - 1].id);
+                },
+                j: (e) => {
+                    e.preventDefault();
+                    stepSection(1);
+                },
+                k: (e) => {
+                    e.preventDefault();
+                    stepSection(-1);
+                },
+            },
+            { ignore: ignoreWhileTyping }
+        );
+        return () => {
+            stopMod();
+            stopKeys();
+        };
+    });
 </script>
 
 <svelte:head>
     <title>Hearth — Settings</title>
 </svelte:head>
 
-<div class="flex min-h-0 flex-1 flex-col overflow-hidden lg:grid lg:grid-cols-[280px_1fr]">
+<div
+    class="flex min-h-0 flex-1 flex-col overflow-hidden lg:grid
+    {sidebarHidden ? 'lg:grid-cols-1' : 'lg:grid-cols-[280px_1fr]'}"
+>
     <!-- Phone: the section list, standing in for the sidebar -->
     {#if picking}
         <nav class="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-6 sm:px-6 sm:pt-6 lg:hidden">
@@ -132,30 +204,36 @@
         </nav>
     {/if}
 
-    <!-- Desktop: sidebar -->
-    <aside class="hidden flex-col gap-1 overflow-y-auto border-r-2 border-(--border) bg-(--bg) px-3 py-4 lg:flex">
-        {#each sections as s}
-            {@const isActive = active === s.id}
-            <a
-                href={settingsHref(s.id)}
-                data-sveltekit-replacestate
-                data-sveltekit-noscroll
-                data-sveltekit-keepfocus
-                aria-current={isActive ? 'page' : undefined}
-                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors
+    <!-- Desktop: sidebar, unless folded away -->
+    {#if !sidebarHidden}
+        <aside
+            bind:this={aside}
+            id="settings-sidebar"
+            class="hidden flex-col gap-1 overflow-y-auto border-r-2 border-(--border) bg-(--bg) px-3 py-4 lg:flex"
+        >
+            {#each sections as s}
+                {@const isActive = active === s.id}
+                <a
+                    href={settingsHref(s.id)}
+                    data-sveltekit-replacestate
+                    data-sveltekit-noscroll
+                    data-sveltekit-keepfocus
+                    aria-current={isActive ? 'page' : undefined}
+                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors
                     {isActive
-                    ? 'bg-(--surface-hi) text-(--text-1)'
-                    : 'text-(--text-2) hover:bg-(--surface) hover:text-(--text-1)'}"
-            >
-                <s.icon class="icon-md shrink-0 {isActive ? 'text-(--accent)' : ''}" />
-                <div class="min-w-0 flex-1">
-                    <p class="type-body leading-tight font-medium">{s.label}</p>
-                    <p class="type-label leading-tight text-(--text-2)">{s.subtitle}</p>
-                </div>
-            </a>
-            {#if isActive && isWide.current}<SettingsSubnav container={main} />{/if}
-        {/each}
-    </aside>
+                        ? 'bg-(--surface-hi) text-(--text-1)'
+                        : 'text-(--text-2) hover:bg-(--surface) hover:text-(--text-1)'}"
+                >
+                    <s.icon class="icon-md shrink-0 {isActive ? 'text-(--accent)' : ''}" />
+                    <div class="min-w-0 flex-1">
+                        <p class="type-body leading-tight font-medium">{s.label}</p>
+                        <p class="type-label leading-tight text-(--text-2)">{s.subtitle}</p>
+                    </div>
+                </a>
+                {#if isActive && isWide.current}<SettingsSubnav container={main} />{/if}
+            {/each}
+        </aside>
+    {/if}
 
     <!-- Content -->
     {#if !picking || isWide.current}
@@ -171,7 +249,27 @@
                 <ChevronLeft class="icon-sm" aria-hidden="true" />
                 Settings
             </a>
-            <h1 class="type-title mb-2 font-semibold text-(--text-1)">{section.heading}</h1>
+            <div class="mb-2 flex items-center gap-2">
+                <!-- Wide screens only: phones have no sidebar to fold -->
+                {#if isWide.current}
+                    <IconButton
+                        id="settings-sidebar-toggle"
+                        label={sidebarLabel}
+                        title={sidebarLabel}
+                        aria-controls="settings-sidebar"
+                        aria-expanded={!sidebarHidden}
+                        onclick={toggleSidebar}
+                        class="-ml-2"
+                    >
+                        {#if sidebarHidden}
+                            <PanelLeftOpen class="icon-md" aria-hidden="true" />
+                        {:else}
+                            <PanelLeftClose class="icon-md" aria-hidden="true" />
+                        {/if}
+                    </IconButton>
+                {/if}
+                <h1 class="type-title font-semibold text-(--text-1)">{section.heading}</h1>
+            </div>
             <p class="type-body mb-6 text-(--text-2)">{section.description}</p>
 
             <!-- A titled card is listed under its section in the sidebar (SettingsSubnav) unless `listed` is false. -->

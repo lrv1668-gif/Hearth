@@ -1,6 +1,8 @@
 <script lang="ts">
-    import { CalendarDays, Image, LayoutList, Settings } from '@lucide/svelte';
+    import { CalendarDays, Image, Keyboard, LayoutList, Settings } from '@lucide/svelte';
     import { page } from '$app/state';
+    import { showShortcuts } from '$lib/components/KeyboardShortcuts.svelte';
+    import IconButton from '$lib/components/ui/IconButton.svelte';
     import { kioskStore } from '$lib/stores/KioskStore.svelte.ts';
 
     const links = [
@@ -35,6 +37,17 @@
                     {link.label}
                 </a>
             {/each}
+            <!-- The one visible way in to the shortcuts sheet ("?" opens it too) -->
+            <div class="pl-2">
+                <IconButton
+                    label="Keyboard shortcuts (?)"
+                    title="Keyboard shortcuts (?)"
+                    size="sm"
+                    onclick={showShortcuts}
+                >
+                    <Keyboard class="icon-sm" aria-hidden="true" />
+                </IconButton>
+            </div>
         </nav>
     </div>
 </header>

@@ -3,6 +3,7 @@
     import { browser } from '$app/environment';
     import { page } from '$app/state';
     import Nav from '$lib/components/Nav.svelte';
+    import KeyboardShortcuts from '$lib/components/KeyboardShortcuts.svelte';
     import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
     import { initTheme } from '$lib/stores/ThemeStore.svelte.ts';
     import { initFontTheme } from '$lib/stores/FontThemeStore.svelte.ts';
@@ -54,6 +55,7 @@
         class="flex h-[100dvh] flex-col bg-(--bg) pr-[env(safe-area-inset-right)] pb-[calc(4rem+env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] text-(--text-1) transition-colors duration-300 lg:pb-0"
     >
         <Nav />
+        <KeyboardShortcuts />
         {@render children()}
     </div>
 {/if}
