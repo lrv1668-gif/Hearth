@@ -2,7 +2,16 @@
     import { onMount } from 'svelte';
     import { Plus, X } from '@lucide/svelte';
     import type { ModeRule } from '$lib/api';
-    import { frameModeLabel, frameModes, modeDays, type FrameModeId, type ModeDay } from '$lib/constants/frameModes';
+    import {
+        DEFAULT_ROTATE_MINUTES,
+        frameModeLabel,
+        frameModes,
+        MAX_RULE_MODES,
+        modeDays,
+        rotateIntervals,
+        type FrameModeId,
+        type ModeDay,
+    } from '$lib/constants/frameModes';
     import { clearOverride, modeStore, saveSchedule, setOverride } from '$lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '$lib/constants/settingsSections';
     import { checkIn, DEFAULT_QUIET_HOURS } from '$lib/frame';
@@ -89,6 +98,27 @@
         commit(rules.map((r, j) => (j === i ? { ...r, ...patch } : r)));
     }
 
+    // A rule's modes in order: `mode`, then `rotate`. Two or more make it rotate.
+    function ruleModes(rule: ModeRule): FrameModeId[] {
+        return [rule.mode, ...(rule.rotate ?? [])];
+    }
+
+    function setModes(i: number, modes: FrameModeId[]) {
+        const [mode, ...rotate] = modes;
+        update(i, {
+            mode,
+            rotate: rotate.length > 0 ? rotate : null,
+            rotate_minutes: rotate.length > 0 ? (rules[i].rotate_minutes ?? DEFAULT_ROTATE_MINUTES) : null,
+        });
+    }
+
+    function addMode(i: number) {
+        const modes = ruleModes(rules[i]);
+        // The first mode the rule doesn't show yet, so a new step changes the picture
+        const next = frameModes.find((m) => !modes.includes(m.id))?.id ?? modes[0];
+        setModes(i, [...modes, next]);
+    }
+
     function toggleDay(i: number, day: ModeDay) {
         const days = rules[i].days;
         update(i, { days: days.includes(day) ? days.filter((d) => d !== day) : [...days, day] });
@@ -99,7 +129,8 @@
 @component
 What the frame shows and when: the mode showing now (with why, and a manual choice
 that beats the schedule for an hour, until midnight, or until changed), then the
-default mode and the time-of-day rules, and the quiet hours (saved with the frame
+default mode and the time-of-day rules (each one mode, or several it rotates through
+every few minutes), and the quiet hours (saved with the frame
 settings) when the panel holds its picture. Held by the Display service, shared by every
 device; the frame's Button B steps to the next mode the same way. Under "Showing now",
 whether the frame is still checking in for its picture.
@@ -174,15 +205,57 @@ whether the frame is still checking in for its picture.
 
         <div class="flex flex-col gap-3">
             {#each rules as rule, i (i)}
+                {@const modes = ruleModes(rule)}
                 <div class="flex flex-wrap items-center gap-2 rounded-lg border border-(--border) p-3">
-                    <Select
-                        size="sm"
-                        value={rule.mode}
-                        onchange={(e) => update(i, { mode: (e.target as HTMLSelectElement).value as FrameModeId })}
-                        aria-label="Mode"
-                    >
-                        {#each frameModes as m (m.id)}<option value={m.id}>{m.label}</option>{/each}
-                    </Select>
+                    <span class="flex w-full flex-wrap items-center gap-1.5">
+                        {#each modes as mode, k (k)}
+                            <!-- A step stays on one line when the row wraps -->
+                            <span class="flex items-center gap-1.5">
+                                {#if k > 0}<span class="type-label text-(--text-2)">then</span>{/if}
+                                <Select
+                                    size="sm"
+                                    value={mode}
+                                    onchange={(e) =>
+                                        setModes(
+                                            i,
+                                            modes.with(k, (e.target as HTMLSelectElement).value as FrameModeId)
+                                        )}
+                                    aria-label={k === 0 ? 'Mode' : `Mode ${k + 1}`}
+                                >
+                                    {#each frameModes as m (m.id)}<option value={m.id}>{m.label}</option>{/each}
+                                </Select>
+                                {#if k > 0}
+                                    <IconButton
+                                        label="Remove {frameModeLabel(mode)} from the rotation"
+                                        size="sm"
+                                        onclick={() => setModes(i, modes.toSpliced(k, 1))}
+                                    >
+                                        <X class="icon-sm" />
+                                    </IconButton>
+                                {/if}
+                            </span>
+                        {/each}
+                        {#if modes.length < MAX_RULE_MODES}
+                            <Button size="sm" variant="ghost" onclick={() => addMode(i)}>
+                                <Plus class="icon-sm" /> Add a mode
+                            </Button>
+                        {/if}
+                        {#if modes.length > 1}
+                            <label class="type-label flex items-center gap-1.5 text-(--text-2)">
+                                every
+                                <Select
+                                    size="sm"
+                                    value={String(rule.rotate_minutes ?? DEFAULT_ROTATE_MINUTES)}
+                                    onchange={(e) =>
+                                        update(i, { rotate_minutes: Number((e.target as HTMLSelectElement).value) })}
+                                >
+                                    {#each rotateIntervals as r (r.minutes)}
+                                        <option value={String(r.minutes)}>{r.label}</option>
+                                    {/each}
+                                </Select>
+                            </label>
+                        {/if}
+                    </span>
                     <DayPicker
                         days={modeDays}
                         selected={rule.days}
@@ -230,8 +303,9 @@ whether the frame is still checking in for its picture.
             <Plus class="icon-sm" /> Add a time
         </Button>
         <p class="type-caption mt-2 text-(--text-2)">
-            The first matching time wins. A time that ends before it starts runs past midnight. Times are in your home’s
-            time zone, set under <a href={settingsHref('home')} class="underline">Home</a>.
+            The first matching time wins. A time that ends before it starts runs past midnight. A time with more than
+            one mode steps through them in order, starting on the first, and holds its place through quiet hours. Times
+            are in your home’s time zone, set under <a href={settingsHref('home')} class="underline">Home</a>.
         </p>
     </div>
 

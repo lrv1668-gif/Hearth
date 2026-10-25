@@ -156,6 +156,55 @@ public sealed class ModeEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task PostNext_InARotatingRule_HoldsOnlyUntilTheNextStep()
+    {
+        await PutSchedule(new
+        {
+            default_mode = "ambient",
+            rules = new[]
+            {
+                new { mode = "daily", days = new[] { "mon" }, start = "00:00", end = "00:00", rotate = new[] { "photo" }, rotate_minutes = 60 },
+            },
+        });
+        Assert.Equal(new ResolvedMode(FrameModes.Daily, "schedule", Noon.AddHours(1)), await Mode());
+
+        var response = await _client.PostAsync("/display/mode/next", null);
+        var next = await response.Content.ReadFromJsonAsync<ResolvedMode>(HearthJson.SnakeCaseLower);
+
+        Assert.Equal(new ResolvedMode(FrameModes.Photo, "override", Noon.AddHours(1)), next);
+    }
+
+    [Fact]
+    public async Task PutSchedule_RotatingRule_RoundTrips()
+    {
+        await PutSchedule(new
+        {
+            default_mode = "ambient",
+            rules = new[]
+            {
+                new { mode = "daily", days = new[] { "mon" }, start = "07:00", end = "09:00", rotate = new[] { "photo", "note" }, rotate_minutes = 20 },
+            },
+        });
+
+        var rule = (await _client.GetFromJsonAsync<ModeSchedule>("/display/mode/schedule", HearthJson.SnakeCaseLower))!.Rules.Single();
+
+        Assert.Equal(["photo", "note"], rule.Rotate);
+        Assert.Equal(20, rule.RotateMinutes);
+    }
+
+    [Fact]
+    public async Task PutSchedule_RotationWithoutInterval_Returns400()
+    {
+        var response = await PutSchedule(new
+        {
+            default_mode = "ambient",
+            rules = new[] { new { mode = "daily", days = new[] { "mon" }, start = "07:00", end = "09:00", rotate = new[] { "photo" } } },
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public void Store_OverrideRoundTripsWithItsExpiry()
     {
         var store = new ModeStore(_db.Db);

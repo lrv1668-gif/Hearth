@@ -51,6 +51,20 @@ export function isPhotoInterval(value: unknown): value is number {
     return Number.isInteger(value) && (value as number) >= 15 && (value as number) <= 1440;
 }
 
+/** How often a rotating schedule rule steps to its next mode. Display's ModeRule.RotateMinutes (5 min – a day). */
+export const rotateIntervals = [
+    { minutes: 15, label: '15 min' },
+    { minutes: 30, label: '30 min' },
+    { minutes: 60, label: '1 hour' },
+    { minutes: 120, label: '2 hours' },
+    { minutes: 240, label: '4 hours' },
+] as const;
+
+export const DEFAULT_ROTATE_MINUTES = 30;
+
+/** A rule holds at most this many modes — Display's ModeRule.MaxRotate + 1. */
+export const MAX_RULE_MODES = 6;
+
 /** Schedule rule days, Sunday first — Display's ModeRule.DayIds. */
 export const modeDays = [
     { id: 'sun', label: 'S', name: 'Sunday' },

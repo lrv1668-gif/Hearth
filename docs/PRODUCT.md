@@ -83,11 +83,11 @@ Typography is large enough to read from across the room (3–4 meters). No small
 
 What the frame shows is decided in one place, shared by every device:
 
-1. **Your choice** — set in Settings → Frame for an hour, until midnight, or until you change it; a pinned photo; or Button B on the frame, which steps to the next mode until the schedule's next change.
-2. **The schedule** — time-of-day rules on chosen days (e.g. Daily 7–9am on weekdays, Night from 11pm to 6am). The first matching rule wins.
+1. **Your choice** — set in Settings → Frame for an hour, until midnight, or until you change it; a pinned photo; or Button B on the frame, which steps to the next mode until the schedule's next change (in a rotating rule, its next step).
+2. **The schedule** — time-of-day rules on chosen days (e.g. Daily 7–9am on weekdays, Night from 11pm to 6am). The first matching rule wins. A rule can hold several modes and rotate through them, like a TRMNL playlist (e.g. Daily, then Photo, then Countdown, every 30 minutes, 7am–10pm); each window starts on its first mode, and the step comes from the clock, so a restart doesn't lose its place.
 3. **The default mode** — Ambient unless you change it.
 
-**Quiet hours** (Settings → Frame → Mode, e.g. 11pm–6am) hold the picture overnight: no redraws on the 15-minute or photo timer, so the panel doesn't flash while people sleep. A mode change from the schedule, a button press or a settings change still redraws it, so a Night rule that starts with the quiet hours still goes up.
+**Quiet hours** (Settings → Frame → Mode, e.g. 11pm–6am) hold the picture overnight: no redraws on the 15-minute or photo timer, so the panel doesn't flash while people sleep. A mode change from the schedule, a button press or a settings change still redraws it, so a Night rule that starts with the quiet hours still goes up. A rotating rule holds the step it was on when quiet hours began and moves on once they end.
 
 The same card says whether the frame is still checking in: "The frame checked in 3 min ago and has the latest picture", or a warning once it has been silent for an hour.
 
