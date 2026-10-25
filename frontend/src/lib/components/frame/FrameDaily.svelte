@@ -135,5 +135,5 @@ panels, which would dither into speckle; large shapes use the pure --block ink.
         {/each}
     </div>
 
-    <FrameForecast {now} />
+    <FrameForecast {now} compact={orientation === 'portrait'} />
 </div>

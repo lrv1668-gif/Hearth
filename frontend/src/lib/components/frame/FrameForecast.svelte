@@ -5,7 +5,9 @@
     import { forecastBars } from '$lib/frame';
     import { localDateKey } from '$lib/utils';
 
-    let { now }: { now: Date } = $props();
+    // compact: portrait's narrower columns — the conditions drop their words and show
+    // only the readings, so nothing truncates.
+    let { now, compact = false }: { now: Date; compact?: boolean } = $props();
 
     const days = $derived(weatherStore.forecast.slice(0, 5));
     const bars = $derived(forecastBars(days));
@@ -19,38 +21,44 @@
 
 <!--
 @component
-The Daily forecast band — the frame's only --surface fill. A conditions line (wind now,
-today's peak UV and the air quality, each in words) sits over the days. Each day is a
-weekday and icon over a solid low–high bar on a hatched track; every bar shares one
-temperature scale, so a day's spread reads against the week. Today is marked with an
---accent dot.
+The Daily forecast band — the frame's only --surface fill. A conditions line (the air quality,
+today's peak UV and wind now, each in words) sits over the days on the same five
+columns, starting over the first, third and fifth days — wind, the shortest, takes the
+single last column. In portrait (`compact`) the words drop and only the readings show.
+Each day is a weekday and icon over a solid low–high bar on a hatched
+track; every bar shares one temperature scale, so a day's spread reads against the week.
+Today is marked with an --accent dot.
 -->
 {#if days.length > 0 || hasConditions}
     <div class="-mx-16 border-t-3 border-(--border) bg-(--surface) px-16 pt-7 pb-9">
         {#if hasConditions}
-            <div class="type-label mb-6 flex flex-wrap items-center gap-x-12 gap-y-3 leading-none text-(--text-2)">
-                {#if current}
-                    <span class="inline-flex items-center gap-3">
-                        <Wind class="icon-xs" />Wind
-                        <span class="font-semibold text-(--text-1)">{Math.round(current.wind_mph)} mph</span>
+            <div class="type-label mb-6 grid grid-cols-5 items-center gap-x-10 leading-none text-(--text-2)">
+                {#if current?.us_aqi != null}
+                    <span class="col-span-2 col-start-1 flex min-w-0 items-center gap-3 whitespace-nowrap">
+                        <Leaf class="icon-xs" />{#if !compact}Air{/if}
+                        <span class="truncate font-semibold text-(--text-1)">
+                            {compact
+                                ? current.us_aqi
+                                : [current.aqi_category, current.us_aqi].filter((v) => v != null).join(' · ')}
+                        </span>
                     </span>
                 {/if}
                 {#if today?.uv_index_max != null}
-                    <span class="inline-flex items-center gap-3">
-                        <SunMedium class="icon-xs" />Peak UV
-                        <span class="font-semibold text-(--text-1)">
-                            {[Math.round(today.uv_index_max), today.uv_max_category]
-                                .filter((v) => v != null)
-                                .join(' · ')}
+                    <span class="col-span-2 col-start-3 flex min-w-0 items-center gap-3 whitespace-nowrap">
+                        <SunMedium class="icon-xs" />{#if !compact}Peak UV{/if}
+                        <span class="truncate font-semibold text-(--text-1)">
+                            {compact
+                                ? Math.round(today.uv_index_max)
+                                : [Math.round(today.uv_index_max), today.uv_max_category]
+                                      .filter((v) => v != null)
+                                      .join(' · ')}
                         </span>
                     </span>
                 {/if}
-                {#if current?.us_aqi != null}
-                    <span class="inline-flex items-center gap-3">
-                        <Leaf class="icon-xs" />Air
-                        <span class="font-semibold text-(--text-1)">
-                            {[current.aqi_category, current.us_aqi].filter((v) => v != null).join(' · ')}
-                        </span>
+                {#if current}
+                    <span class="col-start-5 flex min-w-0 items-center gap-3 whitespace-nowrap">
+                        <Wind class="icon-xs" />{#if !compact}Wind{/if}
+                        <span class="truncate font-semibold text-(--text-1)">{Math.round(current.wind_mph)} mph</span>
                     </span>
                 {/if}
             </div>
