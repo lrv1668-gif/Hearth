@@ -1,5 +1,9 @@
+using ServiceDefaults;
 using Spotify.Extensions;
 using DotNetEnv;
+
+// Docker's health check runs this binary with --health (see HealthProbe)
+HealthProbe.ExitIfProbe(args);
 
 Env.Load();
 
