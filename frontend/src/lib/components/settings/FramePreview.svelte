@@ -5,13 +5,16 @@
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { frameCanvas, frameUrl, type FrameOptions } from '$lib/frame';
     import { frameModes, type FrameModeId } from '$lib/constants/frameModes';
+    import { modeStore } from '$lib/stores/ModeStore.svelte.ts';
     import { api, type Photo } from '$lib/api';
     import { pickPhoto, pickPinned } from '$lib/photos';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
 
     // Preview-only toggles: on the real frame, the mode and Color/B&W are switched by
     // the mode schedule, a manual choice or the frame's buttons, so they aren't saved here.
-    let previewMode = $state<FrameModeId>('daily');
+    // The preview follows the mode the frame shows now until one is picked here.
+    let pickedMode = $state<FrameModeId | null>(null);
+    const previewMode = $derived(pickedMode ?? modeStore.current?.mode ?? 'daily');
     let previewPalette = $state<'color' | 'bw'>('color');
     // Live is the page itself; Screen and Paper are the Display service's dithered render.
     let view = $state<'live' | 'screen' | 'paper'>('live');
@@ -25,7 +28,7 @@
     let pickedPhoto = $state<Photo | null | undefined>(undefined);
     let photoKey = '';
     $effect(() => {
-        if (!photoMode || !frameSettings.loaded) return;
+        if (!photoMode || !frameSettings.loaded || !modeStore.loaded) return;
         const mode = previewMode;
         const ids = mode === 'photo' ? [...frameSettings.photoIds] : [];
         const source = frameSettings.photoSource;
@@ -44,7 +47,8 @@
             () => key === photoKey && (pickedPhoto = null)
         );
     });
-    const photo = $derived(photoMode ? pickedPhoto : null);
+    // Undefined until the current mode is known too, so nothing loads in the wrong mode first.
+    const photo = $derived(!modeStore.loaded ? undefined : photoMode ? pickedPhoto : null);
 
     const options = $derived<FrameOptions>({
         mode: previewMode,
@@ -169,7 +173,7 @@ mode and Color/B&W toggles and the resulting frame URL.
         <SegmentedControl
             options={frameModes.map((m) => ({ value: m.id, label: m.label }))}
             value={previewMode}
-            onchange={(v) => (previewMode = v)}
+            onchange={(v) => (pickedMode = v)}
             label="Preview mode"
         />
         <SegmentedControl
