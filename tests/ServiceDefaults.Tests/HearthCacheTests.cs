@@ -78,5 +78,22 @@ public sealed class HearthCacheTests
         Assert.Equal(new Payload("cached", 3), value);
     }
 
+    [Fact]
+    public async Task GetOrSetAsync_ValueTupleThroughL2_RoundTrips()
+    {
+        using var tmp = new TempDatabase();
+
+        using (var first = BuildProvider(new SqliteDistributedCache(tmp.Db)))
+        {
+            await first.GetRequiredService<IFusionCache>().SetAsync("k", (Name: "cached", Count: 3), Options);
+        }
+
+        using var second = BuildProvider(new SqliteDistributedCache(tmp.Db));
+        var value = await second.GetRequiredService<IFusionCache>().GetOrSetAsync<(string Name, int Count)>(
+            "k", _ => throw new InvalidOperationException("factory should not run"), Options);
+
+        Assert.Equal(("cached", 3), value);
+    }
+
     private sealed record Payload(string Name, int Count);
 }

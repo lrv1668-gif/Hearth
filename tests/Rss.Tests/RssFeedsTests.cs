@@ -80,7 +80,7 @@ public sealed class RssFeedsTests : IDisposable
     public void Feed_ThroughTheL2Serializer_RoundTrips()
     {
         // What the SQLite L2 holds across a restart
-        var serializer = new FusionCacheSystemTextJsonSerializer(HearthJson.SnakeCaseLower);
+        var serializer = new FusionCacheSystemTextJsonSerializer(HearthCache.SerializerOptions);
         var feed = new Feed("Example RSS", [new ArticleItem("Item One", "https://example.com/a", "Desc", "Mon")]);
 
         var back = serializer.Deserialize<Feed>(serializer.Serialize(feed))!;
