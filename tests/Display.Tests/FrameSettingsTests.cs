@@ -104,6 +104,32 @@ public sealed class FrameSettingsTests
         Assert.NotNull((Valid with { Right = ["today"] }).Validate());
     }
 
+    [Fact]
+    public void Validate_TemplateWithEmptySlots_ReturnsNull()
+    {
+        Assert.Null((Valid with { Template = "quad", Slots = ["", "moon", "", "quote"] }).Validate());
+    }
+
+    [Fact]
+    public void Validate_WidgetInTwoSlots_ReturnsError()
+    {
+        Assert.NotNull((Valid with { Template = "halves", Slots = ["moon", "moon"] }).Validate());
+    }
+
+    [Fact]
+    public void Validate_TooManySlots_ReturnsError()
+    {
+        Assert.NotNull((Valid with { Slots = ["a", "b", "c", "d", "e", "f", "g"] }).Validate());
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_BlankTemplate_ReturnsError(string template)
+    {
+        Assert.NotNull((Valid with { Template = template }).Validate());
+    }
+
     [Theory]
     [InlineData(29)]
     [InlineData(71)]
@@ -130,6 +156,7 @@ public sealed class FrameSettingsTests
         Assert.Equal("unsplash", settings.PhotoSource);
         Assert.Equal((1600, 1200), (settings.Width, settings.Height));
         Assert.Equal(FrameSettings.DefaultTextSize, settings.TextSize);
+        Assert.Equal(FrameSettings.DefaultTemplate, settings.Template);
         Assert.Null(settings.Validate());
     }
 

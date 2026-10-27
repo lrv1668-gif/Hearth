@@ -12,6 +12,7 @@
     import { loadLastPlayed } from '$lib/stores/LastPlayedStore.svelte.ts';
     import { loadSports } from '$lib/stores/SportsStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
+    import { parseFrameTemplate } from '$lib/constants/frameTemplates';
     import { SECOND } from '$lib/utils';
     import {
         frameCanvas,
@@ -59,6 +60,9 @@
     //   ?left=a,b&right=c&split=50   (Daily widget columns, ids from constants/frameWidgets.ts,
     //                                 and the left column's width %; a missing param
     //                                 uses the default layout)
+    //   ?template=feature&slots=a,,b  (Daily's layout template and its widget per slot, '' for
+    //                                 an empty one — see constants/frameTemplates.ts; 'columns'
+    //                                 uses left/right/split)
     //   ?position=top-left|top-middle|top-right|bottom-left|bottom-middle|bottom-right
     //                                (Ambient info card)
     //   ?source=unsplash|local|both   (Ambient photos; default: the shared choice)
@@ -105,6 +109,13 @@
     const categoriesParam = params.get('categories');
     const photoParam = parsePhotoParam(params.get('photo'));
     const layout = $derived(parseFrameLayout(params, { ...frameSettings.layout, split: frameSettings.split }));
+    const placed = $derived(parseFrameTemplate(params, frameSettings));
+    // The widgets Daily shows — the columns' or the template's — for their data loaders.
+    const activeWidgets = $derived(
+        placed.template === 'columns'
+            ? [...layout.left, ...layout.right]
+            : placed.slots.filter((id): id is FrameWidgetId => id !== '')
+    );
 
     const READY_DEADLINE_MS = 15 * SECOND;
 
@@ -182,7 +193,7 @@
         if (mode === 'countdown') return [loadTasks()];
         if (mode === 'night') return [loadWeather()];
         if (mode === 'note') return [];
-        const extras = [...layout.left, ...layout.right].flatMap((id) => widgetLoaders[id] ?? []);
+        const extras = activeWidgets.flatMap((id) => widgetLoaders[id] ?? []);
         return [loadWeather(), loadTasks(), loadCalendarItems(), loadAlmanac(), ...extras.map((load) => load())];
     }
 
@@ -217,7 +228,14 @@
     <!-- Wait for the shared settings so the layout is measured once, in its final shape. -->
     {#if frameSettings.loaded && mode}
         {#if mode === 'daily'}
-            <FrameDaily {now} {orientation} {layout} split={layout.split} />
+            <FrameDaily
+                {now}
+                {orientation}
+                {layout}
+                split={layout.split}
+                template={placed.template}
+                slots={placed.slots}
+            />
         {:else if mode === 'countdown'}
             <FrameCountdownHero {now} countdownId={frameSettings.countdownId} />
         {:else if mode === 'night'}

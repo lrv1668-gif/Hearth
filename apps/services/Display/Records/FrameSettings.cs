@@ -50,7 +50,11 @@ public sealed record FrameSettings(
     // GET /display/frame: a nightly "HH:mm" window (household time) in which the panel keeps
     // its picture instead of redrawing on the interval; both or neither. See QuietHours.
     string? QuietStart = null,
-    string? QuietEnd = null
+    string? QuietEnd = null,
+    // Daily's layout template (the frontend's constants/frameTemplates.ts) and its widget
+    // per slot, "" for an empty slot. "columns" lays out Left/Right/Split instead.
+    string Template = FrameSettings.DefaultTemplate,
+    IReadOnlyList<string>? Slots = null
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -95,6 +99,10 @@ public sealed record FrameSettings(
     public const int MaxSize = 4000;
 
     public const int MaxColumnWidgets = 3;
+
+    public const string DefaultTemplate = "columns";
+    public const int MaxTemplateLength = 40;
+    public const int MaxSlots = 6;
     public const int MinSplit = 30;
     public const int MaxSplit = 70;
 
@@ -111,6 +119,14 @@ public sealed record FrameSettings(
         if (all.Any(string.IsNullOrWhiteSpace)) return "widget ids must not be blank";
         if (all.Distinct().Count() != all.Count) return "a widget can appear only once";
         if (Split is < MinSplit or > MaxSplit) return $"split must be {MinSplit}–{MaxSplit}";
+        if (string.IsNullOrWhiteSpace(Template) || Template.Length > MaxTemplateLength) return "template required";
+        if (Slots is { } slots)
+        {
+            if (slots.Count > MaxSlots) return $"at most {MaxSlots} slots";
+            var placed = slots.Where(s => s != "").ToList();
+            if (placed.Any(string.IsNullOrWhiteSpace)) return "slot ids must not be blank";
+            if (placed.Distinct().Count() != placed.Count) return "a widget can fill only one slot";
+        }
         if (!AmbientPositions.Contains(AmbientPosition))
             return $"ambient_position must be one of {string.Join(", ", AmbientPositions)}";
         if (string.IsNullOrWhiteSpace(PhotoSource) || PhotoSource.Length > 40) return "photo_source required";

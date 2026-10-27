@@ -43,6 +43,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             "ALTER TABLE frame_settings ADD COLUMN dithering TEXT NOT NULL DEFAULT 'hearth'",
             "ALTER TABLE frame_settings ADD COLUMN quiet_start TEXT",
             "ALTER TABLE frame_settings ADD COLUMN quiet_end TEXT",
+            "ALTER TABLE frame_settings ADD COLUMN template TEXT NOT NULL DEFAULT 'columns'",
+            "ALTER TABLE frame_settings ADD COLUMN slots TEXT NOT NULL DEFAULT '[]'",
         })
         {
             try { db.NonQuery(col); }
@@ -58,7 +60,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
         db.QueryOne("""
             SELECT theme, font, orientation, left_ids, right_ids, split, ambient_position, photo_source, photo_categories,
                    width, height, photo_ids, photo_card, countdown_id, note_title, note_body,
-                   photo_interval_minutes, portrait_rotation, text_size, dithering, quiet_start, quiet_end
+                   photo_interval_minutes, portrait_rotation, text_size, dithering, quiet_start, quiet_end,
+                   template, slots
             FROM frame_settings WHERE id = 1
             """, r => new FrameSettings(
                 r.GetString(0),
@@ -82,7 +85,9 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.GetInt32(18),
                 r.GetString(19),
                 r.IsDBNull(20) ? null : r.GetString(20),
-                r.IsDBNull(21) ? null : r.GetString(21)));
+                r.IsDBNull(21) ? null : r.GetString(21),
+                r.GetString(22),
+                JsonSerializer.Deserialize<string[]>(r.GetString(23)) ?? []));
 
     public FrameSettings Save(FrameSettings settings)
     {
@@ -90,11 +95,13 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             INSERT INTO frame_settings (id, theme, font, orientation, left_ids, right_ids, split, ambient_position,
                                         photo_source, photo_categories, width, height, photo_ids, photo_card,
                                         countdown_id, note_title, note_body, photo_interval_minutes,
-                                        portrait_rotation, text_size, dithering, quiet_start, quiet_end, updated_at)
+                                        portrait_rotation, text_size, dithering, quiet_start, quiet_end,
+                                        template, slots, updated_at)
             VALUES (1, $theme, $font, $orientation, $left, $right, $split, $ambient_position,
                     $photo_source, $photo_categories, $width, $height, $photo_ids, $photo_card,
                     $countdown_id, $note_title, $note_body, $photo_interval_minutes,
-                    $portrait_rotation, $text_size, $dithering, $quiet_start, $quiet_end, CURRENT_TIMESTAMP)
+                    $portrait_rotation, $text_size, $dithering, $quiet_start, $quiet_end,
+                    $template, $slots, CURRENT_TIMESTAMP)
             ON CONFLICT (id) DO UPDATE SET
                 theme = excluded.theme, font = excluded.font, orientation = excluded.orientation,
                 left_ids = excluded.left_ids, right_ids = excluded.right_ids, split = excluded.split,
@@ -105,7 +112,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 note_body = excluded.note_body, photo_interval_minutes = excluded.photo_interval_minutes,
                 portrait_rotation = excluded.portrait_rotation, text_size = excluded.text_size,
                 dithering = excluded.dithering, quiet_start = excluded.quiet_start,
-                quiet_end = excluded.quiet_end, updated_at = excluded.updated_at
+                quiet_end = excluded.quiet_end, template = excluded.template, slots = excluded.slots,
+                updated_at = excluded.updated_at
             """, cmd =>
         {
             cmd.AddParam("$theme", settings.Theme);
@@ -130,6 +138,8 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             cmd.AddParam("$dithering", settings.Dithering);
             cmd.AddParam("$quiet_start", settings.QuietStart);
             cmd.AddParam("$quiet_end", settings.QuietEnd);
+            cmd.AddParam("$template", settings.Template);
+            cmd.AddParam("$slots", JsonSerializer.Serialize(settings.Slots ?? []));
         });
         return Get()!;
     }

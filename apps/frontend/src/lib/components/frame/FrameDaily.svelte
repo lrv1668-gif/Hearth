@@ -1,6 +1,7 @@
 <script lang="ts">
     import { frameWidgets, type FrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
-    import { allocateLines, COLUMN_LINES } from '$lib/frame';
+    import { frameTemplate, type FrameSize, type FrameTemplateId } from '$lib/constants/frameTemplates';
+    import { allocateLines, COLUMN_LINES, slotLines } from '$lib/frame';
     import FrameEditionLine from './FrameEditionLine.svelte';
     import FrameDateBlock from './FrameDateBlock.svelte';
     import FrameSunPath from './FrameSunPath.svelte';
@@ -26,9 +27,25 @@
         layout: FrameLayout;
         /** Left column's width, in percent (landscape only). */
         split: number;
+        /** The layout template; 'columns' lays out `layout` at `split`. */
+        template: FrameTemplateId;
+        /** The template's widget per slot, '' for an empty slot. */
+        slots: readonly (FrameWidgetId | '')[];
     }
 
-    let { now, orientation, layout, split }: Props = $props();
+    let { now, orientation, layout, split, template, slots }: Props = $props();
+
+    // A template's slots on a grid of equal tracks, so each slot's size comes from the
+    // template, never its content — each slot measures itself for its widget's lines.
+    const areas = $derived(frameTemplate(template).areas[orientation]);
+    const slotSizes = $derived(frameTemplate(template).slots);
+    const templateGrid = $derived(
+        `grid-template-areas: ${areas.map((row) => `'${row}'`).join(' ')};` +
+            ` grid-template-columns: repeat(${areas[0]?.split(' ').length ?? 1}, minmax(0, 1fr));` +
+            ` grid-template-rows: repeat(${areas.length || 1}, minmax(0, 1fr))`
+    );
+    let slotHeights = $state<number[]>([]);
+    const slotBudget = (i: number) => (slotHeights[i] && lineHeight ? slotLines(slotHeights[i] / lineHeight) : 0);
 
     // The layout's left and right columns side by side at `split`% (one full-width
     // column if the other is empty), in both orientations. Portrait columns are
@@ -48,8 +65,7 @@
     const label = (id: FrameWidgetId) => frameWidgets.find((w) => w.id === id)!.label;
 </script>
 
-{#snippet widget(id: FrameWidgetId)}
-    {@const n = lines.get(id) ?? 0}
+{#snippet widget(id: FrameWidgetId, n: number, size?: FrameSize)}
     <!-- Safety net: if a widget still outgrows its share, it clips inside its own
          box rather than pushing the next widget off the panel. -->
     <section class="min-h-0 min-w-0 shrink overflow-hidden">
@@ -70,17 +86,17 @@
         {:else if id === 'week'}
             <FrameWeek {now} lines={n} />
         {:else if id === 'countdowns'}
-            <FrameCountdowns {now} />
+            <FrameCountdowns {now} size={size ?? 'm'} />
         {:else if id === 'almanac'}
             <AlmanacView almanac={almanacStore.almanac} lines={n} />
         {:else if id === 'moon'}
-            <MoonPhaseView {now} />
+            <MoonPhaseView {now} {size} />
         {:else if id === 'quote'}
-            <DailyQuoteView quote={dailyQuoteStore.quote} lines={n} />
+            <DailyQuoteView quote={dailyQuoteStore.quote} lines={n} feature={size === 'l'} />
         {:else if id === 'birds'}
             <BirdSightingsView sightings={birdsStore.sightings} {now} lines={n} />
         {:else if id === 'last-played'}
-            <FrameLastPlayed {now} />
+            <FrameLastPlayed {now} {size} lines={n} />
         {:else if id === 'sports'}
             <FrameSports {now} lines={n} />
         {/if}
@@ -102,7 +118,8 @@
 @component
 Daily Mode for the e-paper frame, laid out as today's edition of an almanac: a compact
 masthead (date block; edition line and weekday; sun path with the temperature),
-the configurable widget columns from `layout` (see constants/frameWidgets.ts), and
+the configurable widgets — free columns from `layout` (constants/frameWidgets.ts) or a
+template's sized slots (constants/frameTemplates.ts) — and
 the forecast band. Zones are separated by 3px rules and space rather than tinted
 panels, which would dither into speckle; large shapes use the pure --block ink.
 -->
@@ -122,21 +139,45 @@ panels, which would dither into speckle; large shapes use the pure --block ink.
         </header>
     {/if}
 
-    <!-- The configurable widget slots -->
-    <div
-        bind:clientHeight={middleHeight}
-        class="relative grid min-h-0 overflow-hidden {orientation === 'portrait' ? 'gap-12' : 'gap-16'}"
-        style="grid-template-columns: {gridColumns}"
-    >
-        <p bind:clientHeight={lineHeight} class="type-body invisible absolute" aria-hidden="true">X</p>
-        {#each columns as column, c (c)}
-            <div class="flex min-w-0 flex-col gap-10">
-                {#each column as id (id)}
-                    {@render widget(id)}
-                {/each}
-            </div>
-        {/each}
-    </div>
+    <!-- The configurable widget slots: free columns, or a template's sized slots -->
+    {#if template === 'columns'}
+        <div
+            bind:clientHeight={middleHeight}
+            class="relative grid min-h-0 overflow-hidden {orientation === 'portrait' ? 'gap-12' : 'gap-16'}"
+            style="grid-template-columns: {gridColumns}"
+        >
+            <p bind:clientHeight={lineHeight} class="type-body invisible absolute" aria-hidden="true">X</p>
+            {#each columns as column, c (c)}
+                <div class="flex min-w-0 flex-col gap-10">
+                    {#each column as id (id)}
+                        {@render widget(id, lines.get(id) ?? 0)}
+                    {/each}
+                </div>
+            {/each}
+        </div>
+    {:else}
+        <div
+            class="relative grid min-h-0 gap-y-10 overflow-hidden {orientation === 'portrait'
+                ? 'gap-x-12'
+                : 'gap-x-16'}"
+            style={templateGrid}
+        >
+            <p bind:clientHeight={lineHeight} class="type-body invisible absolute" aria-hidden="true">X</p>
+            {#each slotSizes as size, i (i)}
+                <div
+                    bind:clientHeight={slotHeights[i]}
+                    class="flex min-h-0 min-w-0 flex-col overflow-hidden"
+                    style="grid-area: s{i}"
+                    data-slot={i}
+                    data-size={size}
+                >
+                    {#if slots[i]}
+                        {@render widget(slots[i], slotBudget(i), size)}
+                    {/if}
+                </div>
+            {/each}
+        </div>
+    {/if}
 
     <FrameForecast {now} compact={orientation === 'portrait'} />
 </div>

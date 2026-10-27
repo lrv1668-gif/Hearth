@@ -49,6 +49,7 @@
     import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
     import FrameModeSettings from '$lib/components/settings/FrameModeSettings.svelte';
     import FrameModeOptions from '$lib/components/settings/FrameModeOptions.svelte';
+    import FrameTemplateEditor from '$lib/components/settings/FrameTemplateEditor.svelte';
     import { loadModes } from '$lib/stores/ModeStore.svelte.ts';
     import HomeLocationSettings from '$lib/components/settings/HomeLocationSettings.svelte';
     import ServiceHealthSettings from '$lib/components/settings/ServiceHealthSettings.svelte';
@@ -462,23 +463,28 @@
                     <FrameAppearanceSettings />
                 {/snippet}
                 {#snippet frameLayoutContent()}
-                    <WidgetLayoutEditor
-                        dragType="frame-widget"
-                        columns={frameLayout}
-                        labelFor={frameLabel}
-                        onchange={(c) => (frameSettings.layout = normalizeFrameLayout(c))}
-                        width={frameSettings.split}
-                        onwidthchange={(w) => (frameSettings.split = w)}
-                        header={fixedFrameHeader}
-                        footer={fixedFrameFooter}
-                        maxPerColumn={MAX_COLUMN_WIDGETS}
-                        widgets={frameWidgets}
-                        ontoggle={(id) => frameSettings.toggleWidget(id as FrameWidgetId)}
-                    />
-                    <p class="type-caption mt-2 text-(--text-2)">
-                        Lists shrink to fit what shares their column. Portrait keeps the two columns side by side, so
-                        they are narrower.
-                    </p>
+                    <FrameTemplateEditor />
+                    {#if frameSettings.template === 'columns'}
+                        <div class="mt-4">
+                            <WidgetLayoutEditor
+                                dragType="frame-widget"
+                                columns={frameLayout}
+                                labelFor={frameLabel}
+                                onchange={(c) => (frameSettings.layout = normalizeFrameLayout(c))}
+                                width={frameSettings.split}
+                                onwidthchange={(w) => (frameSettings.split = w)}
+                                header={fixedFrameHeader}
+                                footer={fixedFrameFooter}
+                                maxPerColumn={MAX_COLUMN_WIDGETS}
+                                widgets={frameWidgets}
+                                ontoggle={(id) => frameSettings.toggleWidget(id as FrameWidgetId)}
+                            />
+                            <p class="type-caption mt-2 text-(--text-2)">
+                                Lists shrink to fit what shares their column. Portrait keeps the two columns side by
+                                side, so they are narrower.
+                            </p>
+                        </div>
+                    {/if}
                 {/snippet}
                 {#snippet frameModeContent()}<FrameModeSettings />{/snippet}
                 {#snippet frameModeOptionsContent()}<FrameModeOptions />{/snippet}
@@ -523,7 +529,7 @@
                             <div class="order-3">
                                 {@render card(
                                     'Widgets',
-                                    'What Daily mode shows: drag widgets between columns, hide the ones you don’t need, and adjust the column width ratio.',
+                                    'What Daily mode shows: pick a layout template and a widget for each slot, or use free columns.',
                                     frameLayoutContent
                                 )}
                             </div>

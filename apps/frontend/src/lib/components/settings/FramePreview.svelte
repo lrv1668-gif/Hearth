@@ -17,6 +17,7 @@
     import { untrack } from 'svelte';
     import { frameDataTheme } from '$lib/constants/frameThemes';
     import { normalizeFrameLayout } from '$lib/constants/frameWidgets';
+    import { normalizeSlots } from '$lib/constants/frameTemplates';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
     import { frameCanvas, frameUrl, type FrameOptions } from '$lib/frame';
     import { frameModes } from '$lib/constants/frameModes';
@@ -40,6 +41,7 @@
     // Live is the page itself; Screen and Paper are the Display service's dithered render.
 
     const layout = $derived(normalizeFrameLayout(frameSettings.layout));
+    const slots = $derived(normalizeSlots(frameSettings.template, frameSettings.slots));
 
     // Ambient and Photo show a random photo, so the preview picks one itself and hands
     // it to every view: Live, Screen and Paper show the same photo. It picks again only
@@ -79,6 +81,8 @@
         height: frameSettings.height,
         layout,
         split: frameSettings.split,
+        template: frameSettings.template,
+        slots,
         position: frameSettings.ambientPosition,
         photo,
     });
@@ -105,7 +109,7 @@
     });
 
     // The iframe only reloads for structural changes (mode, orientation, size, layout,
-    // split, the picked photo). Theme, font, text size and palette are applied to the loaded frame
+    // split, template, the picked photo). Theme, font, text size and palette are applied to the loaded frame
     // in place below — a reload would refetch everything.
     const previewSrc = $derived.by(() => {
         const structure = {
@@ -115,6 +119,8 @@
             height: frameSettings.height,
             layout,
             split: frameSettings.split,
+            template: frameSettings.template,
+            slots,
             photo,
         };
         return untrack(() =>

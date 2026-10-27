@@ -170,10 +170,12 @@ describe('frameUrl', () => {
                 height: 480,
                 layout: { left: ['today', 'moon'], right: [] },
                 split: 55,
+                template: 'feature',
+                slots: ['week', '', 'quote'],
                 position: 'top-middle',
             })
         ).toBe(
-            '/frame?mode=daily&palette=bw&theme=night&font=lora&text=120&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&position=top-middle'
+            '/frame?mode=daily&palette=bw&theme=night&font=lora&text=120&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&template=feature&slots=week%2C%2Cquote&position=top-middle'
         );
     });
 });

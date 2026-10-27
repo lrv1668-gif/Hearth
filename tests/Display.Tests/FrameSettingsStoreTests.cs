@@ -50,6 +50,21 @@ public sealed class FrameSettingsStoreTests
         Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
         Assert.Equal(FrameSettings.DefaultTextSize, saved.TextSize);
         Assert.Equal(FrameSettings.DefaultDithering, saved.Dithering);
+        Assert.Equal(FrameSettings.DefaultTemplate, saved.Template);
+        Assert.Empty(saved.Slots!);
+    }
+
+    [Fact]
+    public void Save_TemplateAndSlots_RoundTripWithEmptySlotsInPlace()
+    {
+        using var tmp = new TempDatabase();
+        var store = Migrated(tmp);
+
+        store.Save(Sample with { Template = "feature", Slots = ["week", "", "quote"] });
+
+        var saved = store.Get()!;
+        Assert.Equal("feature", saved.Template);
+        Assert.Equal(["week", "", "quote"], saved.Slots);
     }
 
     [Fact]
@@ -73,6 +88,8 @@ public sealed class FrameSettingsStoreTests
         Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
         Assert.Equal(FrameSettings.DefaultTextSize, saved.TextSize);
         Assert.Equal(FrameSettings.DefaultDithering, saved.Dithering);
+        Assert.Equal(FrameSettings.DefaultTemplate, saved.Template);
+        Assert.Empty(saved.Slots!);
     }
 
     [Fact]
