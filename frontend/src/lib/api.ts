@@ -415,6 +415,12 @@ export type AmbientPosition =
 
 // ---- Client ----
 
+/** After `timeoutMs` a request counts as unreachable. */
+type Timeout = { timeoutMs?: number };
+
+/** fetch options plus an optional timeout. */
+type RequestOptions = Omit<RequestInit, 'signal'> & Timeout;
+
 class ApiClient {
     readonly tasks = {
         list: (): Promise<Task[] | null> => this.get<Task[]>('/tasks'),
@@ -457,23 +463,17 @@ class ApiClient {
     readonly display = {
         /** The saved frame settings; null when none have been saved yet, undefined when
          *  the Display service can't be reached. */
-        settings: async (): Promise<FrameSettings | null | undefined> => {
+        settings: (): Promise<FrameSettings | null | undefined> =>
             // Bounded, so a hung service can't hold up /frame's ready signal.
-            const res = await fetch('/display/settings', { signal: AbortSignal.timeout(5000) }).catch(() => null);
-            if (!res?.ok) return undefined;
-            if (res.status === 204) return null;
-            return res.json() as Promise<FrameSettings>;
-        },
+            this.getSaved<FrameSettings>('/display/settings', { timeoutMs: 5000 }),
 
         saveSettings: (settings: FrameSettings): Promise<FrameSettings> =>
             this.put<FrameSettings>('/display/settings', settings),
 
         /** The mode the frame shows now; null when the Display service can't be reached. */
-        mode: async (): Promise<ResolvedMode | null> => {
+        mode: (): Promise<ResolvedMode | null> =>
             // Bounded like settings(), so a hung service can't hold up /frame's ready signal.
-            const res = await fetch('/display/mode', { signal: AbortSignal.timeout(5000) }).catch(() => null);
-            return res?.ok ? (res.json() as Promise<ResolvedMode>) : null;
-        },
+            this.get<ResolvedMode>('/display/mode', { timeoutMs: 5000 }),
 
         schedule: (): Promise<ModeSchedule | null> => this.get<ModeSchedule>('/display/mode/schedule'),
 
@@ -489,8 +489,8 @@ class ApiClient {
 
         /** Steps to the next mode until the schedule's next change — the frame's Button B. */
         next: async (): Promise<ResolvedMode | null> => {
-            const res = await fetch('/display/mode/next', { method: 'POST' }).catch(() => null);
-            return res?.ok ? (res.json() as Promise<ResolvedMode>) : null;
+            const res = await this.tryFetch('/display/mode/next', { method: 'POST' });
+            return res?.ok ? (res.json() as Promise<ResolvedMode>).catch(() => null) : null;
         },
 
         /** The panel render and the frame's last check-in; null when Display can't be reached. */
@@ -498,20 +498,11 @@ class ApiClient {
 
         /** The saved home location; null when none is saved yet, undefined when the
          *  Display service can't be reached. */
-        home: async (): Promise<HomeSettings | null | undefined> => {
-            const res = await fetch('/display/home').catch(() => null);
-            if (!res?.ok) return undefined;
-            if (res.status === 204) return null;
-            return (res.json() as Promise<HomeSettings>).catch(() => undefined);
-        },
+        home: (): Promise<HomeSettings | null | undefined> => this.getSaved<HomeSettings>('/display/home'),
 
         /** Throws HomeSettingsRejected with Display's reason on a 400. */
         saveHome: async (home: HomeSettings): Promise<HomeSettings> => {
-            const res = await fetch('/display/home', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(home),
-            });
+            const res = await this.sendJson('PUT', '/display/home', home);
             if (res.status === 400) throw new HomeSettingsRejected(await res.json().catch(() => 'invalid settings'));
             if (!res.ok) throw new Error(`PUT /display/home failed: ${res.status}`);
             return res.json() as Promise<HomeSettings>;
@@ -648,10 +639,7 @@ class ApiClient {
 
     readonly logs = {
         /** Whether Dozzle answers at /logs — off unless the host sets COMPOSE_PROFILES=logs (Caddy then 502s). */
-        running: async (): Promise<boolean> => {
-            const res = await fetch('/logs/', { signal: AbortSignal.timeout(5000) }).catch(() => null);
-            return res?.ok ?? false;
-        },
+        running: async (): Promise<boolean> => (await this.tryFetch('/logs/', { timeoutMs: 5000 }))?.ok ?? false,
     };
 
     readonly health = {
@@ -659,44 +647,50 @@ class ApiClient {
         service: (id: HearthServiceId): Promise<ServiceHealth | null> => this.get<ServiceHealth>(`/${id}/health`),
     };
 
-    /** null when the service can't be reached or doesn't answer with JSON. */
-    private async get<T>(url: string): Promise<T | null> {
-        try {
-            const res = await fetch(url);
-            if (!res.ok) return null;
-            return (await res.json()) as T;
-        } catch {
-            return null;
-        }
+    /** null when the service can't be reached, fails or doesn't answer with JSON. */
+    private async get<T>(url: string, options?: Timeout): Promise<T | null> {
+        const res = await this.tryFetch(url, options);
+        if (!res?.ok) return null;
+        return (res.json() as Promise<T>).catch(() => null);
+    }
+
+    /** For a setting that may not be saved yet: null on a 204, undefined when the service
+     *  can't be reached, fails or doesn't answer with JSON. */
+    private async getSaved<T>(url: string, options?: Timeout): Promise<T | null | undefined> {
+        const res = await this.tryFetch(url, options);
+        if (!res?.ok) return undefined;
+        if (res.status === 204) return null;
+        return (res.json() as Promise<T>).catch(() => undefined);
+    }
+
+    /** null instead of throwing when the service can't be reached or `timeoutMs` passes. */
+    private tryFetch(url: string, { timeoutMs, ...init }: RequestOptions = {}): Promise<Response | null> {
+        const signal = timeoutMs === undefined ? undefined : AbortSignal.timeout(timeoutMs);
+        return fetch(url, { ...init, signal }).catch(() => null);
     }
 
     private async post<T>(url: string, body: unknown): Promise<T> {
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        });
+        const res = await this.sendJson('POST', url, body);
         if (!res.ok) throw new Error(`POST ${url} failed: ${res.status}`);
         return res.json() as Promise<T>;
     }
 
     private async put<T>(url: string, body: unknown): Promise<T> {
-        const res = await fetch(url, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        });
+        const res = await this.sendJson('PUT', url, body);
         if (!res.ok) throw new Error(`PUT ${url} failed: ${res.status}`);
         return res.json() as Promise<T>;
     }
 
     private async patch(url: string, body: unknown): Promise<boolean> {
-        const res = await fetch(url, {
-            method: 'PATCH',
+        return (await this.sendJson('PATCH', url, body)).ok;
+    }
+
+    private sendJson(method: 'POST' | 'PUT' | 'PATCH', url: string, body: unknown): Promise<Response> {
+        return fetch(url, {
+            method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
-        return res.ok;
     }
 
     private async del(url: string): Promise<boolean> {
