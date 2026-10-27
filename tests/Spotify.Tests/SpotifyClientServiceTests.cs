@@ -1,6 +1,5 @@
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
-using Spotify.Tests.Helpers;
 using Xunit;
 
 namespace Spotify.Tests;

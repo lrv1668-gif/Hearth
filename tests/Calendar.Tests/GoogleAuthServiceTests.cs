@@ -1,5 +1,4 @@
 using Calendar.Providers.Google;
-using Calendar.Tests.Helpers;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Time.Testing;

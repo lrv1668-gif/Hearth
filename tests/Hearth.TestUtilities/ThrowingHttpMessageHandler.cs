@@ -1,4 +1,4 @@
-namespace Quote.Tests.Helpers;
+namespace Hearth.TestUtilities;
 
 /// <summary>Simulates a network-level failure (as opposed to an HTTP error status).</summary>
 public sealed class ThrowingHttpMessageHandler : HttpMessageHandler

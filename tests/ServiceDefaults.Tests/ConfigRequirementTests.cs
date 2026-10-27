@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ServiceDefaults.Tests.Helpers;
+using Microsoft.Extensions.Logging.Testing;
 using Xunit;
 
 namespace ServiceDefaults.Tests;
@@ -40,7 +40,7 @@ public sealed class ConfigRequirementTests
         var result = config.RequireOrFail(logger, _ => Results.Ok(), "A");
 
         Assert.Null(result);
-        Assert.Empty(logger.Entries);
+        Assert.Equal(0, logger.Collector.Count);
     }
 
     [Fact]
@@ -58,8 +58,8 @@ public sealed class ConfigRequirementTests
 
         Assert.NotNull(result);
         Assert.Equal(["A"], received);
-        Assert.Single(logger.Entries);
-        Assert.Equal(LogLevel.Error, logger.Entries[0].Level);
+        Assert.Equal(1, logger.Collector.Count);
+        Assert.Equal(LogLevel.Error, logger.LatestRecord.Level);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class ConfigRequirementTests
 
         config.WarnIfMissing(logger, "should not appear", "A");
 
-        Assert.Empty(logger.Entries);
+        Assert.Equal(0, logger.Collector.Count);
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public sealed class ConfigRequirementTests
 
         config.WarnIfMissing(logger, "A is required", "A");
 
-        Assert.Single(logger.Entries);
-        Assert.Equal("A is required", logger.Entries[0].Message);
+        Assert.Equal(1, logger.Collector.Count);
+        Assert.Equal("A is required", logger.LatestRecord.Message);
     }
 }
