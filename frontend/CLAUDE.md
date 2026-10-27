@@ -9,7 +9,7 @@ Loaded when working under `frontend/`. Project-wide guidance is in the root [`CL
 - Widget visibility and layout settings use the shared `WidgetLayoutEditor` (columns plus a Hidden tray) for both the dashboard and the frame — keep the two screens consistent rather than adding bespoke editors.
 - Each data type gets its own `src/lib/stores/<Type>Store.svelte.ts` (the `.svelte.ts` suffix is required for runes) — never combine stores into a shared `stores.ts`.
 - API calls live in `src/lib/api.ts` — all paths are relative (e.g. `/tasks`), and every backend call goes through an `api.<service>` namespace on `ApiClient` — no standalone `fetch` helpers exported from `api.ts`.
-- `ApiClient` has `post<T>(url, body)` for JSON POST — don't add overloads; inline `fetch()` directly for body-less POST calls.
+- `ApiClient` has `get<T>(url, { timeoutMs })` (null on any failure), `getSaved<T>` (null on 204, undefined on failure) and `post<T>`/`put<T>`/`patch`/`del` for JSON writes — don't add overloads; use `tryFetch(url, { method: 'POST', timeoutMs })` (null instead of throwing) for body-less POST calls and other one-off status handling.
 - Widgets that show upstream data refresh with `poll(load, ms)` from `utils.ts` (returned from `onMount`); stores keep the last good data when a refresh fails.
 - `{@html}` with any external content (e.g. calendar descriptions) must use `DOMPurify.sanitize()` first.
 
