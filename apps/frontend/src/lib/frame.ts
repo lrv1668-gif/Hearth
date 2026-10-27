@@ -35,6 +35,52 @@ export function nextEvents(items: CalendarItem[], now: Date, count: number): Cal
         .slice(0, count);
 }
 
+/** A day of the agenda: its heading and the events shown under it. */
+export interface AgendaDay {
+    key: string;
+    label: string;
+    events: CalendarItem[];
+}
+
+/** The next events grouped by day, cut to fit `lines` — each day's heading costs
+ *  `headingLines` and each event `rowLines`. A day only starts if its heading and at
+ *  least one event fit. The heading is "Today", "Tomorrow", else "Thursday, Oct 30". */
+export function fitAgenda(
+    items: CalendarItem[],
+    now: Date,
+    lines: number,
+    { headingLines, rowLines }: { headingLines: number; rowLines: number }
+): AgendaDay[] {
+    const days: AgendaDay[] = [];
+    let left = lines;
+    for (const e of nextEvents(items, now, 30)) {
+        const key = eventDateKey(e) < localDateKey(now) ? localDateKey(now) : eventDateKey(e);
+        const day = days.at(-1);
+        if (day?.key === key) {
+            if (left < rowLines) break;
+            day.events.push(e);
+            left -= rowLines;
+        } else {
+            if (left < headingLines + rowLines) break;
+            const label = railDayLabel(e, now);
+            days.push({
+                key,
+                label:
+                    label === 'Today' || label === 'Tomorrow'
+                        ? label
+                        : new Date(`${key}T00:00`).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              month: 'short',
+                              day: 'numeric',
+                          }),
+                events: [e],
+            });
+            left -= headingLines + rowLines;
+        }
+    }
+    return days;
+}
+
 /** Whether an all-day event is still on as of `todayKey`. Google's all-day `end` is
  *  exclusive (a one-day event on the 19th ends "…-20"), so it runs while end > today. */
 function allDayRunsThrough(e: CalendarItem, todayKey: string): boolean {

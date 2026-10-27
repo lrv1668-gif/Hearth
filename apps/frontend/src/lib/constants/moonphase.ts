@@ -58,3 +58,15 @@ export function moonPath(phase: number, r = 40): string {
         return `M 0,${-r} A ${r},${r} 0 0 0 0,${r} A ${rx},${r} 0 0 ${sweep} 0,${-r} Z`;
     }
 }
+
+/** The next four major phases (new, first quarter, full, last quarter) after `now`,
+ *  soonest first, each with its date — the lunar month ahead. */
+export function upcomingPhases(now: Date = new Date()): { name: string; phase: number; date: Date }[] {
+    const { phase } = calcMoonPhase(now);
+    return majors
+        .map(([t, name]) => {
+            const days = ((t - phase + 1) % 1 || 1) * SYNODIC_PERIOD;
+            return { name, phase: t, date: new Date(now.getTime() + days * 86_400_000) };
+        })
+        .sort((a, b) => a.date.getTime() - b.date.getTime());
+}

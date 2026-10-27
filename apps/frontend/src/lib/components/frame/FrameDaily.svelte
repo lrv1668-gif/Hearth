@@ -9,6 +9,9 @@
     import DayArcWidget from '$lib/components/widgets/DayArcWidget.svelte';
     import FrameToday from './widgets/FrameToday.svelte';
     import FrameComingUp from './widgets/FrameComingUp.svelte';
+    import FrameAgenda from './widgets/FrameAgenda.svelte';
+    import FrameMoon from './widgets/FrameMoon.svelte';
+    import FrameQuote from './widgets/FrameQuote.svelte';
     import FrameWeek from './widgets/FrameWeek.svelte';
     import FrameCountdowns from './widgets/FrameCountdowns.svelte';
     import FrameLastPlayed from './widgets/FrameLastPlayed.svelte';
@@ -66,40 +69,57 @@
 </script>
 
 {#snippet widget(id: FrameWidgetId, n: number, size?: FrameSize)}
+    {@const roomy = size === 'm' || size === 'l'}
     <!-- Safety net: if a widget still outgrows its share, it clips inside its own
-         box rather than pushing the next widget off the panel. -->
-    <section class="min-h-0 min-w-0 shrink overflow-hidden">
+         box rather than pushing the next widget off the panel. In a template slot the
+         section fills the slot, and the body under the kicker is a size container:
+         widgets size to it with container units and @container rules. -->
+    <section class="min-h-0 min-w-0 overflow-hidden {size ? 'flex h-full flex-col' : 'shrink'}">
         <!-- Kicker: tracked caps led by a small --block square, no underline — space
              separates the widgets, so the page keeps only its structural rules. -->
         <h2
-            class="type-label mb-6 flex items-center gap-3 leading-none font-semibold tracking-[0.16em] text-(--text-2) uppercase"
+            class="type-label mb-6 flex shrink-0 items-center gap-3 leading-none font-semibold tracking-[0.16em] text-(--text-2) uppercase"
         >
             <span class="h-3.5 w-3.5 shrink-0 bg-(--block)"></span>
             {label(id)}
         </h2>
-        {#if id === 'arc'}
-            <DayArcWidget hourly />
-        {:else if id === 'today'}
-            <FrameToday {now} lines={n} />
-        {:else if id === 'coming-up'}
-            <FrameComingUp {now} lines={n} />
-        {:else if id === 'week'}
-            <FrameWeek {now} lines={n} />
-        {:else if id === 'countdowns'}
-            <FrameCountdowns {now} size={size ?? 'm'} />
-        {:else if id === 'almanac'}
-            <AlmanacView almanac={almanacStore.almanac} lines={n} />
-        {:else if id === 'moon'}
-            <MoonPhaseView {now} {size} />
-        {:else if id === 'quote'}
-            <DailyQuoteView quote={dailyQuoteStore.quote} lines={n} feature={size === 'l'} />
-        {:else if id === 'birds'}
-            <BirdSightingsView sightings={birdsStore.sightings} {now} lines={n} />
-        {:else if id === 'last-played'}
-            <FrameLastPlayed {now} {size} lines={n} />
-        {:else if id === 'sports'}
-            <FrameSports {now} lines={n} />
-        {/if}
+        <div class={size ? '[container-type:size] relative min-h-0 flex-1' : 'contents'}>
+            {#if id === 'arc'}
+                <DayArcWidget hourly />
+            {:else if id === 'today'}
+                <FrameToday {now} lines={n} {size} />
+            {:else if id === 'coming-up'}
+                {#if roomy}
+                    <FrameAgenda {now} lines={n} large={size === 'l'} />
+                {:else}
+                    <FrameComingUp {now} lines={n} />
+                {/if}
+            {:else if id === 'week'}
+                <FrameWeek {now} lines={n} />
+            {:else if id === 'countdowns'}
+                <FrameCountdowns {now} {size} />
+            {:else if id === 'almanac'}
+                <AlmanacView almanac={almanacStore.almanac} lines={n} />
+            {:else if id === 'moon'}
+                {#if roomy}
+                    <FrameMoon {now} large={size === 'l'} />
+                {:else}
+                    <MoonPhaseView {now} />
+                {/if}
+            {:else if id === 'quote'}
+                {#if roomy}
+                    <FrameQuote large={size === 'l'} />
+                {:else}
+                    <DailyQuoteView quote={dailyQuoteStore.quote} lines={n} />
+                {/if}
+            {:else if id === 'birds'}
+                <BirdSightingsView sightings={birdsStore.sightings} {now} lines={n} />
+            {:else if id === 'last-played'}
+                <FrameLastPlayed {now} {size} />
+            {:else if id === 'sports'}
+                <FrameSports {now} lines={n} />
+            {/if}
+        </div>
     </section>
 {/snippet}
 

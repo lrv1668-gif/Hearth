@@ -5,18 +5,16 @@
     import type { FrameSize } from '$lib/constants/frameTemplates';
 
     // `size`: a template slot's size class — S drops the sleeve for the text alone, L
-    // grows it to the slot's height (up to half its width) with a larger title.
-    // Omitted (the frame's columns) is M. `lines` sizes L's sleeve.
-    let { now, size = 'm', lines = 0 }: { now: Date; size?: FrameSize; lines?: number } = $props();
+    // grows it to the slot's full height (up to half its width; the slot body is a size
+    // container) with a larger title. Omitted (the frame's columns) is M.
+    let { now, size = 'm' }: { now: Date; size?: FrameSize } = $props();
 
     const track = $derived(lastPlayedStore.lastPlayed?.track ?? null);
     const topArtist = $derived(lastPlayedStore.lastPlayed?.top_artist ?? null);
     // A fixed 5-line square (its budget in lib/frame.ts): big enough to read as a record
     // sleeve once dithered, and as tall as the four lines of text beside it.
     const ART_LINES = 5;
-    const art = $derived(
-        size === 'l' ? `width: min(${Math.max(ART_LINES, Math.floor(lines))}lh, 50%)` : `width: ${ART_LINES}lh`
-    );
+    const art = $derived(size === 'l' ? 'width: min(100cqh, 50cqw)' : `width: ${ART_LINES}lh`);
 </script>
 
 <!--
