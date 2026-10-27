@@ -1,7 +1,6 @@
 using System.Net;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Logging.Abstractions;
-using Quote.Tests.Helpers;
 using Xunit;
 
 namespace Quote.Tests;

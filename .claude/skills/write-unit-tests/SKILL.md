@@ -17,12 +17,14 @@ Creates (or extends) an xUnit test project for one Hearth backend service. (Fron
 
 Shared helpers already exist in `tests/Hearth.TestUtilities/` — reference that project, never copy the helpers:
 
-- `FakeHttpMessageHandler(string responseJson, HttpStatusCode status = OK)` — canned HTTP responses. `ResponseJson`/`Status` can be changed mid-test (upstream changes or fails), `ByPath[path] = (status, json)` answers a service that calls several endpoints, and `RequestCount`/`LastRequestUri` let you assert what was called and what a cache saved
+- `FakeHttpMessageHandler(string responseJson, HttpStatusCode status = OK)` — canned HTTP responses. `ResponseJson`/`Status` can be changed mid-test (upstream changes or fails), `ByPath[path] = (status, json)` answers a service that calls several endpoints, and `RequestUris`/`RequestCount`/`LastRequestUri` let you assert what was called and what a cache saved
+- `ThrowingHttpMessageHandler` — a network-level failure (throws `HttpRequestException`) rather than an error status
 - `TempDatabase` — a real `Database` on a throwaway SQLite file (`tmp.Db`), deleted on `Dispose()`
+- `TestDataProtection.Provider` — an `IDataProtectionProvider` for stores that encrypt tokens
 
-For time-dependent code (cache expiry, OAuth state, schedules), inject `TimeProvider` and use `FakeTimeProvider` from the `Microsoft.Extensions.TimeProvider.Testing` package (`using Microsoft.Extensions.Time.Testing;`, `new FakeTimeProvider(start)`, `.Advance(...)`) — don't hand-roll a clock.
+For time-dependent code (cache expiry, OAuth state, schedules), inject `TimeProvider` and use `FakeTimeProvider` from the `Microsoft.Extensions.TimeProvider.Testing` package (`using Microsoft.Extensions.Time.Testing;`, `new FakeTimeProvider(start)`, `.Advance(...)`) — don't hand-roll a clock. Likewise assert on logging with `FakeLogger` from `Microsoft.Extensions.Diagnostics.Testing` (`using Microsoft.Extensions.Logging.Testing;`, `logger.Collector.Count`, `logger.LatestRecord`).
 
-Service-specific one-off handlers (e.g. `Quote.Tests/Helpers/ThrowingHttpMessageHandler.cs`) go in that test project's `Helpers/` folder. If a helper becomes useful to a second project, move it into `Hearth.TestUtilities`.
+Service-specific one-off helpers go in that test project's `Helpers/` folder. If a helper becomes useful to a second project, move it into `Hearth.TestUtilities`.
 
 ---
 

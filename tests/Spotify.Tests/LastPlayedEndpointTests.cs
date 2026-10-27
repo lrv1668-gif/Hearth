@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceDefaults;
 using Spotify.Records;
-using Spotify.Tests.Helpers;
 using Xunit;
 
 namespace Spotify.Tests;

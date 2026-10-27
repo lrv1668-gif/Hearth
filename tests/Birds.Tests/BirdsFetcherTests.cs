@@ -1,6 +1,6 @@
 using System.Net;
 using Birds.Records;
-using Birds.Tests.Helpers;
+using Hearth.TestUtilities;
 using Xunit;
 
 namespace Birds.Tests;
@@ -17,11 +17,8 @@ public sealed class BirdsFetcherTests
     private static BirdsFetcher MakeFetcher(string recentJson, string notableJson = "[]",
         HttpStatusCode status = HttpStatusCode.OK)
     {
-        var handler = new FakeHttpMessageHandler(new Dictionary<string, string>
-        {
-            ["recent"] = recentJson,
-            ["recent/notable"] = notableJson,
-        }, status);
+        var handler = new FakeHttpMessageHandler(recentJson, status);
+        handler.ByPath["/v2/data/obs/geo/recent/notable"] = (status, notableJson);
         return new BirdsFetcher(new HttpClient(handler));
     }
 

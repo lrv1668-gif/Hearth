@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Spotify.Tests.Helpers;
+namespace Hearth.TestUtilities;
 
 public static class TestDataProtection
 {

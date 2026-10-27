@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
-using Weather.Tests.Helpers;
+using Hearth.TestUtilities;
 using Xunit;
 
 namespace Weather.Tests;
@@ -25,13 +25,17 @@ public sealed class WeatherFetcherTests
 
     private const string ValidAqiJson = """{ "current": { "us_aqi": 42 } }""";
 
+    private const string AirQualityPath = "/v1/air-quality";
+
     private static WeatherFetcher MakeFetcher(
         string json,
         HttpStatusCode status = HttpStatusCode.OK,
         string? airQualityJson = null,
         HttpStatusCode airQualityStatus = HttpStatusCode.OK)
     {
-        var handler = new FakeHttpMessageHandler(json, status, airQualityJson, airQualityStatus);
+        var handler = new FakeHttpMessageHandler(json, status);
+        if (airQualityJson is not null)
+            handler.ByPath[AirQualityPath] = (airQualityStatus, airQualityJson);
         var http = new HttpClient(handler);
         return new WeatherFetcher(http);
     }
@@ -115,7 +119,8 @@ public sealed class WeatherFetcherTests
     [Fact]
     public async Task FetchAsync_CommaDecimalCulture_FormatsCoordinatesInvariantly()
     {
-        var handler = new FakeHttpMessageHandler(ValidJson, airQualityJson: ValidAqiJson);
+        var handler = new FakeHttpMessageHandler(ValidJson);
+        handler.ByPath[AirQualityPath] = (HttpStatusCode.OK, ValidAqiJson);
         var fetcher = new WeatherFetcher(new HttpClient(handler));
         var original = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = new CultureInfo("de-DE");
