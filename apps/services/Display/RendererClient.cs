@@ -4,7 +4,7 @@ using System.Net;
 namespace Display;
 
 /// <summary>
-/// Calls the renderer sidecar (renderer/server.mjs), which screenshots the /frame route
+/// Calls the renderer sidecar (apps/renderer/server.mjs), which screenshots the /frame route
 /// in headless Chromium and dithers it to the panel's six inks.
 /// </summary>
 public sealed class RendererClient(HttpClient http)

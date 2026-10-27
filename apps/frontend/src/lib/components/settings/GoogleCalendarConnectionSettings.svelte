@@ -16,7 +16,7 @@
     const errorMessage = $derived.by(() => {
         if (!errorCode) return null;
         if (errorCode === 'invalid_client')
-            return 'Google rejected Hearth’s client secret. Check GOOGLE_CLIENT_SECRET in src/Calendar/.env matches the OAuth client in Google Cloud Console, then restart the calendar service.';
+            return 'Google rejected Hearth’s client secret. Check GOOGLE_CLIENT_SECRET in apps/services/Calendar/.env matches the OAuth client in Google Cloud Console, then restart the calendar service.';
         if (errorCode === 'access_denied') return 'Google access wasn’t granted, so nothing was connected.';
         return `Couldn’t connect to Google (${errorCode}). The calendar service’s log has details.`;
     });

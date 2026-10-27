@@ -194,7 +194,7 @@ Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-
 
 Themes are defined in two places that must be kept in sync: `apps/frontend/src/themes.css` (CSS variables) and `apps/frontend/src/lib/constants/themes.ts` (switcher metadata).
 
-Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (readable secondary text) and `--text-3` at least 3:1 (icons and non-text marks only); `--text-4` is decorative. `src/lib/themes.test.ts` enforces this.
+Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (readable secondary text) and `--text-3` at least 3:1 (icons and non-text marks only); `--text-4` is decorative. `apps/frontend/src/lib/themes.test.ts` enforces this.
 
 **Frame themes.** `/frame` has its own themes, chosen with `?theme=` (Color mode) and picked in Settings → Frame, which also sets the frame's typeface (`?font=`, any font preset), text size (`?text=`, 100–150%), orientation and panel size (typed, or a preset for the common Inky Impression panels) and shows a live, scaled-down preview of the real `/frame` page plus its URL. They are `[data-theme='epaper-<id>']` blocks in `themes.css` with picker metadata in `constants/frameThemes.ts`, kept out of the dashboard theme picker. Colours are built from the panel's measured Spectra 6 inks, white-balanced so the browser preview looks like the panel:
 
@@ -223,8 +223,8 @@ Named typography presets, orthogonal to color themes. Each preset bundles a font
 
 Defined in two places (both must be updated together):
 
-1. `src/fonts.css` — `@fontsource` imports plus one `[data-font="id"] { ... }` block per preset (source of truth for stacks, weights, scale). Selectors stay bare `[data-font]` — `FontThemePicker.svelte` sets `data-font` on its preview buttons so the same blocks style the previews.
-2. `src/lib/constants/fontThemes.ts` — `fontThemes` array (picker metadata only: `id`, `label`, `tag`)
+1. `apps/frontend/src/fonts.css` — `@fontsource` imports plus one `[data-font="id"] { ... }` block per preset (source of truth for stacks, weights, scale). Selectors stay bare `[data-font]` — `FontThemePicker.svelte` sets `data-font` on its preview buttons so the same blocks style the previews.
+2. `apps/frontend/src/lib/constants/fontThemes.ts` — `fontThemes` array (picker metadata only: `id`, `label`, `tag`)
 
 Applied as `data-font` on `<html>` by `FontThemeStore.svelte.ts` (localStorage key `hearth-font`).
 

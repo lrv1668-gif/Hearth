@@ -1,5 +1,5 @@
 // The e-paper frame's modes — the ids /frame?mode= takes. Kept in sync with the Display
-// service's FrameModes (src/Display/Records/FrameModes.cs); the order is the cycle the
+// service's FrameModes (apps/services/Display/Records/FrameModes.cs); the order is the cycle the
 // frame's Button B (POST /display/mode/next) steps through.
 export const frameModes = [
     { id: 'ambient', label: 'Ambient', description: 'A full-frame photo with a small date and weather card' },
