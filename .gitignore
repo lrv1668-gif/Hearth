@@ -1,22 +1,19 @@
 # Frontend (Node / SvelteKit)
-frontend/node_modules/
-renderer/node_modules/
-frontend/.svelte-kit/
-frontend/build/
-frontend/.env
-frontend/.env.*
-!frontend/.env.example
+**/node_modules/
+apps/frontend/.svelte-kit/
+apps/frontend/build/
+apps/frontend/.env
+apps/frontend/.env.*
+!apps/frontend/.env.example
 
 # Backend (.NET)
-src/**/bin/
-src/**/obj/
-src/**/*.db
-src/**/*.db-shm
-src/**/*.db-wal
-src/**/*.lscache
-src/**/.env
-tests/**/bin/
-tests/**/obj/
+**/bin/
+**/obj/
+apps/services/**/*.db
+apps/services/**/*.db-shm
+apps/services/**/*.db-wal
+apps/services/**/*.lscache
+apps/services/**/.env
 
 # OS / editor
 .DS_Store
@@ -31,8 +28,14 @@ Thumbs.db
 !.claude/settings.json
 !.claude/launch.json
 .vs/
-# Root compose .env (deployed-host settings)
+# Compose .env (deployed-host settings)
+/infra/.env
+# Dozzle's login and saved settings (infra/deploy/dozzle-user.sh)
+/infra/dozzle/*
+!/infra/dozzle/.gitkeep
+# Pre-infra/ locations, so files a checkout hasn't moved yet stay out of commits
 /.env
-# Dozzle's login and saved settings (deploy/dozzle-user.sh)
-/dozzle/*
-!/dozzle/.gitkeep
+/dozzle/
+/src/
+/frontend/
+/renderer/

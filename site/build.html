@@ -163,12 +163,12 @@ cd Hearth</code></pre>
                                 don't use. Tasks, quotes and news need nothing. The home location and time zone are
                                 set later, in Settings → Home.
                             </p>
-                            <pre><code>touch src/{Weather,Spotify,Calendar,Photos,Birds,Almanac,Trains}/.env</code></pre>
+                            <pre><code>touch apps/services/{Weather,Spotify,Calendar,Photos,Birds,Almanac,Trains}/.env</code></pre>
                         </li>
                         <li>
                             <h3>Start the stack</h3>
                             <p>Docker Compose builds and starts everything behind Caddy. Then open the host in a browser.</p>
-                            <pre><code>docker compose -f docker-compose.yml up --build</code></pre>
+                            <pre><code>docker compose -f infra/docker-compose.yml up --build</code></pre>
                         </li>
                         <li>
                             <h3>Make it yours</h3>

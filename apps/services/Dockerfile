@@ -1,6 +1,6 @@
 # Shared image for every backend service — pick one with the SERVICE build arg
-# (set per service in docker-compose.yml), e.g.
-#   docker build --build-arg SERVICE=Tasks -f src/Dockerfile src
+# (set per service in infra/docker-compose.yml), e.g.
+#   docker build --build-arg SERVICE=Tasks -f apps/services/Dockerfile apps/services
 ARG SERVICE
 
 # The SDK runs on the build machine's own arch and cross-publishes for TARGETARCH,

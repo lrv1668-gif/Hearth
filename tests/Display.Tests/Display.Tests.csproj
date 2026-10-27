@@ -9,8 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Display\Display.csproj" />
-    <ProjectReference Include="..\..\src\Data\Data.csproj" />
+    <ProjectReference Include="..\..\apps\services\Display\Display.csproj" />
+    <ProjectReference Include="..\..\apps\services\Data\Data.csproj" />
     <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 

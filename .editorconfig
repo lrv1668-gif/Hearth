@@ -1,4 +1,4 @@
-# Editor basics only. Frontend formatting is Prettier's job (frontend/.prettierrc);
+# Editor basics only. Frontend formatting is Prettier's job (apps/frontend/.prettierrc);
 # C# keeps its hand-aligned columns, so there are no dotnet-format style rules here.
 root = true
 
@@ -13,7 +13,7 @@ indent_size = 4
 [*.{csproj,props,slnx,xml}]
 indent_size = 2
 
-[{.github/**.{yml,yaml},docker-compose.override.yml}]
+[{.github/**.{yml,yaml},infra/docker-compose.override.yml}]
 indent_size = 2
 
 [*.md]

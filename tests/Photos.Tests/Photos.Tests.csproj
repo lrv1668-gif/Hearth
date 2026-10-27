@@ -7,7 +7,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Photos\Photos.csproj" />
+    <ProjectReference Include="..\..\apps\services\Photos\Photos.csproj" />
     <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 

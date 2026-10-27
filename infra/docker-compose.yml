@@ -1,3 +1,7 @@
+# Pinned so the project (and its volumes, hearth_<name>-data) doesn't take this
+# folder's name; -p or COMPOSE_PROJECT_NAME still override it
+name: hearth
+
 # Shared defaults — merged into each service with `<<: *name`
 x-defaults: &defaults
     restart: unless-stopped
@@ -17,9 +21,9 @@ x-probe: &probe
     start_period: 30s
     start_interval: 2s
 
-# Image names come from the root .env (see .env.example). Locally they default to
+# Image names come from infra/.env (see .env.example). Locally they default to
 # hearth-<service>:latest and `--build` builds them; a deployed host sets
-# HEARTH_IMAGE_PREFIX to the registry CI pushes to and pulls instead (deploy/update.sh).
+# HEARTH_IMAGE_PREFIX to the registry CI pushes to and pulls instead (infra/deploy/update.sh).
 services:
     tasks:
         <<: *defaults
@@ -28,7 +32,7 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/tasks/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Tasks
         environment:
@@ -44,11 +48,11 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/spotify/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Spotify
         env_file:
-            - ./src/Spotify/.env
+            - ../apps/services/Spotify/.env
         environment:
             - DB_PATH=/data/spotify.db
             - ASPNETCORE_HTTP_PORTS=8083
@@ -63,11 +67,11 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/weather/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Weather
         env_file:
-            - ./src/Weather/.env
+            - ../apps/services/Weather/.env
         environment:
             - DB_PATH=/data/weather.db
             - ASPNETCORE_HTTP_PORTS=8082
@@ -83,11 +87,11 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/photos/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Photos
         env_file:
-            - ./src/Photos/.env
+            - ../apps/services/Photos/.env
         environment:
             - DATA_PATH=/data
             - ASPNETCORE_HTTP_PORTS=8084
@@ -101,7 +105,7 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/rss/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Rss
         environment:
@@ -117,11 +121,11 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/calendar/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Calendar
         env_file:
-            - ./src/Calendar/.env
+            - ../apps/services/Calendar/.env
         environment:
             - DB_PATH=/data/calendar.db
             - ASPNETCORE_HTTP_PORTS=8087
@@ -136,7 +140,7 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/quote/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Quote
         environment:
@@ -149,11 +153,11 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/birds/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Birds
         env_file:
-            - ./src/Birds/.env
+            - ../apps/services/Birds/.env
         environment:
             - DB_PATH=/data/birds.db
             - ASPNETCORE_HTTP_PORTS=8088
@@ -169,11 +173,11 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/almanac/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Almanac
         env_file:
-            - ./src/Almanac/.env
+            - ../apps/services/Almanac/.env
         environment:
             - ASPNETCORE_HTTP_PORTS=8089
             # Home location and zone saved in Settings; .env values are the fallback
@@ -186,11 +190,11 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/trains/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Trains
         env_file:
-            - ./src/Trains/.env
+            - ../apps/services/Trains/.env
         environment:
             - DB_PATH=/data/trains.db
             - ASPNETCORE_HTTP_PORTS=8091
@@ -204,7 +208,7 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/sports/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Sports
         environment:
@@ -220,14 +224,14 @@ services:
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/display/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: Display
         environment:
             - DB_PATH=/data/display.db
             - ASPNETCORE_HTTP_PORTS=8090
             - RENDERER_URL=http://renderer:3000
-            # Fallback zone for the mode schedule (root .env), matching the renderer's clock,
+            # Fallback zone for the mode schedule (infra/.env), matching the renderer's clock,
             # when none is saved in Settings → Home; UTC when neither is set
             - TZ=${TZ:-}
         volumes:
@@ -238,17 +242,18 @@ services:
     renderer:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-renderer:${HEARTH_TAG:-latest}
-        build: ./renderer
+        build: ../apps/renderer
         init: true
         environment:
             - FRAME_BASE_URL=http://caddy
-            # Fallback zone for the frame's date and clock (root .env) when none is saved in
+            # Fallback zone for the frame's date and clock (infra/.env) when none is saved in
             # Settings → Home; UTC when neither is set
             - TZ=${TZ:-}
 
     # Live logs for every container on the host at /logs (Dozzle), linked from Settings →
-    # Diagnostics. Opt-in, since it reads the Docker socket: COMPOSE_PROFILES=logs in the
-    # root .env. Its login lives in dozzle/users.yml — create it with deploy/dozzle-user.sh.
+    # Diagnostics. Opt-in, since it reads the Docker socket: COMPOSE_PROFILES=logs in
+    # infra/.env. Its login lives in infra/dozzle/users.yml — create it with
+    # infra/deploy/dozzle-user.sh.
     # Nothing waits on it: without a login only /logs is down.
     dozzle:
         <<: *defaults
@@ -270,7 +275,7 @@ services:
     frontend:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-frontend:${HEARTH_TAG:-latest}
-        build: ./frontend
+        build: ../apps/frontend
         # Node as PID 1 ignores SIGTERM; tini forwards it so `docker stop` is instant
         init: true
         healthcheck:

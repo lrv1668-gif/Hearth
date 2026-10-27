@@ -6,7 +6,7 @@ set -u
 file=$(jq -r '.tool_input.file_path // empty')
 [ -z "$file" ] && exit 0
 
-frontend="$CLAUDE_PROJECT_DIR/frontend"
+frontend="$CLAUDE_PROJECT_DIR/apps/frontend"
 case "$file" in
     "$frontend"/node_modules/*) exit 0 ;;
     "$frontend"/*.svelte | "$frontend"/*.ts | "$frontend"/*.js | "$frontend"/*.css | "$frontend"/*.json) ;;

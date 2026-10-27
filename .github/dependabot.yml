@@ -2,7 +2,7 @@ version: 2
 updates:
   # Frontend npm packages
   - package-ecosystem: "npm"
-    directory: "/frontend"
+    directory: "/apps/frontend"
     schedule:
       interval: "weekly"
     groups:
@@ -34,11 +34,11 @@ updates:
         update-types: ["version-update:semver-major"]
 
   # .NET NuGet packages — wildcards cover every service and test project;
-  # /src and /tests themselves cover the central Directory.Packages.props files
+  # /apps/services and /tests themselves cover the central Directory.Packages.props files
   - package-ecosystem: "nuget"
     directories:
-      - "/src"
-      - "/src/*"
+      - "/apps/services"
+      - "/apps/services/*"
       - "/tests"
       - "/tests/*"
     schedule:
@@ -53,17 +53,17 @@ updates:
       nuget-minor-patch:
         update-types: ["minor", "patch"]
 
-  # Docker base images — src/Dockerfile is shared by every backend service
+  # Docker base images — apps/services/Dockerfile is shared by every backend service
   - package-ecosystem: "docker"
     directories:
-      - "/frontend"
-      - "/src"
+      - "/apps/frontend"
+      - "/apps/services"
     schedule:
       interval: "weekly"
 
   # Images referenced directly in compose (caddy)
   - package-ecosystem: "docker-compose"
-    directory: "/"
+    directory: "/infra"
     schedule:
       interval: "weekly"
 

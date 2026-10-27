@@ -3,7 +3,7 @@
 import { ditherImage, replaceColors } from 'epdoptimize';
 
 // The measured inks, white-balanced so paper is #fff — what the panel is sent and what
-// the epaper-* palettes in frontend/src/themes.css are built from. inky's order:
+// the epaper-* palettes in apps/frontend/src/themes.css are built from. inky's order:
 // black, white, yellow, red, blue, green.
 export const INKS = ['#000000', '#ffffff', '#ffff6e', '#f16f74', '#5e5b91', '#5a8d6c'];
 

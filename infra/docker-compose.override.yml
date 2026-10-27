@@ -57,7 +57,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../apps/frontend
       dockerfile: Dockerfile.dev
     environment:
       - TASKS_URL=http://tasks:8081
@@ -77,14 +77,14 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./frontend/src
+          path: ../apps/frontend/src
           target: /app/src
         - action: sync
-          path: ./frontend/static
+          path: ../apps/frontend/static
           target: /app/static
         - action: rebuild
-          path: ./frontend/package.json
+          path: ../apps/frontend/package.json
         - action: rebuild
-          path: ./frontend/svelte.config.js
+          path: ../apps/frontend/svelte.config.js
         - action: rebuild
-          path: ./frontend/vite.config.ts
+          path: ../apps/frontend/vite.config.ts

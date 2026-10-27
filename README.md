@@ -52,11 +52,11 @@ flowchart LR
 You need [Docker](https://docs.docker.com/get-docker/) Engine 25+ and Compose v2.22+. Compose expects each service's `.env` file to exist, even if it's empty:
 
 ```bash
-touch src/{Almanac,Birds,Calendar,Photos,Spotify,Trains,Weather}/.env
+touch apps/services/{Almanac,Birds,Calendar,Photos,Spotify,Trains,Weather}/.env
 ```
 
 ```bash
-docker compose up --build
+cd infra && docker compose up --build
 ```
 
 Open [http://localhost](http://localhost) and set the home location and time zone in **Settings → Home**. Tasks, quotes and news work with no keys.
@@ -67,24 +67,24 @@ Add keys only for the integrations you want. Each file is read by one service:
 
 | Integration | File | Keys | Get a key |
 |---|---|---|---|
-| Unsplash photos | `src/Photos/.env` | `UNSPLASH_ACCESS_KEY` | [Unsplash developers](https://unsplash.com/developers) |
-| Spotify | `src/Spotify/.env` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` | [Spotify dashboard](https://developer.spotify.com/dashboard) |
-| Google Calendar | `src/Calendar/.env` | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | [Google Cloud console](https://console.cloud.google.com/apis/credentials) |
-| eBird | `src/Birds/.env` | `EBIRD_API_KEY` | [eBird API key](https://ebird.org/api/keygen) |
-| Transitland | `src/Trains/.env` | `TRANSITLAND_API_KEY` | [Transitland](https://www.transit.land/documentation) |
-| Frost dates (optional) | `src/Almanac/.env` | `FIRST_FROST`, `LAST_FROST` (`MM-DD`) | — |
+| Unsplash photos | `apps/services/Photos/.env` | `UNSPLASH_ACCESS_KEY` | [Unsplash developers](https://unsplash.com/developers) |
+| Spotify | `apps/services/Spotify/.env` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` | [Spotify dashboard](https://developer.spotify.com/dashboard) |
+| Google Calendar | `apps/services/Calendar/.env` | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | [Google Cloud console](https://console.cloud.google.com/apis/credentials) |
+| eBird | `apps/services/Birds/.env` | `EBIRD_API_KEY` | [eBird API key](https://ebird.org/api/keygen) |
+| Transitland | `apps/services/Trains/.env` | `TRANSITLAND_API_KEY` | [Transitland](https://www.transit.land/documentation) |
+| Frost dates (optional) | `apps/services/Almanac/.env` | `FIRST_FROST`, `LAST_FROST` (`MM-DD`) | — |
 
 `LATITUDE`, `LONGITUDE` and `TZ` in these files are only fallbacks until a home location is saved in Settings → Home. Every variable, including the redirect URIs to register, is listed per service in [`docs/SOFTWARE-DESIGN.md`](docs/SOFTWARE-DESIGN.md): [Photos](docs/SOFTWARE-DESIGN.md#photos-service), [Spotify](docs/SOFTWARE-DESIGN.md#spotify-service), [Calendar](docs/SOFTWARE-DESIGN.md#calendar-service), [Birds](docs/SOFTWARE-DESIGN.md#birds-service), [Trains](docs/SOFTWARE-DESIGN.md#trains-service), [Almanac](docs/SOFTWARE-DESIGN.md#almanac-service), [Weather](docs/SOFTWARE-DESIGN.md#weather-service).
 
 ## Development
 
-`docker compose watch` runs the stack with hot reload. To run pieces natively instead (needs the [.NET 10 SDK](https://dotnet.microsoft.com/download) and [Node.js 20+](https://nodejs.org/)), start any service with `dotnet run --project src/<Service>` and the frontend with `cd frontend && npm run dev`. The ports Vite proxies to are in [`frontend/vite.config.ts`](frontend/vite.config.ts).
+`docker compose watch` (from `infra/`) runs the stack with hot reload. To run pieces natively instead (needs the [.NET 10 SDK](https://dotnet.microsoft.com/download) and [Node.js 20+](https://nodejs.org/)), start any service with `dotnet run --project apps/services/<Service>` and the frontend with `cd apps/frontend && npm run dev`. The ports Vite proxies to are in [`apps/frontend/vite.config.ts`](apps/frontend/vite.config.ts).
 
-Before a PR, run `dotnet build Hearth.slnx && dotnet test Hearth.slnx`, and `npm run check && npm run test` in `frontend/`. More in [Development workflow](docs/SOFTWARE-DESIGN.md#development-workflow).
+Before a PR, run `dotnet build Hearth.slnx && dotnet test Hearth.slnx`, and `npm run check && npm run test` in `apps/frontend/`. More in [Development workflow](docs/SOFTWARE-DESIGN.md#development-workflow).
 
 ## Deploying
 
-CI publishes amd64 and arm64 images to GHCR on every green push to `main`. A host pulls them with [`deploy/update.sh`](deploy/update.sh), run by a systemd timer. See [Deploying to a host](docs/SOFTWARE-DESIGN.md#deploying-to-a-host).
+CI publishes amd64 and arm64 images to GHCR on every green push to `main`. A host pulls them with [`infra/deploy/update.sh`](infra/deploy/update.sh), run by a systemd timer. See [Deploying to a host](docs/SOFTWARE-DESIGN.md#deploying-to-a-host).
 
 To build the frame itself, see [`docs/HARDWARE.md`](docs/HARDWARE.md) and the companion client [inky-pull](https://github.com/lrv1668-gif/inky-pull).
 

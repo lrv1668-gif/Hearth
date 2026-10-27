@@ -11,17 +11,17 @@ Creates new widgets for the Hearth SvelteKit home dashboard.
 
 | File | What changes |
 |------|-------------|
-| `frontend/src/lib/constants/widgets.ts` | Register the widget ID |
-| `frontend/src/lib/components/widgets/YourWidget.svelte` | Create the component |
-| `frontend/src/routes/+page.svelte` | Import + wire into the dashboard |
-| `frontend/src/lib/api.ts` | Response type + `api.<service>.<method>()` (data-fetching widgets) |
-| `frontend/src/lib/stores/YourStore.svelte.ts` | One store per data type (data-fetching widgets) |
-| `frontend/src/lib/components/widgets/views/YourView.svelte` | Shared markup, if the widget also goes on the e-paper frame (Step 5) |
-| `frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `routes/frame/+page.svelte` | Frame registration, slot and data loader (Step 5) |
+| `apps/frontend/src/lib/constants/widgets.ts` | Register the widget ID |
+| `apps/frontend/src/lib/components/widgets/YourWidget.svelte` | Create the component |
+| `apps/frontend/src/routes/+page.svelte` | Import + wire into the dashboard |
+| `apps/frontend/src/lib/api.ts` | Response type + `api.<service>.<method>()` (data-fetching widgets) |
+| `apps/frontend/src/lib/stores/YourStore.svelte.ts` | One store per data type (data-fetching widgets) |
+| `apps/frontend/src/lib/components/widgets/views/YourView.svelte` | Shared markup, if the widget also goes on the e-paper frame (Step 5) |
+| `apps/frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `routes/frame/+page.svelte` | Frame registration, slot and data loader (Step 5) |
 | `README.md` (the `/` row of the Pages table, plus the `/frame` row for frame widgets), `docs/SOFTWARE-DESIGN.md` | Add the widget to the feature list / frontend integration notes |
 | `site/index.html` | The widget grid on the project site (`Frame` badge for frame widgets) |
 
-**Backend first:** domain data and math (API calls to third parties, caching, astronomy, recurrence, unit conversion) belong in a backend service under `src/`, not in the widget. If the widget needs data that no service provides yet, add a service first — use the `hearth-service` skill. The frontend stays a thin renderer and never calls third-party APIs directly.
+**Backend first:** domain data and math (API calls to third parties, caching, astronomy, recurrence, unit conversion) belong in a backend service under `apps/services/`, not in the widget. If the widget needs data that no service provides yet, add a service first — use the `hearth-service` skill. The frontend stays a thin renderer and never calls third-party APIs directly.
 
 ---
 
@@ -29,11 +29,11 @@ Creates new widgets for the Hearth SvelteKit home dashboard.
 
 Before writing any code, read these files to understand the current state of the dashboard:
 
-1. `frontend/src/lib/constants/widgets.ts` — see which widget IDs already exist, what's in each column, and which are toggleable
-2. `frontend/src/routes/+page.svelte` — see the existing `renderWidget` snippet so you can match the pattern
-3. If it should also show on the e-paper frame: `frontend/src/lib/constants/frameWidgets.ts` and `components/frame/FrameDaily.svelte`
+1. `apps/frontend/src/lib/constants/widgets.ts` — see which widget IDs already exist, what's in each column, and which are toggleable
+2. `apps/frontend/src/routes/+page.svelte` — see the existing `renderWidget` snippet so you can match the pattern
+3. If it should also show on the e-paper frame: `apps/frontend/src/lib/constants/frameWidgets.ts` and `components/frame/FrameDaily.svelte`
 
-Also skim one or two existing widget components in `frontend/src/lib/components/widgets/` for style reference — pick one that's similar to what you're building (e.g. `BirdsWidget.svelte` if yours fetches data and also appears on the frame).
+Also skim one or two existing widget components in `apps/frontend/src/lib/components/widgets/` for style reference — pick one that's similar to what you're building (e.g. `BirdsWidget.svelte` if yours fetches data and also appears on the frame).
 
 The Settings layout editors (`WidgetLayoutEditor`, shared by the dashboard and the frame) read these registries — a new widget shows up there without any settings code.
 
@@ -102,7 +102,7 @@ readonly yours = {
 };
 ```
 
-**2. `frontend/src/lib/stores/YourStore.svelte.ts`** — one store per data type (the `.svelte.ts` suffix is required for runes):
+**2. `apps/frontend/src/lib/stores/YourStore.svelte.ts`** — one store per data type (the `.svelte.ts` suffix is required for runes):
 ```typescript
 import { api, type YourItem } from '$lib/api';
 
@@ -180,7 +180,7 @@ bg-(--surface-hi)   <!-- elevated surfaces, badges, inputs -->
 border-(--border)   <!-- dividers -->
 ```
 
-Buttons, inputs, toggles, dialogs: use the shared components in `frontend/src/lib/components/ui/` — don't hand-roll class strings.
+Buttons, inputs, toggles, dialogs: use the shared components in `apps/frontend/src/lib/components/ui/` — don't hand-roll class strings.
 
 ### Lucide icon sizes
 ```html

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Pull the latest Hearth images (and compose/Caddy config) and restart whatever
 # changed. Run by hearth-update.timer on a deployed host; safe to run by hand.
-# Expects the root .env to set HEARTH_IMAGE_PREFIX — see .env.example.
+# Expects infra/.env to set HEARTH_IMAGE_PREFIX — see .env.example.
 set -eu
 cd "$(dirname "$0")/.."
 
