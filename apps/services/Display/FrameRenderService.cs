@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Display.Records;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,9 @@ public sealed record FrameStatus(
 /// changes made during a render are coalesced into one more. A failed render keeps the
 /// last frame and retries after <see cref="RetryDelay"/> (<see cref="FirstRetryDelay"/>
 /// while nothing is cached, e.g. the renderer is still starting), or as soon as the mode
-/// moves on. Inside Settings → Frame's quiet hours the interval renders wait for them to end
+/// moves on. Ambient and Photo capture the photo <see cref="FramePhotos"/> holds, so the
+/// panel matches Settings' preview; only an interval render, <see cref="Refresh"/> or coming
+/// back to the mode once the photo is a photo interval old moves it on to the next one. Inside Settings → Frame's quiet hours the interval renders wait for them to end
 /// (<see cref="QuietHours"/>), and a rotating schedule rule holds its step until they end.
 /// A failure reading the settings or schedule is logged and retried; it never stops the service.
 /// </para>
@@ -36,6 +39,7 @@ public sealed class FrameRenderService(
     FrameCache cache,
     FrameSettingsStore settings,
     HomeSettingsStore home,
+    FramePhotos photos,
     ModeStore modes,
     IServiceProvider services,
     IConfiguration config,
@@ -54,12 +58,31 @@ public sealed class FrameRenderService(
     private RenderFailure? _failure;
     private string? _lastError;
     private DateTimeOffset? _nextRenderAt;
+    private bool _nextPhoto;
+    // The photo the cached frame shows, so a newer pick (a held upload deleted) re-renders
+    private string? _capturedPhotoId;
 
     /// <summary>Asks for a render as soon as the current one (if any) finishes.</summary>
     public void Invalidate()
     {
         lock (_lock) _queued ??= new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _wake.Release();
+    }
+
+    /// <summary>Renders now with the next photo — the frame's Button A.</summary>
+    public void Refresh()
+    {
+        lock (_lock) _nextPhoto = true;
+        Invalidate();
+    }
+
+    /// <summary>Re-renders when <paramref name="mode"/> is on the panel with another photo than <paramref name="photoId"/>.</summary>
+    public void PhotoPicked(string mode, string photoId)
+    {
+        bool stale;
+        // Also when the panel captured none (Photos was down) and one is available now
+        lock (_lock) stale = _capturedPhotoId != photoId;
+        if (stale && cache.Current?.Info.Mode == mode) Invalidate();
     }
 
     /// <summary>Completes once every change invalidated so far has been rendered (or failed to).</summary>
@@ -101,13 +124,34 @@ public sealed class FrameRenderService(
         return mode.Until is { } until && until < next ? until : next;
     }
 
-    /// <summary>The /frame URL to capture: the resolved mode spelled out, so the dither always matches it.</summary>
-    public static string FramePath(ResolvedMode mode)
+    /// <summary>
+    /// The /frame URL to capture: the resolved mode spelled out, so the dither always matches
+    /// it, and the held photo (a pinned upload included), so the panel shows the one the preview does.
+    /// </summary>
+    public static string FramePath(ResolvedMode mode, FramePhoto? photo = null)
     {
         var query = new QueryBuilder { { "mode", mode.Mode } };
-        if (mode.PhotoId is not null) query.Add("pin", mode.PhotoId);
+        if (photo is not null) query.Add("photo", JsonSerializer.Serialize(photo, HearthJson.SnakeCaseLower));
         return "/frame" + query.ToQueryString();
     }
+
+    /// <summary>
+    /// Whether a render moves the photo on: Button A, or the interval render of a frame
+    /// already showing this mode — not a Settings change, a mode change or a retry, which
+    /// keep the photo the preview shows.
+    /// </summary>
+    public static bool NextPhoto(RenderedFrame? last, ResolvedMode mode, bool invalidated, bool refresh, RenderFailure? failure) =>
+        refresh || (!invalidated && failure is null && last is not null && last.Mode == mode.Mode && last.PhotoId == mode.PhotoId);
+
+    /// <summary>
+    /// Coming into Ambient or Photo from another mode (a schedule boundary, a rotating rule),
+    /// a held photo at least one photo interval old moves on — the photo the preview just
+    /// showed doesn't. Null (no limit) while the mode stays.
+    /// </summary>
+    public static TimeSpan? PhotoMaxAge(RenderedFrame? last, ResolvedMode mode, FrameSettings? saved) =>
+        last is not null && last.Mode == mode.Mode
+            ? null
+            : TimeSpan.FromMinutes(saved?.PhotoIntervalMinutes ?? FrameSettings.DefaultPhotoIntervalMinutes);
 
     /// <summary>The mode's method, or none when the frame client dithers (Settings → Frame).</summary>
     public static string DitherFor(ResolvedMode mode, FrameSettings? saved) =>
@@ -181,10 +225,14 @@ public sealed class FrameRenderService(
     private async Task RenderAsync(ResolvedMode mode, CancellationToken stop)
     {
         TaskCompletionSource? waiting;
+        bool nextPhoto;
+        var last = cache.Current?.Info;
         lock (_lock)
         {
             waiting = _running = _queued;
             _queued = null;
+            nextPhoto = NextPhoto(last, mode, waiting is not null, _nextPhoto, _failure);
+            _nextPhoto = false;
         }
 
         try
@@ -194,8 +242,11 @@ public sealed class FrameRenderService(
             var saved = settings.Get();
             var (width, height) = FramePreview.Canvas(QueryCollection.Empty, saved);
             var rotate = width < height ? saved?.PortraitRotation ?? FrameSettings.DefaultPortraitRotation : 0;
+            var photo = mode.Mode is FrameModes.Ambient or FrameModes.Photo
+                ? await photos.GetAsync(mode.Mode, saved, mode.PhotoId, nextPhoto, PhotoMaxAge(last, mode, saved), stop)
+                : null;
             var png = await services.GetRequiredService<RendererClient>().RenderAsync(
-                FramePath(mode), width, height, DitherFor(mode, saved), kernel: null, look: "screen",
+                FramePath(mode, photo), width, height, DitherFor(mode, saved), kernel: null, look: "screen",
                 home.Get()?.TimeZone, rotate, stop);
             var info = cache.Store(png, mode.Mode, mode.PhotoId, clock.GetUtcNow());
             logger.LogInformation("Rendered the {Mode} frame ({ETag})", mode.Mode, info.ETag);
@@ -203,6 +254,7 @@ public sealed class FrameRenderService(
             {
                 _failure = null;
                 _lastError = null;
+                _capturedPhotoId = photo?.Id;
             }
         }
         catch (Exception ex) when (!stop.IsCancellationRequested)

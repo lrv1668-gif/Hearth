@@ -91,6 +91,8 @@ class FrameSettingsStore {
     loaded = $state(false);
     /** The Display service couldn't be reached — showing (and not saving) defaults. */
     error = $state(false);
+    /** Counts saves that have landed, so views that read Display's state (the held photo) know to ask again. */
+    saves = $state(0);
 
     toggleCategory(cat: PhotoCategory) {
         this.photoCategories = this.photoCategories.includes(cat)
@@ -219,6 +221,7 @@ export function syncFrameSettings(): () => void {
                 try {
                     await api.display.saveSettings(next);
                     last = json;
+                    frameSettings.saves++;
                 } catch {
                     frameSettings.error = true;
                 }

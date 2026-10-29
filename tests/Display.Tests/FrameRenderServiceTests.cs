@@ -169,10 +169,62 @@ public sealed class FrameRenderServiceTests
     }
 
     [Fact]
-    public void FramePath_PinnedPhoto_AddsPin()
+    public void FramePath_PinnedPhoto_PassesOnlyThePhoto()
     {
-        Assert.Equal(
-            "/frame?mode=photo&pin=a%201",
-            FrameRenderService.FramePath(new(FrameModes.Photo, "override", null, "a 1")));
+        Assert.Equal("/frame?mode=photo", FrameRenderService.FramePath(new(FrameModes.Photo, "override", null, "a 1")));
+    }
+
+    [Fact]
+    public void FramePath_HeldPhoto_PassesItAsJson()
+    {
+        var photo = new FramePhoto("u1", "/photos/files/u1.jpg", null, "Lake", null, null, "local");
+        var path = Uri.UnescapeDataString(FrameRenderService.FramePath(new(FrameModes.Ambient, "default", null), photo));
+
+        Assert.StartsWith("/frame?mode=ambient&photo=", path);
+        Assert.Contains("\"url\":\"/photos/files/u1.jpg\"", path);
+        Assert.Contains("\"source\":\"local\"", path);
+    }
+
+    [Fact]
+    public void NextPhoto_IntervalRender_MovesOn()
+    {
+        Assert.True(FrameRenderService.NextPhoto(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), false, false, null));
+    }
+
+    [Fact]
+    public void NextPhoto_SettingsChange_KeepsThePhoto()
+    {
+        Assert.False(FrameRenderService.NextPhoto(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), true, false, null));
+    }
+
+    [Fact]
+    public void NextPhoto_ModeChanged_KeepsThePhoto()
+    {
+        Assert.False(FrameRenderService.NextPhoto(Frame(FrameModes.Daily), new(FrameModes.Ambient, "schedule", null), false, false, null));
+    }
+
+    [Fact]
+    public void NextPhoto_Retry_KeepsThePhoto()
+    {
+        var failure = new FrameRenderService.RenderFailure(Noon, FrameModes.Ambient, null);
+        Assert.False(FrameRenderService.NextPhoto(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), false, false, failure));
+    }
+
+    [Fact]
+    public void PhotoMaxAge_EnteringThePhotoMode_IsThePhotoInterval()
+    {
+        Assert.Equal(TimeSpan.FromMinutes(180), FrameRenderService.PhotoMaxAge(Frame(FrameModes.Daily), new(FrameModes.Ambient, "schedule", null), Saved));
+    }
+
+    [Fact]
+    public void PhotoMaxAge_StayingInTheMode_IsNone()
+    {
+        Assert.Null(FrameRenderService.PhotoMaxAge(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), Saved));
+    }
+
+    [Fact]
+    public void NextPhoto_Refresh_MovesOn()
+    {
+        Assert.True(FrameRenderService.NextPhoto(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), true, true, null));
     }
 }

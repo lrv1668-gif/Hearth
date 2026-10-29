@@ -1,7 +1,7 @@
-import { api, type Photo, type PhotoGroup, type UploadedPhoto } from '$lib/api';
+import type { Photo, PhotoGroup, UploadedPhoto } from '$lib/api';
 import type { PhotoSource } from '$lib/constants/photos';
 
-/** Ambient photo choice shared by the frame's Ambient mode and the /ambient slideshow. */
+/** The /ambient slideshow's photo choice (the frame's is the Display service's FramePhotos). */
 
 /** An uploaded photo in the shape the ambient views render; its caption is the credit line. */
 export function uploadToPhoto(up: UploadedPhoto): Photo {
@@ -26,17 +26,6 @@ export function photoQuery(categories: readonly string[]): string {
 export function resolveSource(source: PhotoSource, hasUploads: boolean, random = Math.random()): PhotoSource {
     if (source !== 'both') return source;
     return hasUploads && random < 0.5 ? 'local' : 'unsplash';
-}
-
-/** Photo mode's pick: a random upload among `ids` (one pins it, several make an album),
- *  or null when none of them is still uploaded — the frame then falls back to pickPhoto. */
-export function pickPinned(
-    ids: readonly string[],
-    uploads: readonly UploadedPhoto[],
-    random = Math.random()
-): Photo | null {
-    const chosen = uploads.filter((up) => ids.includes(up.id));
-    return chosen.length > 0 ? uploadToPhoto(chosen[Math.floor(random * chosen.length)]) : null;
 }
 
 /** How Photo mode's picker treats a click: `one` picks just that photo, `several` adds or removes it. */
@@ -75,8 +64,8 @@ export function toggleGroup(picked: readonly string[], group: PhotoGroup): strin
     return [...picked, ...group.photo_ids.filter((id) => !picked.includes(id))];
 }
 
-/** /frame's ?photo= param (a JSON Photo — Settings' preview pins one so Live, Screen
- *  and Paper show the same photo), or null when it's missing or malformed. The URL must
+/** /frame's ?photo= param (a JSON Photo — the one Display holds, passed by its panel
+ *  render and Settings' preview), or null when it's missing or malformed. The URL must
  *  be same-origin or Unsplash's CDN, so the renderer can't be pointed anywhere else. */
 export function parsePhotoParam(value: string | null): Photo | null {
     if (!value) return null;
@@ -102,21 +91,6 @@ export function parsePhotoParam(value: string | null): Photo | null {
         unsplash_link: str(o.unsplash_link),
         source: str(o.source) ?? 'unsplash',
     };
-}
-
-/** One photo for a single render (the frame): a random upload, or one from the
- *  Photos service's source. Null when nothing is available. */
-export async function pickPhoto(
-    source: PhotoSource,
-    categories: readonly string[],
-    orientation: 'portrait' | 'landscape'
-): Promise<Photo | null> {
-    const uploads = source === 'local' || source === 'both' ? await api.photos.list() : [];
-    const from = resolveSource(source, uploads.length > 0);
-    if (from === 'local') {
-        return uploads.length > 0 ? uploadToPhoto(uploads[Math.floor(Math.random() * uploads.length)]) : null;
-    }
-    return api.photos.random(photoQuery(categories), orientation, from);
 }
 
 /** What the Photos service accepts per upload. */

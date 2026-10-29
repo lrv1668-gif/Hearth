@@ -231,6 +231,8 @@ services:
             - DB_PATH=/data/display.db
             - ASPNETCORE_HTTP_PORTS=8090
             - RENDERER_URL=http://renderer:3000
+            # Picks the photo Ambient and Photo show, so the panel and every preview match
+            - PHOTOS_URL=http://photos:8084
             # Fallback zone for the mode schedule (infra/.env), matching the renderer's clock,
             # when none is saved in Settings → Home; UTC when neither is set
             - TZ=${TZ:-}
