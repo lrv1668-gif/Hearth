@@ -989,7 +989,7 @@ Deployed hosts never build: they pull images that CI publishes.
 git pull --ff-only
 mv .env infra/.env
 for f in src/*/.env; do mv "$f" "apps/services/${f#src/}"; done
-[ -d dozzle ] && mv dozzle/* infra/dozzle/  # Dozzle's login and saved settings, if logs are on
+[ -d dozzle ] && sudo mv dozzle/* infra/dozzle/  # Dozzle's login and saved settings, if logs are on (Dozzle writes some as root)
 sudo sed -i 's#/deploy/update\.sh#/infra/deploy/update.sh#' /etc/systemd/system/hearth-update.service
 sudo systemctl daemon-reload && sudo systemctl enable --now hearth-update.timer
 infra/deploy/update.sh
