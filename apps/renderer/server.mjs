@@ -3,6 +3,7 @@
 //
 //   GET /render?path=/frame?...&width=1600&height=1200
 //       &dither=ordered|errorDiffusion|none   (default none: the raw screenshot)
+//       &palette=color|bw                     (bw: greyed, then black and white only; default color)
 //       &kernel=floydSteinberg|atkinson|stucki|…  (errorDiffusion only; epdoptimize's names)
 //       &look=screen|paper                    (paper: inks repainted as they look on the panel)
 //       &tz=America/Chicago                   (IANA zone for the page's clock; default TZ, else UTC)
@@ -18,7 +19,7 @@
 import { createServer } from 'node:http';
 import { createCanvas, loadImage } from 'canvas';
 import { chromium } from 'playwright';
-import { dither, KERNELS, paintPaper } from './dither.mjs';
+import { dither, greyscale, KERNELS, paintPaper, PALETTES } from './dither.mjs';
 import { createQueue } from './queue.mjs';
 import { ROTATIONS, rotatePixels } from './rotate.mjs';
 import { captureTimeZone, isTimeZone } from './timezone.mjs';
@@ -96,14 +97,15 @@ function resetBrowser() {
 
 const queue = createQueue({ deadlineMs: RENDER_DEADLINE_MS, onTimeout: resetBrowser });
 
-async function render(png, { method, kernel, look, rotate }) {
+async function render(png, { method, kernel, palette, look, rotate }) {
     const image = await loadImage(png);
     const canvas = () => createCanvas(image.width, image.height);
     let result = canvas();
     result.getContext('2d').drawImage(image, 0, 0);
+    if (palette === 'bw') greyscale(result);
     if (method !== 'none') {
         const dithered = canvas();
-        await dither(result, dithered, { method, kernel });
+        await dither(result, dithered, { method, kernel, palette });
         result = dithered;
     }
     if (look === 'paper') {
@@ -139,6 +141,7 @@ createServer(async (req, res) => {
     const height = size(url.searchParams.get('height'));
     const method = url.searchParams.get('dither') ?? 'none';
     const kernel = url.searchParams.get('kernel') ?? 'floydSteinberg';
+    const palette = url.searchParams.get('palette') ?? 'color';
     const look = url.searchParams.get('look') ?? 'screen';
     const rotate = Number(url.searchParams.get('rotate') ?? 0);
     // Only the frame route — this is not a general-purpose browser.
@@ -152,6 +155,10 @@ createServer(async (req, res) => {
     }
     if (!ROTATIONS.includes(rotate)) {
         res.writeHead(400).end(`rotate must be one of ${ROTATIONS.join(', ')}`);
+        return;
+    }
+    if (!PALETTES.includes(palette)) {
+        res.writeHead(400).end(`palette must be one of ${PALETTES.join(', ')}`);
         return;
     }
     if (!KERNELS.includes(kernel)) {
@@ -178,11 +185,11 @@ createServer(async (req, res) => {
         const png = await queue.run(async (timedOut) => {
             if (gone.signal.aborted) return null;
             const signal = AbortSignal.any([gone.signal, timedOut]);
-            return render(await screenshot(path, width, height, zone, signal), { method, kernel, look, rotate });
+            return render(await screenshot(path, width, height, zone, signal), { method, kernel, palette, look, rotate });
         });
         if (gone.signal.aborted) return;
         console.log(
-            `rendered ${path} ${width}×${height} dither=${method} kernel=${kernel} look=${look} rotate=${rotate} ` +
+            `rendered ${path} ${width}×${height} dither=${method} kernel=${kernel} palette=${palette} look=${look} rotate=${rotate} ` +
                 `zone=${zone ?? 'UTC'} in ${Date.now() - started} ms`,
         );
         res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' }).end(png);

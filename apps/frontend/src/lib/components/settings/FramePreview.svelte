@@ -1,12 +1,15 @@
 <script lang="ts" module>
     import type { FrameModeId } from '$lib/constants/frameModes';
     import type { Photo } from '$lib/api';
+    import type { FramePalette } from '$lib/constants/frameThemes';
 
     // Shared by every preview on the page, so the full-size one opens on the same picked
     // mode, palette, view and photo as the card's.
     const shared = $state({
         pickedMode: null as FrameModeId | null,
-        palette: 'color' as 'color' | 'bw',
+        // A palette picked here, and the saved one it was picked against — switching the
+        // frame's palette in Settings drops it, so the preview follows the frame again.
+        pickedPalette: null as { picked: FramePalette; against: FramePalette } | null,
         view: 'live' as 'live' | 'screen' | 'paper',
         photo: undefined as Photo | null | undefined,
     });
@@ -35,10 +38,13 @@
     // `onexpand` adds a button that opens a full-size preview.
     let { maxHeight, onexpand }: { maxHeight?: number; onexpand?: () => void } = $props();
 
-    // Preview-only toggles: on the real frame, the mode and Color/B&W are switched by
-    // the mode schedule, a manual choice or the frame's buttons, so they aren't saved here.
-    // The preview follows the mode the frame shows now until one is picked here.
+    // Preview-only toggles: on the real frame, the mode is switched by the mode schedule, a
+    // manual choice or Button B, and Color/B&W by the Look card or Button C, so they aren't
+    // saved here. The preview follows what the frame shows now until one is picked here.
     const previewMode = $derived(shared.pickedMode ?? modeStore.current?.mode ?? 'daily');
+    const previewPalette = $derived(
+        shared.pickedPalette?.against === modeStore.palette ? shared.pickedPalette.picked : modeStore.palette
+    );
     // Live is the page itself; Screen and Paper are the Display service's dithered render.
 
     const layout = $derived(normalizeFrameLayout(frameSettings.layout));
@@ -81,7 +87,7 @@
 
     const options = $derived<FrameOptions>({
         mode: previewMode,
-        palette: shared.palette,
+        palette: previewPalette,
         theme: frameSettings.theme,
         font: frameSettings.font,
         textSize: frameSettings.textSize,
@@ -135,7 +141,7 @@
         return untrack(() =>
             frameUrl({
                 ...structure,
-                palette: shared.palette,
+                palette: previewPalette,
                 theme: frameSettings.theme,
                 font: frameSettings.font,
                 textSize: frameSettings.textSize,
@@ -149,7 +155,7 @@
     function applyLook() {
         // Read the settings before touching the iframe: if the frame hasn't loaded yet
         // the early return must not stop the $effect from tracking them.
-        const theme = frameDataTheme(frameSettings.theme, shared.palette);
+        const theme = frameDataTheme(frameSettings.theme, previewPalette);
         const font = frameSettings.font;
         const textSize = frameSettings.textSize;
         const position = frameSettings.ambientPosition;
@@ -222,8 +228,8 @@ mode and Color/B&W toggles, an optional full-size button and the frame URL.
                 { value: 'color', label: 'Color' },
                 { value: 'bw', label: 'B&W' },
             ]}
-            value={shared.palette}
-            onchange={(v) => (shared.palette = v)}
+            value={previewPalette}
+            onchange={(v) => (shared.pickedPalette = { picked: v, against: modeStore.palette })}
             label="Palette"
         />
         <SegmentedControl

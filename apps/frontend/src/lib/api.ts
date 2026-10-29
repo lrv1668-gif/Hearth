@@ -1,5 +1,6 @@
 import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '$lib/frame';
 import type { FrameModeId, ModeDay, PhotoCard } from '$lib/constants/frameModes';
+import type { FramePalette } from '$lib/constants/frameThemes';
 import type { HearthServiceId } from '$lib/constants/services';
 
 // ---- Types ----
@@ -496,6 +497,15 @@ class ApiClient {
             const res = await this.tryFetch('/display/mode/next', { method: 'POST' });
             return res?.ok ? (res.json() as Promise<ResolvedMode>).catch(() => null) : null;
         },
+
+        /** Color or B&W — what the panel and Settings' preview draw /frame in. null when
+         *  Display can't be reached. */
+        palette: (): Promise<{ palette: FramePalette } | null> =>
+            // Bounded like settings(), so a hung service can't hold up /frame's ready signal.
+            this.get<{ palette: FramePalette }>('/display/palette', { timeoutMs: 5000 }),
+
+        setPalette: (palette: FramePalette): Promise<{ palette: FramePalette }> =>
+            this.put<{ palette: FramePalette }>('/display/palette', { palette }),
 
         /** The photo Ambient or Photo mode shows — the one Display holds for the panel, so
          *  every view matches. null when there's none (or no Photos service), undefined

@@ -55,6 +55,10 @@ public static class FramePreview
             ? "ordered"
             : "errorDiffusion";
 
+    /// <summary>/frame's <c>palette=</c>, which the renderer dithers to as well; Color unless it's B&amp;W.</summary>
+    public static string PaletteFor(IQueryCollection query) =>
+        query["palette"].ToString() == FramePalette.BlackAndWhite ? FramePalette.BlackAndWhite : FramePalette.Color;
+
     public static string FramePath(IQueryCollection query)
     {
         var frame = new QueryBuilder(query.Where(q => !OwnParams.Contains(q.Key)));

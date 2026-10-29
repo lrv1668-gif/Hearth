@@ -162,6 +162,30 @@ public sealed class FrameRenderServiceTests
         Assert.Equal(method, FrameRenderService.DitherFor(new(mode, "default", null), Saved with { Dithering = dithering }));
     }
 
+    [Theory]
+    [InlineData("hearth", FrameModes.Daily, "ordered")]
+    [InlineData("frame", FrameModes.Daily, "ordered")]
+    [InlineData("frame", FrameModes.Ambient, "errorDiffusion")]
+    public void DitherFor_BlackAndWhite_HearthAlwaysDithers(string dithering, string mode, string method)
+    {
+        Assert.Equal(method, FrameRenderService.DitherFor(
+            new(mode, "default", null), Saved with { Dithering = dithering }, new(FramePalette.BlackAndWhite)));
+    }
+
+    [Fact]
+    public void FramePath_BlackAndWhite_AddsThePalette()
+    {
+        Assert.Equal("/frame?mode=daily&palette=bw",
+            FrameRenderService.FramePath(new(FrameModes.Daily, "default", null), palette: new(FramePalette.BlackAndWhite)));
+    }
+
+    [Fact]
+    public void FramePath_Color_LeavesThePaletteOut()
+    {
+        Assert.Equal("/frame?mode=daily",
+            FrameRenderService.FramePath(new(FrameModes.Daily, "default", null), palette: FramePalette.Default));
+    }
+
     [Fact]
     public void DitherFor_NothingSaved_UsesTheModesMethod()
     {

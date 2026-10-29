@@ -29,7 +29,7 @@
     import FrameNight from '$lib/components/frame/modes/FrameNight.svelte';
     import FrameNote from '$lib/components/frame/modes/FrameNote.svelte';
     import { DEFAULT_FRAME_MODE, isFrameMode, type FrameModeId } from '$lib/constants/frameModes';
-    import { frameDataTheme, isValidFrameThemeId } from '$lib/constants/frameThemes';
+    import { frameDataTheme, isValidFrameThemeId, type FramePalette } from '$lib/constants/frameThemes';
     import { isValidFontThemeId } from '$lib/constants/fontThemes';
     import { frameSettings, loadFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
 
@@ -42,7 +42,8 @@
     //                                (default: what the Display service resolves now —
     //                                 an override, the schedule, or its default mode —
     //                                 else ambient; see constants/frameModes.ts)
-    //   ?palette=color|bw            (default color — the Color ↔ B&W mode)
+    //   ?palette=color|bw            (the Color ↔ B&W mode; default: Display's saved
+    //                                 one, else color)
     //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
     //                                 B&W follows its lightness)
     //   ?font=inter|lora|…           (any font preset from constants/fontThemes.ts)
@@ -74,7 +75,9 @@
     const modeParam = params.get('mode');
     // Null until resolved: the URL's mode, else Display's (onMount).
     let mode = $state<FrameModeId | null>(isFrameMode(modeParam) ? modeParam : null);
-    const palette = params.get('palette') === 'bw' ? 'bw' : 'color';
+    const paletteParam = params.get('palette');
+    // Null until resolved: the URL's palette, else Display's (onMount).
+    let palette = $state<FramePalette | null>(paletteParam === 'bw' || paletteParam === 'color' ? paletteParam : null);
     const themeParam = params.get('theme');
     const theme = $derived(isValidFrameThemeId(themeParam) ? themeParam : frameSettings.theme);
     const fontParam = params.get('font');
@@ -181,10 +184,12 @@
     onMount(async () => {
         // Settings first: the layout decides which data to load.
         await loadFrameSettings();
-        if (!mode) {
-            const resolved = await api.display.mode();
-            mode = resolved?.mode ?? DEFAULT_FRAME_MODE;
-        }
+        const [resolved, saved] = await Promise.all([
+            mode ? null : api.display.mode(),
+            palette ? null : api.display.palette(),
+        ]);
+        mode ??= resolved?.mode ?? DEFAULT_FRAME_MODE;
+        palette ??= saved?.palette ?? 'color';
         const settled = Promise.allSettled(dataLoads()).then(() => document.fonts.ready);
         await Promise.race([settled, new Promise((resolve) => setTimeout(resolve, READY_DEADLINE_MS))]);
         ready = true;
@@ -197,7 +202,7 @@
 
 <div
     class="frame {orientation} bg-(--bg) text-(--text-1)"
-    data-theme={frameDataTheme(theme, palette)}
+    data-theme={frameDataTheme(theme, palette ?? 'color')}
     data-font={font}
     data-mode={mode}
     data-orientation={orientation}
