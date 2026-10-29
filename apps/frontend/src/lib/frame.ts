@@ -1,6 +1,7 @@
 import type { AmbientPosition, CalendarItem, CurrentWeather, ForecastDay, FrameStatus, Photo, Task } from '$lib/api';
 import { eventDateKey, formatTime, localDateKey } from '$lib/utils';
 import type { FrameLayout, FrameWidgetId } from '$lib/constants/frameWidgets';
+import type { FrameTemplateId } from '$lib/constants/frameTemplates';
 import type { FrameModeId } from '$lib/constants/frameModes';
 import { getContext, setContext } from 'svelte';
 
@@ -32,6 +33,52 @@ export function nextEvents(items: CalendarItem[], now: Date, count: number): Cal
         .filter((e) => (e.is_all_day ? allDayRunsThrough(e, todayKey) : new Date(e.end ?? e.start!) > now))
         .sort((a, b) => eventStart(a).getTime() - eventStart(b).getTime())
         .slice(0, count);
+}
+
+/** A day of the agenda: its heading and the events shown under it. */
+export interface AgendaDay {
+    key: string;
+    label: string;
+    events: CalendarItem[];
+}
+
+/** The next events grouped by day, cut to fit `lines` — each day's heading costs
+ *  `headingLines` and each event `rowLines`. A day only starts if its heading and at
+ *  least one event fit. The heading is "Today", "Tomorrow", else "Thursday, Oct 30". */
+export function fitAgenda(
+    items: CalendarItem[],
+    now: Date,
+    lines: number,
+    { headingLines, rowLines }: { headingLines: number; rowLines: number }
+): AgendaDay[] {
+    const days: AgendaDay[] = [];
+    let left = lines;
+    for (const e of nextEvents(items, now, 30)) {
+        const key = eventDateKey(e) < localDateKey(now) ? localDateKey(now) : eventDateKey(e);
+        const day = days.at(-1);
+        if (day?.key === key) {
+            if (left < rowLines) break;
+            day.events.push(e);
+            left -= rowLines;
+        } else {
+            if (left < headingLines + rowLines) break;
+            const label = railDayLabel(e, now);
+            days.push({
+                key,
+                label:
+                    label === 'Today' || label === 'Tomorrow'
+                        ? label
+                        : new Date(`${key}T00:00`).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              month: 'short',
+                              day: 'numeric',
+                          }),
+                events: [e],
+            });
+            left -= headingLines + rowLines;
+        }
+    }
+    return days;
 }
 
 /** Whether an all-day event is still on as of `todayKey`. Google's all-day `end` is
@@ -296,6 +343,9 @@ export interface FrameOptions {
     height: number;
     layout: FrameLayout;
     split: number;
+    template: FrameTemplateId;
+    /** The template's widget per slot, '' for an empty slot. */
+    slots: readonly string[];
     position: AmbientPosition;
     /** Ambient/Photo's photo, fixed instead of a random pick (Settings' preview). */
     photo?: Photo | null;
@@ -321,6 +371,8 @@ export function frameParams(o: FrameOptions): URLSearchParams {
         left: o.layout.left.join(','),
         right: o.layout.right.join(','),
         split: String(o.split),
+        template: o.template,
+        slots: o.slots.join(','),
         position: o.position,
     });
     if (o.photo) params.set('photo', JSON.stringify(o.photo));
@@ -352,6 +404,12 @@ export function allocateLines(column: readonly FrameWidgetId[], totalLines: numb
     const fixed = column.reduce((sum, id) => sum + (FIXED_LINES[id] ?? 0), 0);
     const share = flexible.length ? Math.max(0, totalLines - overhead - fixed) / flexible.length : 0;
     return new Map(column.map((id) => [id, FIXED_LINES[id] ?? share]));
+}
+
+/** Content lines a template slot of `totalLines` gives its one widget — all of it but
+ *  the kicker, fixed-height widgets included (Last Played's L sleeve grows into it). */
+export function slotLines(totalLines: number): number {
+    return Math.max(0, totalLines - HEADING_LINES);
 }
 
 /** How many list items of `itemLines` height fit in `lines` (at least 1). */

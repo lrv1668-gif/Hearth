@@ -32,7 +32,7 @@ A fresh browser profile starts with empty localStorage, so defaults are exercise
 ## E-paper frame
 
 - `/frame` renders the panel-sized page the renderer screenshots. It sets `data-ready="true"` once its data and fonts have loaded — wait for that before judging it.
-- Override what Settings → Frame saved with URL params: `mode` (`daily`, `ambient`, `photo`, `countdown`, `night`, `note`), `left=a,b&right=c&split=55` (frame widget ids from `constants/frameWidgets.ts`), `theme` (a frame theme id), `palette`, `font`, `width`/`height`, `orientation`, `text` (Note mode).
+- Override what Settings → Frame saved with URL params: `mode` (`daily`, `ambient`, `photo`, `countdown`, `night`, `note`), `left=a,b&right=c&split=55` (frame widget ids from `constants/frameWidgets.ts`) for the free columns, or `template=feature&slots=week,,quote` for a layout template (ids in `constants/frameTemplates.ts`; one widget per slot in order, empty for an empty slot — check each template in both orientations), `theme` (a frame theme id), `palette`, `font`, `width`/`height`, `orientation`, `text` (Note mode).
 - Set the viewport to the frame size (default 1600×1200) so the layout matches the panel.
 - The dithered six-ink result comes from the Display service and renderer: `GET /display/preview` (Settings → Frame's live preview) and `GET /display/frame` (what the Pi pulls). These need `cd infra && docker compose up` with `display` and `renderer` running.
 - Only frame themes (`epaper-*`) apply on `/frame`; dashboard themes don't.

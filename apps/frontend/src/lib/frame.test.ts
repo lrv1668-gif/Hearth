@@ -24,6 +24,7 @@ import {
     isAmbientPosition,
     itemsThatFit,
     nextEvents,
+    fitAgenda,
     onBlockInk,
     pickBlockInk,
     plateRect,
@@ -93,6 +94,31 @@ describe('todayTasks', () => {
             task({ id: 3, due_time: '09:30' }),
         ];
         expect(todayTasks(tasks, now).map((t) => t.id)).toEqual([3, 2, 1]);
+    });
+});
+
+describe('fitAgenda', () => {
+    const costs = { headingLines: 2, rowLines: 1 };
+    const items = [
+        event({ id: 'trip', start: '2026-10-17', end: '2026-10-22', is_all_day: true }),
+        event({ id: 'lunch', start: '2026-10-19T12:30', end: '2026-10-19T13:30' }),
+        event({ id: 'dentist', start: '2026-10-20T09:00' }),
+        event({ id: 'dinner', start: '2026-10-23T19:00' }),
+    ];
+
+    it('groups by day, with a running event under today', () => {
+        const days = fitAgenda(items, now, 20, costs);
+        expect(days.map((d) => [d.label, d.events.map((e) => e.id)])).toEqual([
+            ['Today', ['trip', 'lunch']],
+            ['Tomorrow', ['dentist']],
+            ['Friday, Oct 23', ['dinner']],
+        ]);
+    });
+
+    it('cuts to the budget, starting a day only if its heading and one event fit', () => {
+        // Today: 2 + 1 + 1 = 4 lines; Tomorrow needs 3 more.
+        expect(fitAgenda(items, now, 6, costs).map((d) => d.label)).toEqual(['Today']);
+        expect(fitAgenda(items, now, 3.5, costs).map((d) => d.events.length)).toEqual([1]);
     });
 });
 
@@ -170,10 +196,12 @@ describe('frameUrl', () => {
                 height: 480,
                 layout: { left: ['today', 'moon'], right: [] },
                 split: 55,
+                template: 'feature',
+                slots: ['week', '', 'quote'],
                 position: 'top-middle',
             })
         ).toBe(
-            '/frame?mode=daily&palette=bw&theme=night&font=lora&text=120&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&position=top-middle'
+            '/frame?mode=daily&palette=bw&theme=night&font=lora&text=120&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&template=feature&slots=week%2C%2Cquote&position=top-middle'
         );
     });
 });

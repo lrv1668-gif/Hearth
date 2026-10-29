@@ -25,6 +25,12 @@ import {
     type PhotoCard,
 } from '$lib/constants/frameModes';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '$lib/constants/frameThemes';
+import {
+    DEFAULT_FRAME_TEMPLATE,
+    isFrameTemplateId,
+    normalizeSlots,
+    type FrameTemplateId,
+} from '$lib/constants/frameTemplates';
 import { DEFAULT_FONT_THEME, isValidFontThemeId, type FontThemeId } from '$lib/constants/fontThemes';
 import {
     clampSplit,
@@ -59,6 +65,10 @@ class FrameSettingsStore {
     height = $state<number>(DEFAULT_FRAME_SIZE.height);
     layout = $state<FrameLayout>(DEFAULT_FRAME_LAYOUT);
     split = $state(DEFAULT_FRAME_SPLIT);
+    /** Daily's layout template; 'columns' uses `layout` and `split`. */
+    template = $state<FrameTemplateId>(DEFAULT_FRAME_TEMPLATE);
+    /** The template's widget per slot, '' for an empty slot (see normalizeSlots). */
+    slots = $state<(FrameWidgetId | '')[]>([]);
     ambientPosition = $state<AmbientPosition>(DEFAULT_AMBIENT_POSITION);
     photoSource = $state<PhotoSource>('unsplash');
     photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);
@@ -111,6 +121,8 @@ class FrameSettingsStore {
             left,
             right,
             split: this.split,
+            template: this.template,
+            slots: normalizeSlots(this.template, this.slots),
             ambient_position: this.ambientPosition,
             photo_source: this.photoSource,
             photo_categories: this.photoCategories,
@@ -148,6 +160,8 @@ class FrameSettingsStore {
         }
         if (saved.left && saved.right) this.layout = normalizeFrameLayout({ left: saved.left, right: saved.right });
         if (typeof saved.split === 'number') this.split = clampSplit(saved.split);
+        if (isFrameTemplateId(saved.template)) this.template = saved.template;
+        if (Array.isArray(saved.slots)) this.slots = normalizeSlots(this.template, saved.slots);
         if (isAmbientPosition(saved.ambient_position)) this.ambientPosition = saved.ambient_position;
         if (saved.photo_source) this.photoSource = saved.photo_source;
         if (Array.isArray(saved.photo_categories)) {

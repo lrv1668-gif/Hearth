@@ -65,12 +65,14 @@ Nothing else. The art is the display. Information is peripheral.
 The display shifts to a structured layout with distinct zones:
 
 - **Top (fixed):** a compact masthead — a date block; a small edition line (issue number, season, days to the next solstice/equinox) over the day of week; and a sun path showing today's daylight with the current temperature
-- **Two columns (configurable):** up to three widgets each, chosen from Today's Arc, Today (tasks), Coming Up (next events), Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played and Last Result & Next Game. Default: Countdowns and Today on the left, Coming Up on the right (the masthead's sun path covers what Today's Arc showed)
+- **Middle (configurable):** a layout template with sized slots — the same model as TRMNL's mashups and iOS widget families — or free columns. Widgets are chosen from Today's Arc, Today (tasks), Coming Up (next events), Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played and Last Result & Next Game.
+  - **Templates:** Full (one large slot), Halves (two medium), Feature (one medium beside two small), Banner (one medium over two small) and Quarters (four small). Each widget is designed for certain sizes — small, medium or large — and only goes in slots of those sizes, so every combination looks designed rather than squeezed. In a bigger slot a widget changes shape, not just scale: Countdowns becomes a poster of the soonest date, Coming Up an agenda by day, Moon Phase a large disc (plus the month's phases in large), Daily Quote fills the slot.
+  - **Columns:** the original free layout — two columns of up to three widgets each, at an adjustable split. Default: Countdowns and Today on the left, Coming Up on the right (the masthead's sun path covers what Today's Arc showed)
 - **Bottom (fixed):** 5-day weather forecast — an icon and a low–high range bar per day, on one shared scale
 
 Only widgets that stay correct between scheduled refreshes belong on the frame — no live departures, no now-playing (it changes every song and would usually be wrong), no live scores (Last Result & Next Game shows a game in progress as "Playing now").
 
-Typography is large enough to read from across the room (3–4 meters). No small print. A text size slider in Settings → Frame makes it larger still (up to 150%) to fill a big panel or read from further away; lists show fewer items to make room. The column layout is configured in Settings → Frame the same way as the dashboard — visibility toggles plus drag-and-drop between columns with an adjustable split — and each widget trims its list to fit the space it has.
+Typography is large enough to read from across the room (3–4 meters). No small print. A text size slider in Settings → Frame makes it larger still (up to 150%) to fill a big panel or read from further away; lists show fewer items to make room. The layout is configured in Settings → Frame: pick a template from thumbnails and a widget for each slot (each slot offers only the widgets that fit its size), or pick Columns for the same drag-and-drop editor as the dashboard. Each widget trims its list to fit the space it has.
 
 ### Photo, Countdown and Night Modes
 

@@ -324,6 +324,10 @@ export interface FrameSettings {
     left: string[];
     right: string[];
     split: number;
+    /** Daily's layout template (constants/frameTemplates.ts); 'columns' uses left/right/split. */
+    template: string;
+    /** The template's widget per slot, '' for an empty slot. */
+    slots: string[];
     /** Where Ambient mode's info card sits. */
     ambient_position: AmbientPosition;
     /** Ambient photos (frame and the /ambient slideshow): "unsplash", "local", "both", … */
