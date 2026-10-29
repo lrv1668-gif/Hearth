@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<FrameSettingsStore>();
         serviceCollection.AddSingleton<HomeSettingsStore>();
         serviceCollection.AddSingleton<ModeStore>();
+        serviceCollection.AddSingleton<PaletteStore>();
         // The panel's frame: rendered in the background, cached beside display.db
         serviceCollection.AddSingleton(services => new FrameCache(
             FrameCache.DirectoryFor(Environment.GetEnvironmentVariable("DB_PATH")),

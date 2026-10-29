@@ -2,6 +2,7 @@
     import { frameThemes } from '$lib/constants/frameThemes';
     import { fontThemes } from '$lib/constants/fontThemes';
     import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
+    import { modeStore, setPalette } from '$lib/stores/ModeStore.svelte.ts';
     import Chip from '../ui/Chip.svelte';
     import Disclosure from '../ui/Disclosure.svelte';
     import { fieldClass } from '../ui/field';
@@ -36,6 +37,25 @@
 </script>
 
 <div class="@container flex flex-col gap-6">
+    <!-- Color ↔ B&W: saved on its own (the frame's Button C flips it too) and applied at once -->
+    <div>
+        <p class="eyebrow mb-2">Colour</p>
+        <SegmentedControl
+            options={[
+                { value: 'color', label: 'Color' },
+                { value: 'bw', label: 'Black & white' },
+            ]}
+            value={modeStore.palette}
+            onchange={(v) => setPalette(v)}
+            label="Colour"
+        />
+        <p class="type-caption mt-2 text-(--text-2)">
+            {modeStore.palette === 'color'
+                ? 'The theme’s colours, mixed from the panel’s six inks.'
+                : 'Pure black and white — black on white, or white on black for dark themes. Photos turn greyscale.'}
+        </p>
+    </div>
+
     <!-- Colour theme -->
     <div>
         <p class="eyebrow mb-1">Colour theme</p>
@@ -208,7 +228,7 @@
                 <p class="type-caption mt-2 text-(--text-2)">
                     {frameSettings.dithering === 'hearth'
                         ? 'Hearth dithers each mode to the six inks — crisp text and even tints.'
-                        : 'The frame gets the undithered picture and dithers it itself (inky’s Floyd–Steinberg). The preview still shows Hearth’s.'}
+                        : 'The frame gets the undithered picture and dithers it itself (inky’s Floyd–Steinberg). The preview still shows Hearth’s, and Hearth still dithers black & white.'}
                 </p>
             </div>
 

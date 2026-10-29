@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createCanvas } from 'canvas';
-import { dither, INKS, PAPER_INKS, paintPaper } from './dither.mjs';
+import { dither, greyscale, INKS, PAPER_INKS, paintPaper } from './dither.mjs';
 
 function filled(colour, size = 16) {
     const canvas = createCanvas(size, size);
@@ -50,6 +50,36 @@ for (const method of ['ordered', 'errorDiffusion']) {
         for (const colour of Object.keys(counts(dest))) assert.ok(INKS.includes(colour), colour);
     });
 }
+
+// B&W mode: a greyed photo's mid-greys sit nearest blue and green, so it needs its own inks
+for (const method of ['ordered', 'errorDiffusion']) {
+    test(`${method}: B&W keeps a greyed gradient to black and white`, async () => {
+        const source = createCanvas(64, 16);
+        const ctx = source.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 64, 0);
+        gradient.addColorStop(0, '#1d4f8a');
+        gradient.addColorStop(1, '#e8a33c');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 16);
+        greyscale(source);
+        const dest = createCanvas(64, 16);
+        await dither(source, dest, { method, palette: 'bw' });
+        const colours = Object.keys(counts(dest)).sort();
+        assert.deepEqual(colours, ['#000000', '#ffffff']);
+    });
+}
+
+test('ordered: B&W dithers mid-grey half black, half white', async () => {
+    const dest = createCanvas(16, 16);
+    await dither(filled('#808080'), dest, { method: 'ordered', palette: 'bw' });
+    assert.deepEqual(counts(dest), { '#000000': 128, '#ffffff': 128 });
+});
+
+test('greyscale greys by luma', () => {
+    const canvas = filled('#ff0000', 1);
+    greyscale(canvas);
+    assert.deepEqual(pixels(canvas), ['#4c4c4c']);
+});
 
 // The frame themes' approved two-ink mixes (themes.test.ts), and their exact split
 test('ordered: two-ink mixes dither in exact proportion', async () => {
