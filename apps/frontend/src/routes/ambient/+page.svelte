@@ -64,7 +64,8 @@
 
     async function fetchNext(): Promise<Photo | null> {
         // Source and categories are the shared Ambient choices (FrameSettingsStore);
-        // cadence and motion stay this browser's own.
+        // cadence and motion stay this browser's own. The first photo is the frame's own
+        // (framePhoto); from there the slideshow cycles on its own cadence.
         const source = resolveSource(frameSettings.photoSource, localQueue.length > 0);
         if (source === 'local') return nextLocalPhoto();
         return api.photos.random(
@@ -74,8 +75,19 @@
         );
     }
 
-    async function advance() {
-        const next = await fetchNext();
+    /** The frame's current Ambient photo (Display holds it), so the slideshow opens on the
+     *  picture the panel shows; this browser's own pick when Display has none. */
+    async function framePhoto(): Promise<Photo | null> {
+        const held = await api.display.photo('ambient');
+        if (!held) return fetchNext();
+        // Don't come back round to it first among the uploads
+        const i = localQueue.findIndex((up) => up.id === held.id);
+        if (i >= 0) localQueue.push(...localQueue.splice(i, 1));
+        return held;
+    }
+
+    async function advance(pick: () => Promise<Photo | null> = fetchNext) {
+        const next = await pick();
         if (!next || next.id === photo?.id) return;
         try {
             // Fully decode off-screen first so the crossfade never reveals a half-loaded image
@@ -124,7 +136,7 @@
             localIndex = 0;
         }
 
-        await advance();
+        await advance(framePhoto);
         loading = false;
         wake(); // start the hint's idle timer once there's a photo to look at
         scheduleNext();

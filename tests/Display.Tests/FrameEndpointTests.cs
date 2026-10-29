@@ -300,4 +300,18 @@ public sealed class FrameEndpointTests : IDisposable
     {
         Assert.Null(Extensions.WebApplicationExtensions.NextCheck(null, Noon));
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("?mode=daily")]
+    public async Task Photo_NotAPhotoMode_400(string query)
+    {
+        Assert.Equal(HttpStatusCode.BadRequest, (await Client.GetAsync("/display/photo" + query)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Photo_NoPhotosUrl_503()
+    {
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, (await Client.GetAsync("/display/photo?mode=ambient")).StatusCode);
+    }
 }

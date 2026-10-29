@@ -11,10 +11,11 @@
         photo: undefined as Photo | null | undefined,
     });
     let photoKey = '';
+    let photoRequest = 0;
 </script>
 
 <script lang="ts">
-    import { untrack } from 'svelte';
+    import { onMount, untrack } from 'svelte';
     import { frameDataTheme } from '$lib/constants/frameThemes';
     import { normalizeFrameLayout } from '$lib/constants/frameWidgets';
     import { normalizeSlots } from '$lib/constants/frameTemplates';
@@ -23,7 +24,7 @@
     import { frameModes } from '$lib/constants/frameModes';
     import { modeStore } from '$lib/stores/ModeStore.svelte.ts';
     import { api } from '$lib/api';
-    import { pickPhoto, pickPinned } from '$lib/photos';
+    import { poll } from '$lib/utils';
     import { Maximize2 } from '@lucide/svelte';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import IconButton from '../ui/IconButton.svelte';
@@ -43,30 +44,38 @@
     const layout = $derived(normalizeFrameLayout(frameSettings.layout));
     const slots = $derived(normalizeSlots(frameSettings.template, frameSettings.slots));
 
-    // Ambient and Photo show a random photo, so the preview picks one itself and hands
-    // it to every view: Live, Screen and Paper show the same photo. It picks again only
-    // when the mode, photo choices or orientation change. Undefined while a pick loads.
+    // Ambient and Photo show the photo the Display service holds for the panel (its only
+    // source — a pick of the preview's own could differ), handed to every view, so Live,
+    // Screen, Paper and the frame itself all show the same one. Asked
+    // again when the mode changes, after each settings save lands (a new photo choice picks
+    // a new one there), when the pinned photo changes, and every minute to follow the
+    // panel's next photo. Undefined while the first answer loads.
+    const PHOTO_REFRESH_MS = 60_000;
     const photoMode = $derived(previewMode === 'ambient' || previewMode === 'photo');
+    let photoTick = $state(0);
+    onMount(() => poll(() => photoTick++, PHOTO_REFRESH_MS));
     $effect(() => {
         if (!photoMode || !frameSettings.loaded || !modeStore.loaded) return;
-        const mode = previewMode;
-        const ids = mode === 'photo' ? [...frameSettings.photoIds] : [];
-        const source = frameSettings.photoSource;
-        const categories = [...frameSettings.photoCategories];
-        const orientation = frameSettings.orientation;
-        const key = JSON.stringify([mode, ids, source, categories, orientation]);
-        if (key === photoKey) return;
-        photoKey = key;
-        shared.photo = undefined;
-        // As the frame picks: Photo's pinned upload or album, else an Ambient photo.
-        const pick = async () =>
-            (ids.length > 0 ? pickPinned(ids, await api.photos.list()) : null) ??
-            (await pickPhoto(source, categories, orientation));
-        pick().then(
-            (p) => key === photoKey && (shared.photo = p),
-            () => key === photoKey && (shared.photo = null)
+        const mode = previewMode as 'ambient' | 'photo';
+        // Read to ask again when they change
+        void [frameSettings.saves, modeStore.current?.photo_id, photoTick];
+        const key = JSON.stringify([mode, frameSettings.orientation]);
+        if (key !== photoKey) {
+            photoKey = key;
+            shared.photo = undefined;
+        }
+        const request = ++photoRequest;
+        untrack(() => api.display.photo(mode)).then(
+            (held) => {
+                if (request !== photoRequest) return;
+                const p = held ?? null; // none to show, or Display unreachable
+                // Keep the same object when the photo hasn't moved on, so nothing reloads
+                if (p?.id !== shared.photo?.id || p?.url !== shared.photo?.url) shared.photo = p;
+            },
+            () => request === photoRequest && (shared.photo = null)
         );
     });
+
     // Undefined until the current mode is known too, so nothing loads in the wrong mode first.
     const photo = $derived(!modeStore.loaded ? undefined : photoMode ? shared.photo : null);
 

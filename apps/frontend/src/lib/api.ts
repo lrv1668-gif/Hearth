@@ -497,6 +497,13 @@ class ApiClient {
             return res?.ok ? (res.json() as Promise<ResolvedMode>).catch(() => null) : null;
         },
 
+        /** The photo Ambient or Photo mode shows — the one Display holds for the panel, so
+         *  every view matches. null when there's none (or no Photos service), undefined
+         *  when Display can't be reached: the caller then picks its own. */
+        photo: (mode: 'ambient' | 'photo'): Promise<Photo | null | undefined> =>
+            // Bounded like settings(), so a hung service can't hold up /frame's ready signal.
+            this.getSaved<Photo>(`/display/photo?${new URLSearchParams({ mode })}`, { timeoutMs: 8000 }),
+
         /** The panel render and the frame's last check-in; null when Display can't be reached. */
         frameStatus: (): Promise<FrameStatus | null> => this.get<FrameStatus>('/display/frame/status'),
 

@@ -22,7 +22,7 @@
         setFrameScale,
         type Pixels,
     } from '$lib/frame';
-    import { parsePhotoParam, pickPhoto, pickPinned } from '$lib/photos';
+    import { parsePhotoParam } from '$lib/photos';
     import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
     import FrameCountdownHero from '$lib/components/frame/modes/FrameCountdownHero.svelte';
@@ -42,8 +42,6 @@
     //                                (default: what the Display service resolves now —
     //                                 an override, the schedule, or its default mode —
     //                                 else ambient; see constants/frameModes.ts)
-    //   ?pin=<photo id>              (with ?mode=photo: the upload "Show on frame" pinned —
-    //                                 Display passes it with the mode it resolved)
     //   ?palette=color|bw            (default color — the Color ↔ B&W mode)
     //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
     //                                 B&W follows its lightness)
@@ -65,10 +63,9 @@
     //                                 uses left/right/split)
     //   ?position=top-left|top-middle|top-right|bottom-left|bottom-middle|bottom-right
     //                                (Ambient info card)
-    //   ?source=unsplash|local|both   (Ambient photos; default: the shared choice)
-    //   ?categories=a,b       (Ambient Unsplash categories; default: the shared choice)
-    //   ?photo={...}          (a JSON Photo shown instead of a random pick — Settings'
-    //                          preview pins one so its Live/Screen/Paper views match)
+    //   ?photo={...}          (Ambient/Photo's photo as JSON — Display passes the one it
+    //                          holds for the panel, and Settings' preview the same one;
+    //                          default: GET /display/photo, so every view matches)
     // The root's data-ready flips to "true" once data, fonts and the photo have
     // settled, or after READY_DEADLINE_MS regardless, so one hung upstream can't
     // hold back the whole frame — screenshot after that. No polling: the renderer
@@ -77,8 +74,6 @@
     const modeParam = params.get('mode');
     // Null until resolved: the URL's mode, else Display's (onMount).
     let mode = $state<FrameModeId | null>(isFrameMode(modeParam) ? modeParam : null);
-    // The upload "Show on frame" pinned, when Display resolved to it (or named it in ?pin=).
-    let pinnedPhotoId: string | null = isFrameMode(modeParam) ? params.get('pin') || null : null;
     const palette = params.get('palette') === 'bw' ? 'bw' : 'color';
     const themeParam = params.get('theme');
     const theme = $derived(isValidFrameThemeId(themeParam) ? themeParam : frameSettings.theme);
@@ -105,8 +100,6 @@
     setFrameScale(() => canvas.scale);
     const positionParam = params.get('position');
     const position = $derived(isAmbientPosition(positionParam) ? positionParam : frameSettings.ambientPosition);
-    const sourceParam = params.get('source');
-    const categoriesParam = params.get('categories');
     const photoParam = parsePhotoParam(params.get('photo'));
     const layout = $derived(parseFrameLayout(params, { ...frameSettings.layout, split: frameSettings.split }));
     const placed = $derived(parseFrameTemplate(params, frameSettings));
@@ -139,22 +132,10 @@
     let photoPixels = $state<Pixels | null>(null);
     let ready = $state(false);
 
-    /** Photo mode's pinned upload or album, or null (none chosen, or all deleted). */
-    async function pinnedPhoto(): Promise<Photo | null> {
-        const ids = pinnedPhotoId ? [pinnedPhotoId] : frameSettings.photoIds;
-        return ids.length > 0 ? pickPinned(ids, await api.photos.list()) : null;
-    }
-
     async function loadPhoto() {
-        // Photo mode falls back to Ambient's pick, so the frame never goes blank.
-        const next =
-            photoParam ??
-            (mode === 'photo' ? await pinnedPhoto() : null) ??
-            (await pickPhoto(
-                sourceParam || frameSettings.photoSource,
-                categoriesParam ? categoriesParam.split(',') : frameSettings.photoCategories,
-                orientation
-            ));
+        // The photo Display holds for the panel (Photo's pinned upload or album, else
+        // Ambient's), so this view matches the panel and Settings' preview.
+        const next = photoParam ?? (mode === 'ambient' || mode === 'photo' ? await api.display.photo(mode) : null);
         if (!next) return;
         // Decode before signalling ready so the screenshot never catches a blank frame.
         // CORS mode so the pixels can be read back (Unsplash's CDN allows it; uploads
@@ -203,7 +184,6 @@
         if (!mode) {
             const resolved = await api.display.mode();
             mode = resolved?.mode ?? DEFAULT_FRAME_MODE;
-            pinnedPhotoId = resolved?.photo_id ?? null;
         }
         const settled = Promise.allSettled(dataLoads()).then(() => document.fonts.ready);
         await Promise.race([settled, new Promise((resolve) => setTimeout(resolve, READY_DEADLINE_MS))]);

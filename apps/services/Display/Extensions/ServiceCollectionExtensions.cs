@@ -16,6 +16,12 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton(services => new FrameCache(
             FrameCache.DirectoryFor(Environment.GetEnvironmentVariable("DB_PATH")),
             services.GetRequiredService<ILogger<FrameCache>>()));
+        // The photo Ambient and Photo show, held beside the cached frame
+        serviceCollection.AddSingleton(services => new FramePhotos(
+            services.GetRequiredService<PhotosClient>(),
+            FrameCache.DirectoryFor(Environment.GetEnvironmentVariable("DB_PATH")),
+            services.GetRequiredService<TimeProvider>(),
+            services.GetRequiredService<ILogger<FramePhotos>>()));
         serviceCollection.AddSingleton<FrameRenderService>();
         serviceCollection.AddSingleton<FramePolls>();
         serviceCollection.AddHostedService(services => services.GetRequiredService<FrameRenderService>());
@@ -31,7 +37,15 @@ public static class ServiceCollectionExtensions
             http.Timeout = TimeSpan.FromSeconds(110);
         });
 
+        serviceCollection.AddHttpClient<PhotosClient>((services, http) =>
+        {
+            // Checked per request (503 when unset) and by the health check, like RENDERER_URL
+            if (services.GetRequiredService<IConfiguration>()["PHOTOS_URL"] is { Length: > 0 } url)
+                http.BaseAddress = new Uri(url.EndsWith('/') ? url : url + "/");
+            http.Timeout = TimeSpan.FromSeconds(10);
+        });
+
         serviceCollection.AddHearthWebDefaults();
-        serviceCollection.AddHealthChecks().AddDatabase("display").AddRequiredConfig("RENDERER_URL").AddCheck<FrameHealthCheck>("frame");
+        serviceCollection.AddHealthChecks().AddDatabase("display").AddRequiredConfig("RENDERER_URL", "PHOTOS_URL").AddCheck<FrameHealthCheck>("frame");
     }
 }
