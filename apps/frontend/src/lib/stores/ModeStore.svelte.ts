@@ -1,5 +1,6 @@
 import { api, type ModeOverride, type ModeSchedule, type ResolvedMode } from '$lib/api';
 import { DEFAULT_FRAME_MODE } from '$lib/constants/frameModes';
+import type { FramePalette } from '$lib/constants/frameThemes';
 
 /**
  * Which mode the e-paper frame shows: the Display service resolves a manual override
@@ -10,6 +11,9 @@ class ModeStore {
     /** What the frame shows now; null until loaded or while Display is unreachable. */
     current = $state<ResolvedMode | null>(null);
     schedule = $state<ModeSchedule>({ default_mode: DEFAULT_FRAME_MODE, rules: [] });
+    /** Color or B&W — kept by Display apart from the frame settings, so the frame's
+     *  Button C can flip it too. */
+    palette = $state<FramePalette>('color');
     loaded = $state(false);
     error = $state(false);
 
@@ -22,10 +26,15 @@ class ModeStore {
 export const modeStore = new ModeStore();
 
 export async function loadModes() {
-    const [current, schedule] = await Promise.all([api.display.mode(), api.display.schedule()]);
-    modeStore.error = current === null || schedule === null;
+    const [current, schedule, palette] = await Promise.all([
+        api.display.mode(),
+        api.display.schedule(),
+        api.display.palette(),
+    ]);
+    modeStore.error = current === null || schedule === null || palette === null;
     if (current) modeStore.current = current;
     if (schedule) modeStore.schedule = schedule;
+    if (palette) modeStore.palette = palette.palette;
     modeStore.loaded = true;
 }
 
@@ -58,6 +67,18 @@ export async function setOverride(manual: ModeOverride) {
 export async function clearOverride(photoId?: string) {
     if (!(await api.display.clearOverride(photoId))) modeStore.error = true;
     await refreshCurrent();
+}
+
+/** Switch the frame between Color and B&W; Display re-renders the panel. */
+export async function setPalette(palette: FramePalette) {
+    const previous = modeStore.palette;
+    modeStore.palette = palette;
+    try {
+        modeStore.palette = (await api.display.setPalette(palette)).palette;
+    } catch {
+        modeStore.palette = previous;
+        modeStore.error = true;
+    }
 }
 
 /** "Show on frame": pin one upload until it's switched off — no expiry. */

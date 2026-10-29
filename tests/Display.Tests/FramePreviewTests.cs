@@ -74,6 +74,33 @@ public sealed class FramePreviewTests
         Assert.Equal("ordered", FramePreview.DitherFor(Query(("mode", "daily"))));
     }
 
+    [Theory]
+    [InlineData("bw", "bw")]
+    [InlineData("color", "color")]
+    [InlineData("", "color")]
+    [InlineData("sepia", "color")]
+    public void PaletteFor_Query_ReturnsPalette(string palette, string expected)
+    {
+        Assert.Equal(expected, FramePreview.PaletteFor(Query(("mode", "daily"), ("palette", palette))));
+    }
+
+    [Fact]
+    public void FramePath_KeepsThePalette()
+    {
+        Assert.Equal("/frame?mode=daily&palette=bw", FramePreview.FramePath(Query(("mode", "daily"), ("palette", "bw"))));
+    }
+
+    [Fact]
+    public async Task RenderAsync_BlackAndWhite_SendsThePalette()
+    {
+        var handler = new FakeHttpMessageHandler("png");
+        var client = new RendererClient(new HttpClient(handler) { BaseAddress = new Uri("http://renderer:3000/") });
+
+        await client.RenderAsync("/frame", 1600, 1200, "ordered", null, "screen", palette: "bw");
+
+        Assert.EndsWith("&palette=bw", handler.LastRequestUri?.AbsoluteUri);
+    }
+
     [Fact]
     public void FramePath_DropsPreviewOnlyParams()
     {

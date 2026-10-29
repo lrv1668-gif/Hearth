@@ -41,6 +41,7 @@ public sealed class FrameRenderService(
     HomeSettingsStore home,
     FramePhotos photos,
     ModeStore modes,
+    PaletteStore palettes,
     IServiceProvider services,
     IConfiguration config,
     TimeProvider clock,
@@ -126,11 +127,13 @@ public sealed class FrameRenderService(
 
     /// <summary>
     /// The /frame URL to capture: the resolved mode spelled out, so the dither always matches
-    /// it, and the held photo (a pinned upload included), so the panel shows the one the preview does.
+    /// it, the held photo (a pinned upload included), so the panel shows the one the preview does,
+    /// and B&amp;W when it's on.
     /// </summary>
-    public static string FramePath(ResolvedMode mode, FramePhoto? photo = null)
+    public static string FramePath(ResolvedMode mode, FramePhoto? photo = null, FramePalette? palette = null)
     {
         var query = new QueryBuilder { { "mode", mode.Mode } };
+        if (palette?.IsBlackAndWhite == true) query.Add("palette", palette.Palette);
         if (photo is not null) query.Add("photo", JsonSerializer.Serialize(photo, HearthJson.SnakeCaseLower));
         return "/frame" + query.ToQueryString();
     }
@@ -153,9 +156,12 @@ public sealed class FrameRenderService(
             ? null
             : TimeSpan.FromMinutes(saved?.PhotoIntervalMinutes ?? FrameSettings.DefaultPhotoIntervalMinutes);
 
-    /// <summary>The mode's method, or none when the frame client dithers (Settings → Frame).</summary>
-    public static string DitherFor(ResolvedMode mode, FrameSettings? saved) =>
-        saved?.Dithering == "frame" ? "none" : FramePreview.DitherFor(mode.Mode);
+    /// <summary>
+    /// The mode's method, or none when the frame client dithers (Settings → Frame) — except
+    /// in B&amp;W, which Hearth always dithers: inky would Floyd–Steinberg the greys into its six inks.
+    /// </summary>
+    public static string DitherFor(ResolvedMode mode, FrameSettings? saved, FramePalette? palette = null) =>
+        saved?.Dithering == "frame" && palette?.IsBlackAndWhite != true ? "none" : FramePreview.DitherFor(mode.Mode);
 
     /// <summary>The last failed render: when, and which frame it was for.</summary>
     public sealed record RenderFailure(DateTimeOffset At, string Mode, string? PhotoId);
@@ -240,14 +246,15 @@ public sealed class FrameRenderService(
             // Resolve again: an invalidating change (e.g. Button B) may have just moved the mode
             if (waiting is not null) mode = Resolve(clock.GetUtcNow());
             var saved = settings.Get();
+            var palette = palettes.Get();
             var (width, height) = FramePreview.Canvas(QueryCollection.Empty, saved);
             var rotate = width < height ? saved?.PortraitRotation ?? FrameSettings.DefaultPortraitRotation : 0;
             var photo = mode.Mode is FrameModes.Ambient or FrameModes.Photo
                 ? await photos.GetAsync(mode.Mode, saved, mode.PhotoId, nextPhoto, PhotoMaxAge(last, mode, saved), stop)
                 : null;
             var png = await services.GetRequiredService<RendererClient>().RenderAsync(
-                FramePath(mode, photo), width, height, DitherFor(mode, saved), kernel: null, look: "screen",
-                home.Get()?.TimeZone, rotate, stop);
+                FramePath(mode, photo, palette), width, height, DitherFor(mode, saved, palette), kernel: null,
+                look: "screen", home.Get()?.TimeZone, rotate, palette.Palette, stop);
             var info = cache.Store(png, mode.Mode, mode.PhotoId, clock.GetUtcNow());
             logger.LogInformation("Rendered the {Mode} frame ({ETag})", mode.Mode, info.ETag);
             lock (_lock)

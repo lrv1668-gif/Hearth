@@ -33,8 +33,10 @@ public static class WebApplicationExtensions
         app.Services.GetRequiredService<FrameSettingsStore>().Migrate();
         app.Services.GetRequiredService<HomeSettingsStore>().Migrate();
         app.Services.GetRequiredService<ModeStore>().Migrate();
+        app.Services.GetRequiredService<PaletteStore>().Migrate();
         app.AddDisplayEndpoints();
         app.AddModeEndpoints();
+        app.AddPaletteEndpoints();
         app.AddFrameEndpoints();
         app.MapHearthHealth("display");
     }
@@ -241,6 +243,30 @@ public static class WebApplicationExtensions
         });
     }
 
+    /// <summary>
+    /// Color ↔ B&amp;W: what the panel render and Settings' preview draw /frame in. The frame's
+    /// Button C calls POST /display/palette/toggle.
+    /// </summary>
+    private static void AddPaletteEndpoints(this WebApplication app)
+    {
+        app.MapGet("/display/palette", (PaletteStore store) => Results.Ok(store.Get()));
+
+        app.MapPut("/display/palette", (FramePalette palette, PaletteStore store, FrameRenderService frame) =>
+        {
+            if (palette.Validate() is { } error) return Results.BadRequest(error);
+            var saved = store.Save(palette);
+            frame.Invalidate();
+            return Results.Ok(saved);
+        });
+
+        app.MapPost("/display/palette/toggle", (PaletteStore store, FrameRenderService frame) =>
+        {
+            var saved = store.Save(store.Get().Toggled());
+            frame.Invalidate();
+            return Results.Ok(saved);
+        });
+    }
+
     private static void AddDisplayEndpoints(this WebApplication app)
     {
         // The frame's shared settings. 204 until something has been saved — clients
@@ -291,7 +317,8 @@ public static class WebApplicationExtensions
 
         // The frame dithered to the panel's six inks — the same pixels the panel gets.
         // Takes /frame's params, plus look=screen|paper, an optional error-diffusion kernel and
-        // dither= to override the mode's method (none: the raw screenshot).
+        // dither= to override the mode's method (none: the raw screenshot). /frame's palette=bw
+        // also dithers to black and white alone.
         app.MapGet("/display/preview", async (
             HttpRequest request, RendererClient renderer, FrameSettingsStore store, HomeSettingsStore home,
             IConfiguration config, CancellationToken ct) =>
@@ -312,7 +339,7 @@ public static class WebApplicationExtensions
                     FramePreview.FramePath(request.Query), width, height,
                     FramePreview.DitherFor(request.Query), request.Query["kernel"].FirstOrDefault(), look,
                     // The household's zone, so the frame's date and clock aren't drawn in UTC
-                    home.Get()?.TimeZone, ct: ct);
+                    home.Get()?.TimeZone, palette: FramePreview.PaletteFor(request.Query), ct: ct);
                 return Results.File(png, "image/png");
             }
             catch (HttpRequestException ex)
