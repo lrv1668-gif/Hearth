@@ -27,6 +27,7 @@ public static class WebApplicationExtensions
             string? source,
             string? orientation,
             string? query,
+            string? exclude,
             IServiceProvider sp) =>
         {
             var key = source ?? "unsplash";
@@ -34,7 +35,8 @@ public static class WebApplicationExtensions
             if (provider is null)
                 return Results.BadRequest(new { error = $"unknown source: {key}" });
 
-            var ctx = new PhotoSourceContext(orientation ?? "portrait", query ?? "nature");
+            var skip = exclude?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+            var ctx = new PhotoSourceContext(orientation ?? "portrait", query ?? "nature", skip);
             var photo = await provider.GetRandomAsync(ctx);
             return photo is null ? Results.NotFound() : Results.Ok(photo);
         });

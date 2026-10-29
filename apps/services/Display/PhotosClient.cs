@@ -16,10 +16,13 @@ public sealed class PhotosClient(HttpClient http)
     public bool Configured => http.BaseAddress is not null;
 
     /// <summary>A random photo from <paramref name="source"/>, or null when it has none.</summary>
-    public async Task<FramePhoto?> RandomAsync(string source, string query, string orientation, CancellationToken ct = default)
+    /// <param name="exclude">Ids to skip while others are left, most recently shown last.</param>
+    public async Task<FramePhoto?> RandomAsync(
+        string source, string query, string orientation, IReadOnlyList<string>? exclude = null, CancellationToken ct = default)
     {
         var url = string.Create(CultureInfo.InvariantCulture,
             $"photos/random?source={Uri.EscapeDataString(source)}&query={Uri.EscapeDataString(query)}&orientation={orientation}");
+        if (exclude is { Count: > 0 }) url += "&exclude=" + Uri.EscapeDataString(string.Join(',', exclude));
         using var response = await http.GetAsync(url, ct);
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();

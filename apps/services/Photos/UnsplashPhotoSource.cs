@@ -28,19 +28,31 @@ public sealed class UnsplashPhotoSource(
         var cacheKey = $"unsplash:{query}:{orientation}";
 
         if (cache.TryGetValue(cacheKey, out List<PhotoResponse>? photos) && photos!.Count > 0)
-            return photos[Random.Shared.Next(photos.Count)];
+            return Pick(photos, ctx.Exclude ?? [], Random.Shared);
 
         try
         {
             photos = await fetcher.FetchAsync(query, orientation, key);
             if (photos.Count == 0) return null;
             cache.Set(cacheKey, photos, TimeSpan.FromHours(24));
-            return photos[Random.Shared.Next(photos.Count)];
+            return Pick(photos, ctx.Exclude ?? [], Random.Shared);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to fetch photos from Unsplash");
             return null;
         }
+    }
+
+    /// <summary>
+    /// One of <paramref name="photos"/> at random, other than <paramref name="exclude"/> — or, when
+    /// that leaves none, any but the most recently shown (its last id), so a new pass doesn't repeat it.
+    /// </summary>
+    public static PhotoResponse Pick(IReadOnlyList<PhotoResponse> photos, IReadOnlyList<string> exclude, Random random)
+    {
+        var fresh = photos.Where(p => !exclude.Contains(p.Id)).ToList();
+        if (fresh.Count == 0 && exclude.Count > 0) fresh = photos.Where(p => p.Id != exclude[^1]).ToList();
+        if (fresh.Count == 0) fresh = [.. photos];
+        return fresh[random.Next(fresh.Count)];
     }
 }

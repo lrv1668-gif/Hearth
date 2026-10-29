@@ -21,11 +21,14 @@ export function photoQuery(categories: readonly string[]): string {
     return categories.length > 0 ? categories.join(',') : 'nature';
 }
 
-/** Which source to draw the next photo from: "both" picks uploads half the time,
- *  when there are any. */
-export function resolveSource(source: PhotoSource, hasUploads: boolean, random = Math.random()): PhotoSource {
+/** The photos the Photos service holds per Unsplash search (its PhotoFetcher's count). */
+export const UNSPLASH_POOL = 20;
+
+/** Which source to draw the next photo from: "both" picks uploads in proportion to how many
+ *  there are against UNSPLASH_POOL, so every photo comes round about as often. */
+export function resolveSource(source: PhotoSource, uploads: number, random = Math.random()): PhotoSource {
     if (source !== 'both') return source;
-    return hasUploads && random < 0.5 ? 'local' : 'unsplash';
+    return random < uploads / (uploads + UNSPLASH_POOL) ? 'local' : 'unsplash';
 }
 
 /** How Photo mode's picker treats a click: `one` picks just that photo, `several` adds or removes it. */
