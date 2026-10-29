@@ -186,15 +186,129 @@ public sealed class FramePhotosTests : IDisposable
         Assert.Empty(_photos.RequestUris);
     }
 
-    [Theory]
-    [InlineData("unsplash", true, 0.1, "unsplash")]
-    [InlineData("local", false, 0.9, "local")]
-    [InlineData("both", true, 0.4, "local")]
-    [InlineData("both", true, 0.6, "unsplash")]
-    [InlineData("both", false, 0.1, "unsplash")]
-    public void ResolveSource_PicksTheSource(string source, bool hasUploads, double random, string expected)
+    [Fact]
+    public async Task Photo_Album_ShowsEveryPhotoBeforeRepeating()
     {
-        Assert.Equal(expected, FramePhotos.ResolveSource(source, hasUploads, random));
+        var photos = Holder();
+        var album = Saved with { PhotoIds = ["u1", "u2", "u3"] };
+        var first = (await photos.GetAsync(FrameModes.Photo, album))!.Id;
+        var second = (await photos.GetAsync(FrameModes.Photo, album, next: true))!.Id;
+        var third = (await photos.GetAsync(FrameModes.Photo, album, next: true))!.Id;
+
+        Assert.Equal(3, new[] { first, second, third }.Distinct().Count());
+        Assert.NotEqual(third, (await photos.GetAsync(FrameModes.Photo, album, next: true))?.Id);
+    }
+
+    [Fact]
+    public async Task Photo_Pin_KeepsTheAlbumsPass()
+    {
+        var photos = Holder();
+        var album = Saved with { PhotoIds = ["u1", "u2", "u3"] };
+        var first = (await photos.GetAsync(FrameModes.Photo, album))!.Id;
+        var second = (await photos.GetAsync(FrameModes.Photo, album, next: true))!.Id;
+        var third = new[] { "u1", "u2", "u3" }.Except([first, second]).Single();
+
+        await photos.GetAsync(FrameModes.Photo, album, pinnedId: first);
+
+        Assert.Equal(third, (await photos.GetAsync(FrameModes.Photo, album, next: true))?.Id);
+    }
+
+    [Fact]
+    public async Task Ambient_Uploads_ShowEveryPhotoBeforeRepeating()
+    {
+        var photos = Holder();
+        var local = Saved with { PhotoSource = "local" };
+        var ids = new List<string>();
+        for (var i = 0; i < 3; i++) ids.Add((await photos.GetAsync(FrameModes.Ambient, local, next: i > 0))!.Id);
+
+        Assert.Equal(3, ids.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Ambient_Unsplash_SkipsThePhotosShownThisPass()
+    {
+        var photos = Holder();
+        await photos.GetAsync(FrameModes.Ambient, Saved);
+        _photos.ResponseJson = Unsplash("s2");
+        await photos.GetAsync(FrameModes.Ambient, Saved, next: true);
+        _photos.ResponseJson = Unsplash("s3");
+        await photos.GetAsync(FrameModes.Ambient, Saved, next: true);
+
+        Assert.Contains("exclude=s1%2Cs2", _photos.LastRequestUri!.Query);
+    }
+
+    [Fact]
+    public async Task Ambient_Unsplash_AShownPhotoBackStartsANewPass()
+    {
+        var photos = Holder();
+        await photos.GetAsync(FrameModes.Ambient, Saved);
+        _photos.ResponseJson = Unsplash("s2");
+        await photos.GetAsync(FrameModes.Ambient, Saved, next: true);
+        // Photos had none left to skip to
+        _photos.ResponseJson = Unsplash("s1");
+        await photos.GetAsync(FrameModes.Ambient, Saved, next: true);
+        _photos.ResponseJson = Unsplash("s3");
+        await photos.GetAsync(FrameModes.Ambient, Saved, next: true);
+
+        Assert.Contains("exclude=s1&", _photos.LastRequestUri!.Query + "&");
+    }
+
+    [Fact]
+    public async Task Pass_SurvivesARestart()
+    {
+        var album = Saved with { PhotoIds = ["u1", "u2", "u3"] };
+        var first = (await Holder().GetAsync(FrameModes.Photo, album))!.Id;
+        var second = (await Holder().GetAsync(FrameModes.Photo, album, next: true))!.Id;
+        var third = (await Holder().GetAsync(FrameModes.Photo, album, next: true))!.Id;
+
+        Assert.Equal(3, new[] { first, second, third }.Distinct().Count());
+    }
+
+    [Fact]
+    public void Deal_GoesThroughEveryPhotoBeforeRepeating()
+    {
+        var from = new[] { "a", "b", "c", "d" }.Select(Uploaded).ToList();
+        var shown = new List<string>();
+        var random = new Random(7);
+        string? current = null;
+        var pass = new List<string>();
+        for (var i = 0; i < 4; i++) pass.Add(current = FramePhotos.Deal(from, shown, current, random).Id);
+
+        Assert.Equal(4, pass.Distinct().Count());
+        Assert.NotEqual(current, FramePhotos.Deal(from, shown, current, random).Id);
+        Assert.Single(shown);
+    }
+
+    [Fact]
+    public void Deal_ForgetsPhotosNoLongerThere()
+    {
+        var shown = new List<string> { "a", "gone" };
+
+        var picked = FramePhotos.Deal([Uploaded("a"), Uploaded("b")], shown, "a", new Random(1));
+
+        Assert.Equal("b", picked.Id);
+        Assert.Equal(["a", "b"], shown);
+    }
+
+    [Fact]
+    public void Deal_NoPassYet_CountsThePhotoOnShow()
+    {
+        var picked = FramePhotos.Deal([Uploaded("a"), Uploaded("b")], [], "a", new Random(1));
+
+        Assert.Equal("b", picked.Id);
+    }
+
+    [Theory]
+    [InlineData("unsplash", 5, 0.01, "unsplash")]
+    [InlineData("local", 0, 0.9, "local")]
+    [InlineData("both", 5, 0.19, "local")]    // 5 of 25 photos: uploads a fifth of the time
+    [InlineData("both", 5, 0.21, "unsplash")]
+    [InlineData("both", 60, 0.74, "local")]   // 60 of 80: three quarters
+    [InlineData("both", 60, 0.76, "unsplash")]
+    [InlineData("both", 0, 0.0, "unsplash")]
+    public void ResolveSource_WeighsUploadsAgainstUnsplash(string source, int uploads, double random, string expected)
+    {
+        Assert.Equal(expected, FramePhotos.ResolveSource(source, uploads, random));
     }
 
     [Fact]
@@ -203,6 +317,8 @@ public sealed class FramePhotosTests : IDisposable
         Assert.Equal("nature", FramePhotos.Query([]));
         Assert.Equal("ocean,forest", FramePhotos.Query(["ocean", "forest"]));
     }
+
+    private static UploadedPhoto Uploaded(string id) => new(id, $"/photos/files/{id}.jpg", null, null);
 
     private static string Upload(string id) =>
         $$"""{"id":"{{id}}","url":"/photos/files/{{id}}.jpg","thumb_url":null,"caption":null}""";

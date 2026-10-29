@@ -19,17 +19,21 @@ describe('photoQuery', () => {
 
 describe('resolveSource', () => {
     it('passes single sources through', () => {
-        expect(resolveSource('unsplash', true)).toBe('unsplash');
-        expect(resolveSource('local', false)).toBe('local');
+        expect(resolveSource('unsplash', 5)).toBe('unsplash');
+        expect(resolveSource('local', 0)).toBe('local');
     });
 
-    it('splits "both" between uploads and Unsplash', () => {
-        expect(resolveSource('both', true, 0.2)).toBe('local');
-        expect(resolveSource('both', true, 0.8)).toBe('unsplash');
+    it('weighs "both" by the uploads against the Unsplash pool', () => {
+        // 5 uploads of 25 photos: a fifth of the time
+        expect(resolveSource('both', 5, 0.19)).toBe('local');
+        expect(resolveSource('both', 5, 0.21)).toBe('unsplash');
+        // 60 of 80: three quarters
+        expect(resolveSource('both', 60, 0.74)).toBe('local');
+        expect(resolveSource('both', 60, 0.76)).toBe('unsplash');
     });
 
     it('uses Unsplash for "both" when there are no uploads', () => {
-        expect(resolveSource('both', false, 0.2)).toBe('unsplash');
+        expect(resolveSource('both', 0, 0)).toBe('unsplash');
     });
 });
 

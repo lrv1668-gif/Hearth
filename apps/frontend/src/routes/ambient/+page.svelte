@@ -66,7 +66,7 @@
         // Source and categories are the shared Ambient choices (FrameSettingsStore);
         // cadence and motion stay this browser's own. The first photo is the frame's own
         // (framePhoto); from there the slideshow cycles on its own cadence.
-        const source = resolveSource(frameSettings.photoSource, localQueue.length > 0);
+        const source = resolveSource(frameSettings.photoSource, localQueue.length);
         if (source === 'local') return nextLocalPhoto();
         return api.photos.random(
             photoQuery(frameSettings.photoCategories),

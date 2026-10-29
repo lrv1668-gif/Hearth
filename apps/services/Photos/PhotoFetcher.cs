@@ -5,6 +5,7 @@ namespace Photos;
 
 public sealed class PhotoFetcher(HttpClient http)
 {
+    // count=20 — Display's FramePhotos.UnsplashPool and photos.ts UNSPLASH_POOL weigh uploads against it
     public async Task<List<PhotoResponse>> FetchAsync(string query, string orientation, string apiKey)
     {
         var url = $"https://api.unsplash.com/photos/random?query={Uri.EscapeDataString(query)}&orientation={orientation}&count=20";
