@@ -6,6 +6,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Almanac\Almanac.csproj" />
+    <ProjectReference Include="..\..\apps\services\Almanac\Almanac.csproj" />
   </ItemGroup>
 </Project>

@@ -9,4 +9,4 @@ Type=oneshot
 # on another user's checkout, and the deploy key / `docker login` live in their home
 User=<user>
 # Adjust if the repo is cloned somewhere other than /opt/hearth
-ExecStart=/opt/hearth/deploy/update.sh
+ExecStart=/opt/hearth/infra/deploy/update.sh

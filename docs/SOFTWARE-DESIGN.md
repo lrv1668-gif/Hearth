@@ -35,12 +35,12 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 - Svelte 5 runes syntax (`$state`, `$effect`, `$props`, `$derived`) for fine-grained reactivity
 - Tailwind v4 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
-- API calls are centralised in `frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
+- API calls are centralised in `apps/frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
 - In development, Vite proxies each API path (`/tasks`, `/weather`, `/spotify`, `/photos`, `/rss`, `/quote`, `/calendar`, `/birds`, `/almanac`, `/trains`, `/sports`) to its service's `$<NAME>_URL` env var; in production, Caddy handles the same routing
 
 ### Shared UI components
 
-Form controls and other repeated pieces live in `frontend/src/lib/components/ui/` — use them rather than restyling native elements per screen:
+Form controls and other repeated pieces live in `apps/frontend/src/lib/components/ui/` — use them rather than restyling native elements per screen:
 
 | Component | Use |
 | --- | --- |
@@ -192,9 +192,9 @@ Eighteen built-in themes are applied via CSS custom properties on `[data-theme]`
 
 Each theme exposes the same semantic token set: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, `--danger` (picker themes only), and `color-scheme`. Components reference tokens only — never hardcoded colors. Hierarchy comes from size, weight and the `--text-1`…`--text-4` steps first. Icons sit one step quieter than the data they label. `--accent` is each picker theme's one chromatic hue, kept sparing: it marks now/today, chosen or active state, primary actions and widget titles, and is never used for errors (`--danger`) or bulk text. `themes.test.ts` holds `--accent` and `--danger` to 4.5:1 on `--bg`, `--surface` and `--surface-hi`, and `--accent-fg` to 4.5:1 on `--accent` and `--accent-hi`.
 
-Themes are defined in two places that must be kept in sync: `frontend/src/themes.css` (CSS variables) and `frontend/src/lib/constants/themes.ts` (switcher metadata).
+Themes are defined in two places that must be kept in sync: `apps/frontend/src/themes.css` (CSS variables) and `apps/frontend/src/lib/constants/themes.ts` (switcher metadata).
 
-Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (readable secondary text) and `--text-3` at least 3:1 (icons and non-text marks only); `--text-4` is decorative. `src/lib/themes.test.ts` enforces this.
+Contrast floor: in every theme `--text-2` is at least 4.5:1 against `--bg` (readable secondary text) and `--text-3` at least 3:1 (icons and non-text marks only); `--text-4` is decorative. `apps/frontend/src/lib/themes.test.ts` enforces this.
 
 **Frame themes.** `/frame` has its own themes, chosen with `?theme=` (Color mode) and picked in Settings → Frame, which also sets the frame's typeface (`?font=`, any font preset), text size (`?text=`, 100–150%), orientation and panel size (typed, or a preset for the common Inky Impression panels) and shows a live, scaled-down preview of the real `/frame` page plus its URL. They are `[data-theme='epaper-<id>']` blocks in `themes.css` with picker metadata in `constants/frameThemes.ts`, kept out of the dashboard theme picker. Colours are built from the panel's measured Spectra 6 inks, white-balanced so the browser preview looks like the panel:
 
@@ -223,8 +223,8 @@ Named typography presets, orthogonal to color themes. Each preset bundles a font
 
 Defined in two places (both must be updated together):
 
-1. `src/fonts.css` — `@fontsource` imports plus one `[data-font="id"] { ... }` block per preset (source of truth for stacks, weights, scale). Selectors stay bare `[data-font]` — `FontThemePicker.svelte` sets `data-font` on its preview buttons so the same blocks style the previews.
-2. `src/lib/constants/fontThemes.ts` — `fontThemes` array (picker metadata only: `id`, `label`, `tag`)
+1. `apps/frontend/src/fonts.css` — `@fontsource` imports plus one `[data-font="id"] { ... }` block per preset (source of truth for stacks, weights, scale). Selectors stay bare `[data-font]` — `FontThemePicker.svelte` sets `data-font` on its preview buttons so the same blocks style the previews.
+2. `apps/frontend/src/lib/constants/fontThemes.ts` — `fontThemes` array (picker metadata only: `id`, `label`, `tag`)
 
 Applied as `data-font` on `<html>` by `FontThemeStore.svelte.ts` (localStorage key `hearth-font`).
 
@@ -261,7 +261,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 
 ## Shared Libraries
 
-Three shared projects live under `src/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
+Three shared projects live under `apps/services/` and are referenced by service projects via `ProjectReference`. They are not deployed independently — they compile into each service that uses them.
 
 | Project             | Responsibility                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -317,11 +317,11 @@ Every service answers `GET /<prefix>/health` (`app.MapHearthHealth(prefix)`) wit
 
 The frontend lists the services in `lib/constants/services.ts`, fetches each report through `api.health.service(id)` every 30 seconds, and turns it into a row with `summarizeHealth()` in `lib/diagnostics.ts`: Running, Not set up (only `config` is degraded — shown muted and left out of the "need attention" count, since integrations are optional), Needs attention, Not working, or Not responding. Calendar's health route needs its own Caddy and Vite proxy entry, because `/calendar` is a frontend page.
 
-The same endpoints drive Docker's container health checks, so `docker ps` and Dozzle show healthy or unhealthy per service. The images are chiseled (no shell, `curl` or `wget`), so each service binary is its own probe: Compose runs `/app/service --health /<prefix>/health`, and `HealthProbe.ExitIfProbe(args)` — the first line of every `Program.cs` — calls the endpoint on the container's own port (`ASPNETCORE_HTTP_PORTS`) and exits 0 for healthy or degraded, 1 for unhealthy or no answer, printing the problems for `docker inspect`. Degraded counts as healthy, so an integration that isn't set up never marks a container unhealthy. The timing is the shared `x-probe` block in `docker-compose.yml` (every 60 s, 2 s while starting). Dozzle uses its own `/dozzle healthcheck`. Nothing `depends_on` these health states, so a failing service never holds up Caddy.
+The same endpoints drive Docker's container health checks, so `docker ps` and Dozzle show healthy or unhealthy per service. The images are chiseled (no shell, `curl` or `wget`), so each service binary is its own probe: Compose runs `/app/service --health /<prefix>/health`, and `HealthProbe.ExitIfProbe(args)` — the first line of every `Program.cs` — calls the endpoint on the container's own port (`ASPNETCORE_HTTP_PORTS`) and exits 0 for healthy or degraded, 1 for unhealthy or no answer, printing the problems for `docker inspect`. Degraded counts as healthy, so an integration that isn't set up never marks a container unhealthy. The timing is the shared `x-probe` block in `infra/docker-compose.yml` (every 60 s, 2 s while starting). Dozzle uses its own `/dozzle healthcheck`. Nothing `depends_on` these health states, so a failing service never holds up Caddy.
 
 ### Logs (Dozzle)
 
-The `dozzle` container ([Dozzle](https://dozzle.dev), `amir20/dozzle`) streams live, searchable logs for every container on the host at `/logs` (`DOZZLE_BASE=/logs`; Caddy's `handle /logs*` keeps the prefix). It reads the Docker socket (read-only mount, which still exposes the whole Docker API) and has container actions and shells off (Dozzle's defaults). So it's **opt-in**: the service is in the `logs` Compose profile, and only runs when the root `.env` sets `COMPOSE_PROFILES=logs`. Compose reads that itself, so `docker compose up` and `deploy/update.sh` need no flag. The health checks stay on regardless — they cost nothing until asked and expose no logs. Settings → Diagnostics' Logs card (`LogsSettings.svelte`) asks `api.logs.running()` whether `/logs/` answers (Caddy 502s when Dozzle isn't running) and shows Open logs, or how to turn them on. Hearth has no login of its own, so Dozzle uses its simple file auth (`DOZZLE_AUTH_PROVIDER=simple`): `dozzle/users.yml` holds a bcrypt hash, written by `deploy/dozzle-user.sh <name>`, which prompts for the password. The `dozzle/` folder is bind-mounted as `/data` (Dozzle saves user settings there too) and gitignored apart from `.gitkeep`. Nothing depends on Dozzle, so without a login only `/logs` is down. The frame's Raspberry Pi is a separate machine: its client's logs stay in its own journal (`journalctl`).
+The `dozzle` container ([Dozzle](https://dozzle.dev), `amir20/dozzle`) streams live, searchable logs for every container on the host at `/logs` (`DOZZLE_BASE=/logs`; Caddy's `handle /logs*` keeps the prefix). It reads the Docker socket (read-only mount, which still exposes the whole Docker API) and has container actions and shells off (Dozzle's defaults). So it's **opt-in**: the service is in the `logs` Compose profile, and only runs when `infra/.env` sets `COMPOSE_PROFILES=logs`. Compose reads that itself, so `docker compose up` and `infra/deploy/update.sh` need no flag. The health checks stay on regardless — they cost nothing until asked and expose no logs. Settings → Diagnostics' Logs card (`LogsSettings.svelte`) asks `api.logs.running()` whether `/logs/` answers (Caddy 502s when Dozzle isn't running) and shows Open logs, or how to turn them on. Hearth has no login of its own, so Dozzle uses its simple file auth (`DOZZLE_AUTH_PROVIDER=simple`): `infra/dozzle/users.yml` holds a bcrypt hash, written by `infra/deploy/dozzle-user.sh <name>`, which prompts for the password. The `infra/dozzle/` folder is bind-mounted as `/data` (Dozzle saves user settings there too) and gitignored apart from `.gitkeep`. Nothing depends on Dozzle, so without a login only `/logs` is down. The frame's Raspberry Pi is a separate machine: its client's logs stay in its own journal (`journalctl`).
 
 ## Tasks Service
 
@@ -376,7 +376,7 @@ The `is_countdown` flag is set at creation time and cannot be changed after the 
 
 The moon phase display is entirely front-end computed — no backend service is required.
 
-**Algorithm (`frontend/src/lib/constants/moonphase.ts`):**
+**Algorithm (`apps/frontend/src/lib/constants/moonphase.ts`):**
 
 - Anchor: `KNOWN_NEW_MOON = 2000-01-06T18:14:00Z`
 - Period: `SYNODIC_PERIOD = 29.53059` days
@@ -422,7 +422,7 @@ Each forecast day also carries `uv_index_max` (the day's peak, from Open-Meteo's
 | `DB_PATH`               | No       | Path to SQLite cache file (default: `weather.db`)  |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8082` in Docker                            |
 
-Place these in `src/Weather/.env`. Docker Compose loads the file via `env_file`; for local `dotnet run`, `DotNetEnv` loads the same file before `CreateBuilder`.
+Place these in `apps/services/Weather/.env`. Docker Compose loads the file via `env_file`; for local `dotnet run`, `DotNetEnv` loads the same file before `CreateBuilder`.
 
 ## Spotify Service
 
@@ -441,14 +441,14 @@ The `spotify` service handles OAuth 2.0 authorization with Spotify and exposes n
 
 ### Environment variables
 
-Stored in `src/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_file` in `docker-compose.yml`):
+Stored in `apps/services/Spotify/.env` (loaded by `DotNetEnv`; also referenced via `env_file` in `infra/docker-compose.yml`):
 
 | Variable                 | Required | Description                                                                                                                                        |
 | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------|
 | `SPOTIFY_CLIENT_ID`      | Yes      | Spotify app client ID                                                                                                                              |
 | `SPOTIFY_CLIENT_SECRET`  | Yes      | Spotify app client secret                                                                                                                          |
 | `SPOTIFY_REDIRECT_URI`   | Yes      | Must match a URI registered in the Spotify app dashboard (e.g. `http://127.0.0.1:8083/spotify/callback`)                                           |
-| `FRONTEND_URL`           | No       | URL to redirect to after OAuth completes; defaults to `/` on the service itself — set from `FRONTEND_URL` in the root `.env` (default `http://localhost`) in Docker |
+| `FRONTEND_URL`           | No       | URL to redirect to after OAuth completes; defaults to `/` on the service itself — set from `FRONTEND_URL` in `infra/.env` (default `http://localhost`) in Docker |
 
 ### Frontend integration
 
@@ -507,7 +507,7 @@ Query param `query` (default: `nature`) is forwarded to the Unsplash random phot
 
 ### Environment variables
 
-Stored in `src/Photos/.env`:
+Stored in `apps/services/Photos/.env`:
 
 | Variable                | Required | Description                                       |
 | ------------------------ | -------- | ---------------------------------------------------|
@@ -686,7 +686,7 @@ public record CalendarItem(
 | `DB_PATH`               | No       | Path to SQLite cache file (default: `calendar.db`)                                          |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8087` in Docker                                                                     |
 
-Stored in `src/Calendar/.env`.
+Stored in `apps/services/Calendar/.env`.
 
 ### Frontend integration
 
@@ -714,7 +714,7 @@ The `birds` service fetches recent and notable bird observations near the config
 | `DB_PATH`            | No       | Path to SQLite cache file (default: `birds.db`)   |
 | `ASPNETCORE_HTTP_PORTS` | —     | Set to `8088` in Docker                            |
 
-Stored in `src/Birds/.env`.
+Stored in `apps/services/Birds/.env`.
 
 ### Frontend integration
 
@@ -748,11 +748,11 @@ The location and zone are the shared home location (see Shared Libraries → Hom
 | `FIRST_FROST` / `LAST_FROST` | `MM-DD`                                                  |
 | `ASPNETCORE_HTTP_PORTS` | Set to `8089` in Docker                                        |
 
-Stored in `src/Almanac/.env`.
+Stored in `apps/services/Almanac/.env`.
 
 ## Display Service
 
-`src/Display` (port 8090) holds the household's home location and time zone and the e-paper frame's shared settings — the frame is one physical display, so its look is a single source of truth rather than a per-browser preference. It also serves the frame dithered to the panel's six inks, captured and dithered by the `renderer` sidecar (below): on demand for Settings' preview, and on a schedule for the panel (`GET /display/frame`, see "Panel render" below); the Color ↔ B&W and presence endpoints are still planned (`HARDWARE.md` step 2).
+`apps/services/Display` (port 8090) holds the household's home location and time zone and the e-paper frame's shared settings — the frame is one physical display, so its look is a single source of truth rather than a per-browser preference. It also serves the frame dithered to the panel's six inks, captured and dithered by the `renderer` sidecar (below): on demand for Settings' preview, and on a schedule for the panel (`GET /display/frame`, see "Panel render" below); the Color ↔ B&W and presence endpoints are still planned (`HARDWARE.md` step 2).
 
 | Endpoint                 | Description |
 | ------------------------ | ----------- |
@@ -774,7 +774,7 @@ Stored in `src/Almanac/.env`.
 
 The schedule, settings and override endpoints (`PUT /display/settings`, `PUT /display/home`, `PUT /display/mode/schedule`, `PUT`/`DELETE /display/mode/override`, `POST /display/mode/next`) each invalidate the panel frame so it re-renders.
 
-The mode ids live in `Records/FrameModes.cs` and `frontend/src/lib/constants/frameModes.ts` — keep them in step. `ModeResolver` is a pure function of the schedule, override, time, zone and quiet hours (a rotation's step is worked out from the clock, not stored, so restarts and edits keep it in step); `ModeStore` keeps the schedule and override in their own one-row tables. `DitherFor` ordered-dithers the flat modes (Daily, Countdown, Night, Note) and error-diffuses the photo ones (Ambient, Photo).
+The mode ids live in `Records/FrameModes.cs` and `apps/frontend/src/lib/constants/frameModes.ts` — keep them in step. `ModeResolver` is a pure function of the schedule, override, time, zone and quiet hours (a rotation's step is worked out from the clock, not stored, so restarts and edits keep it in step); `ModeStore` keeps the schedule and override in their own one-row tables. `DitherFor` ordered-dithers the flat modes (Daily, Countdown, Night, Note) and error-diffuses the photo ones (Ambient, Photo).
 
 `FrameSettingsStore` and `HomeSettingsStore` each keep one row (`id = 1`) in `display.db` (`DB_PATH`) — separate tables, because the frontend saves the frame settings whole on every change. Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once.
 
@@ -783,7 +783,7 @@ The mode ids live in `Records/FrameModes.cs` and `frontend/src/lib/constants/fra
 | `DB_PATH`               | No       | Path to the SQLite file (default: `display.db`) |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8090` in Docker |
 | `RENDERER_URL`          | For preview | The renderer sidecar (`http://renderer:3000` in Compose) |
-| `TZ`                    | No       | Fallback zone for the mode schedule when none is saved in Settings → Home (root `.env`, shared with the renderer); UTC when neither is set |
+| `TZ`                    | No       | Fallback zone for the mode schedule when none is saved in Settings → Home (`infra/.env`, shared with the renderer); UTC when neither is set |
 
 #### Panel render
 
@@ -791,7 +791,7 @@ The mode ids live in `Records/FrameModes.cs` and `frontend/src/lib/constants/fra
 
 ### Renderer sidecar
 
-`renderer/` is a small Node container (not a .NET service — Playwright needs Node and Chromium's system libraries, which the chiseled image lacks) built on the official multi-arch Playwright image. `GET /render?path=/frame?…&width=&height=&dither=ordered|errorDiffusion|none&kernel=&look=screen|paper&tz=&rotate=0|90|180|270` loads the frame from `FRAME_BASE_URL` (`http://caddy` — Caddy's `:80` site serves the frontend and the API routes the page calls), waits for `[data-ready="true"]` (40 s for load and ready together, then `504`; an error page fails at once with `502`), screenshots it (with subpixel text antialiasing off, so glyph edges don't dither into stray inks) and dithers it (`dither.mjs`, see `HARDWARE.md` step 2 for why each method). The browser draws in the request's `tz` (an IANA zone, checked with `Intl` — `400` if unknown; Display sends the saved home zone), else the root `.env`'s `TZ` (UTC when unset or invalid, with an error logged), since the frame's date and clock come from the browser (`timezone.mjs`). One render runs at a time with at most one waiting (`503` beyond that), and a render whose client has disconnected is dropped. Each render has a hard 50 s deadline covering every step (`queue.mjs`): one that runs past it — e.g. stuck in a Chromium call with no timeout of its own — fails with `504`, Chromium is killed and relaunched for the next render, and the queue moves on instead of answering `503` until a restart. An unknown `kernel` is a `400` (epdoptimize would otherwise quietly use Floyd–Steinberg). `rotate` turns the result clockwise, pixel for pixel (`rotate.mjs`), after dithering — Display's panel render uses it for portrait frames; the preview stays upright. It only accepts `/frame` paths and has no Caddy route. Tests: `cd renderer && npm test`.
+`apps/renderer/` is a small Node container (not a .NET service — Playwright needs Node and Chromium's system libraries, which the chiseled image lacks) built on the official multi-arch Playwright image. `GET /render?path=/frame?…&width=&height=&dither=ordered|errorDiffusion|none&kernel=&look=screen|paper&tz=&rotate=0|90|180|270` loads the frame from `FRAME_BASE_URL` (`http://caddy` — Caddy's `:80` site serves the frontend and the API routes the page calls), waits for `[data-ready="true"]` (40 s for load and ready together, then `504`; an error page fails at once with `502`), screenshots it (with subpixel text antialiasing off, so glyph edges don't dither into stray inks) and dithers it (`dither.mjs`, see `HARDWARE.md` step 2 for why each method). The browser draws in the request's `tz` (an IANA zone, checked with `Intl` — `400` if unknown; Display sends the saved home zone), else `infra/.env`'s `TZ` (UTC when unset or invalid, with an error logged), since the frame's date and clock come from the browser (`timezone.mjs`). One render runs at a time with at most one waiting (`503` beyond that), and a render whose client has disconnected is dropped. Each render has a hard 50 s deadline covering every step (`queue.mjs`): one that runs past it — e.g. stuck in a Chromium call with no timeout of its own — fails with `504`, Chromium is killed and relaunched for the next render, and the queue moves on instead of answering `503` until a restart. An unknown `kernel` is a `400` (epdoptimize would otherwise quietly use Floyd–Steinberg). `rotate` turns the result clockwise, pixel for pixel (`rotate.mjs`), after dithering — Display's panel render uses it for portrait frames; the preview stays upright. It only accepts `/frame` paths and has no Caddy route. Tests: `cd apps/renderer && npm test`.
 
 Settings → Frame's preview has a Live / Screen / Paper switch: Live is the `/frame` iframe; Screen and Paper show `/display/preview`, rendered 600 ms after the settings stop changing and only while one of them is selected.
 
@@ -858,7 +858,7 @@ Line/route filtering happens entirely client-side — the backend has no route o
 | `DB_PATH`               | No       | Path to SQLite cache file (default: `trains.db`)                               |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8091` in Docker                                                          |
 
-Stored in `src/Trains/.env`.
+Stored in `apps/services/Trains/.env`.
 
 ### Frontend integration
 
@@ -919,7 +919,7 @@ Each team's games come from three ESPN calls, merged by event id with the latest
 The routes live in a `(hearth)` snippet that two sites import:
 
 - **`:80`** serves plain HTTP on any hostname. `auto_https disable_redirects` stops Caddy from redirecting the HTTPS hostname to HTTPS, so LAN clients like the frame keep working over HTTP.
-- **`{$HEARTH_HOST:localhost}`** serves HTTPS with `tls internal`, using a certificate from Caddy's own local CA. `HEARTH_HOST` comes from the root `.env`. Browsers warn until that CA is trusted. Its root certificate is at `/data/caddy/pki/authorities/local/root.crt` in the `caddy-data` volume.
+- **`{$HEARTH_HOST:localhost}`** serves HTTPS with `tls internal`, using a certificate from Caddy's own local CA. `HEARTH_HOST` comes from `infra/.env`. Browsers warn until that CA is trusted. Its root certificate is at `/data/caddy/pki/authorities/local/root.crt` in the `caddy-data` volume.
 
 The Caddy config is the same in development and production — the only difference is that `frontend:3000` points to the Vite dev server in dev and the Node production server in prod.
 
@@ -929,55 +929,67 @@ The Caddy config is the same in development and production — the only differen
 
 | File                          | Purpose                                                                                                       |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------|
-| `docker-compose.yml`          | Production: multi-stage builds, static frontend bundle                                                       |
-| `docker-compose.override.yml` | Development: auto-merged by Compose; swaps the frontend for the Vite dev server and configures file watching |
+| `infra/docker-compose.yml`          | Production: multi-stage builds, static frontend bundle                                                       |
+| `infra/docker-compose.override.yml` | Development: auto-merged by Compose; swaps the frontend for the Vite dev server and configures file watching |
 
 ### Images
 
-- **Backend:** one shared `src/Dockerfile` builds every service, selected by the `SERVICE` build arg set in each service's `build.args` in `docker-compose.yml`. The SDK stage runs on the build machine's own arch (`--platform=$BUILDPLATFORM`) and cross-publishes for the target architecture only (`-a $TARGETARCH`), so arm64 images build at native speed on amd64 CI onto `mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra`: no shell or package manager, and `-extra` adds the ICU + tzdata that `TimeZoneInfo` needs. The apphost is renamed to `/app/service` so a single exec-form `ENTRYPOINT` works without a shell.
-- **Frontend:** `frontend/Dockerfile` (adapter-node build on `$BUILDPLATFORM` — its output is plain JS — then `npm ci --omit=dev` from the lockfile as the target arch) and `frontend/Dockerfile.dev` (Vite dev server).
+- **Backend:** one shared `apps/services/Dockerfile` builds every service, selected by the `SERVICE` build arg set in each service's `build.args` in `infra/docker-compose.yml`. The SDK stage runs on the build machine's own arch (`--platform=$BUILDPLATFORM`) and cross-publishes for the target architecture only (`-a $TARGETARCH`), so arm64 images build at native speed on amd64 CI onto `mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra`: no shell or package manager, and `-extra` adds the ICU + tzdata that `TimeZoneInfo` needs. The apphost is renamed to `/app/service` so a single exec-form `ENTRYPOINT` works without a shell.
+- **Frontend:** `apps/frontend/Dockerfile` (adapter-node build on `$BUILDPLATFORM` — its output is plain JS — then `npm ci --omit=dev` from the lockfile as the target arch) and `apps/frontend/Dockerfile.dev` (Vite dev server).
 - **Non-root:** backend containers run as the image's `app` user (UID 1654), the frontend as `node`. Each backend image creates `/data` owned by UID 1654, so new named volumes inherit that ownership. Volumes created before the switch to non-root (October 2026) are root-owned and need a one-time fix, or SQLite fails with "unable to open database file". Run this per volume with the stack stopped:
 
   ```bash
   docker run --rm -v hearth_tasks-data:/data alpine chown -R 1654:1654 /data
   ```
 
-- **`.dockerignore`:** `src/.dockerignore` keeps `.env` secrets and local `*.db` files out of build contexts; `frontend/.dockerignore` keeps host `node_modules`/build output out, since `COPY . .` would otherwise merge macOS native binaries over the container's.
+- **`.dockerignore`:** `apps/services/.dockerignore` keeps `.env` secrets and local `*.db` files out of build contexts; `apps/frontend/.dockerignore` keeps host `node_modules`/build output out, since `COPY . .` would otherwise merge macOS native binaries over the container's.
 - **Runtime:** every service has `restart: unless-stopped` and rotated `json-file` logs (3 × 10 MB), via the `x-defaults` anchor. The frontend and Caddy have healthchecks (busybox `wget`), and Caddy waits for the frontend to be healthy. The .NET services have no healthcheck: chiseled images have no probe tool, and starting a .NET probe process per service each interval costs too much on a low-power host. Caddy retries upstreams, and the restart policy covers crashes.
 
 ### Development workflow
 
 ```bash
-docker compose watch
+cd infra && docker compose watch
 ```
 
-`docker-compose.override.yml` swaps the frontend for `frontend/Dockerfile.dev` (Vite dev server). File changes under `frontend/src/` and `frontend/static/` sync into the container via HMR; changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a rebuild. HMR WebSocket goes through Caddy on port 80 via `HMR_CLIENT_PORT=80`.
+`infra/docker-compose.override.yml` swaps the frontend for `apps/frontend/Dockerfile.dev` (Vite dev server). File changes under `apps/frontend/src/` and `apps/frontend/static/` sync into the container via HMR; changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a rebuild. HMR WebSocket goes through Caddy on port 80 via `HMR_CLIENT_PORT=80`.
 
 ### Production build
 
 ```bash
-docker compose -f docker-compose.yml up --build
+docker compose -f infra/docker-compose.yml up --build
 ```
 
-Every built service in `docker-compose.yml` also has an `image:` of `${HEARTH_IMAGE_PREFIX:-hearth}-<service>:${HEARTH_TAG:-latest}`. With no root `.env` that is just the name Compose would pick anyway, so local builds are unchanged.
+Every built service in `infra/docker-compose.yml` also has an `image:` of `${HEARTH_IMAGE_PREFIX:-hearth}-<service>:${HEARTH_TAG:-latest}`. With no `infra/.env` that is just the name Compose would pick anyway, so local builds are unchanged.
 
 ### Deploying to a host
 
 Deployed hosts never build: they pull images that CI publishes.
 
 1. **CI publishes.** The `publish-images` job in `.github/workflows/ci.yml` runs on pushes to `main` once the backend and frontend jobs pass. It builds every service for `linux/amd64` and `linux/arm64` and pushes `ghcr.io/<owner>/hearth-<service>` tagged `latest` and `sha-<short>`. GHCR packages start out private.
-2. **The host pulls.** Use a 64-bit OS, since only amd64 and arm64 images are published. Install Docker and add your user to the `docker` group (`sudo usermod -aG docker <user>`). Clone the repo as that user (to `/opt/hearth`, or adjust the path in `deploy/hearth-update.service`) and set `User=` in that unit to the same user, copy `.env.example` to `.env` and fill it in, and copy each `src/<Service>/.env` over by hand. Secrets never enter an image (`.dockerignore` excludes `.env`) or git. If the repo or packages are private, run `docker login ghcr.io` once as that user with a personal access token that has `read:packages`, and give `git` a read-only deploy key.
-3. **It keeps itself current.** `deploy/update.sh` runs `git pull --ff-only`, then `docker compose -f docker-compose.yml pull`, then `up -d --no-build --remove-orphans`, and prunes dangling images. Compose only recreates containers whose image or config changed. Caddy is restarted only when the pull changed the `Caddyfile`, because `up` doesn't watch bind mounts. Install the timer to run it every 5 minutes:
+2. **The host pulls.** Use a 64-bit OS, since only amd64 and arm64 images are published. Install Docker and add your user to the `docker` group (`sudo usermod -aG docker <user>`). Clone the repo as that user (to `/opt/hearth`, or adjust the path in `infra/deploy/hearth-update.service`) and set `User=` in that unit to the same user, copy `infra/.env.example` to `infra/.env` and fill it in, and copy each `apps/services/<Service>/.env` over by hand. Secrets never enter an image (`.dockerignore` excludes `.env`) or git. If the repo or packages are private, run `docker login ghcr.io` once as that user with a personal access token that has `read:packages`, and give `git` a read-only deploy key.
+3. **It keeps itself current.** `infra/deploy/update.sh` runs `git pull --ff-only`, then, from `infra/`, `docker compose -f docker-compose.yml pull`, then `up -d --no-build --remove-orphans`, and prunes dangling images. Compose only recreates containers whose image or config changed. Caddy is restarted only when the pull changed the `infra/Caddyfile`, because `up` doesn't watch bind mounts. Install the timer to run it every 5 minutes:
 
    ```bash
-   sudo cp deploy/hearth-update.service deploy/hearth-update.timer /etc/systemd/system/
+   sudo cp infra/deploy/hearth-update.service infra/deploy/hearth-update.timer /etc/systemd/system/
    sudo systemctl enable --now hearth-update.timer
    ```
 
-   To roll back, set `HEARTH_TAG=sha-<short>` in `.env` and run `deploy/update.sh`.
-4. **Optionally, turn on the logs.** Add `COMPOSE_PROFILES=logs` to `.env`, then run `deploy/dozzle-user.sh <name>` in the checkout. It prompts for a password, writes `dozzle/users.yml` and starts or restarts Dozzle; run it again to change the login. Settings → Diagnostics links to `/logs`. Without the profile, the script saves the login for later and leaves Dozzle off.
+   To roll back, set `HEARTH_TAG=sha-<short>` in `infra/.env` and run `infra/deploy/update.sh`.
+4. **Optionally, turn on the logs.** Add `COMPOSE_PROFILES=logs` to `infra/.env`, then run `infra/deploy/dozzle-user.sh <name>` in the checkout. It prompts for a password, writes `infra/dozzle/users.yml` and starts or restarts Dozzle; run it again to change the login. Settings → Diagnostics links to `/logs`. Without the profile, the script saves the login for later and leaves Dozzle off.
 
-`FRONTEND_URL` (where Spotify and Calendar redirect after OAuth) is read from the root `.env` and defaults to `http://localhost`. On a host, also update the redirect URIs in those services' `.env` files and register each one with its provider:
+**Moving a host set up before the `apps/` + `infra/` layout.** Stop the timer (`sudo systemctl disable --now hearth-update.timer`) *before* the change reaches `main`. Otherwise the old `update.sh` pulls the new layout on its own, then fails: its compose file and the timer's `ExecStart` path are gone, git doesn't move the gitignored secrets, and Caddy's `Caddyfile` bind-mount source has moved, so a restart before the migration below leaves Caddy down. The running containers are otherwise untouched. `infra/docker-compose.yml` pins the project name to `hearth`, the name a checkout in a `hearth` folder already had, so its volumes carry over; if the checkout's folder has another name, add `COMPOSE_PROJECT_NAME=<that name, lowercased>` to `infra/.env` first. Once, in the checkout:
+
+```bash
+git pull --ff-only
+mv .env infra/.env
+for f in src/*/.env; do mv "$f" "apps/services/${f#src/}"; done
+[ -d dozzle ] && mv dozzle/* infra/dozzle/  # Dozzle's login and saved settings, if logs are on
+sudo sed -i 's#/deploy/update\.sh#/infra/deploy/update.sh#' /etc/systemd/system/hearth-update.service
+sudo systemctl daemon-reload && sudo systemctl enable --now hearth-update.timer
+infra/deploy/update.sh
+```
+
+`FRONTEND_URL` (where Spotify and Calendar redirect after OAuth) is read from `infra/.env` and defaults to `http://localhost`. On a host, also update the redirect URIs in those services' `.env` files and register each one with its provider:
 
 - **Spotify** accepts `https://<HEARTH_HOST>/spotify/callback`, served by Caddy's HTTPS site.
 - **Google** rejects any host without a public top-level domain, so `.local` fails even over HTTPS. Without a real domain, set `GOOGLE_REDIRECT_URI=http://localhost:8087/calendar/google/callback` on the host and register that URI. Then sign in once from a laptop with a tunnel open: `ssh -N -L 8087:localhost:80 <user>@<host>`, then open `http://localhost:8087/calendar/google/auth`. The refresh token is stored encrypted in the calendar volume, so the tunnel isn't needed again unless you disconnect.

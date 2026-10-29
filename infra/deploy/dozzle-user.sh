@@ -1,8 +1,8 @@
 #!/bin/sh
-# Set the login for /logs (Dozzle): writes dozzle/users.yml with a bcrypt hash of the
-# password and restarts Dozzle. Run on the host, from anywhere: deploy/dozzle-user.sh <name>
-# Running it again replaces the login. Dozzle only runs with COMPOSE_PROFILES=logs in the
-# root .env; without it the login is saved for when it's turned on.
+# Set the login for /logs (Dozzle): writes infra/dozzle/users.yml with a bcrypt hash of the
+# password and restarts Dozzle. Run on the host, from anywhere: infra/deploy/dozzle-user.sh <name>
+# Running it again replaces the login. Dozzle only runs with COMPOSE_PROFILES=logs in
+# infra/.env; without it the login is saved for when it's turned on.
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -29,5 +29,5 @@ if compose config --services | grep -qx dozzle; then
     compose restart dozzle
     echo "Saved. Sign in at /logs as $1." >&2
 else
-    echo "Saved. Logs are off: add COMPOSE_PROFILES=logs to .env, then run deploy/update.sh." >&2
+    echo "Saved. Logs are off: add COMPOSE_PROFILES=logs to infra/.env, then run infra/deploy/update.sh." >&2
 fi

@@ -1,6 +1,6 @@
 # Frontend conventions (SvelteKit / Svelte 5)
 
-Loaded when working under `frontend/`. Project-wide guidance is in the root [`CLAUDE.md`](../CLAUDE.md); new widgets go through the `hearth-widget` skill.
+Loaded when working under `apps/frontend/`. Project-wide guidance is in the root [`CLAUDE.md`](../../CLAUDE.md); new widgets go through the `hearth-widget` skill.
 
 ## Components and data
 

@@ -9,6 +9,6 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnPaste": true,
         "editor.formatOnType": false,
-        "dotnet.defaultSolution": "Heath.slnx",
+        "dotnet.defaultSolution": "Hearth.slnx",
     },
 }

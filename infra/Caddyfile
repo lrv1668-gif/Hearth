@@ -48,7 +48,7 @@
     handle /display* {
         reverse_proxy display:8090
     }
-    # Dozzle's live container logs, behind its own login (dozzle/users.yml)
+    # Dozzle's live container logs, behind its own login (infra/dozzle/users.yml)
     handle /logs* {
         reverse_proxy dozzle:8080
     }
@@ -63,7 +63,7 @@
     import hearth
 }
 
-# HTTPS for the host's own name (HEARTH_HOST in the root .env; localhost when
+# HTTPS for the host's own name (HEARTH_HOST in infra/.env; localhost when
 # unset), signed by Caddy's local CA. OAuth providers like Spotify require an
 # https redirect URI for anything but loopback.
 {$HEARTH_HOST:localhost} {

@@ -1,11 +1,11 @@
 ---
 name: write-unit-tests
-description: Write xUnit tests for a Hearth .NET backend service (src/<Service>). Use this skill when the user asks to add tests, write a test suite, create test cases, improve test coverage, or generate unit or endpoint tests for a backend service — even if they just say "add tests for the Weather service" without mentioning the skill by name. Not for frontend (vitest) or renderer (node --test) tests.
+description: Write xUnit tests for a Hearth .NET backend service (apps/services/<Service>). Use this skill when the user asks to add tests, write a test suite, create test cases, improve test coverage, or generate unit or endpoint tests for a backend service — even if they just say "add tests for the Weather service" without mentioning the skill by name. Not for frontend (vitest) or renderer (node --test) tests.
 ---
 
 # Hearth Unit Test Writer
 
-Creates (or extends) an xUnit test project for one Hearth backend service. (Frontend tests are vitest `*.test.ts` files next to the code they test, run with `cd frontend && npm run test`; renderer tests are `renderer/*.test.mjs`, run with `cd renderer && npm test`.)
+Creates (or extends) an xUnit test project for one Hearth backend service. (Frontend tests are vitest `*.test.ts` files next to the code they test, run with `cd apps/frontend && npm run test`; renderer tests are `apps/renderer/*.test.mjs`, run with `cd apps/renderer && npm test`.)
 
 ## The Files
 
@@ -32,7 +32,7 @@ Service-specific one-off helpers go in that test project's `Helpers/` folder. If
 
 Before writing any code, read the service source to understand its dependencies:
 
-1. Read `src/<Service>/Program.cs` and `ServiceCollectionExtensions.cs` — what's registered?
+1. Read `apps/services/<Service>/Program.cs` and `ServiceCollectionExtensions.cs` — what's registered?
 2. Read the fetcher or store file — how many external dependencies? (`HttpClient`? `IDatabase`?)
 3. Identify testable units: pure functions, mapping logic, or methods with fakeable deps
 4. Read an existing test project for a similar service (e.g. `tests/Quote.Tests/`, `tests/Tasks.Tests/`) and match its style
@@ -65,7 +65,7 @@ Before writing any code, read the service source to understand its dependencies:
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\<Service>\<Service>.csproj" />
+    <ProjectReference Include="..\..\apps\services\<Service>\<Service>.csproj" />
     <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 </Project>

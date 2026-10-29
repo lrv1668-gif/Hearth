@@ -1,6 +1,6 @@
 ---
 name: hearth-service
-description: Add a new .NET backend service to Hearth (src/<Service>) and wire it through Docker Compose, Caddy, the Vite dev proxy, CI image publishing, health checks and the docs. Use this skill whenever the user asks for a new backend service, API, or data source that no existing service covers — including when a new widget needs data no service provides yet — even if they don't mention the skill by name.
+description: Add a new .NET backend service to Hearth (apps/services/<Service>) and wire it through Docker Compose, Caddy, the Vite dev proxy, CI image publishing, health checks and the docs. Use this skill whenever the user asks for a new backend service, API, or data source that no existing service covers — including when a new widget needs data no service provides yet — even if they don't mention the skill by name.
 ---
 
 # Hearth Service Creator
@@ -12,16 +12,16 @@ Throughout: `<Service>` is the PascalCase project name (`Birds`), `<prefix>` the
 ## Step 0: Explore first
 
 1. Pick the closest existing service and read it end to end:
-   - `src/Quote/` — upstream API + FusionCache, no database, no secrets
-   - `src/Birds/` — upstream API with an API key, SQLite-backed L2 cache, home location
-   - `src/Tasks/` — database-backed CRUD store with a migration
-2. Pick `<port>`: the next unused one after the services' `ASPNETCORE_HTTP_PORTS` in `docker-compose.yml` (8081–8091 today). The localhost mappings in `docker-compose.override.yml` also use 8092/8093 (renderer, Dozzle) — skip those.
+   - `apps/services/Quote/` — upstream API + FusionCache, no database, no secrets
+   - `apps/services/Birds/` — upstream API with an API key, SQLite-backed L2 cache, home location
+   - `apps/services/Tasks/` — database-backed CRUD store with a migration
+2. Pick `<port>`: the next unused one after the services' `ASPNETCORE_HTTP_PORTS` in `infra/docker-compose.yml` (8081–8091 today). The localhost mappings in `infra/docker-compose.override.yml` also use 8092/8093 (renderer, Dozzle) — skip those.
 3. Confirm the domain logic belongs in the backend (third-party calls, caching, math) — it does by default; the frontend stays a thin renderer.
 
 ## Step 1: The project
 
 ```
-src/<Service>/
+apps/services/<Service>/
   <Service>.csproj
   Program.cs
   Extensions/ServiceCollectionExtensions.cs
@@ -30,7 +30,7 @@ src/<Service>/
   .env.example          # only if it needs env vars
 ```
 
-**`<Service>.csproj`** — `TargetFramework`/`Nullable`/`ImplicitUsings` and every package version come from `src/Directory.Build.props` / `src/Directory.Packages.props`; don't redeclare them or add `Version=`:
+**`<Service>.csproj`** — `TargetFramework`/`Nullable`/`ImplicitUsings` and every package version come from `apps/services/Directory.Build.props` / `apps/services/Directory.Packages.props`; don't redeclare them or add `Version=`:
 ```xml
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
@@ -52,7 +52,7 @@ src/<Service>/
   </ItemGroup>
 </Project>
 ```
-Never add `Microsoft.Data.Sqlite` directly — SQLite stays inside `src/Data`. A new package is a version-less `<PackageReference>` here plus a `<PackageVersion>` in `src/Directory.Packages.props`.
+Never add `Microsoft.Data.Sqlite` directly — SQLite stays inside `apps/services/Data`. A new package is a version-less `<PackageReference>` here plus a `<PackageVersion>` in `apps/services/Directory.Packages.props`.
 
 **`Program.cs`** — the health probe must be the first line:
 ```csharp
@@ -104,8 +104,8 @@ public static void InitializeWebAppFor<Service>(this WebApplication app)
 
 ### Backend rules
 
-- **Stores** take `IDatabase` via `[FromKeyedServices("<prefix>")]` — never the concrete `Database` or SQLite types. Run the store's `Migrate()` at startup (see `src/Tasks/Extensions/WebApplicationExtensions.cs`).
-- **Upstream caching:** `IFusionCache.GetOrSetAsync` with `IsFailSafeEnabled = true` — no hand-written cache tables or staleness checks. Key caches by the coordinates when location-dependent. Return 502/503 only when the call throws (nothing cached at all). See `src/Birds/Extensions/WebApplicationExtensions.cs`.
+- **Stores** take `IDatabase` via `[FromKeyedServices("<prefix>")]` — never the concrete `Database` or SQLite types. Run the store's `Migrate()` at startup (see `apps/services/Tasks/Extensions/WebApplicationExtensions.cs`).
+- **Upstream caching:** `IFusionCache.GetOrSetAsync` with `IsFailSafeEnabled = true` — no hand-written cache tables or staleness checks. Key caches by the coordinates when location-dependent. Return 502/503 only when the call throws (nothing cached at all). See `apps/services/Birds/Extensions/WebApplicationExtensions.cs`.
 - **Required env vars:** `config.RequireOrFail(app.Logger, …, "MY_API_KEY")` in the endpoint — it logs a `LogError` and returns the 503 when one is missing.
 - **Location/time zone:** read through `HomeLocationClient`, never `LATITUDE`/`LONGITUDE`/`TZ` directly (it falls back to them).
 - **Numbers and URLs:** `config.GetValue<double>(…)` (invariant culture), never `double.Parse(config[…])`; build URLs with `string.Create(CultureInfo.InvariantCulture, …)`.
@@ -113,22 +113,22 @@ public static void InitializeWebAppFor<Service>(this WebApplication app)
 
 ## Step 2: Environment variables (if any)
 
-1. `src/<Service>/.env.example` — every var, commented, with where to get keys. The real `src/<Service>/.env` is gitignored; create an empty one so Compose starts.
-2. README → Configuration: a `**<Service>** (\`src/<Service>/.env\`)` block.
+1. `apps/services/<Service>/.env.example` — every var, commented, with where to get keys. The real `apps/services/<Service>/.env` is gitignored; create an empty one so Compose starts.
+2. README → Configuration: a `**<Service>** (\`apps/services/<Service>/.env\`)` block.
 
 ## Step 3: Wire it up
 
 | File | Add |
 |------|-----|
-| `Hearth.slnx` | `<Project Path="src/<Service>/<Service>.csproj" />` in the `/src/` folder |
-| `docker-compose.yml` | A service block (below), plus `<prefix>-data:` under `volumes:` if it has a database |
-| `docker-compose.override.yml` | `<prefix>: ports: ["127.0.0.1:<port>:<port>"]`, and `<PREFIX>_URL=http://<prefix>:<port>` under `frontend.environment` |
-| `Caddyfile` | `handle /<prefix>* { reverse_proxy <prefix>:<port> }` alongside the others |
-| `frontend/vite.config.ts` | `'/<prefix>': process.env.<PREFIX>_URL ?? 'http://localhost:<port>'` in the dev proxy |
-| `frontend/src/lib/constants/services.ts` | `{ id: '<prefix>', label: '…' }` so Settings → Diagnostics lists it |
+| `Hearth.slnx` | `<Project Path="apps/services/<Service>/<Service>.csproj" />` in the `/services/` folder |
+| `infra/docker-compose.yml` | A service block (below), plus `<prefix>-data:` under `volumes:` if it has a database |
+| `infra/docker-compose.override.yml` | `<prefix>: ports: ["127.0.0.1:<port>:<port>"]`, and `<PREFIX>_URL=http://<prefix>:<port>` under `frontend.environment` |
+| `infra/Caddyfile` | `handle /<prefix>* { reverse_proxy <prefix>:<port> }` alongside the others |
+| `apps/frontend/vite.config.ts` | `'/<prefix>': process.env.<PREFIX>_URL ?? 'http://localhost:<port>'` in the dev proxy |
+| `apps/frontend/src/lib/constants/services.ts` | `{ id: '<prefix>', label: '…' }` so Settings → Diagnostics lists it |
 | `.github/workflows/ci.yml` | `- { service: <prefix>, project: <Service> }` in the `publish-images` matrix |
 
-There are no per-service Dockerfiles — `src/Dockerfile` builds every service from the `SERVICE` build arg.
+There are no per-service Dockerfiles — `apps/services/Dockerfile` builds every service from the `SERVICE` build arg.
 
 ```yaml
     <prefix>:
@@ -153,7 +153,7 @@ There are no per-service Dockerfiles — `src/Dockerfile` builds every service f
 
 ## Step 4: Frontend access
 
-Add the response interfaces and an `api.<prefix>` namespace on `ApiClient` in `frontend/src/lib/api.ts` (relative paths, the private `get<T>`/`post<T>` helpers). The widget, store and polling are the `hearth-widget` skill's job.
+Add the response interfaces and an `api.<prefix>` namespace on `ApiClient` in `apps/frontend/src/lib/api.ts` (relative paths, the private `get<T>`/`post<T>` helpers). The widget, store and polling are the `hearth-widget` skill's job.
 
 ## Step 5: Tests
 
@@ -162,7 +162,7 @@ Use the `write-unit-tests` skill: `tests/<Service>.Tests/`, added to `Hearth.sln
 ## Step 6: Docs
 
 - `docs/SOFTWARE-DESIGN.md` — a row in the Backend Services table (service, port, status, responsibility) and a `## <Service> Service` section (endpoints, env vars, caching, frontend integration), matching the others
-- `CLAUDE.md` — the `src/` entry in Directory Structure
+- `CLAUDE.md` — the `apps/services/` entry in Directory Structure
 - `README.md` — the service count and list in the "How it works" diagram, and the Configuration block
 - `site/` — the host's service list (the diagram in `site/index.html`) and the status table in `site/build.html`
 - `docs/PRODUCT.md` — if it changes product scope
@@ -175,8 +175,8 @@ Use the `write-unit-tests` skill: `tests/<Service>.Tests/`, added to `Hearth.sln
 - [ ] `AddHearthWebDefaults()`, health checks, `MapHearthHealth("<prefix>")`
 - [ ] Stores use `[FromKeyedServices]` `IDatabase`; upstream calls cached with fail-safe FusionCache
 - [ ] Missing env vars → `RequireOrFail` (logs `LogError`, returns 503); `.env.example` + README Configuration
-- [ ] `Hearth.slnx`, `docker-compose.yml` (+ volume), override (port + frontend env), `Caddyfile`, `vite.config.ts`, `services.ts`, CI `publish-images` matrix
+- [ ] `Hearth.slnx`, `infra/docker-compose.yml` (+ volume), override (port + frontend env), `infra/Caddyfile`, `vite.config.ts`, `services.ts`, CI `publish-images` matrix
 - [ ] `api.<prefix>` namespace in `api.ts`
 - [ ] Test project added; `dotnet build Hearth.slnx && dotnet test Hearth.slnx` pass
 - [ ] `docs/SOFTWARE-DESIGN.md`, `CLAUDE.md`, `README.md`, `site/` updated
-- [ ] `docker compose up --build` → `curl localhost:<port>/<prefix>/health` is healthy and Settings → Diagnostics lists it
+- [ ] `cd infra && docker compose up --build` → `curl localhost:<port>/<prefix>/health` is healthy and Settings → Diagnostics lists it

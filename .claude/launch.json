@@ -8,7 +8,7 @@
         "run",
         "dev",
         "--prefix",
-        "frontend"
+        "apps/frontend"
       ],
       "port": 5173
     },

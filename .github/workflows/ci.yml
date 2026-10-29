@@ -35,16 +35,16 @@ jobs:
               - .github/workflows/ci.yml
             backend:
               - *workflow
-              - src/**
+              - apps/services/**
               - tests/**
               - Hearth.slnx
               - global.json
             frontend:
               - *workflow
-              - frontend/**
+              - apps/frontend/**
             renderer:
               - *workflow
-              - renderer/**
+              - apps/renderer/**
 
   backend-tests:
     name: Backend build & test
@@ -87,7 +87,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
-        working-directory: frontend
+        working-directory: apps/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -97,7 +97,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install
         run: npm ci
@@ -126,7 +126,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: renderer
+        working-directory: apps/renderer
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -136,7 +136,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: renderer/package-lock.json
+          cache-dependency-path: apps/renderer/package-lock.json
 
       # Playwright's browsers come with the runtime image; the tests only dither
       - name: Install
@@ -163,8 +163,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # project = the src/<Project> folder passed to the shared backend Dockerfile;
-        # context = the folder of a standalone image (default: frontend)
+        # project = the apps/services/<Project> folder passed to the shared backend Dockerfile;
+        # context = the folder of a standalone image (default: apps/frontend)
         include:
           - { service: tasks, project: Tasks }
           - { service: spotify, project: Spotify }
@@ -179,7 +179,7 @@ jobs:
           - { service: sports, project: Sports }
           - { service: display, project: Display }
           - { service: frontend }
-          - { service: renderer, context: renderer }
+          - { service: renderer, context: apps/renderer }
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -211,7 +211,7 @@ jobs:
       - name: Build & push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ${{ matrix.project && 'src' || matrix.context || 'frontend' }}
+          context: ${{ matrix.project && 'apps/services' || matrix.context || 'apps/frontend' }}
           build-args: |
             SERVICE=${{ matrix.project }}
           platforms: linux/amd64,linux/arm64

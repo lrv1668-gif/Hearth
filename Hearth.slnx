@@ -1,22 +1,22 @@
 <Solution>
-  <Folder Name="/src/">
-    <Project Path="src/Data.Abstractions/Data.Abstractions.csproj" />
-    <Project Path="src/Data/Data.csproj" />
-    <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" />
+  <Folder Name="/services/">
+    <Project Path="apps/services/Data.Abstractions/Data.Abstractions.csproj" />
+    <Project Path="apps/services/Data/Data.csproj" />
+    <Project Path="apps/services/ServiceDefaults/ServiceDefaults.csproj" />
 
-    <Project Path="src/Tasks/Tasks.csproj" />
-    <Project Path="src/Photos/Photos.csproj" />
-    <Project Path="src/Spotify/Spotify.csproj" />
-    <Project Path="src/Weather/Weather.csproj" />
-    <Project Path="src/Rss/Rss.csproj" />
-    <Project Path="src/Calendar/Calendar.csproj" />
+    <Project Path="apps/services/Tasks/Tasks.csproj" />
+    <Project Path="apps/services/Photos/Photos.csproj" />
+    <Project Path="apps/services/Spotify/Spotify.csproj" />
+    <Project Path="apps/services/Weather/Weather.csproj" />
+    <Project Path="apps/services/Rss/Rss.csproj" />
+    <Project Path="apps/services/Calendar/Calendar.csproj" />
 
-    <Project Path="src/Quote/Quote.csproj" />
-    <Project Path="src/Birds/Birds.csproj" />
-    <Project Path="src/Almanac/Almanac.csproj" />
-    <Project Path="src/Trains/Trains.csproj" />
-    <Project Path="src/Sports/Sports.csproj" />
-    <Project Path="src/Display/Display.csproj" />
+    <Project Path="apps/services/Quote/Quote.csproj" />
+    <Project Path="apps/services/Birds/Birds.csproj" />
+    <Project Path="apps/services/Almanac/Almanac.csproj" />
+    <Project Path="apps/services/Trains/Trains.csproj" />
+    <Project Path="apps/services/Sports/Sports.csproj" />
+    <Project Path="apps/services/Display/Display.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Hearth.TestUtilities/Hearth.TestUtilities.csproj" />
