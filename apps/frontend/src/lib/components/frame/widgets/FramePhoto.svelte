@@ -27,7 +27,8 @@
 @component
 The e-paper frame's Photo widget: Daily's photo of the day, drawn from Ambient's photo
 choice and held by the Display service for the household's day, so it stays put between
-Daily's 15-minute re-renders and matches the panel. Ordered-dithered with the rest of Daily.
+Daily's 15-minute re-renders and matches the panel. `data-dither="diffuse"` has the renderer
+error-diffuse the photo inside Daily's ordered-dithered page.
 -->
 {#if framePhotoStore.error}
     <FrameEmpty text="Photos unavailable" {small} />
@@ -39,6 +40,7 @@ Daily's 15-minute re-renders and matches the panel. Ordered-dithered with the re
         <img
             src={photo.url}
             alt={photo.description ?? ''}
+            data-dither="diffuse"
             class="w-full border-3 border-(--border) object-cover {size ? 'min-h-0 flex-1' : ''}"
             style={size ? undefined : `height: ${PHOTO_LINES}lh`}
         />

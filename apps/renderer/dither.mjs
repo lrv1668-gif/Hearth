@@ -1,6 +1,8 @@
 // Reduces a frame screenshot to the Spectra 6 panel's six inks (HARDWARE.md → Display
-// service): ordered dithering for Daily, error diffusion for Ambient. B&W mode
-// (palette "bw") greys the screenshot and keeps to black and white alone.
+// service): ordered dithering for Daily (with error diffusion inside its photos), error
+// diffusion for Ambient. B&W mode (palette "bw") greys the screenshot and keeps to black
+// and white alone.
+import { createCanvas } from 'canvas';
 import { ditherImage, replaceColors } from 'epdoptimize';
 
 // The measured inks, white-balanced so paper is #fff — what the panel is sent and what
@@ -58,21 +60,51 @@ const BAYER = [
  * Dither `source` into `dest` (canvases of the same size).
  * `method`: "ordered" (Daily) or "errorDiffusion" (Ambient, any epdoptimize kernel).
  * `palette`: "color" (the six inks) or "bw" (black and white — grey `source` first).
+ * `photos`: boxes ({ x, y, width, height }) that "ordered" error-diffuses instead — the
+ * frame's photos and album art, where Bayer crosshatching looks mechanical.
  */
-export async function dither(source, dest, { method, kernel = 'floydSteinberg', palette = 'color' }) {
+export async function dither(source, dest, { method, kernel = 'floydSteinberg', palette = 'color', photos = [] }) {
     const inks = INK_SETS[palette];
     if (method === 'errorDiffusion') {
-        await ditherImage(source, dest, {
-            palette: inks.palette,
-            ditheringType: 'errorDiffusion',
-            errorDiffusionMatrix: kernel,
-            colorMatching: 'rgb',
-        });
+        await diffuse(source, dest, inks, kernel);
         return;
     }
     const image = source.getContext('2d').getImageData(0, 0, source.width, source.height);
     orderedPairs(image, inks);
-    dest.getContext('2d').putImageData(image, 0, 0);
+    const ctx = dest.getContext('2d');
+    ctx.putImageData(image, 0, 0);
+    // Each photo on its own, so no error carries in from the page around it
+    for (const { x, y, width, height } of photos) {
+        const crop = createCanvas(width, height);
+        crop.getContext('2d').drawImage(source, x, y, width, height, 0, 0, width, height);
+        const out = createCanvas(width, height);
+        await diffuse(crop, out, inks, kernel);
+        ctx.drawImage(out, x, y);
+    }
+}
+
+function diffuse(source, dest, inks, kernel) {
+    return ditherImage(source, dest, {
+        palette: inks.palette,
+        ditheringType: 'errorDiffusion',
+        errorDiffusionMatrix: kernel,
+        colorMatching: 'rgb',
+    });
+}
+
+/**
+ * The whole pixels of each box inside a `width`×`height` frame: edges rounded inwards, so
+ * an antialiased border pixel stays with the page's ordered dithering, and boxes off the
+ * frame or under a pixel across dropped.
+ */
+export function photoBoxes(rects, width, height) {
+    return rects.flatMap(({ x, y, width: w, height: h }) => {
+        const left = Math.max(0, Math.ceil(x));
+        const top = Math.max(0, Math.ceil(y));
+        const right = Math.min(width, Math.floor(x + w));
+        const bottom = Math.min(height, Math.floor(y + h));
+        return right > left && bottom > top ? [{ x: left, y: top, width: right - left, height: bottom - top }] : [];
+    });
 }
 
 /** Grey `canvas` in place by luma (Rec. 601) — B&W mode, before dithering. */

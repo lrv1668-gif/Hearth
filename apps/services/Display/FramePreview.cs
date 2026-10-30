@@ -39,10 +39,6 @@ public static class FramePreview
     }
 
     /// <summary>
-    /// Ordered for the flat-UI modes, Daily, Countdown, Night and Note (tints become an even texture); error diffusion for
-    /// the photo modes, Ambient (also /frame's fallback) and Photo.
-    /// </summary>
-    /// <summary>
     /// The URL's <c>dither=</c> (ordered, errorDiffusion or none — the renderer rejects
     /// anything else), else the mode's method. <c>none</c> leaves the raw screenshot, e.g.
     /// for comparing inky's own dithering against Hearth's.
@@ -50,6 +46,11 @@ public static class FramePreview
     public static string DitherFor(IQueryCollection query) =>
         query["dither"].FirstOrDefault() is { Length: > 0 } method ? method : DitherFor(query["mode"]);
 
+    /// <summary>
+    /// Ordered for the flat-UI modes, Daily, Countdown, Night and Note (tints become an even texture; the renderer still
+    /// error-diffuses Daily's photo and album art); error diffusion for the photo modes, Ambient (also /frame's fallback)
+    /// and Photo.
+    /// </summary>
     public static string DitherFor(string? mode) =>
         mode is FrameModes.Daily or FrameModes.Countdown or FrameModes.Night or FrameModes.Note
             ? "ordered"
