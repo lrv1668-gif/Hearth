@@ -1,5 +1,6 @@
 using Spotify.Records;
 using SpotifyAPI.Web;
+using ServiceDefaults;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace Spotify;
@@ -25,6 +26,8 @@ public sealed class NowPlayingService(SpotifyClientService clients, IFusionCache
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromSeconds(30),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(5),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     public async Task<NowPlayingResult> GetAsync(CancellationToken ct = default)

@@ -18,7 +18,7 @@ Loaded when working under `apps/services/`. Project-wide guidance is in the root
 ## Behaviour
 
 - JSON is snake_case (`JsonNamingPolicy.SnakeCaseLower`, set by `AddHearthWebDefaults()`) — keep record property names PascalCase in C#.
-- Cache third-party API responses with `IFusionCache.GetOrSetAsync` (registered by `AddHearthCache()`, plus `AddSqliteDistributedCache(key)` for a restart-surviving L2) with fail-safe on — don't hand-write cache tables or staleness checks. Return 502 only when the call throws (nothing cached at all).
+- Cache third-party API responses with `IFusionCache.GetOrSetAsync` (registered by `AddHearthCache()`, plus `AddSqliteDistributedCache(key)` for a restart-surviving L2) with fail-safe on and `FactorySoftTimeout = HearthCache.SoftTimeout`, `EagerRefreshThreshold = HearthCache.EagerRefresh` on each entry's options — don't hand-write cache tables or staleness checks. Return 502 only when the call throws (nothing cached at all).
 - Required environment variables: check them in the endpoint with `config.RequireOrFail(...)`, which logs a `LogError` before returning the 503, and register `.AddRequiredConfig(...)` health checks. Env vars live in `apps/services/<Service>/.env` (gitignored) with a `.env.example` beside it, loaded by `env_file` in `infra/docker-compose.yml`.
 - Read the household's location/time zone through `HomeLocationClient` (`AddHearthHomeLocation()`), never `LATITUDE`/`LONGITUDE`/`TZ` directly — it falls back to them; key upstream caches by the coordinates.
 - Read numeric config with `config.GetValue<double>(...)` (invariant culture), never `double.Parse(config[...])`; format URLs with `string.Create(CultureInfo.InvariantCulture, ...)`.
