@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
 import { DEFAULT_TRAIN_STOPS, type TrainStop } from '$lib/constants/trains';
 import { LEGACY_FRAME_SETTINGS_KEY } from '$lib/stores/FrameSettingsStore.svelte.ts';

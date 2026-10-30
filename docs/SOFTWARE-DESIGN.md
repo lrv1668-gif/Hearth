@@ -29,7 +29,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 
 ## Frontend
 
-### SvelteKit 2 + Svelte 5 + Tailwind CSS v4 + Lucide Svelte
+### SvelteKit 3 + Svelte 5 + Tailwind CSS v4 + Lucide Svelte
 
 - Lightweight runtime, well-suited for an always-on ambient display
 - Svelte 5 runes syntax (`$state`, `$effect`, `$props`, `$derived`) for fine-grained reactivity
@@ -962,7 +962,7 @@ The Caddy config is the same in development and production — the only differen
 cd infra && docker compose watch
 ```
 
-`infra/docker-compose.override.yml` swaps the frontend for `apps/frontend/Dockerfile.dev` (Vite dev server). File changes under `apps/frontend/src/` and `apps/frontend/static/` sync into the container via HMR; changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a rebuild. HMR WebSocket goes through Caddy on port 80 via `HMR_CLIENT_PORT=80`.
+`infra/docker-compose.override.yml` swaps the frontend for `apps/frontend/Dockerfile.dev` (Vite dev server). File changes under `apps/frontend/src/` and `apps/frontend/static/` sync into the container via HMR; changes to `package.json` or `vite.config.ts` (which also holds the SvelteKit config) trigger a rebuild. HMR WebSocket goes through Caddy on port 80 via `HMR_CLIENT_PORT=80`.
 
 ### Production build
 

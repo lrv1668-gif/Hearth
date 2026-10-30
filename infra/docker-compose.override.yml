@@ -85,6 +85,4 @@ services:
         - action: rebuild
           path: ../apps/frontend/package.json
         - action: rebuild
-          path: ../apps/frontend/svelte.config.js
-        - action: rebuild
           path: ../apps/frontend/vite.config.ts
