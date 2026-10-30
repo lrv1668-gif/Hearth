@@ -1,5 +1,4 @@
 using Tasks;
-using Xunit;
 
 namespace Tasks.Tests;
 
@@ -37,11 +36,10 @@ public sealed class RecurrenceTests
     [Fact]
     public void ComputeNextDue_WeekWithDays_ReturnsNextMatchingWeekday()
     {
-        var from = new DateTime(2026, 6, 1);
-        var result = TaskStore.ComputeNextDue(from, "week", 1, "Mon,Wed,Fri");
+        // 2026-06-01 is a Monday
+        var result = TaskStore.ComputeNextDue(new DateTime(2026, 6, 1), "week", 1, "Mon,Wed,Fri");
 
-        Assert.Contains(result.DayOfWeek, new[] { DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday });
-        Assert.True(result > from);
+        Assert.Equal(new DateTime(2026, 6, 3), result);
     }
 
     [Fact]
@@ -54,21 +52,20 @@ public sealed class RecurrenceTests
     }
 
     [Fact]
-    public void NextMatchingWeekday_ReturnsDateWithinFollowingWeek()
+    public void NextMatchingWeekday_LaterThisWeek_ReturnsThatDay()
     {
-        var from = new DateTime(2026, 6, 1);
-        var result = TaskStore.NextMatchingWeekday(from, "Sun");
+        Assert.Equal(new DateTime(2026, 6, 7), TaskStore.NextMatchingWeekday(new DateTime(2026, 6, 1), "Sun"));
+    }
 
-        Assert.Equal(DayOfWeek.Sunday, result.DayOfWeek);
-        Assert.True(result > from && result <= from.AddDays(7));
+    [Fact]
+    public void NextMatchingWeekday_SameWeekday_ReturnsAWeekLater()
+    {
+        Assert.Equal(new DateTime(2026, 6, 8), TaskStore.NextMatchingWeekday(new DateTime(2026, 6, 1), "Mon"));
     }
 
     [Fact]
     public void NextMatchingWeekday_UnknownToken_DefaultsToMonday()
     {
-        var from = new DateTime(2026, 6, 1);
-        var result = TaskStore.NextMatchingWeekday(from, "Xyz");
-
-        Assert.Equal(DayOfWeek.Monday, result.DayOfWeek);
+        Assert.Equal(new DateTime(2026, 6, 8), TaskStore.NextMatchingWeekday(new DateTime(2026, 6, 1), "Xyz"));
     }
 }

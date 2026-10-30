@@ -1,20 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
-using Hearth.TestUtilities;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceDefaults;
 using Spotify.Records;
-using Xunit;
 
 namespace Spotify.Tests;
 
 /// <summary>/spotify/recent and the reconnect flag on /spotify/status: the frame's Last Played card.</summary>
-public sealed class LastPlayedEndpointTests : IDisposable
+public sealed class LastPlayedEndpointTests : SpotifyEndpointTests
 {
     private const string RecentPath = "/v1/me/player/recently-played";
     private const string TopArtistsPath = "/v1/me/top/artists";
@@ -43,43 +36,10 @@ public sealed class LastPlayedEndpointTests : IDisposable
 
     private const string TopArtistsJson = """{ "items": [{ "name": "Nils Frahm" }] }""";
 
-    private static readonly string AllScopes = string.Join(' ', SpotifyScopes.Required);
-
-    private readonly TempDatabase _db = new();
-    private readonly FakeHttpMessageHandler _spotify = new("{}");
-    private readonly WebApplicationFactory<Program> _factory;
-
-    public LastPlayedEndpointTests()
+    public LastPlayedEndpointTests() : base("{}")
     {
         _spotify.ByPath[RecentPath] = (HttpStatusCode.OK, RecentJson);
         _spotify.ByPath[TopArtistsPath] = (HttpStatusCode.OK, TopArtistsJson);
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
-        {
-            host.UseSetting("SPOTIFY_CLIENT_ID", "test-client-id");
-            host.UseSetting("SPOTIFY_CLIENT_SECRET", "test-client-secret");
-            host.ConfigureTestServices(services =>
-            {
-                services.AddKeyedSingleton<IDatabase>("spotify", _db.Db);
-                services.AddSingleton<IDataProtectionProvider>(TestDataProtection.Provider);
-                services.AddHttpClient(SpotifyClientService.HttpClientName)
-                    .ConfigurePrimaryHttpMessageHandler(() => _spotify);
-            });
-        });
-    }
-
-    public void Dispose()
-    {
-        _factory.Dispose();
-        _db.Dispose();
-    }
-
-    private SpotifyStore Store => _factory.Services.GetRequiredService<SpotifyStore>();
-
-    private HttpClient Connected(string? scope)
-    {
-        var client = _factory.CreateClient();
-        Store.Save("access", "refresh", DateTime.UtcNow.AddHours(1), scope);
-        return client;
     }
 
     private static async Task<LastPlayedResponse> Read(HttpResponseMessage response)

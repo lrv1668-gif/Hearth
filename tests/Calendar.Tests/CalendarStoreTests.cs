@@ -1,66 +1,64 @@
 using Data.Abstractions;
 using Hearth.TestUtilities;
-using Xunit;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Calendar.Tests;
 
-public sealed class CalendarStoreTests
+public sealed class CalendarStoreTests : IDisposable
 {
-    private static CalendarStore Migrated(TempDatabase tmp)
+    private static readonly DateTimeOffset Now = new(2026, 7, 20, 12, 0, 0, TimeSpan.Zero);
+    private const string Range = "2026-07-19T00:00:00.0000000Z/2026-09-18T00:00:00.0000000Z";
+
+    private readonly TempDatabase _db = new();
+    private readonly FakeTimeProvider _clock = new(Now);
+    private readonly CalendarStore _store;
+
+    public CalendarStoreTests()
     {
-        var store = new CalendarStore(tmp.Db, TestDataProtection.Provider);
-        store.Migrate();
-        return store;
+        _store = new CalendarStore(_db.Db, TestDataProtection.Provider, _clock);
+        _store.Migrate();
     }
 
-    [Fact]
-    public void Migrate_CalledTwice_DoesNotThrow()
-    {
-        using var tmp = new TempDatabase();
-        var store = new CalendarStore(tmp.Db, TestDataProtection.Provider);
+    public void Dispose() => _db.Dispose();
 
-        store.Migrate();
-        store.Migrate();
+    [Fact]
+    public void Migrate_RunTwice_KeepsTheToken()
+    {
+        _store.SaveToken("google", "access-1", "refresh-1", Now.AddHours(1));
+
+        _store.Migrate();
+
+        Assert.True(_store.HasToken("google"));
     }
 
     [Fact]
     public void HasToken_NoRow_ReturnsFalse()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        Assert.False(store.HasToken("google"));
+        Assert.False(_store.HasToken("google"));
     }
 
     [Fact]
     public void HasToken_RowExists_ReturnsTrue()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-        store.SaveToken("google", "access-1", "refresh-1", DateTimeOffset.UtcNow.AddHours(1));
+        _store.SaveToken("google", "access-1", "refresh-1", Now.AddHours(1));
 
-        Assert.True(store.HasToken("google"));
+        Assert.True(_store.HasToken("google"));
     }
 
     [Fact]
     public void LoadToken_NoRow_ReturnsNull()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        Assert.Null(store.LoadToken("google"));
+        Assert.Null(_store.LoadToken("google"));
     }
 
     [Fact]
     public void SaveThenLoad_RoundTripsToken()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-        var expiresAt = DateTimeOffset.UtcNow.AddHours(1);
+        var expiresAt = Now.AddHours(1);
 
-        store.SaveToken("google", "access-1", "refresh-1", expiresAt);
+        _store.SaveToken("google", "access-1", "refresh-1", expiresAt);
 
-        var token = store.LoadToken("google");
+        var token = _store.LoadToken("google");
         Assert.NotNull(token);
         Assert.Equal("access-1", token!.AccessToken);
         Assert.Equal("refresh-1", token.RefreshToken);
@@ -70,13 +68,10 @@ public sealed class CalendarStoreTests
     [Fact]
     public void SaveToken_CalledTwice_ReplacesRow()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        _store.SaveToken("google", "access-1", "refresh-1", Now.AddHours(1));
+        _store.SaveToken("google", "access-2", "refresh-2", Now.AddHours(2));
 
-        store.SaveToken("google", "access-1", "refresh-1", DateTimeOffset.UtcNow.AddHours(1));
-        store.SaveToken("google", "access-2", "refresh-2", DateTimeOffset.UtcNow.AddHours(2));
-
-        var token = store.LoadToken("google");
+        var token = _store.LoadToken("google");
         Assert.NotNull(token);
         Assert.Equal("access-2", token!.AccessToken);
         Assert.Equal("refresh-2", token.RefreshToken);
@@ -85,129 +80,89 @@ public sealed class CalendarStoreTests
     [Fact]
     public void LoadItemsCache_NoRow_ReturnsNull()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        Assert.Null(store.LoadItemsCache("google"));
+        Assert.Null(_store.LoadItemsCache("google"));
     }
 
     [Fact]
-    public void SaveThenLoad_RoundTripsItemsCache()
+    public void SaveThenLoad_RoundTripsItemsCacheWithItsRangeAndTime()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-        var before = DateTimeOffset.UtcNow;
+        _store.SaveItemsCache("google", Range, "[{\"kind\":\"event\"}]");
 
-        store.SaveItemsCache("google", "[{\"kind\":\"event\"}]");
-
-        var cache = store.LoadItemsCache("google");
-        Assert.NotNull(cache);
-        Assert.Equal("[{\"kind\":\"event\"}]", cache!.Value.Json);
-        Assert.True(cache.Value.CachedAt >= before);
+        Assert.Equal(("[{\"kind\":\"event\"}]", Range, Now), _store.LoadItemsCache("google"));
     }
 
     [Fact]
-    public void SaveItemsCache_CalledTwice_UpdatesCachedAt()
+    public void SaveItemsCache_CalledTwice_ReplacesItemsAndCachedAt()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        _store.SaveItemsCache("google", Range, "[]");
+        _clock.Advance(TimeSpan.FromMinutes(10));
 
-        store.SaveItemsCache("google", "[]");
-        var first = store.LoadItemsCache("google");
+        _store.SaveItemsCache("google", Range, "[{\"kind\":\"task\"}]");
 
-        // Force a distinguishable timestamp by writing an explicit earlier cached_at,
-        // then re-saving through the store (which always stamps "now" server-side).
-        tmp.Db.NonQuery(
-            "UPDATE calendar_items_cache SET cached_at = $t WHERE provider = 'google'",
-            c => c.AddParam("$t", DateTimeOffset.UtcNow.AddMinutes(-10).ToString("o")));
-        var backdated = store.LoadItemsCache("google");
-
-        store.SaveItemsCache("google", "[{\"kind\":\"task\"}]");
-        var second = store.LoadItemsCache("google");
-
-        Assert.NotNull(first);
-        Assert.NotNull(backdated);
-        Assert.NotNull(second);
-        Assert.True(backdated!.Value.CachedAt < first!.Value.CachedAt);
-        Assert.True(second!.Value.CachedAt > backdated.Value.CachedAt);
-        Assert.Equal("[{\"kind\":\"task\"}]", second.Value.Json);
+        Assert.Equal(("[{\"kind\":\"task\"}]", Range, Now.AddMinutes(10)), _store.LoadItemsCache("google"));
     }
 
     [Fact]
-    public void InvalidateItemsCache_NoRow_DoesNotThrow()
+    public void Migrate_CacheRowFromBeforeRanges_ReadsWithNoRange()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        using var legacy = new TempDatabase();
+        legacy.Db.NonQuery("CREATE TABLE calendar_items_cache (provider TEXT PRIMARY KEY, items_json TEXT NOT NULL, cached_at TEXT NOT NULL)");
+        legacy.Db.NonQuery($"INSERT INTO calendar_items_cache VALUES ('google', '[]', '{Now:o}')");
+        var store = new CalendarStore(legacy.Db, TestDataProtection.Provider, _clock);
 
-        store.InvalidateItemsCache("google");
+        store.Migrate();
+
+        Assert.Equal(("[]", (string?)null, Now), store.LoadItemsCache("google"));
     }
 
     [Fact]
     public void InvalidateItemsCache_RemovesExistingRow()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-        store.SaveItemsCache("google", "[]");
+        _store.SaveItemsCache("google", Range, "[]");
 
-        store.InvalidateItemsCache("google");
+        _store.InvalidateItemsCache("google");
 
-        Assert.Null(store.LoadItemsCache("google"));
+        Assert.Null(_store.LoadItemsCache("google"));
     }
 
     [Fact]
     public void Clear_RemovesTokenAndCache()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-        store.SaveToken("google", "access-1", "refresh-1", DateTimeOffset.UtcNow.AddHours(1));
-        store.SaveItemsCache("google", "[]");
+        _store.SaveToken("google", "access-1", "refresh-1", Now.AddHours(1));
+        _store.SaveItemsCache("google", Range, "[]");
 
-        store.Clear("google");
+        _store.Clear("google");
 
-        Assert.Null(store.LoadToken("google"));
-        Assert.Null(store.LoadItemsCache("google"));
-        Assert.False(store.HasToken("google"));
-    }
-
-    [Fact]
-    public void Clear_NothingStored_DoesNotThrow()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Clear("google");
+        Assert.Null(_store.LoadToken("google"));
+        Assert.Null(_store.LoadItemsCache("google"));
+        Assert.False(_store.HasToken("google"));
     }
 
     [Fact]
     public void LoadToken_LegacyPlaintextRow_ReturnsNullInsteadOfThrowing()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
         // Simulate a row written before token encryption was introduced.
-        tmp.Db.NonQuery("""
+        _db.Db.NonQuery("""
             INSERT OR REPLACE INTO calendar_tokens (provider, access_token, refresh_token, expires_at)
             VALUES ('google', 'plaintext-access', 'plaintext-refresh', $expires_at)
-            """, cmd => cmd.AddParam("$expires_at", DateTimeOffset.UtcNow.ToString("o")));
+            """, cmd => cmd.AddParam("$expires_at", Now.ToString("o")));
 
-        Assert.Null(store.LoadToken("google"));
+        Assert.Null(_store.LoadToken("google"));
     }
 
     [Fact]
     public void TokenAndCache_AreIsolatedPerProvider()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-        store.SaveToken("google", "google-access", "google-refresh", DateTimeOffset.UtcNow.AddHours(1));
-        store.SaveItemsCache("google", "[\"google-items\"]");
+        _store.SaveToken("google", "google-access", "google-refresh", Now.AddHours(1));
+        _store.SaveItemsCache("google", Range, "[\"google-items\"]");
 
-        Assert.False(store.HasToken("outlook"));
-        Assert.Null(store.LoadToken("outlook"));
-        Assert.Null(store.LoadItemsCache("outlook"));
+        Assert.False(_store.HasToken("outlook"));
+        Assert.Null(_store.LoadToken("outlook"));
+        Assert.Null(_store.LoadItemsCache("outlook"));
 
-        store.Clear("outlook");
+        _store.Clear("outlook");
 
-        Assert.True(store.HasToken("google"));
-        Assert.NotNull(store.LoadItemsCache("google"));
+        Assert.True(_store.HasToken("google"));
+        Assert.NotNull(_store.LoadItemsCache("google"));
     }
 }

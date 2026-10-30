@@ -1,12 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Tasks.Records;
-using Xunit;
 
 namespace Tasks.Tests;
 
@@ -18,8 +14,7 @@ public sealed class TaskEndpointTests : IDisposable
 
     public TaskEndpointTests()
     {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
-            host.ConfigureTestServices(services => services.AddKeyedSingleton<IDatabase>("tasks", _db.Db)));
+        _factory = HearthApp.Create<Program>("tasks", _db);
     }
 
     public void Dispose()

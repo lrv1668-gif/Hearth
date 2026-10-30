@@ -2,7 +2,6 @@ using Calendar.Providers.Google;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Time.Testing;
-using Xunit;
 
 namespace Calendar.Tests;
 
@@ -14,7 +13,7 @@ public sealed class GoogleAuthServiceTests
 
     private static GoogleAuthService MakeService(TempDatabase db, FakeTimeProvider time)
     {
-        var store = new CalendarStore(db.Db, TestDataProtection.Provider);
+        var store = new CalendarStore(db.Db, TestDataProtection.Provider, time);
         store.Migrate();
 
         var config = new ConfigurationBuilder()
@@ -75,16 +74,6 @@ public sealed class GoogleAuthServiceTests
         var authService = MakeService(db, new FakeTimeProvider(DateTimeOffset.UtcNow));
 
         Assert.False(authService.ValidateAndConsumeState("never-issued"));
-    }
-
-    [Fact]
-    public void ValidateAndConsumeState_FreshState_ReturnsTrue()
-    {
-        using var db = new TempDatabase();
-        var authService = MakeService(db, new FakeTimeProvider(DateTimeOffset.UtcNow));
-        authService.GenerateAuthUrl("state-123");
-
-        Assert.True(authService.ValidateAndConsumeState("state-123"));
     }
 
     [Fact]

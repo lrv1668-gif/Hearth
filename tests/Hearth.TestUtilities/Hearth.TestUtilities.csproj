@@ -3,6 +3,8 @@
   <ItemGroup>
     <!-- TestDataProtection -->
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <!-- HearthApp -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
 
   <ItemGroup>

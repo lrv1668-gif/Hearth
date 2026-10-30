@@ -21,8 +21,8 @@ public sealed class FakeHttpMessageHandler(string responseJson, HttpStatusCode s
     public HttpStatusCode Status { get; set; } = status;
 
     /// <summary>
-    /// Per-endpoint answers, keyed by URL path, for a service that calls several — a path not
-    /// listed gets <see cref="ResponseJson"/> and <see cref="Status"/>.
+    /// Per-endpoint answers, keyed by URL path (or path and query, which wins), for a service that
+    /// calls several — a URL not listed gets <see cref="ResponseJson"/> and <see cref="Status"/>.
     /// </summary>
     public Dictionary<string, (HttpStatusCode Status, string Json)> ByPath { get; } = [];
 
@@ -30,7 +30,8 @@ public sealed class FakeHttpMessageHandler(string responseJson, HttpStatusCode s
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
         RequestUris.Add(request.RequestUri!);
-        var (status, json) = request.RequestUri is { } uri && ByPath.TryGetValue(uri.AbsolutePath, out var routed)
+        var uri = request.RequestUri!;
+        var (status, json) = ByPath.TryGetValue(uri.PathAndQuery, out var routed) || ByPath.TryGetValue(uri.AbsolutePath, out routed)
             ? routed
             : (Status, ResponseJson);
         var response = new HttpResponseMessage(status)

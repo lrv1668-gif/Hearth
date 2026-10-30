@@ -57,7 +57,7 @@ apps/                        # Everything that runs — one folder per stack
   frontend/                  # SvelteKit app — shared controls in src/lib/components/ui/
   renderer/                  # Node sidecar for Display — headless Chromium (Playwright) screenshots /frame, dither.mjs reduces it to the 6 inks (epdoptimize + Bayer); `npm test`
 tests/                       # xUnit test projects — <Service>.Tests/
-  Hearth.TestUtilities/      # Shared test helpers — FakeHttpMessageHandler, TempDatabase
+  Hearth.TestUtilities/      # Shared test helpers — FakeHttpMessageHandler, TempDatabase, TempDirectory, HearthApp (endpoint tests)
 infra/                       # Runs the stack: Compose, Caddy, host deploy — run `docker compose` from here
   docker-compose.yml
   docker-compose.override.yml  # dev overrides — auto-merged by Compose

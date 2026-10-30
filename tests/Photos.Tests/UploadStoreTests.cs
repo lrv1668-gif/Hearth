@@ -1,44 +1,32 @@
+using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using SkiaSharp;
-using Xunit;
 
 namespace Photos.Tests;
 
 public sealed class UploadStoreTests : IDisposable
 {
-    private readonly string _dataPath = Path.Combine(Path.GetTempPath(), $"uploads-{Guid.NewGuid():N}");
+    private readonly TempDirectory _data = new();
     private readonly IConfiguration _config;
 
     public UploadStoreTests()
     {
-        Directory.CreateDirectory(_dataPath);
+        Directory.CreateDirectory(_data.Path);
         _config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["DATA_PATH"] = _dataPath })
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["DATA_PATH"] = _data.Path })
             .Build();
     }
 
-    public void Dispose() => Directory.Delete(_dataPath, recursive: true);
+    public void Dispose() => _data.Dispose();
 
     private UploadStore MakeStore() => new(_config, NullLogger<UploadStore>.Instance);
 
-    [Fact]
-    public async Task SaveAsync_JpegWithExifRotation_StoresItUpright()
-    {
-        var store = MakeStore();
-        // Landscape pixels tagged "rotate 90° clockwise to view" — how a phone saves a portrait shot
-        var jpeg = WithExifOrientation(Jpeg(40, 20), 6);
-
-        var saved = await store.SaveAsync(FormFile(jpeg));
-
-        using var stored = SKBitmap.Decode(StoredPath(saved!));
-        Assert.Equal((20, 40), (stored.Width, stored.Height));
-    }
-
     // Where the stored file's red corner should be, for a source whose top-left corner is red.
     // EXIF orientations: 1 upright, 2 mirrored, 3 upside down, 4 flipped, 5 transposed,
-    // 6 rotated 90° clockwise to view, 7 transverse, 8 rotated 90° anticlockwise to view.
+    // 6 rotated 90° clockwise to view (how a phone saves a portrait shot), 7 transverse,
+    // 8 rotated 90° anticlockwise to view. 5–8 also turn the landscape pixels portrait.
     [Theory]
     [InlineData(1, false, false)]
     [InlineData(2, true, false)]
@@ -55,6 +43,7 @@ public sealed class UploadStoreTests : IDisposable
         var saved = await store.SaveAsync(FormFile(WithExifOrientation(Jpeg(80, 40), orientation)));
 
         using var stored = SKBitmap.Decode(StoredPath(saved!));
+        Assert.Equal(orientation >= 5 ? (40, 80) : (80, 40), (stored.Width, stored.Height));
         var pixel = stored.GetPixel(right ? stored.Width - 4 : 3, bottom ? stored.Height - 4 : 3);
         Assert.True(pixel.Red > 200 && pixel.Blue < 100, $"expected the red corner there, got {pixel}");
     }
@@ -73,7 +62,7 @@ public sealed class UploadStoreTests : IDisposable
     [Fact]
     public void Constructor_TornCaptionsFile_StartsEmptyAndKeepsIt()
     {
-        var path = Path.Combine(_dataPath, "captions.json");
+        var path = Path.Combine(_data.Path, "captions.json");
         File.WriteAllText(path, """{"abc": "Half a capt""");
 
         var store = MakeStore();
@@ -83,7 +72,7 @@ public sealed class UploadStoreTests : IDisposable
         Assert.True(File.Exists(path + ".bad"));
     }
 
-    private string StoredPath(UploadedPhoto photo) => Path.Combine(_dataPath, "uploads", $"{photo.Id}.webp");
+    private string StoredPath(UploadedPhoto photo) => Path.Combine(_data.Path, "uploads", $"{photo.Id}.webp");
 
     private static byte[] Jpeg(int width, int height)
     {

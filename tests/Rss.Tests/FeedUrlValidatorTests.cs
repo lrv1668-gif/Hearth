@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Sockets;
-using Xunit;
 
 namespace Rss.Tests;
 

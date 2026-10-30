@@ -1,7 +1,6 @@
 using System.Net;
 using Birds.Records;
 using Hearth.TestUtilities;
-using Xunit;
 
 namespace Birds.Tests;
 

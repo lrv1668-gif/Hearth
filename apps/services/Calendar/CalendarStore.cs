@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.DataProtection;
 
 namespace Calendar;
 
-public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db, IDataProtectionProvider dpProvider)
+public sealed class CalendarStore(
+    [FromKeyedServices("calendar")] IDatabase db, IDataProtectionProvider dpProvider, TimeProvider time)
 {
     private readonly IDataProtector _protector = dpProvider.CreateProtector("Calendar.Tokens.v1");
 
@@ -27,6 +28,13 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db, 
                 cached_at   TEXT NOT NULL
             )
             """);
+
+        // The from/to the cached items were fetched for; older rows have none and count as stale
+        try { db.NonQuery("ALTER TABLE calendar_items_cache ADD COLUMN range TEXT"); }
+        catch (DbException ex) when (ex.Message.Contains("duplicate column name", StringComparison.OrdinalIgnoreCase))
+        {
+            // column already exists from a previous run
+        }
     }
 
     public bool HasToken(string provider) =>
@@ -53,21 +61,23 @@ public sealed class CalendarStore([FromKeyedServices("calendar")] IDatabase db, 
             cmd.AddParam("$expires_at", expiresAt.ToString("o"));
         });
 
-    public (string Json, DateTimeOffset CachedAt)? LoadItemsCache(string provider) =>
-        db.QueryOne<(string Json, DateTimeOffset CachedAt)?>(
-            "SELECT items_json, cached_at FROM calendar_items_cache WHERE provider = $p",
-            r => (r.Field<string>("items_json")!, DateTimeOffset.Parse(r.Field<string>("cached_at")!)),
+    public (string Json, string? Range, DateTimeOffset CachedAt)? LoadItemsCache(string provider) =>
+        db.QueryOne<(string Json, string? Range, DateTimeOffset CachedAt)?>(
+            "SELECT items_json, range, cached_at FROM calendar_items_cache WHERE provider = $p",
+            r => (r.Field<string>("items_json")!, r.Field<string>("range"), DateTimeOffset.Parse(r.Field<string>("cached_at")!)),
             c => c.AddParam("$p", provider));
 
-    public void SaveItemsCache(string provider, string json) =>
+    /// <summary>Caches <paramref name="json"/> as the items for <paramref name="range"/>, stamped now.</summary>
+    public void SaveItemsCache(string provider, string range, string json) =>
         db.NonQuery("""
-            INSERT OR REPLACE INTO calendar_items_cache (provider, items_json, cached_at)
-            VALUES ($provider, $json, $cached_at)
+            INSERT OR REPLACE INTO calendar_items_cache (provider, items_json, range, cached_at)
+            VALUES ($provider, $json, $range, $cached_at)
             """, cmd =>
         {
             cmd.AddParam("$provider", provider);
             cmd.AddParam("$json", json);
-            cmd.AddParam("$cached_at", DateTimeOffset.UtcNow.ToString("o"));
+            cmd.AddParam("$range", range);
+            cmd.AddParam("$cached_at", time.GetUtcNow().ToString("o"));
         });
 
     public void InvalidateItemsCache(string provider) =>

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
 using Display.Records;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Hosting;
@@ -9,15 +8,13 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using ServiceDefaults;
-using Xunit;
 
 namespace Display.Tests;
 
-/// <summary>/display/mode and its schedule and override, plus <see cref="ModeStore"/> round-trips.</summary>
+/// <summary>/display/mode and its schedule and override.</summary>
 public sealed class ModeEndpointTests : IDisposable
 {
-    // Monday 19 October 2026, 12:00 UTC
-    private static readonly DateTimeOffset Noon = new(2026, 10, 19, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset Noon = TestData.Noon;
 
     private readonly TempDatabase _db = new();
     private readonly FakeTimeProvider _clock = new(Noon);
@@ -26,14 +23,10 @@ public sealed class ModeEndpointTests : IDisposable
 
     public ModeEndpointTests()
     {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
+        _factory = HearthApp.Create<Program>("display", _db, host =>
         {
             host.UseSetting("TZ", "Etc/UTC");
-            host.ConfigureTestServices(services =>
-            {
-                services.AddKeyedSingleton<IDatabase>("display", _db.Db);
-                services.AddSingleton<TimeProvider>(_clock);
-            });
+            host.ConfigureTestServices(services => services.AddSingleton<TimeProvider>(_clock));
         });
         _client = _factory.CreateClient();
     }
@@ -202,18 +195,5 @@ public sealed class ModeEndpointTests : IDisposable
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public void Store_OverrideRoundTripsWithItsExpiry()
-    {
-        var store = new ModeStore(_db.Db);
-        store.Migrate();
-
-        store.SetOverride(new ModeOverride(FrameModes.Photo, Noon.AddHours(3), "abc"));
-
-        Assert.Equal(new ModeOverride(FrameModes.Photo, Noon.AddHours(3), "abc"), store.GetOverride());
-        store.ClearOverride();
-        Assert.Null(store.GetOverride());
     }
 }

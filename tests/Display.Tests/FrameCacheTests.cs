@@ -1,20 +1,17 @@
+using Hearth.TestUtilities;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace Display.Tests;
 
 public sealed class FrameCacheTests : IDisposable
 {
-    private static readonly DateTimeOffset Noon = new(2026, 10, 19, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset Noon = TestData.Noon;
 
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), $"hearth-frame-{Guid.NewGuid():N}");
+    private readonly TempDirectory _dir = new();
 
-    private FrameCache Cache() => new(_dir, NullLogger<FrameCache>.Instance);
+    private FrameCache Cache() => new(_dir.Path, NullLogger<FrameCache>.Instance);
 
-    public void Dispose()
-    {
-        try { Directory.Delete(_dir, recursive: true); } catch { /* best effort */ }
-    }
+    public void Dispose() => _dir.Dispose();
 
     [Fact]
     public void Current_NothingStored_ReturnsNull()
@@ -70,7 +67,7 @@ public sealed class FrameCacheTests : IDisposable
     {
         Cache().Store([1, 2, 3], "daily", null, Noon);
         // As if a crash came between writing the new PNG and its frame.json
-        File.WriteAllBytes(Path.Combine(_dir, "frame.png"), [4, 5, 6]);
+        File.WriteAllBytes(Path.Combine(_dir.Path, "frame.png"), [4, 5, 6]);
 
         Assert.Null(Cache().Current);
     }

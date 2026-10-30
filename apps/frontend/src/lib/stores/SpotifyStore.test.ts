@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NowPlaying } from '#lib/api.ts';
+import { mockFetch } from '#lib/test/fetch.ts';
 import { pollNowPlaying, refreshNowPlaying, spotifyStore } from './SpotifyStore.svelte.ts';
 
 const track: NowPlaying = {
@@ -12,20 +13,10 @@ const track: NowPlaying = {
     is_playing: true,
 };
 
-const fetchMock = vi.fn<typeof fetch>();
-const respond = (status: number, body?: unknown) =>
-    fetchMock.mockResolvedValueOnce(new Response(body === undefined ? null : JSON.stringify(body), { status }));
+const { fetchMock, respond } = mockFetch();
 
-beforeEach(() => {
-    vi.useFakeTimers();
-    vi.stubGlobal('fetch', fetchMock);
-});
-
-afterEach(() => {
-    fetchMock.mockReset();
-    vi.unstubAllGlobals();
-    vi.useRealTimers();
-});
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 describe('refreshNowPlaying', () => {
     it('shows the track Spotify returns', async () => {
@@ -34,17 +25,13 @@ describe('refreshNowPlaying', () => {
         expect(spotifyStore.nowPlaying).toEqual(track);
     });
 
-    it('keeps the current track when Spotify is unavailable', async () => {
+    it.each([
+        [502, { error: 'spotify unavailable' }],
+        [500, undefined],
+    ])('keeps the current track on a %i', async (status, body) => {
         spotifyStore.nowPlaying = track;
-        respond(502, { error: 'spotify unavailable' });
+        respond(status, body);
         await expect(refreshNowPlaying()).resolves.toBeUndefined();
-        expect(spotifyStore.nowPlaying).toEqual(track);
-    });
-
-    it('keeps the current track when the service returns an empty error body', async () => {
-        spotifyStore.nowPlaying = track;
-        respond(500);
-        await refreshNowPlaying();
         expect(spotifyStore.nowPlaying).toEqual(track);
     });
 

@@ -642,11 +642,12 @@ CREATE TABLE IF NOT EXISTS calendar_tokens (
     expires_at    TEXT NOT NULL   -- ISO 8601
 );
 
--- Cached item JSON per provider, 5-minute TTL
+-- Cached item JSON per provider, 5-minute TTL, served only for the from/to it was fetched for
 CREATE TABLE IF NOT EXISTS calendar_items_cache (
     provider    TEXT PRIMARY KEY,
     items_json  TEXT NOT NULL,
-    cached_at   TEXT NOT NULL     -- ISO 8601
+    cached_at   TEXT NOT NULL,    -- ISO 8601
+    range       TEXT              -- "<from>/<to>" (ISO 8601 UTC); NULL on rows from before it, read as stale
 );
 ```
 

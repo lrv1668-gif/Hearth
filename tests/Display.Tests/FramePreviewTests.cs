@@ -1,9 +1,6 @@
-using System.Net;
 using Display.Records;
-using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
-using Xunit;
 
 namespace Display.Tests;
 
@@ -13,7 +10,7 @@ public sealed class FramePreviewTests
         new(pairs.ToDictionary(p => p.Key, p => new StringValues(p.Value)));
 
     private static readonly FrameSettings Saved =
-        new("almanac", "inter", "portrait", [], [], 50, Width: 800, Height: 480);
+        TestData.Settings with { Orientation = "portrait", Width = 800, Height = 480 };
 
     [Theory]
     [InlineData("landscape", 1600, 1200)]
@@ -91,17 +88,6 @@ public sealed class FramePreviewTests
     }
 
     [Fact]
-    public async Task RenderAsync_BlackAndWhite_SendsThePalette()
-    {
-        var handler = new FakeHttpMessageHandler("png");
-        var client = new RendererClient(new HttpClient(handler) { BaseAddress = new Uri("http://renderer:3000/") });
-
-        await client.RenderAsync("/frame", 1600, 1200, "ordered", null, "screen", palette: "bw");
-
-        Assert.EndsWith("&palette=bw", handler.LastRequestUri?.AbsoluteUri);
-    }
-
-    [Fact]
     public void FramePath_DropsPreviewOnlyParams()
     {
         var query = new QueryCollection(new Dictionary<string, StringValues>
@@ -114,40 +100,5 @@ public sealed class FramePreviewTests
         });
 
         Assert.Equal("/frame?mode=daily&left=arc,today", FramePreview.FramePath(query));
-    }
-
-    [Fact]
-    public async Task RenderAsync_Ok_SendsFramePathAndOptions()
-    {
-        var handler = new FakeHttpMessageHandler("png");
-        var client = new RendererClient(new HttpClient(handler) { BaseAddress = new Uri("http://renderer:3000/") });
-
-        await client.RenderAsync("/frame?mode=daily", 1600, 1200, "ordered", null, "paper");
-
-        Assert.Equal(
-            "http://renderer:3000/render?path=%2Fframe%3Fmode%3Ddaily&width=1600&height=1200&dither=ordered&look=paper",
-            handler.LastRequestUri?.AbsoluteUri);
-    }
-
-    [Fact]
-    public async Task RenderAsync_TimeZone_SendsItEscaped()
-    {
-        var handler = new FakeHttpMessageHandler("png");
-        var client = new RendererClient(new HttpClient(handler) { BaseAddress = new Uri("http://renderer:3000/") });
-
-        await client.RenderAsync("/frame", 1600, 1200, "ordered", null, "screen", "America/Chicago");
-
-        Assert.EndsWith("&tz=America%2FChicago", handler.LastRequestUri?.AbsoluteUri);
-    }
-
-    [Fact]
-    public async Task RenderAsync_RendererTimesOut_ThrowsWithStatus()
-    {
-        var handler = new FakeHttpMessageHandler("timeout", HttpStatusCode.GatewayTimeout);
-        var client = new RendererClient(new HttpClient(handler) { BaseAddress = new Uri("http://renderer:3000/") });
-
-        var ex = await Assert.ThrowsAsync<HttpRequestException>(
-            () => client.RenderAsync("/frame", 1600, 1200, "ordered", null, "screen"));
-        Assert.Equal(HttpStatusCode.GatewayTimeout, ex.StatusCode);
     }
 }

@@ -1,7 +1,6 @@
 using System.Net;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace Quote.Tests;
 
@@ -24,12 +23,13 @@ public sealed class QuoteFetcherTests
         Assert.Equal("Horace", result.A);
     }
 
-    [Fact]
-    public async Task FetchAsync_EmptyArray_ReturnsNull()
+    [Theory]
+    [InlineData("[]", HttpStatusCode.OK)]
+    [InlineData("not-json", HttpStatusCode.OK)]
+    [InlineData("", HttpStatusCode.ServiceUnavailable)]
+    public async Task FetchAsync_EmptyMalformedOrError_ReturnsNull(string json, HttpStatusCode status)
     {
-        var fetcher = MakeFetcher("[]");
-        var result = await fetcher.FetchAsync();
-        Assert.Null(result);
+        Assert.Null(await MakeFetcher(json, status).FetchAsync());
     }
 
     [Fact]
@@ -50,22 +50,6 @@ public sealed class QuoteFetcherTests
 
         var result = await fetcher.FetchAsync();
 
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task FetchAsync_HttpError_ReturnsNull()
-    {
-        var fetcher = MakeFetcher("", HttpStatusCode.ServiceUnavailable);
-        var result = await fetcher.FetchAsync();
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task FetchAsync_MalformedJson_ReturnsNull()
-    {
-        var fetcher = MakeFetcher("not-json");
-        var result = await fetcher.FetchAsync();
         Assert.Null(result);
     }
 }

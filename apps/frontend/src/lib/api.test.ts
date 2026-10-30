@@ -1,17 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { api, HomeSettingsRejected, type HomeSettings } from '#lib/api.ts';
+import { mockFetch } from '#lib/test/fetch.ts';
 
-const fetchMock = vi.fn<typeof fetch>();
-const respond = (status: number, body?: unknown) =>
-    fetchMock.mockResolvedValueOnce(new Response(body === undefined ? null : JSON.stringify(body), { status }));
-const respondRaw = (status: number, body: string) => fetchMock.mockResolvedValueOnce(new Response(body, { status }));
-const unreachable = () => fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-
-/** The URL and options of the nth fetch call. */
-const call = (n = 0) => {
-    const [input, init] = fetchMock.mock.calls[n];
-    return { url: String(input), init };
-};
+const { respond, respondRaw, unreachable, call } = mockFetch();
 
 const home: HomeSettings = {
     latitude: 47.6,
@@ -19,13 +10,6 @@ const home: HomeSettings = {
     time_zone: 'America/Los_Angeles',
     name: 'Seattle',
 };
-
-beforeEach(() => vi.stubGlobal('fetch', fetchMock));
-
-afterEach(() => {
-    fetchMock.mockReset();
-    vi.unstubAllGlobals();
-});
 
 describe('GET helpers', () => {
     it('returns the parsed body on success', async () => {

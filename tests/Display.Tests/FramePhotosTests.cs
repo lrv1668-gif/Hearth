@@ -3,7 +3,6 @@ using Display.Records;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using Xunit;
 
 namespace Display.Tests;
 

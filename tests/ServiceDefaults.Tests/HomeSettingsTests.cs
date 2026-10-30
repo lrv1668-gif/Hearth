@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace ServiceDefaults.Tests;
 
 public sealed class HomeSettingsTests

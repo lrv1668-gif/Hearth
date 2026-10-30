@@ -3,7 +3,6 @@ using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace ServiceDefaults.Tests;
@@ -16,28 +15,6 @@ public sealed class HomeLocationClientTests
         ["LONGITUDE"] = "-104.99",
         ["TZ"] = "America/Denver",
     };
-
-    private sealed class DownHandler : HttpMessageHandler
-    {
-        public int Calls { get; private set; }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
-        {
-            Calls++;
-            throw new HttpRequestException("connection refused");
-        }
-    }
-
-    private sealed class CountingHandler(HttpStatusCode status) : HttpMessageHandler
-    {
-        public int Calls { get; private set; }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
-        {
-            Calls++;
-            return Task.FromResult(new HttpResponseMessage(status));
-        }
-    }
 
     private static HomeLocationClient Client(HttpMessageHandler handler, Dictionary<string, string?> env, bool displayUrl = true)
     {
@@ -84,7 +61,7 @@ public sealed class HomeLocationClientTests
     [Fact]
     public async Task GetAsync_DisplayDown_UsesEnv()
     {
-        var home = await Client(new DownHandler(), Env).GetAsync();
+        var home = await Client(new ThrowingHttpMessageHandler(), Env).GetAsync();
 
         Assert.Equal(new HomeLocation(39.74, -104.99, "America/Denver"), home);
     }
@@ -92,25 +69,25 @@ public sealed class HomeLocationClientTests
     [Fact]
     public async Task GetAsync_DisplayDownTwice_TriesOnceThenRemembers()
     {
-        var handler = new DownHandler();
+        var handler = new ThrowingHttpMessageHandler();
         var client = Client(handler, Env);
 
         await client.GetAsync();
         await client.GetAsync();
 
-        Assert.Equal(1, handler.Calls);
+        Assert.Equal(1, handler.RequestCount);
     }
 
     [Fact]
     public async Task GetAsync_NothingStoredTwice_CachesTheEmptyAnswer()
     {
-        var handler = new CountingHandler(HttpStatusCode.NoContent);
+        var handler = new FakeHttpMessageHandler("", HttpStatusCode.NoContent);
         var client = Client(handler, Env);
 
         await client.GetAsync();
         var home = await client.GetAsync();
 
-        Assert.Equal(1, handler.Calls);
+        Assert.Equal(1, handler.RequestCount);
         Assert.Equal(new HomeLocation(39.74, -104.99, "America/Denver"), home);
     }
 
@@ -139,7 +116,7 @@ public sealed class HomeLocationClientTests
     {
         var env = new Dictionary<string, string?> { ["LATITUDE"] = "not-a-number", ["LONGITUDE"] = "-104.99" };
 
-        var home = await Client(new DownHandler(), env).GetAsync();
+        var home = await Client(new ThrowingHttpMessageHandler(), env).GetAsync();
 
         Assert.Null(home.Coordinates);
     }

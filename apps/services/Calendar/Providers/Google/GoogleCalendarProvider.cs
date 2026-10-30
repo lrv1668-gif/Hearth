@@ -15,6 +15,7 @@ namespace Calendar.Providers.Google;
 public sealed class GoogleCalendarProvider(
     CalendarStore store,
     GoogleAuthService authService,
+    TimeProvider time,
     ILogger<GoogleCalendarProvider> logger) : ICalendarProvider
 {
     private const string Key = GoogleAuthService.ProviderKey;
@@ -31,9 +32,10 @@ public sealed class GoogleCalendarProvider(
     public async Task<IEnumerable<CalendarItem>> GetItemsAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default)
     {
-        // 1. Serve from cache if fresh
+        // 1. Serve from cache if fresh and fetched for this range (it moves on at UTC midnight)
+        var range  = CacheRange(from, to);
         var cached = store.LoadItemsCache(Key);
-        if (cached is not null && DateTimeOffset.UtcNow - cached.Value.CachedAt < CacheTtl)
+        if (cached is not null && cached.Value.Range == range && time.GetUtcNow() - cached.Value.CachedAt < CacheTtl)
             return JsonSerializer.Deserialize<List<CalendarItem>>(cached.Value.Json, HearthJson.SnakeCaseLower) ?? [];
 
         // 2. Load stored token
@@ -73,7 +75,7 @@ public sealed class GoogleCalendarProvider(
         items.AddRange(tasksTask.Result);
 
         // 5. Persist cache and return
-        store.SaveItemsCache(Key, JsonSerializer.Serialize(items, HearthJson.SnakeCaseLower));
+        store.SaveItemsCache(Key, range, JsonSerializer.Serialize(items, HearthJson.SnakeCaseLower));
         return items;
     }
 
@@ -97,7 +99,7 @@ public sealed class GoogleCalendarProvider(
 
         var task = await svc.Tasks.Get(taskListId, taskId).ExecuteAsync(ct);
         task.Status    = completed ? "completed" : "needsAction";
-        task.Completed = completed ? DateTimeOffset.UtcNow.ToString("o") : null;
+        task.Completed = completed ? time.GetUtcNow().ToString("o") : null;
         await svc.Tasks.Update(task, taskListId, taskId).ExecuteAsync(ct);
 
         // Invalidate cache so next /calendar/items re-fetches from Google
@@ -107,9 +109,11 @@ public sealed class GoogleCalendarProvider(
     internal static bool NeedsTokenRefresh(DateTimeOffset expiresAt, DateTimeOffset now) =>
         expiresAt <= now + TokenRefreshBuffer;
 
+    internal static string CacheRange(DateTimeOffset from, DateTimeOffset to) => $"{from.UtcDateTime:o}/{to.UtcDateTime:o}";
+
     private async Task<string> EnsureFreshAccessTokenAsync(CalendarToken token, CancellationToken ct)
     {
-        if (!NeedsTokenRefresh(token.ExpiresAt, DateTimeOffset.UtcNow))
+        if (!NeedsTokenRefresh(token.ExpiresAt, time.GetUtcNow()))
             return token.AccessToken;
 
         var flow       = authService.BuildFlow();
@@ -119,7 +123,7 @@ public sealed class GoogleCalendarProvider(
         if (await credential.RefreshTokenAsync(ct))
         {
             var newRefresh = credential.Token.RefreshToken ?? token.RefreshToken;
-            var newExpiry  = DateTimeOffset.UtcNow.AddSeconds(credential.Token.ExpiresInSeconds ?? 3600);
+            var newExpiry  = time.GetUtcNow().AddSeconds(credential.Token.ExpiresInSeconds ?? 3600);
             store.SaveToken(Key, credential.Token.AccessToken, newRefresh, newExpiry);
             return credential.Token.AccessToken;
         }
@@ -244,7 +248,8 @@ public sealed class GoogleCalendarProvider(
         {
             if (t.Id is null) continue;
 
-            var start = t.Due is not null ? t.Due[..10] : null;
+            // Google sends RFC 3339 ("2026-06-01T00:00:00.000Z"); anything shorter has no usable date
+            var start = t.Due is { Length: >= 10 } due ? due[..10] : null;
 
             result.Add(new CalendarItem(
                 Kind:         "task",

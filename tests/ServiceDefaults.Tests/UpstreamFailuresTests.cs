@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Time.Testing;
-using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace ServiceDefaults.Tests;

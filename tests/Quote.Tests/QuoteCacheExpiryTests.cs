@@ -1,36 +1,15 @@
-using Xunit;
-
 namespace Quote.Tests;
 
 public sealed class QuoteCacheExpiryTests
 {
-    [Fact]
-    public void NextMidnightUtc_MidDay_ReturnsFollowingMidnight()
+    [Theory]
+    [InlineData(13, 30, 0, 0)]      // mid-day
+    [InlineData(0, 0, 0, 0)]        // exactly midnight: the next one, not now
+    [InlineData(23, 59, 59, 999)]   // last moment of the day
+    public void NextMidnightUtc_AnyTimeOnTheDay_ReturnsTheFollowingMidnight(int hour, int minute, int second, int ms)
     {
-        var now = new DateTime(2026, 6, 15, 13, 30, 0, DateTimeKind.Utc);
+        var now = new DateTime(2026, 6, 15, hour, minute, second, ms, DateTimeKind.Utc);
 
-        var expiry = QuoteCacheExpiry.NextMidnightUtc(now);
-
-        Assert.Equal(new DateTime(2026, 6, 16, 0, 0, 0, DateTimeKind.Utc), expiry);
-    }
-
-    [Fact]
-    public void NextMidnightUtc_ExactlyMidnight_ReturnsNextDayMidnight()
-    {
-        var now = new DateTime(2026, 6, 15, 0, 0, 0, DateTimeKind.Utc);
-
-        var expiry = QuoteCacheExpiry.NextMidnightUtc(now);
-
-        Assert.Equal(new DateTime(2026, 6, 16, 0, 0, 0, DateTimeKind.Utc), expiry);
-    }
-
-    [Fact]
-    public void NextMidnightUtc_LastMomentOfDay_ReturnsNextDayMidnight()
-    {
-        var now = new DateTime(2026, 6, 15, 23, 59, 59, 999, DateTimeKind.Utc);
-
-        var expiry = QuoteCacheExpiry.NextMidnightUtc(now);
-
-        Assert.Equal(new DateTime(2026, 6, 16, 0, 0, 0, DateTimeKind.Utc), expiry);
+        Assert.Equal(new DateTime(2026, 6, 16, 0, 0, 0, DateTimeKind.Utc), QuoteCacheExpiry.NextMidnightUtc(now));
     }
 }

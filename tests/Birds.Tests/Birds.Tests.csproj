@@ -1,15 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\apps\services\Birds\Birds.csproj" />
-    <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 </Project>
