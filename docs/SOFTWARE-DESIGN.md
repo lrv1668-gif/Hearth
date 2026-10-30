@@ -47,7 +47,8 @@ Form controls and other repeated pieces live in `apps/frontend/src/lib/component
 | `Button` (+ `buttonClass()` in `button.ts`) | `primary` (accent fill, one per group), `secondary` (outlined pill, default), `link`, `ghost`; renders an `<a>` when given `href`; defaults to `type="button"` |
 | `IconButton` | Icon-only button with a required `label`; `reveal` hides it until its `group` row is hovered (always shown on touch) |
 | `TextInput`, `TextArea`, `Select` (+ `fieldClass()` in `field.ts`) | The one bordered field style, `sm`/`md`; a raw element with `fieldClass()` when a handler rewrites `el.value` in place |
-| `Field` | Small-caps label above a control |
+| `Field` | Small sentence-case label above a control |
+| `SettingsGroup` | One group of related settings inside a card: small-caps title, optional description, a hairline above every group but the first in its column; a control sharing a group gets a `type-label` sub-label instead |
 | `Chip`, `ChoiceChips` | Pick-one chips — accent fill while chosen, `aria-pressed` |
 | `SegmentedControl` | Two to four short options as one control |
 | `DayPicker` | Any-number-of days of the week |
@@ -60,7 +61,7 @@ Form controls and other repeated pieces live in `apps/frontend/src/lib/component
 | `ListRow`, `ConnectionRow` | A settings list row with remove/extra actions; an outside service with its status and buttons |
 | `FileUploadButton`, `InlineMessage` | A file picker styled as a secondary button; an error (`--danger`, `role="alert"`) or muted note |
 
-Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks (`box` or `dot`, `role="checkbox"`), and `PhotoUploadButton` validates (`checkPhotoFiles` in `lib/photos.ts`) and uploads photos for both the Ambient settings and the photo collection. Small-caps group headings use the `.eyebrow` class from `app.css`.
+Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks (`box` or `dot`, `role="checkbox"`), and `PhotoUploadButton` validates (`checkPhotoFiles` in `lib/photos.ts`) and uploads photos for both the Ambient settings and the photo collection. Settings groups use `SettingsGroup`; other small-caps headings (a list's, a tray's) use the `.eyebrow` class from `app.css`.
 
 ### Routes
 

@@ -13,10 +13,11 @@
 
 <!--
 @component
-A form control with a small-caps label above it. The <label> wraps the control, so
+A form control with a small label above it (sentence case, so it never reads as a
+SettingsGroup title). The <label> wraps the control, so
 it names it without an id.
 -->
 <label class="flex flex-col gap-1 {extra}">
-    <span class="type-caption tracking-widest text-(--text-2) uppercase">{label}</span>
+    <span class="type-label text-(--text-2)">{label}</span>
     {@render children()}
 </label>

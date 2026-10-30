@@ -8,6 +8,7 @@
     import { fieldClass } from '../ui/field';
     import PickerCard from '../ui/PickerCard.svelte';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
+    import SettingsGroup from '../ui/SettingsGroup.svelte';
     import SizeSlider from '../ui/SizeSlider.svelte';
     import {
         AMBIENT_POSITIONS,
@@ -36,10 +37,9 @@
     }
 </script>
 
-<div class="@container flex flex-col gap-6">
-    <!-- Color ↔ B&W: saved on its own (the frame's Button C flips it too) and applied at once -->
-    <div>
-        <p class="eyebrow mb-2">Colour</p>
+<div class="@container flex flex-col gap-5">
+    <SettingsGroup title="Colour">
+        <!-- Color ↔ B&W: saved on its own (the frame's Button C flips it too) and applied at once -->
         <SegmentedControl
             options={[
                 { value: 'color', label: 'Color' },
@@ -54,11 +54,8 @@
                 ? 'The theme’s colours, mixed from the panel’s six inks.'
                 : 'Pure black and white — black on white, or white on black for dark themes. Photos turn greyscale.'}
         </p>
-    </div>
 
-    <!-- Colour theme -->
-    <div>
-        <p class="eyebrow mb-1">Colour theme</p>
+        <p class="type-label mt-4 mb-1 text-(--text-2)">Theme</p>
         <!-- Folded to the current theme; opens to the full grid -->
         <Disclosure>
             {#snippet summary()}
@@ -95,11 +92,10 @@
                 {/each}
             </div>
         </Disclosure>
-    </div>
+    </SettingsGroup>
 
-    <!-- Typeface -->
-    <div>
-        <p class="eyebrow mb-2">Typeface</p>
+    <SettingsGroup title="Type">
+        <p class="type-label mb-2 text-(--text-2)">Typeface</p>
         <div class="flex flex-wrap gap-2" role="group" aria-label="Typeface">
             {#each fontThemes as f (f.id)}
                 <!-- data-font scopes the preset's [data-font] block to this chip -->
@@ -112,11 +108,8 @@
                 </Chip>
             {/each}
         </div>
-    </div>
 
-    <!-- Text size -->
-    <div>
-        <p class="eyebrow mb-2">Text size</p>
+        <p class="type-label mt-4 mb-2 text-(--text-2)">Text size</p>
         <SizeSlider
             value={frameSettings.textSize / 100}
             min={MIN_FRAME_TEXT_SIZE / 100}
@@ -126,11 +119,10 @@
         <p class="type-caption mt-2 text-(--text-2)">
             Larger text fills a big panel; lists show fewer items to make room.
         </p>
-    </div>
+    </SettingsGroup>
 
-    <!-- Orientation -->
-    <div>
-        <p class="eyebrow mb-2">Orientation</p>
+    <SettingsGroup title="Panel">
+        <p class="type-label mb-2 text-(--text-2)">Orientation</p>
         <SegmentedControl
             options={[
                 { value: 'landscape', label: 'Landscape' },
@@ -153,113 +145,113 @@
                 label="Turn onto the panel"
             />
         {/if}
-    </div>
 
-    <!-- Set-once options, folded away so the everyday ones stay close together -->
-    <Disclosure>
-        {#snippet summary()}
-            <span class="eyebrow">
-                Panel size, dithering &amp; ambient card
-                <span class="font-normal tracking-normal normal-case tabular-nums">
-                    · {frameSettings.width}×{frameSettings.height}
+        <!-- Set-once options, folded away so the everyday ones stay close together -->
+        <Disclosure class="mt-3">
+            {#snippet summary()}
+                <span class="type-label font-medium text-(--text-1)">
+                    Panel size, dithering &amp; ambient card
+                    <span class="font-normal text-(--text-2) tabular-nums">
+                        · {frameSettings.width}×{frameSettings.height}
+                    </span>
                 </span>
-            </span>
-        {/snippet}
-        <div class="flex flex-col gap-6">
-            <!-- Panel size: the native (landscape) resolution; Orientation swaps it -->
-            <div>
-                <p class="eyebrow mb-2">Panel size</p>
-                <div class="flex flex-wrap items-center gap-2">
-                    <input
-                        bind:this={widthInput}
-                        type="number"
-                        inputmode="numeric"
-                        min={MIN_FRAME_SIZE}
-                        max={MAX_FRAME_SIZE}
-                        value={frameSettings.width}
-                        onchange={commitSize}
-                        aria-label="Panel width in pixels"
-                        class="{fieldClass()} w-24 tabular-nums"
-                    />
-                    <span class="type-label text-(--text-2)" aria-hidden="true">×</span>
-                    <input
-                        bind:this={heightInput}
-                        type="number"
-                        inputmode="numeric"
-                        min={MIN_FRAME_SIZE}
-                        max={MAX_FRAME_SIZE}
-                        value={frameSettings.height}
-                        onchange={commitSize}
-                        aria-label="Panel height in pixels"
-                        class="{fieldClass()} w-24 tabular-nums"
-                    />
-                    <span class="type-label text-(--text-2)">px</span>
+            {/snippet}
+            <div class="flex flex-col gap-5">
+                <!-- Panel size: the native (landscape) resolution; Orientation swaps it -->
+                <div>
+                    <p class="type-label mb-2 text-(--text-2)">Panel size</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input
+                            bind:this={widthInput}
+                            type="number"
+                            inputmode="numeric"
+                            min={MIN_FRAME_SIZE}
+                            max={MAX_FRAME_SIZE}
+                            value={frameSettings.width}
+                            onchange={commitSize}
+                            aria-label="Panel width in pixels"
+                            class="{fieldClass()} w-24 tabular-nums"
+                        />
+                        <span class="type-label text-(--text-2)" aria-hidden="true">×</span>
+                        <input
+                            bind:this={heightInput}
+                            type="number"
+                            inputmode="numeric"
+                            min={MIN_FRAME_SIZE}
+                            max={MAX_FRAME_SIZE}
+                            value={frameSettings.height}
+                            onchange={commitSize}
+                            aria-label="Panel height in pixels"
+                            class="{fieldClass()} w-24 tabular-nums"
+                        />
+                        <span class="type-label text-(--text-2)">px</span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="Panel size presets">
+                        {#each FRAME_SIZE_PRESETS as p (p.label)}
+                            <Chip
+                                pressed={frameSettings.width === p.width && frameSettings.height === p.height}
+                                onclick={() => {
+                                    frameSettings.width = p.width;
+                                    frameSettings.height = p.height;
+                                }}
+                            >
+                                {p.label} <span class="tabular-nums">{p.width}×{p.height}</span>
+                            </Chip>
+                        {/each}
+                    </div>
+                    <p class="type-caption mt-2 text-(--text-2)">
+                        The panel's native resolution, long edge first. Type and spacing scale to match.
+                    </p>
                 </div>
-                <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="Panel size presets">
-                    {#each FRAME_SIZE_PRESETS as p (p.label)}
-                        <Chip
-                            pressed={frameSettings.width === p.width && frameSettings.height === p.height}
-                            onclick={() => {
-                                frameSettings.width = p.width;
-                                frameSettings.height = p.height;
-                            }}
-                        >
-                            {p.label} <span class="tabular-nums">{p.width}×{p.height}</span>
-                        </Chip>
-                    {/each}
-                </div>
-                <p class="type-caption mt-2 text-(--text-2)">
-                    The panel's native resolution, long edge first. Type and spacing scale to match.
-                </p>
-            </div>
 
-            <!-- Who dithers the panel's frame (GET /display/frame) -->
-            <div>
-                <p class="eyebrow mb-2">Dithering</p>
-                <SegmentedControl
-                    options={[
-                        { value: 'hearth', label: 'Hearth' },
-                        { value: 'frame', label: 'On the frame' },
-                    ]}
-                    value={frameSettings.dithering}
-                    onchange={(v) => (frameSettings.dithering = v)}
-                    label="Dithering"
-                />
-                <p class="type-caption mt-2 text-(--text-2)">
-                    {frameSettings.dithering === 'hearth'
-                        ? 'Hearth dithers each mode to the six inks — crisp text and even tints.'
-                        : 'The frame gets the undithered picture and dithers it itself (inky’s Floyd–Steinberg). The preview still shows Hearth’s, and Hearth still dithers black & white.'}
-                </p>
-            </div>
-
-            <!-- Ambient card position: a 3×2 pad laid out like the frame -->
-            <div>
-                <p class="eyebrow mb-2">Ambient card</p>
-                <div
-                    class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
-                    role="radiogroup"
-                    aria-label="Ambient card position"
-                >
-                    {#each AMBIENT_POSITIONS as p (p.value)}
-                        {@const selected = frameSettings.ambientPosition === p.value}
-                        <button
-                            type="button"
-                            role="radio"
-                            aria-checked={selected}
-                            title={p.label}
-                            onclick={() => (frameSettings.ambientPosition = p.value)}
-                            class="type-label rounded px-3 py-1.5 transition-colors {selected
-                                ? 'bg-(--accent) text-(--accent-fg)'
-                                : 'text-(--text-2) hover:bg-(--surface-hi)'}"
-                        >
-                            {p.label}
-                        </button>
-                    {/each}
+                <!-- Who dithers the panel's frame (GET /display/frame) -->
+                <div>
+                    <p class="type-label mb-2 text-(--text-2)">Dithering</p>
+                    <SegmentedControl
+                        options={[
+                            { value: 'hearth', label: 'Hearth' },
+                            { value: 'frame', label: 'On the frame' },
+                        ]}
+                        value={frameSettings.dithering}
+                        onchange={(v) => (frameSettings.dithering = v)}
+                        label="Dithering"
+                    />
+                    <p class="type-caption mt-2 text-(--text-2)">
+                        {frameSettings.dithering === 'hearth'
+                            ? 'Hearth dithers each mode to the six inks — crisp text and even tints.'
+                            : 'The frame gets the undithered picture and dithers it itself (inky’s Floyd–Steinberg). The preview still shows Hearth’s, and Hearth still dithers black & white.'}
+                    </p>
                 </div>
-                <p class="type-caption mt-2 text-(--text-2)">
-                    Where the time and weather sit on the photo. The photos themselves are chosen under Ambient.
-                </p>
+
+                <!-- Ambient card position: a 3×2 pad laid out like the frame -->
+                <div>
+                    <p class="type-label mb-2 text-(--text-2)">Ambient card</p>
+                    <div
+                        class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
+                        role="radiogroup"
+                        aria-label="Ambient card position"
+                    >
+                        {#each AMBIENT_POSITIONS as p (p.value)}
+                            {@const selected = frameSettings.ambientPosition === p.value}
+                            <button
+                                type="button"
+                                role="radio"
+                                aria-checked={selected}
+                                title={p.label}
+                                onclick={() => (frameSettings.ambientPosition = p.value)}
+                                class="type-label rounded px-3 py-1.5 transition-colors {selected
+                                    ? 'bg-(--accent) text-(--accent-fg)'
+                                    : 'text-(--text-2) hover:bg-(--surface-hi)'}"
+                            >
+                                {p.label}
+                            </button>
+                        {/each}
+                    </div>
+                    <p class="type-caption mt-2 text-(--text-2)">
+                        Where the time and weather sit on the photo. The photos themselves are chosen under Ambient.
+                    </p>
+                </div>
             </div>
-        </div>
-    </Disclosure>
+        </Disclosure>
+    </SettingsGroup>
 </div>

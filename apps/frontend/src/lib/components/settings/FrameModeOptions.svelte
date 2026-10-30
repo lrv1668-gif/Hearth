@@ -12,6 +12,7 @@
     import PhotoModePicker from './PhotoModePicker.svelte';
     import { fieldClass } from '../ui/field';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
+    import SettingsGroup from '../ui/SettingsGroup.svelte';
     import Select from '../ui/Select.svelte';
     import TextInput from '../ui/TextInput.svelte';
 
@@ -46,23 +47,21 @@ and its card, Countdown mode's countdown, and Note mode's text, with a button to
 the note up until changed.
 Saved with the rest of the frame settings.
 -->
-<div class="@container flex flex-col gap-6">
-    <div>
-        <p class="eyebrow mb-1">New photo every</p>
-        <p class="type-label mb-3 text-(--text-2)">
-            Ambient and Photo mode on the panel. Each change is a full e-paper refresh, about 30 seconds of flashing.
-        </p>
+<div class="@container flex flex-col gap-5">
+    <SettingsGroup title="Photo">
+        <p class="type-label mb-2 text-(--text-2)">New photo every</p>
         <SegmentedControl
             options={photoIntervals.map((i) => ({ value: String(i.minutes), label: i.label }))}
             value={String(frameSettings.photoIntervalMinutes)}
             onchange={(v) => (frameSettings.photoIntervalMinutes = Number(v))}
             label="New photo every"
         />
-    </div>
+        <p class="type-caption mt-2 text-(--text-2)">
+            Ambient and Photo mode on the panel. Each change is a full e-paper refresh, about 30 seconds of flashing.
+        </p>
 
-    <div>
-        <p class="eyebrow mb-1">Photo</p>
-        <p class="type-label mb-3 text-(--text-2)">
+        <p class="type-label mt-4 mb-1 text-(--text-2)">Photos</p>
+        <p class="type-caption mb-2 text-(--text-2)">
             {#if !loaded}
                 Loading your photos…
             {:else if uploads.length === 0}
@@ -75,7 +74,7 @@ Saved with the rest of the frame settings.
             {/if}
         </p>
         {#if uploads.length > 0}
-            <div class="mb-3 flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 {#each picked.slice(0, STRIP_MAX) as u (u.id)}
                     <img src={u.thumb_url} alt={u.caption ?? ''} class="size-12 rounded-lg object-cover" />
                 {/each}
@@ -89,16 +88,16 @@ Saved with the rest of the frame settings.
             </div>
             <PhotoModePicker bind:open={picking} {uploads} />
         {/if}
+        <p class="type-label mt-4 mb-2 text-(--text-2)">Card</p>
         <SegmentedControl
             options={photoCards.map((c) => ({ value: c.value, label: c.label }))}
             value={frameSettings.photoCard}
             onchange={(v) => (frameSettings.photoCard = v)}
             label="Photo card"
         />
-    </div>
+    </SettingsGroup>
 
-    <div>
-        <p class="eyebrow mb-1">Countdown</p>
+    <SettingsGroup title="Countdown">
         <label class="type-label flex flex-wrap items-center gap-2 text-(--text-2)">
             Show
             <Select
@@ -118,14 +117,12 @@ Saved with the rest of the frame settings.
         {#if loaded && countdowns.length === 0}
             <p class="type-caption mt-2 text-(--text-2)">No countdowns yet — add one from the dashboard’s tasks.</p>
         {/if}
-    </div>
+    </SettingsGroup>
 
-    <div>
-        <p class="eyebrow mb-1">Note</p>
-        <p class="type-label mb-3 text-(--text-2)">
-            House rules, a welcome, a reminder. Each line stays its own line, and a blank line adds space. The text
-            sizes itself to fill the frame.
-        </p>
+    <SettingsGroup
+        title="Note"
+        description="House rules, a welcome, a reminder. Each line stays its own line, and a blank line adds space. The text sizes itself to fill the frame."
+    >
         <TextInput
             size="sm"
             type="text"
@@ -167,5 +164,5 @@ Saved with the rest of the frame settings.
                 </Button>
             {/if}
         </div>
-    </div>
+    </SettingsGroup>
 </div>
