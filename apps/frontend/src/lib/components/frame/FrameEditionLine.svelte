@@ -1,17 +1,22 @@
 <script lang="ts">
     import { tick } from 'svelte';
     import { almanacStore } from '#lib/stores/AlmanacStore.svelte.ts';
-    import { dayOfYear, nearestHour } from '#lib/frame.ts';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import { dayOfYear, editionLabel } from '#lib/frame.ts';
+    import { localDateKey } from '#lib/utils.ts';
 
     /** `wrap`: allow a second line (portrait, where it shares the row with the sun path). */
     let { now, wrap = false }: { now: Date; wrap?: boolean } = $props();
 
     const season = $derived(almanacStore.almanac?.season ?? null);
     // "Winter solstice" → "Solstice": the season label just before it already says which.
-    // The edition's hour, snapped like the sun path's disc (nearestHour): it changes on the
-    // render that moves the sun anyway, so it never adds a panel refresh of its own, and a
-    // frame stuck on an old edition shows it.
-    const editionHour = $derived(nearestHour(now).toLocaleTimeString('en-US', { hour: 'numeric' }));
+    // The edition ("11 AM", or "Evening"/"Early" while the sun is down): it changes only on
+    // renders that change the sun path anyway, so it never adds a panel refresh of its own,
+    // and a frame stuck on an old edition shows it. The sun times are the sun path's.
+    const today = $derived(weatherStore.forecast.find((f) => f.date === localDateKey(now)) ?? null);
+    const editionName = $derived(
+        editionLabel(today ? new Date(today.sunrise) : null, today ? new Date(today.sunset) : null, now)
+    );
     const marker = $derived(season ? season.next_marker.replace(/^\S+\s+(\S)/, (_, c: string) => c.toUpperCase()) : '');
 
     // On one line, drop the marker ("Solstice in 52 days") when the line can't hold it
@@ -54,7 +59,8 @@
 @component
 The masthead's edition line, a small-caps kicker above the weekday: the page numbered
 like an edition (day of the year), the season, the days to its next marker, and when
-the edition's hour. Without the almanac it shows only the edition number and hour.
+the edition's hour (see editionLabel). Without the almanac it shows only the edition
+number and hour.
 On one line the marker drops out (then the season truncates) before the hour does: a
 frame that has stopped updating otherwise looks just like a fresh one.
 -->
@@ -76,5 +82,7 @@ frame that has stopped updating otherwise looks just like a fresh one.
                 >{/if}
         {/if}
     </span>
-    <span class="whitespace-nowrap {wrap ? '' : 'shrink-0'}">&nbsp;·&nbsp; {editionHour} edition</span>
+    {#if editionName}
+        <span class="whitespace-nowrap {wrap ? '' : 'shrink-0'}">&nbsp;·&nbsp; {editionName} edition</span>
+    {/if}
 </p>

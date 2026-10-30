@@ -33,8 +33,10 @@ has answered.
 {#if status && frame}
     <div
         class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border-2 border-(--border) bg-(--surface) px-4 py-3"
-        role="status"
     >
+        <!-- Announced only when the frame goes quiet — not the "N min ago" that changes each
+             minute; a failed render is announced by its InlineMessage (role="alert") -->
+        <span class="sr-only" role="status">{frame.stale ? 'The frame has stopped checking in.' : ''}</span>
         <span
             class="size-2.5 shrink-0 rounded-full {frame.stale ? 'bg-(--danger)' : 'bg-(--accent)'}"
             aria-hidden="true"

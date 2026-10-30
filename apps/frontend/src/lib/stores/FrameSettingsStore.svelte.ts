@@ -196,7 +196,9 @@ async function migrateLegacy() {
     const raw = localStorage.getItem(LEGACY_FRAME_SETTINGS_KEY);
     if (!raw) return;
     try {
-        frameSettings.apply(JSON.parse(raw));
+        // A snapshot from before templates existed has no template: its columns are the
+        // layout, as Display assumes for rows saved back then — not today's default template.
+        frameSettings.apply({ template: 'columns', ...JSON.parse(raw) });
         await api.display.saveSettings(frameSettings.snapshot());
         localStorage.removeItem(LEGACY_FRAME_SETTINGS_KEY);
     } catch {

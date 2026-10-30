@@ -448,6 +448,19 @@ export function sunProgress(sunrise: Date, sunset: Date, now: Date): number | nu
     return elapsed / span;
 }
 
+/**
+ * The Daily edition line's edition: the hour ("11 AM") while the sun is up, snapped like
+ * the sun path's disc so it changes only on renders that move the disc anyway; "Evening"
+ * after sunset and "Early" before sunrise, when the disc stands still and an hourly label
+ * would make every render a full panel refresh; null without sun times (no sun path).
+ */
+export function editionLabel(sunrise: Date | null, sunset: Date | null, now: Date): string | null {
+    if (!sunrise || !sunset) return null;
+    const at = nearestHour(now);
+    if (sunProgress(sunrise, sunset, at) !== null) return at.toLocaleTimeString('en-US', { hour: 'numeric' });
+    return at > sunset ? 'Evening' : 'Early';
+}
+
 /** "11 h 03 m" between two times. */
 export function durationLabel(from: Date, to: Date): string {
     const minutes = Math.max(0, Math.round((to.getTime() - from.getTime()) / 60_000));
