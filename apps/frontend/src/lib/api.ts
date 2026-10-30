@@ -525,10 +525,10 @@ class ApiClient {
         setPalette: (palette: FramePalette): Promise<{ palette: FramePalette }> =>
             this.put<{ palette: FramePalette }>('/display/palette', { palette }),
 
-        /** The photo Ambient or Photo mode shows — the one Display holds for the panel, so
-         *  every view matches. null when there's none (or no Photos service), undefined
-         *  when Display can't be reached: the caller then picks its own. */
-        photo: (mode: 'ambient' | 'photo'): Promise<Photo | null | undefined> =>
+        /** The photo Ambient or Photo mode shows, or Daily's Photo widget (today's) — the one
+         *  Display holds for the panel, so every view matches. null when there's none (or no
+         *  Photos service), undefined when Display can't be reached: the caller then picks its own. */
+        photo: (mode: 'ambient' | 'photo' | 'daily'): Promise<Photo | null | undefined> =>
             // Bounded like settings(), so a hung service can't hold up /frame's ready signal.
             this.getSaved<Photo>(`/display/photo?${new URLSearchParams({ mode })}`, { timeoutMs: 8000 }),
 

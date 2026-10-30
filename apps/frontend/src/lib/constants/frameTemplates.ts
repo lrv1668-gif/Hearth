@@ -74,6 +74,7 @@ export const frameWidgetSizes: Record<FrameWidgetId, readonly FrameSize[]> = {
     birds: ['s', 'm', 'l'],
     'last-played': ['s', 'm', 'l'],
     sports: ['s', 'm', 'l'],
+    photo: ['s', 'm', 'l'],
 };
 
 export function isFrameTemplateId(value: string | null | undefined): value is FrameTemplateId {

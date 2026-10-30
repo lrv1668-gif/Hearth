@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Display.Records;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -24,6 +25,9 @@ public sealed class FrameEndpointTests : IDisposable
     private readonly FakeTimeProvider _clock = new(Noon);
     private readonly TempDirectory _dir = new();
     private readonly FakeHttpMessageHandler _renderer = new("frame-a");
+    // The Photos service, set up only by tests that turn on _withPhotos (PHOTOS_URL)
+    private readonly FakeHttpMessageHandler _photos = new(Unsplash("s1"));
+    private bool _withPhotos;
     private WebApplicationFactory<Program>? _factory;
     private HttpClient? _client;
 
@@ -37,11 +41,13 @@ public sealed class FrameEndpointTests : IDisposable
             {
                 host.UseSetting("TZ", "Etc/UTC");
                 host.UseSetting("RENDERER_URL", "http://renderer");
+                if (_withPhotos) host.UseSetting("PHOTOS_URL", "http://photos");
                 host.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<TimeProvider>(_clock);
                     services.AddSingleton(_ => new FrameCache(_dir.Path, NullLogger<FrameCache>.Instance));
                     services.AddHttpClient<RendererClient>().ConfigurePrimaryHttpMessageHandler(() => _renderer);
+                    services.AddHttpClient<PhotosClient>().ConfigurePrimaryHttpMessageHandler(() => _photos);
                 });
             });
             return _client = _factory.CreateClient();
@@ -292,7 +298,7 @@ public sealed class FrameEndpointTests : IDisposable
 
     [Theory]
     [InlineData("")]
-    [InlineData("?mode=daily")]
+    [InlineData("?mode=night")]
     public async Task Photo_NotAPhotoMode_400(string query)
     {
         Assert.Equal(HttpStatusCode.BadRequest, (await Client.GetAsync("/display/photo" + query)).StatusCode);
@@ -302,5 +308,91 @@ public sealed class FrameEndpointTests : IDisposable
     public async Task Photo_NoPhotosUrl_503()
     {
         Assert.Equal(HttpStatusCode.ServiceUnavailable, (await Client.GetAsync("/display/photo?mode=ambient")).StatusCode);
+    }
+
+    private static string Unsplash(string id) =>
+        $$"""{"id":"{{id}}","url":"https://images.unsplash.com/{{id}}","thumb_url":null,"description":null,"photographer_name":"Ana","unsplash_link":"https://unsplash.com/{{id}}","source":"unsplash"}""";
+
+    /// <summary>The photo the last render's /frame path carried (its URL is escaped twice: path, then photo).</summary>
+    private string RenderedPhoto => Uri.UnescapeDataString(RenderQuery);
+
+    private int PhotoPicks => _photos.RequestUris.Count(u => u.AbsolutePath == "/photos/random");
+
+    /// <summary>Daily on the panel, with the Photo widget in a slot unless <paramref name="photo"/> is false.</summary>
+    private async Task DailyWithPhoto(bool photo = true)
+    {
+        _withPhotos = true;
+        await Client.PutAsJsonAsync("/display/settings", new
+        {
+            theme = "almanac", font = "inter", orientation = "landscape", left = Array.Empty<string>(),
+            right = Array.Empty<string>(), split = 50, template = "quad",
+            slots = photo ? new[] { "photo", "today" } : new[] { "today" },
+        });
+        await Client.PutAsJsonAsync("/display/mode/override", new { mode = "daily" });
+    }
+
+    [Fact]
+    public async Task Photo_Daily_ReturnsTodaysHeldPhoto()
+    {
+        await DailyWithPhoto();
+        var first = await Client.GetFromJsonAsync<FramePhoto>("/display/photo?mode=daily", HearthJson.SnakeCaseLower);
+        _photos.ResponseJson = Unsplash("s2");
+
+        var again = await Client.GetFromJsonAsync<FramePhoto>("/display/photo?mode=daily", HearthJson.SnakeCaseLower);
+
+        Assert.Equal("s1", first?.Id);
+        Assert.Equal("s1", again?.Id);
+    }
+
+    [Fact]
+    public async Task DailyRender_IntervalRender_KeepsThePhoto()
+    {
+        await DailyWithPhoto();
+        await Frame();
+        _photos.ResponseJson = Unsplash("s2");
+        var renders = _renderer.RequestCount;
+
+        _clock.Advance(FrameRenderService.FlatInterval);
+        await RendersSince(renders);
+
+        Assert.Contains("\"id\":\"s1\"", RenderedPhoto);
+    }
+
+    [Fact]
+    public async Task DailyRender_Refresh_MovesThePhotoOn()
+    {
+        await DailyWithPhoto();
+        await Frame();
+        _photos.ResponseJson = Unsplash("s2");
+        var renders = _renderer.RequestCount;
+
+        await Client.PostAsync("/display/frame/refresh", null);
+        await RendersSince(renders);
+
+        Assert.Contains("\"id\":\"s2\"", RenderedPhoto);
+    }
+
+    [Fact]
+    public async Task DailyRender_NewDay_MovesThePhotoOn()
+    {
+        await DailyWithPhoto();
+        await Frame();
+        _photos.ResponseJson = Unsplash("s2");
+        var renders = _renderer.RequestCount;
+
+        _clock.Advance(TimeSpan.FromHours(12)); // midnight in the test's UTC home
+        await RendersSince(renders);
+
+        Assert.Contains("\"id\":\"s2\"", RenderedPhoto);
+    }
+
+    [Fact]
+    public async Task DailyRender_NoPhotoWidget_NeverAsksPhotos()
+    {
+        await DailyWithPhoto(photo: false);
+        await Frame();
+
+        Assert.Equal(0, PhotoPicks);
+        Assert.DoesNotContain("photo=", RenderQuery);
     }
 }

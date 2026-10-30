@@ -30,7 +30,9 @@ public sealed record FrameStatus(
 /// while nothing is cached, e.g. the renderer is still starting), or as soon as the mode
 /// moves on. Ambient and Photo capture the photo <see cref="FramePhotos"/> holds, so the
 /// panel matches Settings' preview; only an interval render, <see cref="Refresh"/> or coming
-/// back to the mode once the photo is a photo interval old moves it on to the next one. Inside Settings → Frame's quiet hours the interval renders wait for them to end
+/// back to the mode once the photo is a photo interval old moves it on to the next one. Daily
+/// captures its held photo of the day when the layout shows the Photo widget; only a new day or
+/// <see cref="Refresh"/> moves that on, never the 15-minute re-render. Inside Settings → Frame's quiet hours the interval renders wait for them to end
 /// (<see cref="QuietHours"/>), and a rotating schedule rule holds its step until they end.
 /// A failure reading the settings or schedule is logged and retried; it never stops the service.
 /// </para>
@@ -70,7 +72,7 @@ public sealed class FrameRenderService(
         _wake.Release();
     }
 
-    /// <summary>Renders now with the next photo — the frame's Button A.</summary>
+    /// <summary>Renders now with the next photo (Ambient's, Photo's or Daily's) — the frame's Button A.</summary>
     public void Refresh()
     {
         lock (_lock) _nextPhoto = true;
@@ -137,6 +139,15 @@ public sealed class FrameRenderService(
         if (photo is not null) query.Add("photo", JsonSerializer.Serialize(photo, HearthJson.SnakeCaseLower));
         return "/frame" + query.ToQueryString();
     }
+
+    /// <summary>Whether Daily's layout (its columns, or its template's slots) shows the Photo widget.</summary>
+    public static bool ShowsDailyPhoto(FrameSettings? saved) =>
+        saved is not null && (saved.Template == FrameSettings.DefaultTemplate
+            ? saved.Left.Contains(DailyPhotoWidget) || saved.Right.Contains(DailyPhotoWidget)
+            : saved.Slots?.Contains(DailyPhotoWidget) == true);
+
+    /// <summary>The Photo widget's id (the frontend's constants/frameWidgets.ts).</summary>
+    public const string DailyPhotoWidget = "photo";
 
     /// <summary>
     /// Whether a render moves the photo on: Button A, or the interval render of a frame
@@ -231,13 +242,14 @@ public sealed class FrameRenderService(
     private async Task RenderAsync(ResolvedMode mode, CancellationToken stop)
     {
         TaskCompletionSource? waiting;
-        bool nextPhoto;
+        bool nextPhoto, refresh;
         var last = cache.Current?.Info;
         lock (_lock)
         {
             waiting = _running = _queued;
             _queued = null;
-            nextPhoto = NextPhoto(last, mode, waiting is not null, _nextPhoto, _failure);
+            refresh = _nextPhoto;
+            nextPhoto = NextPhoto(last, mode, waiting is not null, refresh, _failure);
             _nextPhoto = false;
         }
 
@@ -251,7 +263,11 @@ public sealed class FrameRenderService(
             var rotate = width < height ? saved?.PortraitRotation ?? FrameSettings.DefaultPortraitRotation : 0;
             var photo = mode.Mode is FrameModes.Ambient or FrameModes.Photo
                 ? await photos.GetAsync(mode.Mode, saved, mode.PhotoId, nextPhoto, PhotoMaxAge(last, mode, saved), stop)
-                : null;
+                // Daily's photo of the day: only Button A moves it on, not the 15-minute re-render
+                : mode.Mode == FrameModes.Daily && ShowsDailyPhoto(saved)
+                    ? await photos.GetDailyAsync(
+                        saved, FramePhotos.Today(HomeZones.Resolve(home.Get(), config), clock.GetUtcNow()), refresh, stop)
+                    : null;
             var png = await services.GetRequiredService<RendererClient>().RenderAsync(
                 FramePath(mode, photo, palette), width, height, DitherFor(mode, saved, palette), kernel: null,
                 look: "screen", home.Get()?.TimeZone, rotate, palette.Palette, stop);

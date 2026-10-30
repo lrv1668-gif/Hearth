@@ -125,14 +125,15 @@ public static class WebApplicationExtensions
             return Results.Accepted();
         });
 
-        // The photo Ambient or Photo mode shows — the one the panel has (or would have) and
-        // the one Settings' preview and /frame in a browser show, so every view matches.
+        // The photo Ambient or Photo mode shows, or Daily's Photo widget (today's) — the one the
+        // panel has (or would have) and the one Settings' preview and /frame in a browser show, so every view matches.
         // 204 when there's none to show (e.g. no uploads for "My photos"), 503 without PHOTOS_URL.
         app.MapGet("/display/photo", async (
             string? mode, FramePhotos photos, FrameRenderService renderer, ModeStore store, FrameSettingsStore settings, HomeSettingsStore home,
             IConfiguration config, TimeProvider clock, CancellationToken ct) =>
         {
-            if (mode is not (FrameModes.Ambient or FrameModes.Photo)) return Results.BadRequest("mode must be ambient or photo");
+            if (mode is not (FrameModes.Ambient or FrameModes.Photo or FrameModes.Daily))
+                return Results.BadRequest("mode must be ambient, photo or daily");
             if (config.RequireOrFail(
                     app.Logger,
                     _ => Results.Json(new { error = "photos not configured" }, statusCode: 503),
@@ -141,13 +142,19 @@ public static class WebApplicationExtensions
                 return configError;
             }
             var saved = settings.Get();
-            var resolved = ModeResolver.Resolve(
-                store.GetSchedule(), store.GetOverride(), clock.GetUtcNow(), HomeZones.Resolve(home.Get(), config), saved);
+            var now = clock.GetUtcNow();
+            var zone = HomeZones.Resolve(home.Get(), config);
+            var resolved = ModeResolver.Resolve(store.GetSchedule(), store.GetOverride(), now, zone, saved);
             // The upload "Show on frame" pinned, as the panel render passes it
             var pinned = mode == FrameModes.Photo && resolved.Mode == FrameModes.Photo ? resolved.PhotoId : null;
-            var photo = await photos.GetAsync(mode, saved, pinned, ct: ct);
+            var photo = mode == FrameModes.Daily
+                ? await photos.GetDailyAsync(saved, FramePhotos.Today(zone, now), ct: ct)
+                : await photos.GetAsync(mode, saved, pinned, ct: ct);
             // A pick the panel doesn't have yet (its upload was deleted): redraw it to match
-            if (photo is not null && resolved.Mode == mode) renderer.PhotoPicked(mode, photo.Id);
+            // (Daily only when its saved layout shows the photo — a URL's own layout isn't the panel's)
+            if (photo is not null && resolved.Mode == mode &&
+                (mode != FrameModes.Daily || FrameRenderService.ShowsDailyPhoto(saved)))
+                renderer.PhotoPicked(mode, photo.Id);
             return photo is null ? Results.NoContent() : Results.Ok(photo);
         });
     }

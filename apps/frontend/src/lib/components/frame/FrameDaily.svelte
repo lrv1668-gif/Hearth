@@ -16,6 +16,7 @@
     import FrameCountdowns from './widgets/FrameCountdowns.svelte';
     import FrameLastPlayed from './widgets/FrameLastPlayed.svelte';
     import FrameSports from './widgets/FrameSports.svelte';
+    import FramePhoto from './widgets/FramePhoto.svelte';
     import AlmanacView from '#lib/components/widgets/views/AlmanacView.svelte';
     import MoonPhaseView from '#lib/components/widgets/views/MoonPhaseView.svelte';
     import DailyQuoteView from '#lib/components/widgets/views/DailyQuoteView.svelte';
@@ -118,6 +119,8 @@
                 <FrameLastPlayed {now} {size} />
             {:else if id === 'sports'}
                 <FrameSports {now} lines={n} {size} />
+            {:else if id === 'photo'}
+                <FramePhoto {size} />
             {/if}
         </div>
     </section>

@@ -2,7 +2,8 @@
    on a schedule, not live, so only widgets that stay correct for an hour or more
    belong here — no trains, no now-playing (Last Played shows the listening history
    instead, cached for an hour so it doesn't redraw the panel every track), no live
-   scores (Last Result & Next Game shows a game in progress as "Playing now"). The edition bar, masthead (date block,
+   scores (Last Result & Next Game shows a game in progress as "Playing now"); Photo holds one
+   photo for the whole day. The edition bar, masthead (date block,
    weather and the sun path) and the forecast band are fixed and not listed. */
 export const frameWidgets = [
     { id: 'arc', label: "Today's Arc", description: 'Daylight, golden hours and today’s events as a ribbon' },
@@ -16,6 +17,7 @@ export const frameWidgets = [
     { id: 'birds', label: 'Birds Nearby', description: 'Recent sightings from eBird' },
     { id: 'last-played', label: 'Last Played', description: 'The latest track from Spotify, with its album art' },
     { id: 'sports', label: 'Last Result & Next Game', description: 'Last result and next game for teams you follow' },
+    { id: 'photo', label: 'Photo', description: 'A photo of the day from your Ambient photos' },
 ] as const;
 
 export type FrameWidgetId = (typeof frameWidgets)[number]['id'];
