@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { Task, CalendarItem, Item } from '$lib/api';
-    import { formatTime, eventDateKey, localDateKey as dateKey } from '$lib/utils';
+    import type { Task, CalendarItem, Item } from '#lib/api.ts';
+    import { formatTime, eventDateKey, localDateKey as dateKey } from '#lib/utils.ts';
     import {
         ArrowLeft,
         ArrowRight,
@@ -16,7 +16,7 @@
     import TaskCheckbox from './TaskCheckbox.svelte';
     import Button from './ui/Button.svelte';
     import IconButton from './ui/IconButton.svelte';
-    import { DAY_NAMES, MONTH_NAMES } from '$lib/constants/calendar';
+    import { DAY_NAMES, MONTH_NAMES } from '#lib/constants/calendar.ts';
 
     interface Props {
         tasks: Task[];

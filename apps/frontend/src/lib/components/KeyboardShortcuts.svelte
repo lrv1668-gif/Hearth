@@ -13,8 +13,8 @@
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
     import { tinykeys } from 'tinykeys';
-    import Modal from '$lib/components/ui/Modal.svelte';
-    import { formatKeys, goToRoutes, ignoreWhileTyping, isMacPlatform, shortcuts } from '$lib/shortcuts';
+    import Modal from '#lib/components/ui/Modal.svelte';
+    import { formatKeys, goToRoutes, ignoreWhileTyping, isMacPlatform, shortcuts } from '#lib/shortcuts.ts';
 
     const mac = isMacPlatform(navigator.platform);
 

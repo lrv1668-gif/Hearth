@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import {
         frameTemplates,
         moveToTemplate,
@@ -8,8 +8,8 @@
         type FrameSize,
         type FrameTemplate,
         type FrameTemplateId,
-    } from '$lib/constants/frameTemplates';
-    import { frameWidgets, type FrameWidgetId } from '$lib/constants/frameWidgets';
+    } from '#lib/constants/frameTemplates.ts';
+    import { frameWidgets, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
     import Field from '../ui/Field.svelte';
     import PickerCard from '../ui/PickerCard.svelte';
     import Select from '../ui/Select.svelte';

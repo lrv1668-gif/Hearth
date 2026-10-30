@@ -1,12 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { MINUTE, poll } from '$lib/utils';
+    import { MINUTE, poll } from '#lib/utils.ts';
     import { Bus, TrainFront } from '@lucide/svelte';
-    import { trainsStore, loadTrainDepartures } from '$lib/stores/TrainsStore.svelte.ts';
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-    import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
-    import ScrollFadeList from '$lib/components/ScrollFadeList.svelte';
-    import { settingsHref } from '$lib/constants/settingsSections';
+    import { trainsStore, loadTrainDepartures } from '#lib/stores/TrainsStore.svelte.ts';
+    import { settings } from '#lib/stores/SettingsStore.svelte.ts';
+    import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
+    import { settingsHref } from '#lib/constants/settingsSections.ts';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
 

@@ -1,12 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { SECOND } from '$lib/utils';
+    import { SECOND } from '#lib/utils.ts';
     import { Trophy } from '@lucide/svelte';
-    import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
-    import ScrollFadeList from '$lib/components/ScrollFadeList.svelte';
-    import { sportsStore, loadSports } from '$lib/stores/SportsStore.svelte.ts';
-    import { broadcastLabel, opponentLabel, resultLabel, resultWhen, sides, upcomingLabel } from '$lib/sports';
-    import { settingsHref } from '$lib/constants/settingsSections';
+    import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
+    import { sportsStore, loadSports } from '#lib/stores/SportsStore.svelte.ts';
+    import { broadcastLabel, opponentLabel, resultLabel, resultWhen, sides, upcomingLabel } from '#lib/sports.ts';
+    import { settingsHref } from '#lib/constants/settingsSections.ts';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
 

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { MINUTE, poll } from '$lib/utils';
-    import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
-    import { dailyQuoteStore, loadDailyQuote } from '$lib/stores/DailyQuoteStore.svelte.ts';
+    import { MINUTE, poll } from '#lib/utils.ts';
+    import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import { dailyQuoteStore, loadDailyQuote } from '#lib/stores/DailyQuoteStore.svelte.ts';
     import DailyQuoteView from './views/DailyQuoteView.svelte';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));

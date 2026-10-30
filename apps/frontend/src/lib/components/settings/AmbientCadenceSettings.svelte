@@ -1,8 +1,8 @@
 <script lang="ts">
     import ChoiceChips from '../ui/ChoiceChips.svelte';
     import ToggleRow from '../ui/ToggleRow.svelte';
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-    import { cadenceOptions, nightCadenceOptions } from '$lib/constants/ambient';
+    import { settings } from '#lib/stores/SettingsStore.svelte.ts';
+    import { cadenceOptions, nightCadenceOptions } from '#lib/constants/ambient.ts';
     import SettingsGroup from '../ui/SettingsGroup.svelte';
 </script>
 

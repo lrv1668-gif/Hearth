@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { sportsStore } from '$lib/stores/SportsStore.svelte.ts';
-    import { broadcastLabel, opponentLabel, resultLabel, resultWhen, upcomingLabel } from '$lib/sports';
-    import { itemsThatFit } from '$lib/frame';
+    import { sportsStore } from '#lib/stores/SportsStore.svelte.ts';
+    import { broadcastLabel, opponentLabel, resultLabel, resultWhen, upcomingLabel } from '#lib/sports.ts';
+    import { itemsThatFit } from '#lib/frame.ts';
 
     let { now, lines }: { now: Date; lines: number } = $props();
 

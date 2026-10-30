@@ -1,4 +1,4 @@
-import { api, type SportsTeam, type TeamGames } from '$lib/api';
+import { api, type SportsTeam, type TeamGames } from '#lib/api.ts';
 
 class SportsStore {
     teams = $state<TeamGames[]>([]);

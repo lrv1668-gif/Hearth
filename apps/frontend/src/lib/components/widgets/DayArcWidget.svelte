@@ -1,10 +1,10 @@
 <script lang="ts">
     import { Sunrise, Sunset } from '@lucide/svelte';
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { taskStore } from '$lib/stores/TaskStore.svelte.ts';
-    import { calendarStore } from '$lib/stores/CalendarStore.svelte.ts';
-    import { eventDateKey, localDateKey } from '$lib/utils';
-    import { nearestHour } from '$lib/frame';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
+    import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
+    import { eventDateKey, localDateKey } from '#lib/utils.ts';
+    import { nearestHour } from '#lib/frame.ts';
 
     /** `hourly`: the e-paper frame's copy — the "now" dot (and which marks have passed)
      *  moves in whole hours, so a re-render within the hour keeps the same pixels. */

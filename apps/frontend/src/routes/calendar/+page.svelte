@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { Task, CalendarItem } from '$lib/api';
-    import { taskStore, addTask, toggleTask, removeTask, editTask } from '$lib/stores/TaskStore.svelte.ts';
-    import { calendarStore, toggleCalendarTask } from '$lib/stores/CalendarStore.svelte.ts';
-    import Calendar from '$lib/components/Calendar.svelte';
-    import TaskModal from '$lib/components/modals/TaskModal.svelte';
-    import EventDetailModal from '$lib/components/modals/EventDetailModal.svelte';
+    import type { Task, CalendarItem } from '#lib/api.ts';
+    import { taskStore, addTask, toggleTask, removeTask, editTask } from '#lib/stores/TaskStore.svelte.ts';
+    import { calendarStore, toggleCalendarTask } from '#lib/stores/CalendarStore.svelte.ts';
+    import Calendar from '#lib/components/Calendar.svelte';
+    import TaskModal from '#lib/components/modals/TaskModal.svelte';
+    import EventDetailModal from '#lib/components/modals/EventDetailModal.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);

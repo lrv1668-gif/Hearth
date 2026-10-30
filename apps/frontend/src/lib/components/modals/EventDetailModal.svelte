@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { CalendarItem } from '$lib/api';
-    import { formatTime, providerLabel } from '$lib/utils';
+    import type { CalendarItem } from '#lib/api.ts';
+    import { formatTime, providerLabel } from '#lib/utils.ts';
     import { CalendarDays, ExternalLink, MapPin, Plug, TextAlignStart } from '@lucide/svelte';
     import DOMPurify from 'dompurify';
     import Button from '../ui/Button.svelte';

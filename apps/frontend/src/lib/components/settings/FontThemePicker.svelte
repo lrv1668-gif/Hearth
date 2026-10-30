@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { fontThemes } from '$lib/constants/fontThemes';
-    import { fontThemeStore, setFontTheme } from '$lib/stores/FontThemeStore.svelte.ts';
+    import { fontThemes } from '#lib/constants/fontThemes.ts';
+    import { fontThemeStore, setFontTheme } from '#lib/stores/FontThemeStore.svelte.ts';
     import Disclosure from '../ui/Disclosure.svelte';
     import PickerCard from '../ui/PickerCard.svelte';
 

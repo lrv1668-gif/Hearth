@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { almanacStore } from '$lib/stores/AlmanacStore.svelte.ts';
-    import { durationLabel, getFrameScale, nearestHour, sunProgress } from '$lib/frame';
-    import { localDateKey } from '$lib/utils';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import { almanacStore } from '#lib/stores/AlmanacStore.svelte.ts';
+    import { durationLabel, getFrameScale, nearestHour, sunProgress } from '#lib/frame.ts';
+    import { localDateKey } from '#lib/utils.ts';
 
     /** `compact`: a smaller dome that fits beside the weekday in portrait — the times
      *  move into one row under the horizon and the daylight trend is dropped. */

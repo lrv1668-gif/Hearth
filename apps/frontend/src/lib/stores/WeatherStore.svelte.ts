@@ -1,4 +1,4 @@
-import { api, type CurrentWeather, type ForecastDay } from '$lib/api';
+import { api, type CurrentWeather, type ForecastDay } from '#lib/api.ts';
 
 export const weatherStore = $state({
     current: null as CurrentWeather | null,

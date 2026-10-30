@@ -4,9 +4,9 @@
         subscribeToTrainStop,
         unsubscribeFromTrainStop,
         updateTrainStopLineFilter,
-    } from '$lib/stores/SettingsStore.svelte.ts';
-    import { api } from '$lib/api';
-    import type { TrainStop } from '$lib/constants/trains';
+    } from '#lib/stores/SettingsStore.svelte.ts';
+    import { api } from '#lib/api.ts';
+    import type { TrainStop } from '#lib/constants/trains.ts';
     import { ChevronDown, ChevronUp, Plus } from '@lucide/svelte';
     import Button from '../ui/Button.svelte';
     import Field from '../ui/Field.svelte';

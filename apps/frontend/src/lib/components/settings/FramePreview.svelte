@@ -1,7 +1,7 @@
 <script lang="ts" module>
-    import type { FrameModeId } from '$lib/constants/frameModes';
-    import type { Photo } from '$lib/api';
-    import type { FramePalette } from '$lib/constants/frameThemes';
+    import type { FrameModeId } from '#lib/constants/frameModes.ts';
+    import type { Photo } from '#lib/api.ts';
+    import type { FramePalette } from '#lib/constants/frameThemes.ts';
 
     // Shared by every preview on the page, so the full-size one opens on the same picked
     // mode, palette, view and photo as the card's.
@@ -19,15 +19,15 @@
 
 <script lang="ts">
     import { onMount, untrack } from 'svelte';
-    import { frameDataTheme } from '$lib/constants/frameThemes';
-    import { normalizeFrameLayout } from '$lib/constants/frameWidgets';
-    import { normalizeSlots } from '$lib/constants/frameTemplates';
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { frameCanvas, frameUrl, type FrameOptions } from '$lib/frame';
-    import { frameModes } from '$lib/constants/frameModes';
-    import { modeStore } from '$lib/stores/ModeStore.svelte.ts';
-    import { api } from '$lib/api';
-    import { poll } from '$lib/utils';
+    import { frameDataTheme } from '#lib/constants/frameThemes.ts';
+    import { normalizeFrameLayout } from '#lib/constants/frameWidgets.ts';
+    import { normalizeSlots } from '#lib/constants/frameTemplates.ts';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { frameCanvas, frameUrl, type FrameOptions } from '#lib/frame.ts';
+    import { frameModes } from '#lib/constants/frameModes.ts';
+    import { modeStore } from '#lib/stores/ModeStore.svelte.ts';
+    import { api } from '#lib/api.ts';
+    import { poll } from '#lib/utils.ts';
     import { Maximize2 } from '@lucide/svelte';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import IconButton from '../ui/IconButton.svelte';

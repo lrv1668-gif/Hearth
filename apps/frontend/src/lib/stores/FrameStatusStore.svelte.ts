@@ -1,4 +1,4 @@
-import { api, type FrameStatus } from '$lib/api';
+import { api, type FrameStatus } from '#lib/api.ts';
 
 /** The panel render and the frame client's last check-in (GET /display/frame/status). */
 class FrameStatusStore {

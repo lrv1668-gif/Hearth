@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { calcMoonPhase, moonPath } from '$lib/constants/moonphase';
+    import { calcMoonPhase, moonPath } from '#lib/constants/moonphase.ts';
 
     let { now = new Date() }: { now?: Date } = $props();
 

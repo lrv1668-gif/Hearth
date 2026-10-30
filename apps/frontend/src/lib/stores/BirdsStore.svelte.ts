@@ -1,4 +1,4 @@
-import { api, type BirdSighting } from '$lib/api';
+import { api, type BirdSighting } from '#lib/api.ts';
 
 class BirdsStore {
     sightings = $state<BirdSighting[]>([]);

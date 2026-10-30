@@ -1,6 +1,6 @@
 <script lang="ts">
     import { dndzone, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
-    import { settleDrop, type Columns, type Side } from '$lib/widgetLayout';
+    import { settleDrop, type Columns, type Side } from '#lib/widgetLayout.ts';
     import { GripVertical, Grip, Lock, Plus, X } from '@lucide/svelte';
     import Chip from '../ui/Chip.svelte';
     import IconButton from '../ui/IconButton.svelte';

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Task } from '$lib/api';
+import type { Task } from '#lib/api.ts';
 import { loadTasks, removeTask, taskStore } from './TaskStore.svelte.ts';
 import { calendarStore, loadCalendarItems, loadCalendarStatus } from './CalendarStore.svelte.ts';
 

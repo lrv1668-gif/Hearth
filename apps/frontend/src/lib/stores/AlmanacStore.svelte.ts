@@ -1,4 +1,4 @@
-import { api, type AlmanacResponse } from '$lib/api';
+import { api, type AlmanacResponse } from '#lib/api.ts';
 
 class AlmanacStore {
     almanac = $state<AlmanacResponse | null>(null);

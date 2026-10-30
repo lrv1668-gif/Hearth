@@ -1,4 +1,4 @@
-import { api, type HomeSettings } from '$lib/api';
+import { api, type HomeSettings } from '#lib/api.ts';
 
 /** This browser's IANA zone — the default for the household's until one is saved. */
 export function browserTimeZone(): string {

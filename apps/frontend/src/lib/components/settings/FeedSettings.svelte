@@ -4,7 +4,7 @@
         subscribeToRssFeed,
         unsubscribeFromRssFeed,
         updateRssArticleCount,
-    } from '$lib/stores/SettingsStore.svelte.ts';
+    } from '#lib/stores/SettingsStore.svelte.ts';
     import { Plus } from '@lucide/svelte';
     import Button from '../ui/Button.svelte';
     import ChoiceChips from '../ui/ChoiceChips.svelte';

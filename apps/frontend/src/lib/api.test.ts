@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { api, HomeSettingsRejected, type HomeSettings } from '$lib/api';
+import { api, HomeSettingsRejected, type HomeSettings } from '#lib/api.ts';
 
 const fetchMock = vi.fn<typeof fetch>();
 const respond = (status: number, body?: unknown) =>

@@ -1,9 +1,9 @@
 <script lang="ts">
     import { Leaf, SunMedium, Wind } from '@lucide/svelte';
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { weatherIcon } from '$lib/constants/weather';
-    import { forecastBars } from '$lib/frame';
-    import { localDateKey } from '$lib/utils';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import { weatherIcon } from '#lib/constants/weather.ts';
+    import { forecastBars } from '#lib/frame.ts';
+    import { localDateKey } from '#lib/utils.ts';
 
     // compact: portrait's narrower columns — the conditions drop their words and show
     // only the readings, so nothing truncates.

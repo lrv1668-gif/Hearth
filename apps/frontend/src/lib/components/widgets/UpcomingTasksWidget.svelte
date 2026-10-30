@@ -1,11 +1,11 @@
 <script lang="ts">
-    import type { Task, CalendarItem, Item } from '$lib/api';
-    import { formatTime, eventDateKey, stripHtml, localDateKey as dateKey } from '$lib/utils';
+    import type { Task, CalendarItem, Item } from '#lib/api.ts';
+    import { formatTime, eventDateKey, stripHtml, localDateKey as dateKey } from '#lib/utils.ts';
     import { Calendar as CalendarIcon, ExternalLink, RefreshCw, X } from '@lucide/svelte';
-    import ProviderIcon from '$lib/components/ProviderIcon.svelte';
-    import TaskCheckbox from '$lib/components/TaskCheckbox.svelte';
-    import Button from '$lib/components/ui/Button.svelte';
-    import IconButton from '$lib/components/ui/IconButton.svelte';
+    import ProviderIcon from '#lib/components/ProviderIcon.svelte';
+    import TaskCheckbox from '#lib/components/TaskCheckbox.svelte';
+    import Button from '#lib/components/ui/Button.svelte';
+    import IconButton from '#lib/components/ui/IconButton.svelte';
 
     interface Props {
         tasks: Task[];
