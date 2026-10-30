@@ -13,13 +13,14 @@
 //
 // The page is loaded from FRAME_BASE_URL (default http://caddy, whose :80 site serves
 // the frontend and every API route the frame calls) and captured once its root sets
-// data-ready="true". One render at a time — the host may be a Raspberry Pi — with at most
+// data-ready="true". Elements marked data-dither="diffuse" (Daily's photo and album art)
+// are error-diffused inside an ordered-dithered frame. One render at a time — the host may be a Raspberry Pi — with at most
 // one more waiting (503 beyond that); a render whose client has gone is dropped, and one
 // that runs past RENDER_DEADLINE_MS fails with a 504 and takes Chromium with it.
 import { createServer } from 'node:http';
 import { createCanvas, loadImage } from 'canvas';
 import { chromium } from 'playwright';
-import { dither, greyscale, KERNELS, paintPaper, PALETTES } from './dither.mjs';
+import { dither, greyscale, KERNELS, paintPaper, PALETTES, photoBoxes } from './dither.mjs';
 import { createQueue } from './queue.mjs';
 import { ROTATIONS, rotatePixels } from './rotate.mjs';
 import { captureTimeZone, isTimeZone } from './timezone.mjs';
@@ -80,7 +81,19 @@ async function screenshot(path, width, height, timezoneId, signal) {
         // An error page never sets data-ready — fail now rather than at the deadline
         if (!response?.ok()) throw new Error(`frame page returned ${response?.status() ?? 'nothing'}`);
         await page.waitForSelector('[data-ready="true"]', { timeout: Math.max(1, deadline - Date.now()) });
-        return await page.screenshot({ type: 'png' });
+        // Each marked image's content box — inside its border, which stays with the page
+        const photos = await page.$$eval('[data-dither="diffuse"]', (elements) =>
+            elements.map((el) => {
+                const rect = el.getBoundingClientRect();
+                return {
+                    x: rect.left + el.clientLeft,
+                    y: rect.top + el.clientTop,
+                    width: el.clientWidth,
+                    height: el.clientHeight,
+                };
+            })
+        );
+        return { png: await page.screenshot({ type: 'png' }), photos };
     } finally {
         signal.removeEventListener('abort', abort);
         await context.close().catch(() => {});
@@ -97,7 +110,7 @@ function resetBrowser() {
 
 const queue = createQueue({ deadlineMs: RENDER_DEADLINE_MS, onTimeout: resetBrowser });
 
-async function render(png, { method, kernel, palette, look, rotate }) {
+async function render({ png, photos }, { method, kernel, palette, look, rotate }) {
     const image = await loadImage(png);
     const canvas = () => createCanvas(image.width, image.height);
     let result = canvas();
@@ -105,7 +118,12 @@ async function render(png, { method, kernel, palette, look, rotate }) {
     if (palette === 'bw') greyscale(result);
     if (method !== 'none') {
         const dithered = canvas();
-        await dither(result, dithered, { method, kernel, palette });
+        await dither(result, dithered, {
+            method,
+            kernel,
+            palette,
+            photos: photoBoxes(photos, image.width, image.height),
+        });
         result = dithered;
     }
     if (look === 'paper') {

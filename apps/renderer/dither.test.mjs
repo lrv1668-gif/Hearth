@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createCanvas } from 'canvas';
-import { dither, greyscale, INKS, PAPER_INKS, paintPaper } from './dither.mjs';
+import { dither, greyscale, INKS, PAPER_INKS, paintPaper, photoBoxes } from './dither.mjs';
 
 function filled(colour, size = 16) {
     const canvas = createCanvas(size, size);
@@ -112,4 +112,52 @@ test('paintPaper moves each ink to its paper colour, pixel for pixel', async () 
     paintPaper(source, paper);
     const paperOf = (ink) => PAPER_INKS[INKS.indexOf(ink)];
     assert.deepEqual(pixels(paper), pixels(source).map(paperOf));
+});
+
+// Daily's photos: error-diffused inside the ordered page, each on its own
+test('ordered: a photo box is error-diffused, the page around it ordered', async () => {
+    const source = createCanvas(64, 32);
+    const ctx = source.getContext('2d');
+    ctx.fillStyle = '#f8b771';
+    ctx.fillRect(0, 0, 64, 32);
+    ctx.drawImage(photoLike(), 0, 16);
+    const photo = { x: 0, y: 16, width: 64, height: 16 };
+
+    const hybrid = createCanvas(64, 32);
+    await dither(source, hybrid, { method: 'ordered', photos: [photo] });
+    const ordered = createCanvas(64, 32);
+    await dither(source, ordered, { method: 'ordered' });
+    const diffused = createCanvas(64, 16);
+    await dither(photoLike(), diffused, { method: 'errorDiffusion' });
+
+    const out = pixels(hybrid);
+    assert.deepEqual(out.slice(0, 64 * 16), pixels(ordered).slice(0, 64 * 16));
+    assert.deepEqual(out.slice(64 * 16), pixels(diffused));
+});
+
+test('ordered: B&W photo boxes keep to black and white', async () => {
+    const source = photoLike();
+    greyscale(source);
+    const dest = createCanvas(64, 16);
+    await dither(source, dest, { method: 'ordered', palette: 'bw', photos: [{ x: 8, y: 0, width: 48, height: 16 }] });
+    assert.deepEqual(Object.keys(counts(dest)).sort(), ['#000000', '#ffffff']);
+});
+
+test('photoBoxes rounds inwards, clips to the frame and drops empty boxes', () => {
+    assert.deepEqual(
+        photoBoxes(
+            [
+                { x: 10.4, y: 20.6, width: 100.2, height: 50 },
+                { x: -5, y: 1190, width: 40, height: 40 },
+                { x: 1700, y: 0, width: 50, height: 50 },
+                { x: 3.2, y: 3.2, width: 0.5, height: 10 },
+            ],
+            1600,
+            1200
+        ),
+        [
+            { x: 11, y: 21, width: 99, height: 49 },
+            { x: 0, y: 1190, width: 35, height: 10 },
+        ]
+    );
 });

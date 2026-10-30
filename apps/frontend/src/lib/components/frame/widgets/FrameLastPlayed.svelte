@@ -5,9 +5,9 @@
     import type { FrameSize } from '#lib/constants/frameTemplates.ts';
     import FrameEmpty from '../FrameEmpty.svelte';
 
-    // `size`: a template slot's size class — S drops the sleeve for the text alone, L
-    // grows it to the slot's full height (up to half its width; the slot body is a size
-    // container) with a larger title. Omitted (the frame's columns) is M.
+    // `size`: a template slot's size class — S drops the sleeve for the text alone; M and L
+    // grow it to the slot's full height (up to half its width; the slot body is a size
+    // container), L with a larger title. Omitted (the frame's columns): a fixed sleeve.
     let { now, size }: { now: Date; size?: FrameSize } = $props();
     // Empty states stay body-sized in the columns and S slots, like the other widgets'.
     const small = $derived(size === undefined || size === 's');
@@ -17,7 +17,7 @@
     // A fixed 5-line square (its budget in lib/frame.ts): big enough to read as a record
     // sleeve once dithered, and as tall as the four lines of text beside it.
     const ART_LINES = 5;
-    const art = $derived(size === 'l' ? 'width: min(100cqh, 50cqw)' : `width: ${ART_LINES}lh`);
+    const art = $derived(size ? 'width: min(100cqh, 50cqw)' : `width: ${ART_LINES}lh`);
 </script>
 
 <!--
@@ -43,7 +43,8 @@ stays true between the frame's scheduled refreshes.
                 style={art}
             >
                 {#if track.album_art_url}
-                    <img src={track.album_art_url} alt="" class="h-full w-full object-cover" />
+                    <!-- Error-diffused by the renderer, like a photo, inside Daily's ordered dithering -->
+                    <img src={track.album_art_url} alt="" data-dither="diffuse" class="h-full w-full object-cover" />
                 {:else}
                     <Disc3 class="icon-lg" />
                 {/if}
