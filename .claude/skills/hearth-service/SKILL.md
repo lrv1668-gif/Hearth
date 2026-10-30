@@ -162,7 +162,6 @@ Use the `write-unit-tests` skill: `tests/<Service>.Tests/`, added to `Hearth.sln
 ## Step 6: Docs
 
 - `docs/SOFTWARE-DESIGN.md` — a row in the Backend Services table (service, port, status, responsibility) and a `## <Service> Service` section (endpoints, env vars, caching, frontend integration), matching the others
-- `CLAUDE.md` — the `apps/services/` entry in Directory Structure
 - `README.md` — the service count and list in the "How it works" diagram, and the Configuration block
 - `site/` — the host's service list (the diagram in `site/index.html`) and the status table in `site/build.html`
 - `docs/PRODUCT.md` — if it changes product scope
@@ -178,5 +177,5 @@ Use the `write-unit-tests` skill: `tests/<Service>.Tests/`, added to `Hearth.sln
 - [ ] `Hearth.slnx`, `infra/docker-compose.yml` (+ volume), override (port + frontend env), `infra/Caddyfile`, `vite.config.ts`, `services.ts`, CI `publish-images` matrix
 - [ ] `api.<prefix>` namespace in `api.ts`
 - [ ] Test project added; `dotnet build Hearth.slnx && dotnet test Hearth.slnx` pass
-- [ ] `docs/SOFTWARE-DESIGN.md`, `CLAUDE.md`, `README.md`, `site/` updated
+- [ ] `docs/SOFTWARE-DESIGN.md`, `README.md`, `site/` updated
 - [ ] `cd infra && docker compose up --build` → `curl localhost:<port>/<prefix>/health` is healthy and Settings → Diagnostics lists it
