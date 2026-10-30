@@ -1,6 +1,5 @@
 using System.Net;
 using Hearth.TestUtilities;
-using Xunit;
 
 namespace Photos.Tests;
 

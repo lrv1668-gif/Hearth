@@ -2,7 +2,6 @@ using Data;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace ServiceDefaults.Tests;
@@ -24,29 +23,16 @@ public sealed class HearthCacheTests
         FailSafeMaxDuration = TimeSpan.FromHours(1),
     };
 
+    // No entry options here: these check the defaults AddHearthCache sets, not FusionCache's
     [Fact]
-    public async Task GetOrSetAsync_FreshEntry_DoesNotCallFactoryAgain()
+    public async Task GetOrSetAsync_StaleEntryAndFactoryThrows_ServesStaleValueByDefault()
     {
         using var sp = BuildProvider();
         var cache = sp.GetRequiredService<IFusionCache>();
-        var calls = 0;
-
-        await cache.GetOrSetAsync<string>("k", _ => { calls++; return Task.FromResult("v"); }, Options);
-        await cache.GetOrSetAsync<string>("k", _ => { calls++; return Task.FromResult("v"); }, Options);
-
-        Assert.Equal(1, calls);
-    }
-
-    [Fact]
-    public async Task GetOrSetAsync_StaleEntryAndFactoryThrows_ServesStaleValue()
-    {
-        using var sp = BuildProvider();
-        var cache = sp.GetRequiredService<IFusionCache>();
-        await cache.SetAsync("k", "last good", Options);
+        await cache.SetAsync("k", "last good");
         await cache.ExpireAsync("k");
 
-        var value = await cache.GetOrSetAsync<string>(
-            "k", _ => throw new HttpRequestException("upstream down"), Options);
+        var value = await cache.GetOrSetAsync<string>("k", _ => throw new HttpRequestException("upstream down"));
 
         Assert.Equal("last good", value);
     }
@@ -58,7 +44,7 @@ public sealed class HearthCacheTests
         var cache = sp.GetRequiredService<IFusionCache>();
 
         await Assert.ThrowsAsync<HttpRequestException>(() => cache.GetOrSetAsync<string>(
-            "k", _ => throw new HttpRequestException("upstream down"), Options).AsTask());
+            "k", _ => throw new HttpRequestException("upstream down")).AsTask());
     }
 
     [Fact]

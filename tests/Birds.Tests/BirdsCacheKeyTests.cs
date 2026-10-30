@@ -1,5 +1,4 @@
 using Birds.Extensions;
-using Xunit;
 
 namespace Birds.Tests;
 

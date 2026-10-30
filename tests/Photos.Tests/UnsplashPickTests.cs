@@ -1,5 +1,4 @@
 using Photos.Records;
-using Xunit;
 
 namespace Photos.Tests;
 

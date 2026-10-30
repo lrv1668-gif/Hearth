@@ -2,7 +2,6 @@ using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Xunit;
 
 namespace ServiceDefaults.Tests;
 

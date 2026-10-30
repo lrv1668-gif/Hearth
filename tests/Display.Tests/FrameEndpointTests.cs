@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using ServiceDefaults;
-using Xunit;
 
 namespace Display.Tests;
 
@@ -20,12 +18,11 @@ namespace Display.Tests;
 /// </summary>
 public sealed class FrameEndpointTests : IDisposable
 {
-    // Monday 19 October 2026, 12:00 UTC
-    private static readonly DateTimeOffset Noon = new(2026, 10, 19, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset Noon = TestData.Noon;
 
     private readonly TempDatabase _db = new();
     private readonly FakeTimeProvider _clock = new(Noon);
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), $"hearth-frame-{Guid.NewGuid():N}");
+    private readonly TempDirectory _dir = new();
     private readonly FakeHttpMessageHandler _renderer = new("frame-a");
     private WebApplicationFactory<Program>? _factory;
     private HttpClient? _client;
@@ -36,15 +33,14 @@ public sealed class FrameEndpointTests : IDisposable
         get
         {
             if (_client is not null) return _client;
-            _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
+            _factory = HearthApp.Create<Program>("display", _db, host =>
             {
                 host.UseSetting("TZ", "Etc/UTC");
                 host.UseSetting("RENDERER_URL", "http://renderer");
                 host.ConfigureTestServices(services =>
                 {
-                    services.AddKeyedSingleton<IDatabase>("display", _db.Db);
                     services.AddSingleton<TimeProvider>(_clock);
-                    services.AddSingleton(_ => new FrameCache(_dir, NullLogger<FrameCache>.Instance));
+                    services.AddSingleton(_ => new FrameCache(_dir.Path, NullLogger<FrameCache>.Instance));
                     services.AddHttpClient<RendererClient>().ConfigurePrimaryHttpMessageHandler(() => _renderer);
                 });
             });
@@ -57,7 +53,7 @@ public sealed class FrameEndpointTests : IDisposable
         _client?.Dispose();
         _factory?.Dispose();
         _db.Dispose();
-        try { Directory.Delete(_dir, recursive: true); } catch { /* best effort */ }
+        _dir.Dispose();
     }
 
     private string RenderQuery => Uri.UnescapeDataString(_renderer.LastRequestUri!.Query);
@@ -89,6 +85,7 @@ public sealed class FrameEndpointTests : IDisposable
         Assert.Equal("frame-a", await response.Content.ReadAsStringAsync());
         Assert.NotNull(response.Headers.ETag);
         Assert.True(response.Headers.CacheControl?.NoCache);
+        Assert.NotNull(response.Headers.RetryAfter?.Delta);
         Assert.Contains("path=/frame?mode=ambient&", RenderQuery);
         Assert.Contains("dither=errorDiffusion", RenderQuery);
         Assert.DoesNotContain("rotate=", RenderQuery);
@@ -133,7 +130,7 @@ public sealed class FrameEndpointTests : IDisposable
     }
 
     [Fact]
-    public async Task GetStatus_AfterARender_NamesTheETagEtag()
+    public async Task GetStatus_AfterARender_SerializesTheETagAsEtag()
     {
         var etag = (await Frame()).Headers.ETag!.Tag;
 
@@ -232,14 +229,6 @@ public sealed class FrameEndpointTests : IDisposable
         _clock.Advance(FrameRenderService.FlatInterval);
 
         await RendersSince(renders);
-    }
-
-    [Fact]
-    public async Task GetFrame_SendsRetryAfterForTheNextCheck()
-    {
-        var response = await Frame();
-
-        Assert.NotNull(response.Headers.RetryAfter?.Delta);
     }
 
     [Fact]

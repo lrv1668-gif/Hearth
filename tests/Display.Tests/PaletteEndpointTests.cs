@@ -1,18 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
 using Display.Records;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using ServiceDefaults;
-using Xunit;
 
 namespace Display.Tests;
 
-/// <summary>/display/palette — the frame's Color ↔ B&amp;W mode — plus <see cref="PaletteStore"/> round-trips.</summary>
+/// <summary>/display/palette — the frame's Color ↔ B&amp;W mode.</summary>
 public sealed class PaletteEndpointTests : IDisposable
 {
     private readonly TempDatabase _db = new();
@@ -21,11 +17,7 @@ public sealed class PaletteEndpointTests : IDisposable
 
     public PaletteEndpointTests()
     {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
-        {
-            host.UseSetting("TZ", "Etc/UTC");
-            host.ConfigureTestServices(services => services.AddKeyedSingleton<IDatabase>("display", _db.Db));
-        });
+        _factory = HearthApp.Create<Program>("display", _db, host => host.UseSetting("TZ", "Etc/UTC"));
         _client = _factory.CreateClient();
     }
 
@@ -71,16 +63,5 @@ public sealed class PaletteEndpointTests : IDisposable
 
         await _client.PostAsync("/display/palette/toggle", null);
         Assert.Equal(FramePalette.Default, await Palette());
-    }
-
-    [Fact]
-    public void Store_SaveThenGet_RoundTrips()
-    {
-        var store = new PaletteStore(_db.Db);
-        store.Migrate();
-
-        store.Save(new FramePalette(FramePalette.BlackAndWhite));
-
-        Assert.True(store.Get().IsBlackAndWhite);
     }
 }

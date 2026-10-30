@@ -1,6 +1,5 @@
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
-using Xunit;
 
 namespace Spotify.Tests;
 
@@ -51,9 +50,9 @@ public sealed class SpotifyClientServiceTests
         store.Save("access-1", "refresh-1", DateTime.UtcNow.AddHours(-1), null);
         var clientService = new SpotifyClientService(store, MakeConfig());
 
-        // The client is still constructed (with an expired-marker ExpiresIn) so it can
-        // attempt a refresh on first use — the actual refresh call isn't reachable without
-        // a live HTTP request to Spotify's token endpoint, so it isn't exercised here.
+        // The client is still constructed (with an expired-marker ExpiresIn) so it refreshes
+        // on first use — LastPlayedEndpointTests.Get_TokenRefreshWithoutScope_KeepsTheStoredScope
+        // drives that refresh through a stubbed token endpoint.
         Assert.NotNull(clientService.TryGetClient());
     }
 }

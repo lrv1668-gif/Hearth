@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { CalendarItem, CurrentWeather, ForecastDay, FrameStatus, Task } from './api';
+import type { CalendarItem, CurrentWeather, ForecastDay, FrameStatus } from './api';
+import { task } from './test/fixtures';
 import type { Pixels } from './frame';
 import { isPhotoInterval, photoIntervals } from './constants/frameModes';
 import {
@@ -38,26 +39,6 @@ import {
 } from './frame';
 
 const now = new Date('2026-10-19T12:00');
-
-function task(overrides: Partial<Task>): Task {
-    return {
-        id: 1,
-        title: 'Task',
-        done: false,
-        due_date: '2026-10-19',
-        due_time: null,
-        created_at: '2026-10-01T00:00:00Z',
-        description: null,
-        assignee: null,
-        recurrence_unit: null,
-        recurrence_interval: null,
-        recurrence_days: null,
-        recurrence_end_date: null,
-        series_id: null,
-        is_countdown: false,
-        ...overrides,
-    };
-}
 
 function event(overrides: Partial<CalendarItem>): CalendarItem {
     return { kind: 'event', id: 'e', title: 'Event', is_all_day: false, provider: 'google', ...overrides };

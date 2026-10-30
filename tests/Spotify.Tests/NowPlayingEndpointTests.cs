@@ -1,21 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
-using Hearth.TestUtilities;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceDefaults;
 using Spotify.Records;
-using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace Spotify.Tests;
 
 /// <summary>/spotify/now-playing: which Spotify answers count as disconnected, and the shared cache.</summary>
-public sealed class NowPlayingEndpointTests : IDisposable
+public sealed class NowPlayingEndpointTests() : SpotifyEndpointTests(PlayingJson)
 {
     private const string PlayingJson = """
         {
@@ -32,38 +25,7 @@ public sealed class NowPlayingEndpointTests : IDisposable
         }
         """;
 
-    private readonly TempDatabase _db = new();
-    private readonly FakeHttpMessageHandler _spotify = new(PlayingJson);
-    private readonly WebApplicationFactory<Program> _factory;
-
-    public NowPlayingEndpointTests()
-    {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
-        {
-            host.UseSetting("SPOTIFY_CLIENT_ID", "test-client-id");
-            host.UseSetting("SPOTIFY_CLIENT_SECRET", "test-client-secret");
-            host.ConfigureTestServices(services =>
-            {
-                services.AddKeyedSingleton<IDatabase>("spotify", _db.Db);
-                services.AddSingleton<IDataProtectionProvider>(TestDataProtection.Provider);
-                services.AddHttpClient(SpotifyClientService.HttpClientName)
-                    .ConfigurePrimaryHttpMessageHandler(() => _spotify);
-            });
-        });
-    }
-
-    public void Dispose()
-    {
-        _factory.Dispose();
-        _db.Dispose();
-    }
-
-    private HttpClient Connected()
-    {
-        var client = _factory.CreateClient();
-        _factory.Services.GetRequiredService<SpotifyStore>().Save("access", "refresh", DateTime.UtcNow.AddHours(1), string.Join(' ', SpotifyScopes.Required));
-        return client;
-    }
+    private HttpClient Connected() => Connected(AllScopes);
 
     [Fact]
     public async Task Get_NoSavedLogin_Returns401()

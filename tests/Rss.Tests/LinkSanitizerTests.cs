@@ -1,44 +1,24 @@
-using Xunit;
-
 namespace Rss.Tests;
 
 public sealed class LinkSanitizerTests
 {
-    [Fact]
-    public void ToSafeHref_HttpsUrl_PassesThroughUnchanged()
+    [Theory]
+    [InlineData("https://example.com/a")]
+    [InlineData("http://example.com/a")]
+    public void ToSafeHref_HttpOrHttpsUrl_PassesThroughUnchanged(string url)
     {
-        Assert.Equal("https://example.com/a", LinkSanitizer.ToSafeHref("https://example.com/a"));
+        Assert.Equal(url, LinkSanitizer.ToSafeHref(url));
     }
 
-    [Fact]
-    public void ToSafeHref_HttpUrl_PassesThroughUnchanged()
+    [Theory]
+    [InlineData("javascript:alert(document.cookie)")]
+    [InlineData("data:text/html,<script>alert(1)</script>")]
+    [InlineData("/foo/bar")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ToSafeHref_UnsafeRelativeOrBlank_ReturnsEmpty(string? url)
     {
-        Assert.Equal("http://example.com/a", LinkSanitizer.ToSafeHref("http://example.com/a"));
-    }
-
-    [Fact]
-    public void ToSafeHref_JavascriptScheme_ReturnsEmpty()
-    {
-        Assert.Equal("", LinkSanitizer.ToSafeHref("javascript:alert(document.cookie)"));
-    }
-
-    [Fact]
-    public void ToSafeHref_DataScheme_ReturnsEmpty()
-    {
-        Assert.Equal("", LinkSanitizer.ToSafeHref("data:text/html,<script>alert(1)</script>"));
-    }
-
-    [Fact]
-    public void ToSafeHref_RelativePath_ReturnsEmpty()
-    {
-        Assert.Equal("", LinkSanitizer.ToSafeHref("/foo/bar"));
-    }
-
-    [Fact]
-    public void ToSafeHref_NullEmptyOrWhitespace_ReturnsEmpty()
-    {
-        Assert.Equal("", LinkSanitizer.ToSafeHref(null));
-        Assert.Equal("", LinkSanitizer.ToSafeHref(""));
-        Assert.Equal("", LinkSanitizer.ToSafeHref("   "));
+        Assert.Equal("", LinkSanitizer.ToSafeHref(url));
     }
 }

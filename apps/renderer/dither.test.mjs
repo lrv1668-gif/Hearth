@@ -25,6 +25,18 @@ function counts(canvas) {
     return out;
 }
 
+/** A 64×16 blue-to-amber gradient, standing in for a photo. */
+function photoLike() {
+    const canvas = createCanvas(64, 16);
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 64, 0);
+    gradient.addColorStop(0, '#1d4f8a');
+    gradient.addColorStop(1, '#e8a33c');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 64, 16);
+    return canvas;
+}
+
 async function dithered(colour, method) {
     const source = filled(colour);
     const dest = createCanvas(source.width, source.height);
@@ -38,13 +50,7 @@ for (const method of ['ordered', 'errorDiffusion']) {
     });
 
     test(`${method}: a photo-like gradient uses only the six inks`, async () => {
-        const source = createCanvas(64, 16);
-        const ctx = source.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 64, 0);
-        gradient.addColorStop(0, '#1d4f8a');
-        gradient.addColorStop(1, '#e8a33c');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 64, 16);
+        const source = photoLike();
         const dest = createCanvas(64, 16);
         await dither(source, dest, { method });
         for (const colour of Object.keys(counts(dest))) assert.ok(INKS.includes(colour), colour);
@@ -54,13 +60,7 @@ for (const method of ['ordered', 'errorDiffusion']) {
 // B&W mode: a greyed photo's mid-greys sit nearest blue and green, so it needs its own inks
 for (const method of ['ordered', 'errorDiffusion']) {
     test(`${method}: B&W keeps a greyed gradient to black and white`, async () => {
-        const source = createCanvas(64, 16);
-        const ctx = source.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 64, 0);
-        gradient.addColorStop(0, '#1d4f8a');
-        gradient.addColorStop(1, '#e8a33c');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 64, 16);
+        const source = photoLike();
         greyscale(source);
         const dest = createCanvas(64, 16);
         await dither(source, dest, { method, palette: 'bw' });

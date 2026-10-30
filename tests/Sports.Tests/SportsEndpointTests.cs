@@ -1,12 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Sports.Records;
-using Xunit;
 
 namespace Sports.Tests;
 
@@ -20,12 +18,9 @@ public sealed class SportsEndpointTests : IDisposable
     public SportsEndpointTests()
     {
         _espn.ByPath["/apis/site/v2/sports/soccer/usa.nwsl/teams"] = (HttpStatusCode.OK, EspnJson.Teams);
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
+        _factory = HearthApp.Create<Program>("sports", _db, host =>
             host.ConfigureTestServices(services =>
-            {
-                services.AddKeyedSingleton<IDatabase>("sports", _db.Db);
-                services.AddHttpClient<EspnFetcher>().ConfigurePrimaryHttpMessageHandler(() => _espn);
-            }));
+                services.AddHttpClient<EspnFetcher>().ConfigurePrimaryHttpMessageHandler(() => _espn)));
     }
 
     public void Dispose()

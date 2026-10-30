@@ -1,6 +1,5 @@
 using Display;
 using Display.Records;
-using Xunit;
 
 namespace Display.Tests;
 
@@ -131,7 +130,7 @@ public sealed class ModeResolverTests
         Mornings with { Rotate = [FrameModes.Photo, FrameModes.Countdown], RotateMinutes = 30 };
 
     private static FrameSettings Quiet(string start, string end) =>
-        new("almanac", "inter", "landscape", [], [], 50, QuietStart: start, QuietEnd: end);
+        TestData.Settings with { QuietStart = start, QuietEnd = end };
 
     [Theory]
     [InlineData(7, 0, "daily", 7, 30)]

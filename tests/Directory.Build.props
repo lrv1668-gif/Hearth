@@ -5,4 +5,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <!-- Every <Service>.Tests project: xUnit, `using Xunit;` everywhere and the shared helpers -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Hearth.TestUtilities'">
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <Using Include="Xunit" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
+  </ItemGroup>
 </Project>

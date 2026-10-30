@@ -1,15 +1,18 @@
 using Display;
 using Hearth.TestUtilities;
 using ServiceDefaults;
-using Xunit;
 
 namespace Display.Tests;
 
-public sealed class HomeSettingsStoreTests
+public sealed class HomeSettingsStoreTests : IDisposable
 {
-    private static HomeSettingsStore Migrated(TempDatabase tmp)
+    private readonly TempDatabase _db = new();
+
+    public void Dispose() => _db.Dispose();
+
+    private HomeSettingsStore Migrated()
     {
-        var store = new HomeSettingsStore(tmp.Db);
+        var store = new HomeSettingsStore(_db.Db);
         store.Migrate();
         return store;
     }
@@ -17,15 +20,13 @@ public sealed class HomeSettingsStoreTests
     [Fact]
     public void Get_NothingSaved_ReturnsNull()
     {
-        using var tmp = new TempDatabase();
-        Assert.Null(Migrated(tmp).Get());
+        Assert.Null(Migrated().Get());
     }
 
     [Fact]
     public void Save_ThenGet_RoundTripsEveryField()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        var store = Migrated();
         var home = new HomeSettings(39.7392, -104.9903, "Denver, Colorado", "America/Denver");
 
         store.Save(home);
@@ -36,8 +37,7 @@ public sealed class HomeSettingsStoreTests
     [Fact]
     public void Save_Twice_KeepsOneRowWithTheLatest()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        var store = Migrated();
         store.Save(new HomeSettings(39.7, -104.9, "Denver", "America/Denver"));
 
         var saved = store.Save(new HomeSettings(null, null, null, "Europe/London"));
@@ -48,9 +48,8 @@ public sealed class HomeSettingsStoreTests
     [Fact]
     public void Save_BlankNameAndZone_StoredAsNull()
     {
-        using var tmp = new TempDatabase();
 
-        var saved = Migrated(tmp).Save(new HomeSettings(1, 2, "  ", ""));
+        var saved = Migrated().Save(new HomeSettings(1, 2, "  ", ""));
 
         Assert.Null(saved.Name);
         Assert.Null(saved.TimeZone);
@@ -59,9 +58,8 @@ public sealed class HomeSettingsStoreTests
     [Fact]
     public void Migrate_RunTwice_KeepsData()
     {
-        using var tmp = new TempDatabase();
-        Migrated(tmp).Save(new HomeSettings(1, 2, null, null));
+        Migrated().Save(new HomeSettings(1, 2, null, null));
 
-        Assert.NotNull(Migrated(tmp).Get());
+        Assert.NotNull(Migrated().Get());
     }
 }

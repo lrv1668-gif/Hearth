@@ -1,88 +1,80 @@
+using System.Text.Json;
 using Display;
 using Display.Records;
 using Hearth.TestUtilities;
-using Xunit;
+using ServiceDefaults;
 
 namespace Display.Tests;
 
-public sealed class FrameSettingsStoreTests
+public sealed class FrameSettingsStoreTests : IDisposable
 {
-    private static readonly FrameSettings Sample =
-        new("almanac", "inter", "landscape", ["countdowns", "today"], ["coming-up"], 50);
+    private static readonly FrameSettings Sample = TestData.Settings with { Left = ["countdowns", "today"], Right = ["coming-up"] };
 
-    private static FrameSettingsStore Migrated(TempDatabase tmp)
+    /// <summary>Every field away from its default, so a column the store forgets shows up.</summary>
+    private static readonly FrameSettings Everything = new(
+        "night", "lora", "portrait", ["countdowns", "today"], ["coming-up"], 60,
+        AmbientPosition: "bottom-middle", PhotoSource: "both", PhotoCategories: ["nature", "architecture"],
+        Width: 800, Height: 480, PhotoIds: ["a1", "b2"], PhotoCard: "none", CountdownId: 7,
+        NoteTitle: "House rules", NoteBody: "Shoes off\n\nHave fun!", PhotoIntervalMinutes: 180,
+        PortraitRotation: 270, TextSize: 125, Dithering: "frame", QuietStart: "23:00", QuietEnd: "06:30",
+        Template: "feature", Slots: ["week", "", "quote"]);
+
+    private readonly TempDatabase _db = new();
+
+    public void Dispose() => _db.Dispose();
+
+    private FrameSettingsStore Migrated()
     {
-        var store = new FrameSettingsStore(tmp.Db);
+        var store = new FrameSettingsStore(_db.Db);
         store.Migrate();
         return store;
     }
 
+    // Records compare their lists by reference, so compare what the API would send
+    private static string Json(FrameSettings? settings) => JsonSerializer.Serialize(settings, HearthJson.SnakeCaseLower);
+
     [Fact]
     public void Get_NothingSaved_ReturnsNull()
     {
-        using var tmp = new TempDatabase();
-        Assert.Null(Migrated(tmp).Get());
+        Assert.Null(Migrated().Get());
     }
 
     [Fact]
-    public void Save_ThenGet_RoundTripsEveryField()
+    public void Save_EveryFieldSet_RoundTrips()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        var store = Migrated();
+
+        store.Save(Everything);
+
+        Assert.Equal(Json(Everything), Json(store.Get()));
+    }
+
+    [Fact]
+    public void Save_OnlyTheRequiredFields_ReadsBackTheDefaults()
+    {
+        var store = Migrated();
 
         store.Save(Sample);
 
         var saved = store.Get()!;
-        Assert.Equal("almanac", saved.Theme);
-        Assert.Equal("inter", saved.Font);
-        Assert.Equal("landscape", saved.Orientation);
-        Assert.Equal(["countdowns", "today"], saved.Left);
-        Assert.Equal(["coming-up"], saved.Right);
-        Assert.Equal(50, saved.Split);
-        Assert.Equal("bottom-left", saved.AmbientPosition);
-        Assert.Equal("unsplash", saved.PhotoSource);
-        Assert.Empty(saved.PhotoCategories!);
-        Assert.Equal((1600, 1200), (saved.Width, saved.Height));
-        Assert.Empty(saved.PhotoIds!);
-        Assert.Equal("full", saved.PhotoCard);
-        Assert.Null(saved.CountdownId);
-        Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
-        Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
-        Assert.Equal(FrameSettings.DefaultTextSize, saved.TextSize);
-        Assert.Equal(FrameSettings.DefaultDithering, saved.Dithering);
-        Assert.Equal(FrameSettings.DefaultTemplate, saved.Template);
-        Assert.Empty(saved.Slots!);
-    }
-
-    [Fact]
-    public void Save_TemplateAndSlots_RoundTripWithEmptySlotsInPlace()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { Template = "feature", Slots = ["week", "", "quote"] });
-
-        var saved = store.Get()!;
-        Assert.Equal("feature", saved.Template);
-        Assert.Equal(["week", "", "quote"], saved.Slots);
+        Assert.Equal(Json(Sample with { PhotoCategories = [], PhotoIds = [], Slots = [] }), Json(saved));
     }
 
     [Fact]
     public void Migrate_RowFromBeforePanelRenderChoices_ReadsTheirDefaults()
     {
-        using var tmp = new TempDatabase();
-        tmp.Db.NonQuery("""
+        _db.Db.NonQuery("""
             CREATE TABLE frame_settings (
                 id INTEGER PRIMARY KEY CHECK (id = 1), theme TEXT NOT NULL, font TEXT NOT NULL,
                 orientation TEXT NOT NULL, left_ids TEXT NOT NULL, right_ids TEXT NOT NULL,
                 split INTEGER NOT NULL, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)
             """);
-        tmp.Db.NonQuery("""
+        _db.Db.NonQuery("""
             INSERT INTO frame_settings (id, theme, font, orientation, left_ids, right_ids, split)
             VALUES (1, 'almanac', 'inter', 'portrait', '[]', '[]', 50)
             """);
 
-        var saved = Migrated(tmp).Get()!;
+        var saved = Migrated().Get()!;
 
         Assert.Equal(FrameSettings.DefaultPhotoIntervalMinutes, saved.PhotoIntervalMinutes);
         Assert.Equal(FrameSettings.DefaultPortraitRotation, saved.PortraitRotation);
@@ -93,113 +85,23 @@ public sealed class FrameSettingsStoreTests
     }
 
     [Fact]
-    public void Save_PanelRenderChoices_RoundTrip()
+    public void Save_BlankNoteAndNoQuietHours_StoresNull()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        var store = Migrated();
+        store.Save(Everything);
 
-        store.Save(Sample with { PhotoIntervalMinutes = 180, PortraitRotation = 270, TextSize = 125, Dithering = "frame" });
+        store.Save(Everything with { NoteTitle = "  ", NoteBody = "", QuietStart = null, QuietEnd = null });
 
         var saved = store.Get()!;
-        Assert.Equal(180, saved.PhotoIntervalMinutes);
-        Assert.Equal(270, saved.PortraitRotation);
-        Assert.Equal(125, saved.TextSize);
-        Assert.Equal("frame", saved.Dithering);
-    }
-
-    [Fact]
-    public void Save_QuietHours_RoundTrip()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { QuietStart = "23:00", QuietEnd = "06:30" });
-        Assert.Equal(("23:00", "06:30"), (store.Get()!.QuietStart, store.Get()!.QuietEnd));
-
-        store.Save(Sample);
-        Assert.Null(store.Get()!.QuietStart);
-    }
-
-    [Fact]
-    public void Save_PhotoAndCountdownChoices_RoundTrip()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { PhotoIds = ["a1", "b2"], PhotoCard = "none", CountdownId = 7 });
-
-        var saved = store.Get()!;
-        Assert.Equal(["a1", "b2"], saved.PhotoIds);
-        Assert.Equal("none", saved.PhotoCard);
-        Assert.Equal(7, saved.CountdownId);
-    }
-
-    [Fact]
-    public void Save_Note_RoundTripsWithItsLineBreaks()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { NoteTitle = "House rules", NoteBody = "Shoes off\n\nHave fun!" });
-
-        var saved = store.Get()!;
-        Assert.Equal("House rules", saved.NoteTitle);
-        Assert.Equal("Shoes off\n\nHave fun!", saved.NoteBody);
-    }
-
-    [Fact]
-    public void Save_BlankNote_StoresNull()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { NoteTitle = "  ", NoteBody = "" });
-
-        Assert.Null(store.Get()!.NoteTitle);
-        Assert.Null(store.Get()!.NoteBody);
-    }
-
-    [Fact]
-    public void Save_PanelSize_RoundTrips()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { Width = 800, Height = 480 });
-
-        var saved = store.Get()!;
-        Assert.Equal((800, 480), (saved.Width, saved.Height));
-    }
-
-    [Fact]
-    public void Save_PhotoSourceAndCategories_RoundTrip()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { PhotoSource = "both", PhotoCategories = ["nature", "architecture"] });
-
-        var saved = store.Get()!;
-        Assert.Equal("both", saved.PhotoSource);
-        Assert.Equal(["nature", "architecture"], saved.PhotoCategories);
-    }
-
-    [Fact]
-    public void Save_AmbientPosition_RoundTrips()
-    {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
-
-        store.Save(Sample with { AmbientPosition = "bottom-middle" });
-
-        Assert.Equal("bottom-middle", store.Get()!.AmbientPosition);
+        Assert.Null(saved.NoteTitle);
+        Assert.Null(saved.NoteBody);
+        Assert.Null(saved.QuietStart);
     }
 
     [Fact]
     public void Save_Twice_KeepsOneRecordWithTheLatestValues()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        var store = Migrated();
 
         store.Save(Sample);
         var latest = store.Save(Sample with { Theme = "night", Right = [], Split = 60 });
@@ -212,8 +114,7 @@ public sealed class FrameSettingsStoreTests
     [Fact]
     public void Migrate_RunTwice_KeepsSavedSettings()
     {
-        using var tmp = new TempDatabase();
-        var store = Migrated(tmp);
+        var store = Migrated();
         store.Save(Sample);
 
         store.Migrate();

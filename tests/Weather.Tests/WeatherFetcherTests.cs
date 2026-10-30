@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using Hearth.TestUtilities;
-using Xunit;
 
 namespace Weather.Tests;
 
@@ -31,13 +30,20 @@ public sealed class WeatherFetcherTests
         string json,
         HttpStatusCode status = HttpStatusCode.OK,
         string? airQualityJson = null,
+        HttpStatusCode airQualityStatus = HttpStatusCode.OK) =>
+        MakeFetcher(out _, json, status, airQualityJson, airQualityStatus);
+
+    private static WeatherFetcher MakeFetcher(
+        out FakeHttpMessageHandler handler,
+        string json,
+        HttpStatusCode status = HttpStatusCode.OK,
+        string? airQualityJson = null,
         HttpStatusCode airQualityStatus = HttpStatusCode.OK)
     {
-        var handler = new FakeHttpMessageHandler(json, status);
+        handler = new FakeHttpMessageHandler(json, status);
         if (airQualityJson is not null)
             handler.ByPath[AirQualityPath] = (airQualityStatus, airQualityJson);
-        var http = new HttpClient(handler);
-        return new WeatherFetcher(http);
+        return new WeatherFetcher(new HttpClient(handler));
     }
 
     [Fact]
@@ -119,9 +125,7 @@ public sealed class WeatherFetcherTests
     [Fact]
     public async Task FetchAsync_CommaDecimalCulture_FormatsCoordinatesInvariantly()
     {
-        var handler = new FakeHttpMessageHandler(ValidJson);
-        handler.ByPath[AirQualityPath] = (HttpStatusCode.OK, ValidAqiJson);
-        var fetcher = new WeatherFetcher(new HttpClient(handler));
+        var fetcher = MakeFetcher(out var handler, ValidJson, airQualityJson: ValidAqiJson);
         var original = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = new CultureInfo("de-DE");
         try

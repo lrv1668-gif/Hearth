@@ -1,15 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\apps\services\Rss\Rss.csproj" />
-    <ProjectReference Include="..\..\apps\services\Data\Data.csproj" />
-    <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
-
 </Project>

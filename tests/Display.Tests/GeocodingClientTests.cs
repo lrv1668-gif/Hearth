@@ -1,6 +1,5 @@
 using Display;
 using Hearth.TestUtilities;
-using Xunit;
 
 namespace Display.Tests;
 

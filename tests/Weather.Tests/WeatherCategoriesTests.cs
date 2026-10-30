@@ -1,7 +1,6 @@
 using System.Text.Json;
 using ServiceDefaults;
 using Weather.Records;
-using Xunit;
 
 namespace Weather.Tests;
 

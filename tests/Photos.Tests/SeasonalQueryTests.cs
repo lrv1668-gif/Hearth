@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace Photos.Tests;
 
 public sealed class SeasonalQueryTests

@@ -1,15 +1,13 @@
 using Display.Records;
-using Xunit;
 
 namespace Display.Tests;
 
 /// <summary><see cref="FrameRenderService.Due"/> and <see cref="FrameRenderService.FramePath"/> — when and what the panel render captures.</summary>
 public sealed class FrameRenderServiceTests
 {
-    private static readonly DateTimeOffset Noon = new(2026, 10, 19, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset Noon = TestData.Noon;
 
-    private static readonly FrameSettings Saved =
-        new("almanac", "inter", "landscape", [], [], 50, PhotoIntervalMinutes: 180);
+    private static readonly FrameSettings Saved = TestData.Settings with { PhotoIntervalMinutes = 180 };
 
     private static readonly TimeZoneInfo Utc = TimeZoneInfo.Utc;
 

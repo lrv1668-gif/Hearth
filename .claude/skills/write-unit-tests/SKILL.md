@@ -5,7 +5,7 @@ description: Write xUnit tests for a Hearth .NET backend service (apps/services/
 
 # Hearth Unit Test Writer
 
-Creates (or extends) an xUnit test project for one Hearth backend service. (Frontend tests are vitest `*.test.ts` files next to the code they test, run with `cd apps/frontend && npm run test`; renderer tests are `apps/renderer/*.test.mjs`, run with `cd apps/renderer && npm test`.)
+Creates (or extends) an xUnit test project for one Hearth backend service. (Frontend tests are vitest `*.test.ts` files next to the code they test, run with `cd apps/frontend && npm run test` — `mockFetch()` in `src/lib/test/fetch.ts` stubs `fetch` and `task()` in `src/lib/test/fixtures.ts` builds a `Task`; renderer tests are `apps/renderer/*.test.mjs`, run with `cd apps/renderer && npm test`.)
 
 ## The Files
 
@@ -17,14 +17,16 @@ Creates (or extends) an xUnit test project for one Hearth backend service. (Fron
 
 Shared helpers already exist in `tests/Hearth.TestUtilities/` — reference that project, never copy the helpers:
 
-- `FakeHttpMessageHandler(string responseJson, HttpStatusCode status = OK)` — canned HTTP responses. `ResponseJson`/`Status` can be changed mid-test (upstream changes or fails), `ByPath[path] = (status, json)` answers a service that calls several endpoints, and `RequestUris`/`RequestCount`/`LastRequestUri` let you assert what was called and what a cache saved
-- `ThrowingHttpMessageHandler` — a network-level failure (throws `HttpRequestException`) rather than an error status
-- `TempDatabase` — a real `Database` on a throwaway SQLite file (`tmp.Db`), deleted on `Dispose()`
+- `FakeHttpMessageHandler(string responseJson, HttpStatusCode status = OK)` — canned HTTP responses. `ResponseJson`/`Status` can be changed mid-test (upstream changes or fails), `ByPath[path] = (status, json)` answers a service that calls several endpoints (a path-and-query key such as `"/schedule?seasontype=2"` wins over the bare path), and `RequestUris`/`RequestCount`/`LastRequestUri` let you assert what was called and what a cache saved
+- `ThrowingHttpMessageHandler` — a network-level failure (throws `HttpRequestException`) rather than an error status; `RequestCount` says how often it was tried
+- `TempDatabase` — a real `Database` on a throwaway SQLite file (`Db`, and `Path` to open a second `Database` on it), deleted on `Dispose()`
+- `TempDirectory` — a throwaway folder (`Path`) for services that keep files under `DATA_PATH`, deleted on `Dispose()`
+- `HearthApp.Create<Program>(dbKey, db, configure)` — the service in memory with its keyed `IDatabase` swapped for a `TempDatabase`; `configure` adds settings and test services
 - `TestDataProtection.Provider` — an `IDataProtectionProvider` for stores that encrypt tokens
 
 For time-dependent code (cache expiry, OAuth state, schedules), inject `TimeProvider` and use `FakeTimeProvider` from the `Microsoft.Extensions.TimeProvider.Testing` package (`using Microsoft.Extensions.Time.Testing;`, `new FakeTimeProvider(start)`, `.Advance(...)`) — don't hand-roll a clock. Likewise assert on logging with `FakeLogger` from `Microsoft.Extensions.Diagnostics.Testing` (`using Microsoft.Extensions.Logging.Testing;`, `logger.Collector.Count`, `logger.LatestRecord`).
 
-Service-specific one-off helpers go in that test project's `Helpers/` folder. If a helper becomes useful to a second project, move it into `Hearth.TestUtilities`.
+Helpers shared by several classes in one test project sit in that project (e.g. `Display.Tests/TestData.cs`, `Spotify.Tests/SpotifyEndpointTests.cs`). If a helper becomes useful to a second project, move it into `Hearth.TestUtilities`.
 
 ---
 
@@ -50,23 +52,13 @@ Before writing any code, read the service source to understand its dependencies:
 
 ## Step 1: Create the Test Project
 
-`TargetFramework`, `Nullable`, `ImplicitUsings`, and `IsPackable` come from `tests/Directory.Build.props`; package versions come from `tests/Directory.Packages.props` (central package management). Do **not** redeclare them or add `Version=` attributes.
+`tests/Directory.Build.props` gives every `*.Tests` project `TargetFramework`, `Nullable`, `ImplicitUsings` and `IsPackable`, the xUnit packages (`xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`), a global `using Xunit;` and a reference to `Hearth.TestUtilities`; package versions come from `tests/Directory.Packages.props` (central package management). Do **not** redeclare any of them or add `Version=` attributes — the project only references its service:
 
 ```xml
 <!-- tests/<Service>.Tests/<Service>.Tests.csproj -->
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\apps\services\<Service>\<Service>.csproj" />
-    <ProjectReference Include="..\Hearth.TestUtilities\Hearth.TestUtilities.csproj" />
   </ItemGroup>
 </Project>
 ```
@@ -83,14 +75,13 @@ If you genuinely need a new package, add a version-less `<PackageReference Inclu
 
 Naming convention: `Method_Scenario_ExpectedOutcome`
 
-> `ImplicitUsings` does not include third-party namespaces. Add `using Xunit;` and `using Hearth.TestUtilities;` explicitly.
+> `using Xunit;` is global (from `Directory.Build.props`); add `using Hearth.TestUtilities;` explicitly where you use a helper.
 
 ### Pattern A — HTTP-backed (FakeHttpMessageHandler)
 
 ```csharp
 using System.Net;
 using Hearth.TestUtilities;
-using Xunit;
 
 private static MyFetcher MakeFetcher(string json, HttpStatusCode status = HttpStatusCode.OK)
 {
@@ -138,31 +129,36 @@ public void Describe_KnownAndUnknownCodes_ReturnsExpected(int code, string expec
 
 ### Pattern C — Database-backed (TempDatabase)
 
-Stores take `IDatabase`; pass `tmp.Db` (a real SQLite-backed `Database`). An in-memory DB won't work — `Database` opens a fresh connection per query. Run the store's migration before exercising it.
+Stores take `IDatabase`; pass `_db.Db` (a real SQLite-backed `Database`). An in-memory DB won't work — `Database` opens a fresh connection per query. xUnit makes a new instance of the class per test, so hold the database and the migrated store as fields:
 
 ```csharp
 using Hearth.TestUtilities;
-using Xunit;
 
-private static MyStore Migrated(TempDatabase tmp)
+public sealed class MyStoreTests : IDisposable
 {
-    var store = new MyStore(tmp.Db);
-    store.Migrate();
-    return store;
-}
+    private readonly TempDatabase _db = new();
+    private readonly MyStore _store;
 
-[Fact]
-public void Create_NewItem_AppearsInList()
-{
-    using var tmp = new TempDatabase();
-    var store = Migrated(tmp);
+    public MyStoreTests()
+    {
+        _store = new MyStore(_db.Db);
+        _store.Migrate();
+    }
 
-    store.Create("Buy milk");
+    public void Dispose() => _db.Dispose();
 
-    var listed = Assert.Single(store.List());
-    Assert.Equal("Buy milk", listed.Title);
+    [Fact]
+    public void Create_NewItem_AppearsInList()
+    {
+        _store.Create("Buy milk");
+
+        var listed = Assert.Single(_store.List());
+        Assert.Equal("Buy milk", listed.Title);
+    }
 }
 ```
+
+(A test that needs the database before migration — e.g. a legacy-row upgrade — keeps `_db` as a field and builds the store itself; see `FrameSettingsStoreTests`.)
 
 ### Pattern D — Endpoint (WebApplicationFactory)
 
@@ -171,12 +167,8 @@ Boots the real service in memory and swaps its database (and clock, if needed) f
 ```csharp
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 public sealed class MyEndpointTests : IDisposable
 {
@@ -185,8 +177,9 @@ public sealed class MyEndpointTests : IDisposable
 
     public MyEndpointTests()
     {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
-            host.ConfigureTestServices(services => services.AddKeyedSingleton<IDatabase>("my-key", _db.Db)));
+        // Settings and extra test services go in the optional third argument:
+        // host => { host.UseSetting("KEY", "value"); host.ConfigureTestServices(services => ...); }
+        _factory = HearthApp.Create<Program>("my-key", _db);
     }
 
     public void Dispose()
@@ -223,7 +216,7 @@ Open `Hearth.slnx` and add the new project entry inside the `<Folder Name="/test
 - [ ] Read the target service and a similar existing test project before starting
 - [ ] Identified test type (HTTP / database / pure logic / endpoint)
 - [ ] csproj uses `Microsoft.NET.Sdk`, has no `TargetFramework` or `Version=` attributes
-- [ ] Referenced both the target service and `Hearth.TestUtilities`
+- [ ] Referenced only the target service (xUnit and `Hearth.TestUtilities` come from `Directory.Build.props`)
 - [ ] Used shared helpers instead of copying them; `FakeTimeProvider` from the package for time; no mocking library added
 - [ ] Tests named `Method_Scenario_ExpectedOutcome`
 - [ ] Happy path, empty/null response, and error path covered

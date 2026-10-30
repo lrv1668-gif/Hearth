@@ -1,7 +1,4 @@
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using Xunit;
 
 namespace Rss.Tests;
 
@@ -149,33 +146,13 @@ public sealed class RssFetcherTests
         // Exercises the actual ConnectCallback/socket wiring end-to-end (not just ParseFeed):
         // the URL's host is a domain that doesn't resolve here, but FetchAsync must connect to
         // the pinned loopback address rather than the host, and still parse what comes back.
-        using var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        using var server = new FeedServer(AtomFeed);
 
-        var serverTask = Task.Run(async () =>
-        {
-            using var client = await listener.AcceptTcpClientAsync();
-            using var stream = client.GetStream();
-
-            using var reader = new StreamReader(stream, Encoding.ASCII, leaveOpen: true);
-            while (!string.IsNullOrEmpty(await reader.ReadLineAsync())) { } // drain request headers
-
-            var body = Encoding.UTF8.GetBytes(AtomFeed);
-            var header = Encoding.ASCII.GetBytes(
-                $"HTTP/1.1 200 OK\r\nContent-Type: application/xml\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n");
-            await stream.WriteAsync(header);
-            await stream.WriteAsync(body);
-        });
-
-        var fetcher = new RssFetcher();
-        var result = await fetcher
-            .FetchAsync("http://this-host-does-not-resolve.invalid:" + port + "/feed", IPAddress.Loopback)
+        var result = await new RssFetcher()
+            .FetchAsync($"http://this-host-does-not-resolve.invalid:{server.Port}/feed", IPAddress.Loopback)
             .WaitAsync(TimeSpan.FromSeconds(10));
 
-        await serverTask.WaitAsync(TimeSpan.FromSeconds(5));
-        listener.Stop();
-
+        Assert.Equal(1, server.Requests);
         Assert.Equal("Example Atom", result.FeedTitle);
         var article = Assert.Single(result.Articles);
         Assert.Equal("First Post", article.Title);

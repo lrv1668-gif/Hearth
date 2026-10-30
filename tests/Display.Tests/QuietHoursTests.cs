@@ -1,5 +1,4 @@
 using Display.Records;
-using Xunit;
 
 namespace Display.Tests;
 
@@ -8,8 +7,7 @@ public sealed class QuietHoursTests
     // Monday 19 October 2026, 00:00 UTC
     private static readonly DateTimeOffset Midnight = new(2026, 10, 19, 0, 0, 0, TimeSpan.Zero);
 
-    private static readonly FrameSettings Overnight =
-        new("almanac", "inter", "landscape", [], [], 50, QuietStart: "23:00", QuietEnd: "06:00");
+    private static readonly FrameSettings Overnight = TestData.Settings with { QuietStart = "23:00", QuietEnd = "06:00" };
 
     [Theory]
     [InlineData(23, 30, 30)] // 23:30 → 06:00 tomorrow

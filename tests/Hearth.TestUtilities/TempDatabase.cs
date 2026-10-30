@@ -9,17 +9,15 @@ namespace Hearth.TestUtilities;
 /// </summary>
 public sealed class TempDatabase : IDisposable
 {
-    private readonly string _path;
+    /// <summary>The SQLite file, for opening a second <see cref="Database"/> on it.</summary>
+    public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"hearth-test-{Guid.NewGuid():N}.db");
+
     public Database Db { get; }
 
-    public TempDatabase()
-    {
-        _path = Path.Combine(Path.GetTempPath(), $"hearth-test-{Guid.NewGuid():N}.db");
-        Db = new Database(_path);
-    }
+    public TempDatabase() => Db = new Database(Path);
 
     public void Dispose()
     {
-        try { if (File.Exists(_path)) File.Delete(_path); } catch { /* best effort */ }
+        try { if (File.Exists(Path)) File.Delete(Path); } catch { /* best effort */ }
     }
 }

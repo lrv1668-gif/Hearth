@@ -2,7 +2,6 @@ using System.Net;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Logging.Abstractions;
 using Sports.Records;
-using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace Sports.Tests;
@@ -22,6 +21,9 @@ public sealed class SportsServiceTests
             home ? Side("21422", us, usPens) : Side("999", them, themPens),
             home ? Side("999", them, themPens) : Side("21422", us, usPens),
             [], null);
+
+    private static SportsService Service(FakeHttpMessageHandler espn) =>
+        new(new EspnFetcher(new HttpClient(espn)), new FusionCache(new FusionCacheOptions()), NullLogger<SportsService>.Instance);
 
     [Theory]
     [InlineData(2, 0, null, null, "win")]
@@ -92,10 +94,7 @@ public sealed class SportsServiceTests
             (HttpStatusCode.OK, EspnJson.Events(EspnJson.ScheduleEvent()));
         handler.ByPath["/apis/site/v2/sports/soccer/usa.nwsl/scoreboard"] =
             (HttpStatusCode.OK, EspnJson.Events(EspnJson.ScoreboardEvent(homeId: "21422")));
-        var service = new SportsService(new EspnFetcher(new HttpClient(handler)), new FusionCache(new FusionCacheOptions()),
-            NullLogger<SportsService>.Instance);
-
-        var board = await service.BoardAsync([AngelCity]);
+        var board = await Service(handler).BoardAsync([AngelCity]);
 
         var team = Assert.Single(board.Teams);
         Assert.Equal("1", team.Live?.Id);
@@ -110,32 +109,19 @@ public sealed class SportsServiceTests
         // In the postseason ESPN's default schedule is empty for a team that missed it
         var handler = new FakeHttpMessageHandler("{}");
         handler.ByPath["/apis/site/v2/sports/soccer/usa.nwsl/teams/21422/schedule"] = (HttpStatusCode.OK, """{"events": []}""");
-        var regular = EspnJson.Events(EspnJson.ScheduleEvent());
-        var service = new SportsService(new EspnFetcher(new HttpClient(new RegularSeasonHandler(handler, regular))),
-            new FusionCache(new FusionCacheOptions()), NullLogger<SportsService>.Instance);
+        handler.ByPath["/apis/site/v2/sports/soccer/usa.nwsl/teams/21422/schedule?seasontype=2"] =
+            (HttpStatusCode.OK, EspnJson.Events(EspnJson.ScheduleEvent()));
 
-        var board = await service.BoardAsync([AngelCity]);
+        var board = await Service(handler).BoardAsync([AngelCity]);
 
         Assert.Equal("2", Assert.Single(board.Teams).Last?.Id);
-    }
-
-    /// <summary>Answers <c>?seasontype=2</c> with <paramref name="json"/>, everything else from <paramref name="inner"/>.</summary>
-    private sealed class RegularSeasonHandler(FakeHttpMessageHandler inner, string json) : DelegatingHandler(inner)
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
-            request.RequestUri!.Query == "?seasontype=2"
-                ? Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json) })
-                : base.SendAsync(request, ct);
     }
 
     [Fact]
     public async Task BoardAsync_EspnDown_ReturnsTeamWithNoGames()
     {
         var handler = new FakeHttpMessageHandler("", HttpStatusCode.ServiceUnavailable);
-        var service = new SportsService(new EspnFetcher(new HttpClient(handler)), new FusionCache(new FusionCacheOptions()),
-            NullLogger<SportsService>.Instance);
-
-        var board = await service.BoardAsync([AngelCity]);
+        var board = await Service(handler).BoardAsync([AngelCity]);
 
         var team = Assert.Single(board.Teams);
         Assert.Null(team.Last);

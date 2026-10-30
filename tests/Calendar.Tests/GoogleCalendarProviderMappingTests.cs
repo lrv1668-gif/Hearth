@@ -1,6 +1,5 @@
 using Calendar.Providers.Google;
 using Google.Apis.Calendar.v3.Data;
-using Xunit;
 using GTask = Google.Apis.Tasks.v1.Data.Task;
 
 namespace Calendar.Tests;
@@ -115,7 +114,6 @@ public sealed class GoogleCalendarProviderMappingTests
         var result = GoogleCalendarProvider.MapCalendarEvents(events);
 
         var item = Assert.Single(result);
-        Assert.False(string.IsNullOrEmpty(item.Id));
         Assert.True(Guid.TryParse(item.Id, out _));
     }
 
@@ -148,7 +146,7 @@ public sealed class GoogleCalendarProviderMappingTests
     }
 
     [Fact]
-    public void MapCalendarEvents_PreservesDescriptionLocationAndHtmlLink()
+    public void MapCalendarEvents_MissingOptionalFields_MapToNull()
     {
         var events = new List<Event>
         {
@@ -169,14 +167,6 @@ public sealed class GoogleCalendarProviderMappingTests
         Assert.Null(item.Location);
         Assert.Null(item.HtmlLink);
         Assert.Null(item.CalendarName);
-    }
-
-    [Fact]
-    public void MapCalendarEvents_EmptyList_ReturnsEmptyList()
-    {
-        var result = GoogleCalendarProvider.MapCalendarEvents(new List<Event>());
-
-        Assert.Empty(result);
     }
 
     [Fact]

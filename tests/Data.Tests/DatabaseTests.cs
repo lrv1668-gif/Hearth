@@ -1,27 +1,24 @@
 using Data.Abstractions;
-using Xunit;
+using Hearth.TestUtilities;
 
 namespace Data.Tests;
 
 public sealed class DatabaseTests : IDisposable
 {
-    private readonly string _path = Path.Combine(Path.GetTempPath(), $"hearth-datatest-{Guid.NewGuid():N}.db");
+    private readonly TempDatabase _tmp = new();
     private readonly Database _db;
 
     public DatabaseTests()
     {
-        _db = new Database(_path);
+        _db = _tmp.Db;
+        _db.NonQuery("CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NULL)");
     }
 
-    public void Dispose()
-    {
-        try { if (File.Exists(_path)) File.Delete(_path); } catch { /* best effort */ }
-    }
+    public void Dispose() => _tmp.Dispose();
 
     [Fact]
-    public void NonQuery_CreateTableThenInsert_QueryOneReturnsRow()
+    public void NonQuery_Insert_QueryOneReturnsRow()
     {
-        _db.NonQuery("CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES (1, 'sprocket')");
 
         var name = _db.QueryOne("SELECT name FROM widgets WHERE id = 1", r => r.Field<string>("name"));
@@ -32,7 +29,6 @@ public sealed class DatabaseTests : IDisposable
     [Fact]
     public void Query_MultipleMatchingRows_ReturnsAllInInsertOrder()
     {
-        _db.NonQuery("CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES (1, 'a')");
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES (2, 'b')");
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES (3, 'c')");
@@ -45,8 +41,6 @@ public sealed class DatabaseTests : IDisposable
     [Fact]
     public void QueryOne_NoMatchingRow_ReturnsDefault()
     {
-        _db.NonQuery("CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
-
         var name = _db.QueryOne("SELECT name FROM widgets WHERE id = 1", r => r.Field<string>("name"));
 
         Assert.Null(name);
@@ -55,8 +49,6 @@ public sealed class DatabaseTests : IDisposable
     [Fact]
     public void NonQuery_ParameterizedInsert_BindsValueCorrectly()
     {
-        _db.NonQuery("CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
-
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES ($id, $name)", cmd =>
         {
             cmd.AddParam("$id", 1);
@@ -70,8 +62,6 @@ public sealed class DatabaseTests : IDisposable
     [Fact]
     public void NonQuery_ParameterWithNullValue_StoresAsDbNull()
     {
-        _db.NonQuery("CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NULL)");
-
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES ($id, $name)", cmd =>
         {
             cmd.AddParam("$id", 1);
@@ -89,10 +79,9 @@ public sealed class DatabaseTests : IDisposable
         // Database opens a fresh connection per call rather than holding one open, so a
         // write from a second Database instance against the same file is immediately
         // visible to this one — there is no per-instance connection or result caching.
-        _db.NonQuery("CREATE TABLE widgets (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES (1, 'a')");
 
-        var other = new Database(_path);
+        var other = new Database(_tmp.Path);
         other.NonQuery("INSERT INTO widgets (id, name) VALUES (2, 'b')");
 
         var names = _db.Query("SELECT name FROM widgets ORDER BY id", r => r.Field<string>("name")).ToList();

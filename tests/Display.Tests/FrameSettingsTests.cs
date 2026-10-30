@@ -1,5 +1,4 @@
 using Display.Records;
-using Xunit;
 
 namespace Display.Tests;
 

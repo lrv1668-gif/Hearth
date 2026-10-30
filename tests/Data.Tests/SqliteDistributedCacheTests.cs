@@ -1,7 +1,6 @@
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Time.Testing;
-using Xunit;
 
 namespace Data.Tests;
 
@@ -46,7 +45,7 @@ public sealed class SqliteDistributedCacheTests : IDisposable
     }
 
     [Fact]
-    public void Get_AbsoluteExpiration_HonoredOverRelative()
+    public void Get_PastAbsoluteExpiration_ReturnsNull()
     {
         _cache.Set("k", [1], new DistributedCacheEntryOptions
         {

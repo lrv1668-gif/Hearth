@@ -1,26 +1,26 @@
+using Hearth.TestUtilities;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Configuration;
-using Xunit;
 
 namespace Photos.Tests;
 
 public sealed class PhotoGroupStoreTests : IDisposable
 {
-    private readonly string _dataPath = Path.Combine(Path.GetTempPath(), $"photos-{Guid.NewGuid():N}");
+    private readonly TempDirectory _data = new();
     private readonly IConfiguration _config;
 
     public PhotoGroupStoreTests()
     {
         // UploadStore indexes whatever files sit in uploads/ when it starts
-        var uploadsDir = Path.Combine(_dataPath, "uploads");
+        var uploadsDir = Path.Combine(_data.Path, "uploads");
         Directory.CreateDirectory(uploadsDir);
         foreach (var id in new[] { "a", "b", "c" }) File.WriteAllBytes(Path.Combine(uploadsDir, $"{id}.webp"), []);
         _config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["DATA_PATH"] = _dataPath })
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["DATA_PATH"] = _data.Path })
             .Build();
     }
 
-    public void Dispose() => Directory.Delete(_dataPath, recursive: true);
+    public void Dispose() => _data.Dispose();
 
     private PhotoGroupStore MakeStore(UploadStore? uploads = null) => new(_config, uploads ?? new UploadStore(_config, NullLogger<UploadStore>.Instance), NullLogger<PhotoGroupStore>.Instance);
 

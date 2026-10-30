@@ -5,7 +5,6 @@ using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace Calendar.Tests;
 
@@ -54,38 +53,16 @@ public sealed class GoogleCalendarProviderTests
 
     // --- NeedsTokenRefresh boundary ---
 
-    [Fact]
-    public void NeedsTokenRefresh_ExactlyAtThirtySecondBoundary_ReturnsTrue()
+    [Theory]
+    [InlineData(-3600, true)]  // well past expiry
+    [InlineData(30, true)]     // exactly at the 30 s margin
+    [InlineData(30.0000001, false)]
+    [InlineData(3600, false)]  // well before expiry
+    public void NeedsTokenRefresh_SecondsToExpiry_RefreshesWithinThirtySeconds(double seconds, bool expected)
     {
-        var now = DateTimeOffset.UtcNow;
-        var expiresAt = now.AddSeconds(30);
+        var now = new DateTimeOffset(2026, 7, 20, 12, 0, 0, TimeSpan.Zero);
 
-        Assert.True(GoogleCalendarProvider.NeedsTokenRefresh(expiresAt, now));
-    }
-
-    [Fact]
-    public void NeedsTokenRefresh_OneTickInsideBoundary_ReturnsFalse()
-    {
-        var now = DateTimeOffset.UtcNow;
-        var expiresAt = now.AddSeconds(30).AddTicks(1);
-
-        Assert.False(GoogleCalendarProvider.NeedsTokenRefresh(expiresAt, now));
-    }
-
-    [Fact]
-    public void NeedsTokenRefresh_WellPastExpiry_ReturnsTrue()
-    {
-        var now = DateTimeOffset.UtcNow;
-
-        Assert.True(GoogleCalendarProvider.NeedsTokenRefresh(now.AddHours(-1), now));
-    }
-
-    [Fact]
-    public void NeedsTokenRefresh_WellBeforeExpiry_ReturnsFalse()
-    {
-        var now = DateTimeOffset.UtcNow;
-
-        Assert.False(GoogleCalendarProvider.NeedsTokenRefresh(now.AddHours(1), now));
+        Assert.Equal(expected, GoogleCalendarProvider.NeedsTokenRefresh(now.AddTicks((long)(seconds * TimeSpan.TicksPerSecond)), now));
     }
 
     // --- GetItemsAsync cache/token paths (no network) ---
@@ -146,7 +123,7 @@ public sealed class GoogleCalendarProviderTests
     }
 
     [Fact]
-    public async Task GetItemsAsync_CacheExactlyAtFiveMinuteBoundary_IsTreatedAsStale()
+    public async Task GetItemsAsync_CacheFiveMinutesOld_IsTreatedAsStale()
     {
         using var db = new TempDatabase();
         var (provider, _) = MakeProvider(db);
@@ -160,19 +137,12 @@ public sealed class GoogleCalendarProviderTests
     // --- IsAuthenticated / Disconnect ---
 
     [Fact]
-    public void IsAuthenticated_NoTokenRow_ReturnsFalse()
-    {
-        using var db = new TempDatabase();
-        var (provider, _) = MakeProvider(db);
-
-        Assert.False(provider.IsAuthenticated);
-    }
-
-    [Fact]
-    public void IsAuthenticated_TokenRowExists_ReturnsTrue()
+    public void IsAuthenticated_FollowsTheStoredToken()
     {
         using var db = new TempDatabase();
         var (provider, store) = MakeProvider(db);
+        Assert.False(provider.IsAuthenticated);
+
         store.SaveToken("google", "access", "refresh", DateTimeOffset.UtcNow.AddHours(1));
 
         Assert.True(provider.IsAuthenticated);

@@ -1,13 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
-using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceDefaults;
-using Xunit;
 
 namespace Display.Tests;
 
@@ -20,14 +18,11 @@ public sealed class HomeEndpointTests : IDisposable
 
     public HomeEndpointTests()
     {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
+        _factory = HearthApp.Create<Program>("display", _db, host =>
         {
             host.UseSetting("RENDERER_URL", "http://renderer:3000");
             host.ConfigureTestServices(services =>
-            {
-                services.AddKeyedSingleton<IDatabase>("display", _db.Db);
-                services.AddHttpClient<RendererClient>().ConfigurePrimaryHttpMessageHandler(() => _renderer);
-            });
+                services.AddHttpClient<RendererClient>().ConfigurePrimaryHttpMessageHandler(() => _renderer));
         });
     }
 
