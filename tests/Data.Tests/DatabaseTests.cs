@@ -15,7 +15,16 @@ public sealed class DatabaseTests : IDisposable
 
     public void Dispose()
     {
-        try { if (File.Exists(_path)) File.Delete(_path); } catch { /* best effort */ }
+        foreach (var path in new[] { _path, _path + "-wal", _path + "-shm" })
+            try { if (File.Exists(path)) File.Delete(path); } catch { /* best effort */ }
+    }
+
+    [Fact]
+    public void Constructor_NewFile_UsesWalJournalMode()
+    {
+        var mode = _db.QueryOne("PRAGMA journal_mode", r => r.GetString(0));
+
+        Assert.Equal("wal", mode);
     }
 
     [Fact]

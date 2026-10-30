@@ -35,6 +35,8 @@ public sealed class HomeLocationClient(
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(7),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     // How long "Display unreachable, nothing cached" is remembered before trying again

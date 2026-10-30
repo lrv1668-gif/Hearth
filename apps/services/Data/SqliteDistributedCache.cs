@@ -16,6 +16,10 @@ public sealed class SqliteDistributedCache : IDistributedCache
     private readonly IDatabase _db;
     private readonly TimeProvider _time;
 
+    public static readonly TimeSpan PurgeInterval = TimeSpan.FromMinutes(10);
+    // Unix ms of the last purge; 0 (the epoch) so the first write purges
+    private long _lastPurge;
+
     public SqliteDistributedCache(IDatabase db, TimeProvider? time = null)
     {
         _db = db;
@@ -51,9 +55,15 @@ public sealed class SqliteDistributedCache : IDistributedCache
         var expiresAt = options.AbsoluteExpiration
             ?? (ttl is { } relative ? now + relative : DateTimeOffset.MaxValue);
 
-        // Opportunistic purge keeps the table from accumulating entries for keys that are never read again
-        _db.NonQuery("DELETE FROM distributed_cache WHERE expires_at <= $now",
-            cmd => cmd.AddParam("$now", now.ToUnixTimeMilliseconds()));
+        // Opportunistic purge keeps the table from accumulating entries for keys that are never
+        // read again — at most once per PurgeInterval, not on every write
+        var lastPurge = Interlocked.Read(ref _lastPurge);
+        if (now.ToUnixTimeMilliseconds() - lastPurge >= (long)PurgeInterval.TotalMilliseconds
+            && Interlocked.CompareExchange(ref _lastPurge, now.ToUnixTimeMilliseconds(), lastPurge) == lastPurge)
+        {
+            _db.NonQuery("DELETE FROM distributed_cache WHERE expires_at <= $now",
+                cmd => cmd.AddParam("$now", now.ToUnixTimeMilliseconds()));
+        }
 
         _db.NonQuery("""
             INSERT OR REPLACE INTO distributed_cache (key, value, expires_at)

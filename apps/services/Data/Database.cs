@@ -4,9 +4,18 @@ using Data.Abstractions;
 
 namespace Data
 {
-    public sealed class Database(string dbPath) : IDatabase
+    public sealed class Database : IDatabase
     {
-        private readonly string _cs = $"Data Source={dbPath}";
+        private readonly string _cs;
+
+        public Database(string dbPath)
+        {
+            _cs = $"Data Source={dbPath}";
+
+            // WAL lets readers run alongside a writer (e.g. a cache write while an endpoint
+            // reads). The mode is stored in the file, so setting it once per start is enough.
+            NonQuery("PRAGMA journal_mode=WAL");
+        }
 
         private SqliteConnection Open()
         {

@@ -1,4 +1,5 @@
 using Sports.Records;
+using ServiceDefaults;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace Sports;
@@ -20,6 +21,8 @@ public sealed class SportsService(EspnFetcher fetcher, IFusionCache cache, ILogg
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(30),
         FailSafeThrottleDuration = TimeSpan.FromMinutes(5),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     private static readonly FusionCacheEntryOptions ScheduleOptions = new()
@@ -28,6 +31,8 @@ public sealed class SportsService(EspnFetcher fetcher, IFusionCache cache, ILogg
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(3),
         FailSafeThrottleDuration = TimeSpan.FromMinutes(5),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     // Duration is set per fetch: short while a game is live
@@ -37,6 +42,8 @@ public sealed class SportsService(EspnFetcher fetcher, IFusionCache cache, ILogg
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromHours(6),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     public async Task<List<Team>> TeamsAsync(League league, CancellationToken ct = default) =>
