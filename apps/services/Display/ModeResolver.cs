@@ -88,6 +88,47 @@ public static class ModeResolver
         return next;
     }
 
+    private const int MinutesPerDay = 24 * 60;
+
+    /// <summary>
+    /// The schedule across one household day, midnight to midnight: the rule holding each
+    /// stretch (the first match wins, an overnight rule from the day before included) or the
+    /// default mode, with adjacent stretches of the same rule merged. Overrides and quiet
+    /// hours aren't shown — they're not part of the schedule.
+    /// </summary>
+    public static IReadOnlyList<ModeSpan> Day(ModeSchedule schedule, DateOnly day)
+    {
+        var cuts = new SortedSet<int> { 0, MinutesPerDay };
+        foreach (var rule in schedule.Rules)
+        {
+            cuts.Add(Minutes(rule.StartTime));
+            cuts.Add(Minutes(rule.EndTime));
+        }
+
+        var bounds = cuts.ToArray();
+        var spans = new List<ModeSpan>();
+        for (var i = 0; i < bounds.Length - 1; i++)
+        {
+            // No rule starts or ends inside a stretch, so its first minute speaks for all of it
+            var local = day.ToDateTime(TimeOnly.MinValue).AddMinutes(bounds[i]);
+            int? index = null;
+            for (var r = 0; r < schedule.Rules.Count && index is null; r++)
+                if (Holds(schedule.Rules[r], local)) index = r;
+            if (spans.Count > 0 && spans[^1].Rule == index)
+            {
+                spans[^1] = spans[^1] with { End = Clock(bounds[i + 1]) };
+                continue;
+            }
+            var modes = index is { } k ? schedule.Rules[k].Modes : [schedule.DefaultMode];
+            spans.Add(new ModeSpan(Clock(bounds[i]), Clock(bounds[i + 1]), modes, index));
+        }
+        return spans;
+    }
+
+    private static int Minutes(TimeOnly time) => time.Hour * 60 + time.Minute;
+
+    private static string Clock(int minutes) => $"{minutes / 60:00}:{minutes % 60:00}";
+
     /// <summary>A household wall-clock time as an instant; a time skipped by DST moves past the gap.</summary>
     internal static DateTimeOffset ToInstant(DateTime local, TimeZoneInfo zone)
     {

@@ -8,6 +8,7 @@ import {
     checkIn,
     dayOfYear,
     durationLabel,
+    editionLabel,
     forecastBars,
     frameUrl,
     fitFontSize,
@@ -541,6 +542,25 @@ describe('panel render settings', () => {
         expect(isPhotoInterval(14)).toBe(false);
         expect(isPhotoInterval(1441)).toBe(false);
         expect(isPhotoInterval(30.5)).toBe(false);
+    });
+});
+
+describe('editionLabel', () => {
+    const rise = new Date('2026-10-19T07:00');
+    const set = new Date('2026-10-19T18:00');
+
+    it('names the hour, snapped like the sun, while the sun is up', () => {
+        expect(editionLabel(rise, set, new Date('2026-10-19T10:40'))).toBe('11 AM');
+    });
+
+    it('holds one label after sunset and another before sunrise, so it adds no redraws', () => {
+        expect(editionLabel(rise, set, new Date('2026-10-19T19:40'))).toBe('Evening');
+        expect(editionLabel(rise, set, new Date('2026-10-19T23:10'))).toBe('Evening');
+        expect(editionLabel(rise, set, new Date('2026-10-19T05:20'))).toBe('Early');
+    });
+
+    it('is null without sun times', () => {
+        expect(editionLabel(null, null, new Date('2026-10-19T10:00'))).toBeNull();
     });
 });
 

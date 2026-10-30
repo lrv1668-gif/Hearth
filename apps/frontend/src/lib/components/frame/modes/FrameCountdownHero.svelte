@@ -1,6 +1,7 @@
 <script lang="ts">
     import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
     import { heroCountdown } from '#lib/frame.ts';
+    import FrameDatePoster from '../FrameDatePoster.svelte';
 
     let { now, countdownId = null }: { now: Date; countdownId?: number | null } = $props();
 
@@ -38,7 +39,13 @@ Flat inks only, so it takes Daily's ordered dither.
         <div class="my-10 h-3 w-40 bg-(--block)"></div>
         <p class="type-hero font-(family-name:--display-family) leading-tight font-medium">{countdown.task.title}</p>
         <p class="type-subtitle mt-4 text-(--text-2)">{date}</p>
-    {:else}
-        <p class="type-title font-(family-name:--display-family) text-(--text-2) italic">Nothing to count down to</p>
     {/if}
 </div>
+{#if !countdown}
+    <!-- Nothing ahead: the date poster rather than a near-empty page -->
+    <FrameDatePoster
+        {now}
+        weather={false}
+        note={taskStore.error ? 'Countdowns unavailable' : 'No countdowns coming up'}
+    />
+{/if}

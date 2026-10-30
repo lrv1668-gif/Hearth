@@ -7,6 +7,7 @@ const { respond, unreachable } = mockFetch();
 beforeEach(() => {
     calendarStore.items = [];
     calendarStore.googleConnected = true;
+    calendarStore.error = false;
 });
 
 describe('calendar store', () => {
@@ -15,6 +16,16 @@ describe('calendar store', () => {
         respond(503);
         await loadCalendarItems();
         expect(calendarStore.items.map((i) => i.id)).toEqual(['e1']);
+    });
+
+    it('flags an error when a failed load leaves no items, not for an empty calendar', async () => {
+        respond(200, []);
+        await loadCalendarItems();
+        expect(calendarStore.error).toBe(false);
+
+        unreachable();
+        await loadCalendarItems();
+        expect(calendarStore.error).toBe(true);
     });
 
     it('keeps the connection status when the check fails', async () => {

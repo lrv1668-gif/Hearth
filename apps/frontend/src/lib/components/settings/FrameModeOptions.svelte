@@ -29,7 +29,7 @@
 <!--
 @component
 Choices for the modes that need them: Countdown mode's countdown, and Note mode's text,
-with a button to put the note up until changed. Photo mode's are in Photos
+each with a button to put that mode up until changed. Photo mode's are in Photos
 (`FramePhotoSettings`).
 Saved with the rest of the frame settings.
 -->
@@ -53,6 +53,16 @@ Saved with the rest of the frame settings.
         </label>
         {#if loaded && countdowns.length === 0}
             <p class="type-caption mt-2 text-(--text-2)">No countdowns yet — add one from the dashboard’s tasks.</p>
+        {:else if countdowns.length > 0}
+            <div class="mt-3 flex justify-end">
+                {#if modeStore.current?.mode === 'countdown' && modeStore.current.reason === 'override'}
+                    <p class="type-label font-medium text-(--text-1)">Showing on the frame</p>
+                {:else}
+                    <Button variant="primary" onclick={() => setOverride({ mode: 'countdown', until: null })}>
+                        Show this countdown
+                    </Button>
+                {/if}
+            </div>
         {/if}
     </SettingsGroup>
 

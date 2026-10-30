@@ -2,8 +2,11 @@
     import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
     import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
     import { weekAhead, type WeekDay } from '#lib/frame.ts';
+    import type { FrameSize } from '#lib/constants/frameTemplates.ts';
+    import FrameEmpty from '../FrameEmpty.svelte';
 
-    let { now, lines }: { now: Date; lines: number } = $props();
+    // `size`: the template slot's size class (M or L); omitted in the free columns.
+    let { now, lines, size }: { now: Date; lines: number; size?: FrameSize } = $props();
 
     // Entries are counted in text lines so the list fits its share of the column
     // whatever the data; ~15% goes to the gaps between days, and each "+N more"
@@ -33,7 +36,11 @@ Week Ahead for the e-paper frame: the next 7 days that have anything on them —
 events, Google Tasks and Hearth tasks — one row per day, up to two entries each, trimmed to a line budget that fits the slot.
 -->
 {#if rows.length === 0}
-    <p class="type-body text-(--text-2)">A clear week ahead.</p>
+    <!-- With either source down, an empty week is unknown rather than clear -->
+    <FrameEmpty
+        text={taskStore.error || calendarStore.error ? 'Tasks and events unavailable' : 'A clear week ahead'}
+        small={size === undefined}
+    />
 {:else}
     <dl class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-4">
         {#each rows as { day, shown, more } (day.key)}

@@ -1,4 +1,4 @@
-import { api, type ModeOverride, type ModeSchedule, type ResolvedMode } from '#lib/api.ts';
+import { api, type ModeOverride, type ModeSchedule, type ModeTimeline, type ResolvedMode } from '#lib/api.ts';
 import { DEFAULT_FRAME_MODE } from '#lib/constants/frameModes.ts';
 import type { FramePalette } from '#lib/constants/frameThemes.ts';
 
@@ -11,6 +11,8 @@ class ModeStore {
     /** What the frame shows now; null until loaded or while Display is unreachable. */
     current = $state<ResolvedMode | null>(null);
     schedule = $state<ModeSchedule>({ default_mode: DEFAULT_FRAME_MODE, rules: [] });
+    /** Today's saved schedule as a timeline; null until loaded. */
+    day = $state<ModeTimeline | null>(null);
     /** Color or B&W — kept by Display apart from the frame settings, so the frame's
      *  Button C can flip it too. */
     palette = $state<FramePalette>('color');
@@ -26,15 +28,17 @@ class ModeStore {
 export const modeStore = new ModeStore();
 
 export async function loadModes() {
-    const [current, schedule, palette] = await Promise.all([
+    const [current, schedule, palette, day] = await Promise.all([
         api.display.mode(),
         api.display.schedule(),
         api.display.palette(),
+        api.display.day(),
     ]);
     modeStore.error = current === null || schedule === null || palette === null;
     if (current) modeStore.current = current;
     if (schedule) modeStore.schedule = schedule;
     if (palette) modeStore.palette = palette.palette;
+    if (day) modeStore.day = day;
     modeStore.loaded = true;
 }
 
@@ -48,7 +52,8 @@ export async function saveSchedule(schedule: ModeSchedule) {
     modeStore.schedule = schedule;
     try {
         modeStore.schedule = await api.display.saveSchedule(schedule);
-        await refreshCurrent();
+        const [day] = await Promise.all([api.display.day(), refreshCurrent()]);
+        if (day) modeStore.day = day;
     } catch {
         modeStore.error = true;
     }

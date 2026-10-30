@@ -17,7 +17,10 @@
 </script>
 
 {#if tasks.length === 0}
-    <FrameEmpty text="Nothing due today" small={size === undefined || size === 's'} />
+    <FrameEmpty
+        text={taskStore.error ? 'Tasks unavailable' : 'Nothing due today'}
+        small={size === undefined || size === 's'}
+    />
 {:else}
     <!-- A ledger: box, title, then a dotted leader running to the due time. -->
     <ul class={large ? 'space-y-5' : 'space-y-4'}>

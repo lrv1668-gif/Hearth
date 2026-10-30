@@ -29,7 +29,7 @@ rail (FrameComingUp).
 -->
 <div bind:clientWidth={w} bind:clientHeight={h} class="h-full">
     {#if days.length === 0}
-        <FrameEmpty text="No upcoming events" />
+        <FrameEmpty text={calendarStore.error ? 'Calendar unavailable' : 'No upcoming events'} />
     {:else}
         <div class="h-full gap-16 {twoColumns ? 'columns-2' : ''}" style="column-fill: auto">
             {#each days as day (day.key)}

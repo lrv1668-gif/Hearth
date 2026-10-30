@@ -4,8 +4,8 @@ import { frameWidgets, isValidFrameWidgetId, type FrameWidgetId } from './frameW
    the forecast band, each slot a size class — S (about a quarter of the area), M (a
    half: tall or wide, depending on the template and orientation) or L (all of it).
    A widget lists the sizes it's designed for (frameWidgetSizes) and only goes in
-   slots of those sizes, so every combination looks designed. `columns` is the older
-   free two-column layout (left/right/split in frameWidgets.ts), kept as a template. */
+   slots of those sizes, so every combination looks designed. `columns` ("Custom") is
+   the older free two-column layout (left/right/split in frameWidgets.ts), kept as a template. */
 
 export type FrameSize = 's' | 'm' | 'l';
 
@@ -19,7 +19,6 @@ export interface FrameTemplate {
 }
 
 export const frameTemplates = [
-    { id: 'columns', label: 'Columns', slots: [], areas: { landscape: [], portrait: [] } },
     { id: 'full', label: 'Full', slots: ['l'], areas: { landscape: ['s0'], portrait: ['s0'] } },
     {
         id: 'halves',
@@ -46,11 +45,16 @@ export const frameTemplates = [
         slots: ['s', 's', 's', 's'],
         areas: { landscape: ['s0 s1', 's2 s3'], portrait: ['s0 s1', 's2 s3'] },
     },
+    // Last: the free-form fallback, for layouts the templates don't cover
+    { id: 'columns', label: 'Custom', slots: [], areas: { landscape: [], portrait: [] } },
 ] as const satisfies readonly FrameTemplate[];
 
 export type FrameTemplateId = (typeof frameTemplates)[number]['id'];
 
-export const DEFAULT_FRAME_TEMPLATE: FrameTemplateId = 'columns';
+/** A fresh install's Daily layout. (Display's own default stays `columns`: settings saved
+ *  before templates existed had no template and were laid out in columns.) */
+export const DEFAULT_FRAME_TEMPLATE: FrameTemplateId = 'feature';
+export const DEFAULT_FRAME_SLOTS: readonly FrameWidgetId[] = ['coming-up', 'countdowns', 'today'];
 
 /** Slots in the largest template — the most widgets a template shows. */
 export const MAX_TEMPLATE_SLOTS = Math.max(...frameTemplates.map((t) => t.slots.length));

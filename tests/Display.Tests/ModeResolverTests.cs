@@ -233,4 +233,60 @@ public sealed class ModeResolverTests
         Assert.NotNull(new ModeOverride(FrameModes.Daily, null, "abc").Validate());
         Assert.Null(new ModeOverride(FrameModes.Photo, null, "abc").Validate());
     }
+
+    private static readonly DateOnly Monday = new(2026, 10, 19);
+
+    // Spans as comparable tuples: records compare their Modes lists by reference
+    private static IEnumerable<(string, string, string, int?)> Flat(IEnumerable<ModeSpan> spans) =>
+        spans.Select(s => (s.Start, s.End, string.Join("+", s.Modes), s.Rule));
+
+    [Fact]
+    public void Day_NoRules_IsTheDefaultAllDay()
+    {
+        var spans = ModeResolver.Day(ModeSchedule.Default, Monday);
+
+        Assert.Equal<(string, string, string, int?)>([("00:00", "24:00", FrameModes.Ambient, (int?)null)], Flat(spans));
+    }
+
+    [Fact]
+    public void Day_WithRules_SplitsTheDayIncludingLastNightsOvernightRule()
+    {
+        var spans = ModeResolver.Day(Schedule, Monday);
+
+        Assert.Equal<(string, string, string, int?)>(
+            [
+                ("00:00", "06:00", FrameModes.Night, (int?)1),
+                ("06:00", "07:00", FrameModes.Ambient, (int?)null),
+                ("07:00", "09:00", FrameModes.Daily, (int?)0),
+                ("09:00", "23:00", FrameModes.Ambient, (int?)null),
+                ("23:00", "24:00", FrameModes.Night, (int?)1),
+            ],
+            Flat(spans));
+    }
+
+    [Fact]
+    public void Day_OverlappingRules_FirstWinsAndShadowedPartsMerge()
+    {
+        var late = Mornings with { Mode = FrameModes.Countdown, Start = "08:00", End = "10:00" };
+        var spans = ModeResolver.Day(new ModeSchedule(FrameModes.Ambient, [Mornings, late]), Monday);
+
+        Assert.Equal<(string, string, string, int?)>(
+            [
+                ("00:00", "07:00", FrameModes.Ambient, (int?)null),
+                ("07:00", "09:00", FrameModes.Daily, (int?)0),
+                ("09:00", "10:00", FrameModes.Countdown, (int?)1),
+                ("10:00", "24:00", FrameModes.Ambient, (int?)null),
+            ],
+            Flat(spans));
+    }
+
+    [Fact]
+    public void Day_RotatingRule_ListsAllItsModes()
+    {
+        var rotating = Mornings with { Rotate = [FrameModes.Photo], RotateMinutes = 30 };
+
+        var spans = ModeResolver.Day(new ModeSchedule(FrameModes.Ambient, [rotating]), Monday);
+
+        Assert.Equal([FrameModes.Daily, FrameModes.Photo], spans[1].Modes);
+    }
 }

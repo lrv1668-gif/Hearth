@@ -49,8 +49,8 @@
 <!--
 @component
 Settings → Frame's Daily layout: a template picker (thumbnails drawn in the frame's
-orientation) and a widget choice per slot, offering only widgets designed for that
-slot's size. "Columns" keeps the free two-column editor (WidgetLayoutEditor), which
+orientation, slots numbered) and a widget choice per slot, offering only widgets designed for that
+slot's size. "Custom" (the `columns` template) keeps the free two-column editor (WidgetLayoutEditor), which
 the caller shows below it.
 -->
 <div class="flex flex-col gap-4">
@@ -72,8 +72,12 @@ the caller shows below it.
                             <span class="flex-1 rounded-sm bg-(--text-3)"></span>
                         </div>
                     {:else}
+                        <!-- Numbered like the slot pickers below -->
                         {#each t.slots as _, i (i)}
-                            <span class="rounded-sm bg-(--text-3)" style="grid-area: s{i}"></span>
+                            <span
+                                class="type-caption flex items-center justify-center rounded-sm border border-(--text-3) bg-(--surface-hi) leading-none font-semibold text-(--text-1)"
+                                style="grid-area: s{i}">{i + 1}</span
+                            >
                         {/each}
                     {/if}
                 </div>

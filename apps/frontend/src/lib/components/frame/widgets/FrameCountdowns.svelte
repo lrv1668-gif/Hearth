@@ -56,7 +56,10 @@ face. The soonest is struck solid in --accent, the frame's one "soonest/now" sig
 in M and L slots it becomes the poster, its count in --accent.
 -->
 {#if countdowns.length === 0}
-    <FrameEmpty text="No countdowns added yet" small={size === undefined || size === 's'} />
+    <FrameEmpty
+        text={taskStore.error ? 'Countdowns unavailable' : 'No countdowns added yet'}
+        small={size === undefined || size === 's'}
+    />
 {:else if size === 's'}
     {@const { task, days } = countdowns[0]}
     <div class="flex items-center gap-6">

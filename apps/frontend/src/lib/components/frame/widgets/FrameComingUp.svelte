@@ -2,6 +2,7 @@
     import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
     import { eventDateKey, localDateKey } from '#lib/utils.ts';
     import { getFrameScale, itemsThatFit, nextEvents, railDayLabel } from '#lib/frame.ts';
+    import FrameEmpty from '../FrameEmpty.svelte';
 
     let { now, lines }: { now: Date; lines: number } = $props();
 
@@ -32,7 +33,7 @@ today, open otherwise), and the title beside.
 -->
 <div bind:clientWidth={width}>
     {#if events.length === 0}
-        <p class="type-body text-(--text-2)">No upcoming events.</p>
+        <FrameEmpty text={calendarStore.error ? 'Calendar unavailable' : 'No upcoming events'} small />
     {:else}
         <ul
             class="grid gap-x-6 {narrow

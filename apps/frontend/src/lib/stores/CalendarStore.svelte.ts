@@ -3,11 +3,14 @@ import { api, type CalendarItem } from '#lib/api.ts';
 interface CalendarStoreState {
     items: CalendarItem[];
     googleConnected: boolean;
+    /** The Calendar service couldn't be reached and there are no items to show. */
+    error: boolean;
 }
 
 export const calendarStore = $state<CalendarStoreState>({
     items: [],
     googleConnected: false,
+    error: false,
 });
 
 // A failed check or refresh keeps what's already known
@@ -18,7 +21,12 @@ export async function loadCalendarStatus(): Promise<void> {
 
 export async function loadCalendarItems(): Promise<void> {
     const items = await api.calendar.items();
-    if (items) calendarStore.items = items;
+    if (!items) {
+        calendarStore.error = calendarStore.items.length === 0;
+        return;
+    }
+    calendarStore.error = false;
+    calendarStore.items = items;
 }
 
 export async function refreshCalendarItems(): Promise<void> {

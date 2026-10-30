@@ -7,6 +7,7 @@ const { respond, unreachable } = mockFetch();
 
 beforeEach(() => {
     taskStore.tasks = [task({ id: 1 }), task({ id: 2 })];
+    taskStore.error = false;
 });
 
 describe('loadTasks', () => {
@@ -20,6 +21,21 @@ describe('loadTasks', () => {
         respond(502);
         await loadTasks();
         expect(taskStore.tasks.map((t) => t.id)).toEqual([1, 2]);
+    });
+
+    it('flags an error only when a failed load leaves nothing to show', async () => {
+        respond(502);
+        await loadTasks();
+        expect(taskStore.error).toBe(false);
+
+        taskStore.tasks = [];
+        respond(502);
+        await loadTasks();
+        expect(taskStore.error).toBe(true);
+
+        respond(200, []);
+        await loadTasks();
+        expect(taskStore.error).toBe(false);
     });
 
     it('keeps the last good list when the network is down', async () => {

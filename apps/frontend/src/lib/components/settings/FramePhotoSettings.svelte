@@ -4,6 +4,7 @@
     import { api, type UploadedPhoto } from '#lib/api.ts';
     import { photoCards, photoIntervals } from '#lib/constants/frameModes.ts';
     import { settingsCardId } from '#lib/constants/settingsSections.ts';
+    import { AMBIENT_POSITIONS } from '#lib/frame.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import Button from '../ui/Button.svelte';
     import PhotoModePicker from './PhotoModePicker.svelte';
@@ -28,8 +29,8 @@
 
 <!--
 @component
-The frame's photo choices: how long Ambient and Photo keep a photo on the panel, Photo
-mode's uploads (one pins it, several make an album picked from at random) and its card.
+The frame's photo choices: how long Ambient and Photo keep a photo on the panel, where
+Ambient's date and weather card sits, Photo mode's uploads (one pins it, several make an album picked from at random) and its card.
 Saved with the rest of the frame settings.
 -->
 <div class="flex flex-col gap-5">
@@ -43,6 +44,32 @@ Saved with the rest of the frame settings.
         <p class="type-caption mt-2 text-(--text-2)">
             Ambient and Photo mode on the panel. Each change is a full e-paper refresh, about 30 seconds of flashing.
         </p>
+    </SettingsGroup>
+
+    <SettingsGroup title="Ambient card">
+        <!-- A 3×2 pad laid out like the frame -->
+        <div
+            class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
+            role="radiogroup"
+            aria-label="Ambient card position"
+        >
+            {#each AMBIENT_POSITIONS as p (p.value)}
+                {@const selected = frameSettings.ambientPosition === p.value}
+                <button
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    title={p.label}
+                    onclick={() => (frameSettings.ambientPosition = p.value)}
+                    class="type-label rounded px-3 py-1.5 transition-colors {selected
+                        ? 'bg-(--accent) text-(--accent-fg)'
+                        : 'text-(--text-2) hover:bg-(--surface-hi)'}"
+                >
+                    {p.label}
+                </button>
+            {/each}
+        </div>
+        <p class="type-caption mt-2 text-(--text-2)">Where the date and weather sit on Ambient mode’s photo.</p>
     </SettingsGroup>
 
     <SettingsGroup title="Photo mode">

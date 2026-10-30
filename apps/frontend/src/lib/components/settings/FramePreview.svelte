@@ -24,7 +24,7 @@
     import { normalizeSlots } from '#lib/constants/frameTemplates.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import { frameCanvas, frameUrl, type FrameOptions } from '#lib/frame.ts';
-    import { frameModes } from '#lib/constants/frameModes.ts';
+    import { frameModeLabel, frameModes } from '#lib/constants/frameModes.ts';
     import { modeStore } from '#lib/stores/ModeStore.svelte.ts';
     import { api } from '#lib/api.ts';
     import { poll } from '#lib/utils.ts';
@@ -32,6 +32,7 @@
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import IconButton from '../ui/IconButton.svelte';
     import Disclosure from '../ui/Disclosure.svelte';
+    import Select from '../ui/Select.svelte';
 
     // The most height (px) the whole preview may take, so a tall portrait frame shrinks to
     // fit the window instead of running off it. Unset: scale to the width alone.
@@ -46,6 +47,13 @@
         shared.pickedPalette?.against === modeStore.palette ? shared.pickedPalette.picked : modeStore.palette
     );
     // Live is the page itself; Screen and Paper are the Display service's dithered render.
+
+    // Picked here and not what the frame shows: say so, so the preview's controls aren't
+    // mistaken for the frame's own (Mode's "Show instead", the Look card's Colour/B&W).
+    const differs = $derived(
+        (!!modeStore.current && previewMode !== modeStore.current.mode) || previewPalette !== modeStore.palette
+    );
+    const paletteLabel = (p: FramePalette) => (p === 'bw' ? 'black & white' : 'colour');
 
     const layout = $derived(normalizeFrameLayout(frameSettings.layout));
     const slots = $derived(normalizeSlots(frameSettings.template, frameSettings.slots));
@@ -213,24 +221,36 @@
 <!--
 @component
 Live preview of the real /frame page at panel resolution, scaled to fit, with
-mode and Color/B&W toggles, an optional full-size button and the frame URL.
+a preview-only mode and Colour/B&W choice (flagged whenever it differs from what the
+frame shows), an optional full-size button and the frame URL.
 -->
 <div>
     <div bind:offsetHeight={controlsHeight} class="flex flex-wrap items-center gap-3 pb-3">
-        <SegmentedControl
-            options={frameModes.map((m) => ({ value: m.id, label: m.label }))}
-            value={previewMode}
-            onchange={(v) => (shared.pickedMode = v)}
-            label="Preview mode"
-        />
+        <label class="type-label flex items-center gap-2 text-(--text-2)">
+            Preview
+            <Select
+                size="sm"
+                value={previewMode}
+                onchange={(e) => {
+                    const v = (e.target as HTMLSelectElement).value as FrameModeId;
+                    // Picking what the frame shows goes back to following it
+                    shared.pickedMode = v === modeStore.current?.mode ? null : v;
+                }}
+            >
+                {#each frameModes as m (m.id)}
+                    <option value={m.id}>{m.label}{m.id === modeStore.current?.mode ? ' (showing now)' : ''}</option>
+                {/each}
+            </Select>
+        </label>
         <SegmentedControl
             options={[
-                { value: 'color', label: 'Color' },
+                { value: 'color', label: 'Colour' },
                 { value: 'bw', label: 'B&W' },
             ]}
             value={previewPalette}
-            onchange={(v) => (shared.pickedPalette = { picked: v, against: modeStore.palette })}
-            label="Palette"
+            onchange={(v) =>
+                (shared.pickedPalette = v === modeStore.palette ? null : { picked: v, against: modeStore.palette })}
+            label="Preview palette"
         />
         <SegmentedControl
             options={[
@@ -250,6 +270,20 @@ mode and Color/B&W toggles, an optional full-size button and the frame URL.
             <IconButton label="Full-size preview" title="Full-size preview" onclick={onexpand} class="ml-auto">
                 <Maximize2 class="icon-sm" aria-hidden="true" />
             </IconButton>
+        {/if}
+        {#if differs && modeStore.current}
+            <p class="type-caption w-full text-(--text-2)">
+                Preview only — the frame shows {frameModeLabel(modeStore.current.mode)} in {paletteLabel(
+                    modeStore.palette
+                )}.
+                <button
+                    type="button"
+                    class="underline hover:text-(--text-1)"
+                    onclick={() => ((shared.pickedMode = null), (shared.pickedPalette = null))}
+                >
+                    Match the frame
+                </button>
+            </p>
         {/if}
     </div>
 

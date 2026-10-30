@@ -197,6 +197,16 @@ public static class WebApplicationExtensions
 
         app.MapGet("/display/mode/schedule", (ModeStore store) => Results.Ok(store.GetSchedule()));
 
+        // Today's schedule as a timeline, in the household's time zone — Settings draws it
+        // above the rules so overlaps and gaps show at a glance.
+        app.MapGet("/display/mode/day", (
+            ModeStore store, HomeSettingsStore home, IConfiguration config, TimeProvider clock) =>
+        {
+            var today = DateOnly.FromDateTime(
+                TimeZoneInfo.ConvertTime(clock.GetUtcNow(), HomeZones.Resolve(home.Get(), config)).DateTime);
+            return Results.Ok(new ModeTimeline(today, ModeResolver.Day(store.GetSchedule(), today)));
+        });
+
         app.MapPut("/display/mode/schedule", (ModeSchedule schedule, ModeStore store, FrameRenderService frame) =>
         {
             if (schedule.Validate() is { } error) return Results.BadRequest(error);
