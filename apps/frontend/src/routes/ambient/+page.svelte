@@ -164,14 +164,21 @@
         <p class="type-body tracking-widest text-white/40 uppercase">Loading…</p>
     {:else if photo}
         {#key photo.id}
-            <img
-                src={photo.url}
-                alt={photo.description ?? ''}
-                style={settings.ambientMotion ? motionStyle : ''}
-                class="absolute inset-0 h-full w-full object-cover will-change-transform"
-                in:fade={{ duration: 1500 }}
-                out:fade={{ duration: 1500 }}
-            />
+            <!-- The whole photo fits the screen; a blurred copy fills the letterbox -->
+            <div class="absolute inset-0" in:fade={{ duration: 1500 }} out:fade={{ duration: 1500 }}>
+                <img
+                    src={photo.url}
+                    alt=""
+                    aria-hidden="true"
+                    class="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-2xl"
+                />
+                <img
+                    src={photo.url}
+                    alt={photo.description ?? ''}
+                    style={settings.ambientMotion ? motionStyle : ''}
+                    class="absolute inset-0 h-full w-full object-contain will-change-transform"
+                />
+            </div>
         {/key}
 
         {@const showAttribution = photo.source === 'unsplash'}
