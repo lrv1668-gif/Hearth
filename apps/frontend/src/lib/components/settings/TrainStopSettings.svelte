@@ -86,13 +86,13 @@
         }
         updateTrainStopLineFilter(stop.stopKey, selected.size === lines.length ? undefined : Array.from(selected));
     }
+    import SettingsGroup from '../ui/SettingsGroup.svelte';
 </script>
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-5">
     <!-- Subscribed stops list -->
-    <div class="flex flex-col gap-1">
-        <p class="type-body font-medium text-(--text-1)">Watched stops</p>
-        <div class="mt-2 flex flex-col">
+    <SettingsGroup title="Watched stops">
+        <div class="flex flex-col">
             {#each settings.trainStops as stop}
                 {@const expanded = expandedStopKey === stop.stopKey}
                 <div class="flex flex-col">
@@ -172,47 +172,48 @@
                 <p class="type-label py-4 text-center text-(--text-2)">No stops added yet.</p>
             {/each}
         </div>
-    </div>
+    </SettingsGroup>
 
     <!-- Add stop form -->
     {#if !formOpen}
-        <div class="border-t border-(--border) pt-4">
+        <SettingsGroup>
             <Button onclick={() => (adding = true)}><Plus class="icon-sm" /> Add a stop</Button>
-        </div>
+        </SettingsGroup>
     {:else}
-        <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
-            <p class="type-body font-medium text-(--text-1)">Add a stop</p>
-            <p class="type-label text-(--text-2)">
-                The stop key is a Transitland stop identifier, not a plain stop name — look yours up at
-                <a
-                    href="https://www.transit.land/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-(--accent) transition-colors hover:text-(--accent-hi)"
-                >
-                    transit.land
-                </a>
-                (its Onestop ID, e.g. <span class="font-medium">s-9xj5pvewxk-us36~flatironstationeastside</span>).
-            </p>
-            <div class="flex flex-col gap-2">
-                <Field label="Label">
-                    <TextInput type="text" bind:value={newLabel} placeholder="Union Station" class="w-full" />
-                </Field>
-                <Field label="Stop key">
-                    <TextInput
-                        type="text"
-                        bind:value={newStopKey}
-                        placeholder="s-9xj5pvewxk-us36~flatironstationeastside"
-                        class="w-full"
-                    />
-                </Field>
+        <SettingsGroup title="Add a stop">
+            <div class="flex flex-col gap-3">
+                <p class="type-label text-(--text-2)">
+                    The stop key is a Transitland stop identifier, not a plain stop name — look yours up at
+                    <a
+                        href="https://www.transit.land/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-(--accent) transition-colors hover:text-(--accent-hi)"
+                    >
+                        transit.land
+                    </a>
+                    (its Onestop ID, e.g. <span class="font-medium">s-9xj5pvewxk-us36~flatironstationeastside</span>).
+                </p>
+                <div class="flex flex-col gap-2">
+                    <Field label="Label">
+                        <TextInput type="text" bind:value={newLabel} placeholder="Union Station" class="w-full" />
+                    </Field>
+                    <Field label="Stop key">
+                        <TextInput
+                            type="text"
+                            bind:value={newStopKey}
+                            placeholder="s-9xj5pvewxk-us36~flatironstationeastside"
+                            class="w-full"
+                        />
+                    </Field>
+                </div>
+                <div class="flex justify-end gap-2">
+                    {#if settings.trainStops.length > 0}
+                        <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
+                    {/if}
+                    <Button onclick={handleAdd} disabled={!isValidNewStop()}>Add stop</Button>
+                </div>
             </div>
-            <div class="flex justify-end gap-2">
-                {#if settings.trainStops.length > 0}
-                    <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
-                {/if}
-                <Button onclick={handleAdd} disabled={!isValidNewStop()}>Add stop</Button>
-            </div>
-        </div>
+        </SettingsGroup>
     {/if}
 </div>

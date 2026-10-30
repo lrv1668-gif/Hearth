@@ -50,12 +50,12 @@
             saving = false;
         }
     }
+    import SettingsGroup from '../ui/SettingsGroup.svelte';
 </script>
 
-<div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-1">
-        <p class="type-body font-medium text-(--text-1)">Followed teams</p>
-        <div class="mt-2 flex flex-col">
+<div class="flex flex-col gap-5">
+    <SettingsGroup title="Followed teams">
+        <div class="flex flex-col">
             {#each followedTeams.teams as team (`${team.league}:${team.id}`)}
                 <ListRow
                     title={team.name}
@@ -69,50 +69,51 @@
                 </p>
             {/each}
         </div>
-    </div>
+    </SettingsGroup>
 
     {#if !formOpen}
-        <div class="border-t border-(--border) pt-4">
+        <SettingsGroup>
             <Button onclick={() => (adding = true)}><Plus class="icon-sm" /> Follow a team</Button>
-        </div>
+        </SettingsGroup>
     {:else}
-        <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
-            <p class="type-body font-medium text-(--text-1)">Follow a team</p>
-            <div class="flex flex-col gap-2">
-                <Field label="League">
-                    <Select bind:value={league} class="w-full">
-                        {#each leagues as l (l.key)}
-                            <option value={l.key}>{l.name}</option>
-                        {/each}
-                    </Select>
-                </Field>
-                <Field label="Team">
-                    <Select bind:value={teamId} class="w-full" disabled={!Array.isArray(teams)}>
-                        <option value="" disabled>
-                            {teams === 'loading'
-                                ? 'Loading teams…'
-                                : teams === 'error'
-                                  ? 'Teams unavailable'
-                                  : 'Choose a team'}
-                        </option>
-                        {#if Array.isArray(teams)}
-                            {#each teams as t (t.id)}
-                                <option value={t.id} disabled={isFollowed(t)}>{t.name}</option>
+        <SettingsGroup title="Follow a team">
+            <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-2">
+                    <Field label="League">
+                        <Select bind:value={league} class="w-full">
+                            {#each leagues as l (l.key)}
+                                <option value={l.key}>{l.name}</option>
                             {/each}
-                        {/if}
-                    </Select>
-                </Field>
-            </div>
-            {#if failed}
-                <InlineMessage tone="error">Couldn’t follow that team — try again.</InlineMessage>
-            {/if}
-            <p class="type-label text-(--text-2)">Scores, fixtures and broadcasts come from ESPN.</p>
-            <div class="flex justify-end gap-2">
-                {#if followedTeams.teams.length > 0}
-                    <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
+                        </Select>
+                    </Field>
+                    <Field label="Team">
+                        <Select bind:value={teamId} class="w-full" disabled={!Array.isArray(teams)}>
+                            <option value="" disabled>
+                                {teams === 'loading'
+                                    ? 'Loading teams…'
+                                    : teams === 'error'
+                                      ? 'Teams unavailable'
+                                      : 'Choose a team'}
+                            </option>
+                            {#if Array.isArray(teams)}
+                                {#each teams as t (t.id)}
+                                    <option value={t.id} disabled={isFollowed(t)}>{t.name}</option>
+                                {/each}
+                            {/if}
+                        </Select>
+                    </Field>
+                </div>
+                {#if failed}
+                    <InlineMessage tone="error">Couldn’t follow that team — try again.</InlineMessage>
                 {/if}
-                <Button onclick={handleAdd} disabled={!teamId || saving}>Follow team</Button>
+                <p class="type-label text-(--text-2)">Scores, fixtures and broadcasts come from ESPN.</p>
+                <div class="flex justify-end gap-2">
+                    {#if followedTeams.teams.length > 0}
+                        <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
+                    {/if}
+                    <Button onclick={handleAdd} disabled={!teamId || saving}>Follow team</Button>
+                </div>
             </div>
-        </div>
+        </SettingsGroup>
     {/if}
 </div>

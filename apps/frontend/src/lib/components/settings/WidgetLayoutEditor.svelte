@@ -123,6 +123,7 @@
         resizing = false;
         onwidthchange(Math.round(previewWidth));
     }
+    import SettingsGroup from '../ui/SettingsGroup.svelte';
 </script>
 
 <!--
@@ -199,8 +200,7 @@ header/footer strips — shared by the Dashboard and Frame settings.
 
     {@render strip('Footer', footer)}
 
-    <div class="mt-4 border-t border-(--border) pt-4">
-        <p class="eyebrow mb-2">Hidden</p>
+    <SettingsGroup title="Hidden" class="mt-5">
         {#if hidden.length === 0}
             <p class="type-label text-(--text-2)">Every widget is showing.</p>
         {:else}
@@ -222,5 +222,5 @@ header/footer strips — shared by the Dashboard and Frame settings.
                 {full ? 'Both columns are full — hide a widget to add another.' : 'Tap one to add it.'}
             </p>
         {/if}
-    </div>
+    </SettingsGroup>
 </div>

@@ -139,126 +139,132 @@
             saving = false;
         }
     }
+    import SettingsGroup from '../ui/SettingsGroup.svelte';
 </script>
 
-<div class="flex flex-col gap-6">
-    {#if homeLocation.error}
-        <InlineMessage tone="error">
-            Can't reach the Display service — the location can't be loaded or saved. Services use their .env values
-            meanwhile.
-        </InlineMessage>
-    {:else if homeLocation.loaded && !homeLocation.saved}
-        <p class="type-label text-(--text-2)">
-            Nothing saved yet — the services use LATITUDE, LONGITUDE and TZ from their .env files, if set.
-        </p>
-    {/if}
-
-    <div class="flex flex-col gap-3">
-        <p class="type-body font-medium text-(--text-1)">Find it</p>
-        <div class="flex flex-col gap-1">
-            <div>
-                <Button onclick={useMyLocation} disabled={!canLocate || locating}>
-                    <LocateFixed class="icon-sm" />
-                    {locating ? 'Locating…' : 'Use my location'}
-                </Button>
+{#if homeLocation.error}
+    <InlineMessage tone="error" class="mb-4">
+        Can't reach the Display service — the location can't be loaded or saved. Services use their .env values
+        meanwhile.
+    </InlineMessage>
+{:else if homeLocation.loaded && !homeLocation.saved}
+    <p class="type-label mb-4 text-(--text-2)">
+        Nothing saved yet — the services use LATITUDE, LONGITUDE and TZ from their .env files, if set.
+    </p>
+{/if}
+<div class="flex flex-col gap-5">
+    <SettingsGroup title="Find it">
+        <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-1">
+                <div>
+                    <Button onclick={useMyLocation} disabled={!canLocate || locating}>
+                        <LocateFixed class="icon-sm" />
+                        {locating ? 'Locating…' : 'Use my location'}
+                    </Button>
+                </div>
+                {#if !canLocate}
+                    <p class="type-label text-(--text-2)">
+                        Your browser only shares its location with pages on https or localhost — search for a city or
+                        type coordinates instead.
+                    </p>
+                {/if}
             </div>
-            {#if !canLocate}
-                <p class="type-label text-(--text-2)">
-                    Your browser only shares its location with pages on https or localhost — search for a city or type
-                    coordinates instead.
-                </p>
+            <form onsubmit={search} class="flex gap-2">
+                <TextInput
+                    type="search"
+                    bind:value={query}
+                    placeholder="Search for a city"
+                    aria-label="Search for a city"
+                    class="w-full"
+                />
+                <Button type="submit" disabled={query.trim().length < 2 || searching}>
+                    <Search class="icon-sm" />
+                    {searching ? 'Searching…' : 'Search'}
+                </Button>
+            </form>
+            {#if places}
+                <div class="flex flex-col">
+                    {#each places as place}
+                        <button
+                            onclick={() => pick(place)}
+                            class="flex flex-col rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--surface-hi)"
+                        >
+                            <span class="type-body text-(--text-1)">{place.label}</span>
+                            <span class="type-label text-(--text-2)">
+                                {place.latitude.toFixed(2)}, {place.longitude.toFixed(2)}{place.time_zone
+                                    ? ` · ${place.time_zone}`
+                                    : ''}
+                            </span>
+                        </button>
+                    {:else}
+                        <p class="type-label py-2 text-(--text-2)">No places match “{query}”.</p>
+                    {/each}
+                </div>
             {/if}
         </div>
-        <form onsubmit={search} class="flex gap-2">
-            <TextInput
-                type="search"
-                bind:value={query}
-                placeholder="Search for a city"
-                aria-label="Search for a city"
-                class="w-full"
-            />
-            <Button type="submit" disabled={query.trim().length < 2 || searching}>
-                <Search class="icon-sm" />
-                {searching ? 'Searching…' : 'Search'}
-            </Button>
-        </form>
-        {#if places}
-            <div class="flex flex-col">
-                {#each places as place}
-                    <button
-                        onclick={() => pick(place)}
-                        class="flex flex-col rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--surface-hi)"
-                    >
-                        <span class="type-body text-(--text-1)">{place.label}</span>
-                        <span class="type-label text-(--text-2)">
-                            {place.latitude.toFixed(2)}, {place.longitude.toFixed(2)}{place.time_zone
-                                ? ` · ${place.time_zone}`
-                                : ''}
-                        </span>
-                    </button>
-                {:else}
-                    <p class="type-label py-2 text-(--text-2)">No places match “{query}”.</p>
-                {/each}
-            </div>
-        {/if}
-    </div>
+    </SettingsGroup>
 
-    <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
-        <p class="type-body font-medium text-(--text-1)">Location</p>
-        <Field label="Name">
-            <TextInput type="text" bind:value={name} placeholder="Optional, e.g. Home" maxlength={100} class="w-full" />
-        </Field>
-        <div class="grid grid-cols-2 gap-2">
-            <Field label="Latitude">
+    <SettingsGroup title="Location">
+        <div class="flex flex-col gap-3">
+            <Field label="Name">
                 <TextInput
                     type="text"
-                    inputmode="decimal"
-                    bind:value={latitude}
-                    placeholder="e.g. 39.7392"
+                    bind:value={name}
+                    placeholder="Optional, e.g. Home"
+                    maxlength={100}
                     class="w-full"
                 />
             </Field>
-            <Field label="Longitude">
+            <div class="grid grid-cols-2 gap-2">
+                <Field label="Latitude">
+                    <TextInput
+                        type="text"
+                        inputmode="decimal"
+                        bind:value={latitude}
+                        placeholder="e.g. 39.7392"
+                        class="w-full"
+                    />
+                </Field>
+                <Field label="Longitude">
+                    <TextInput
+                        type="text"
+                        inputmode="decimal"
+                        bind:value={longitude}
+                        placeholder="e.g. -104.9903"
+                        class="w-full"
+                    />
+                </Field>
+            </div>
+        </div>
+    </SettingsGroup>
+
+    <SettingsGroup title="Time zone" description="The frame's date and clock, and the almanac's sunrise milestones.">
+        <div class="flex flex-col gap-3">
+            <Field label="IANA zone">
                 <TextInput
                     type="text"
-                    inputmode="decimal"
-                    bind:value={longitude}
-                    placeholder="e.g. -104.9903"
+                    list="home-time-zones"
+                    bind:value={timeZone}
+                    placeholder={thisBrowser}
+                    autocomplete="off"
+                    spellcheck="false"
                     class="w-full"
                 />
+                <datalist id="home-time-zones">
+                    {#each zones as zone}<option value={zone}></option>{/each}
+                </datalist>
             </Field>
+            {#if homeLocation.loaded && !homeLocation.timeZone && timeZone === thisBrowser}
+                <p class="type-label text-(--text-2)">From this browser — saved along with the location.</p>
+            {:else if timeZone !== thisBrowser}
+                <div>
+                    <Button variant="link" onclick={() => (timeZone = thisBrowser)}>
+                        Use this browser's zone ({thisBrowser})
+                    </Button>
+                </div>
+            {/if}
         </div>
-    </div>
-
-    <div class="flex flex-col gap-3 border-t border-(--border) pt-4">
-        <div>
-            <p class="type-body font-medium text-(--text-1)">Time zone</p>
-            <p class="type-label text-(--text-2)">The frame's date and clock, and the almanac's sunrise milestones.</p>
-        </div>
-        <Field label="IANA zone">
-            <TextInput
-                type="text"
-                list="home-time-zones"
-                bind:value={timeZone}
-                placeholder={thisBrowser}
-                autocomplete="off"
-                spellcheck="false"
-                class="w-full"
-            />
-            <datalist id="home-time-zones">
-                {#each zones as zone}<option value={zone}></option>{/each}
-            </datalist>
-        </Field>
-        {#if homeLocation.loaded && !homeLocation.timeZone && timeZone === thisBrowser}
-            <p class="type-label text-(--text-2)">From this browser — saved along with the location.</p>
-        {:else if timeZone !== thisBrowser}
-            <div>
-                <Button variant="link" onclick={() => (timeZone = thisBrowser)}>
-                    Use this browser's zone ({thisBrowser})
-                </Button>
-            </div>
-        {/if}
-    </div>
+    </SettingsGroup>
 
     <div class="flex flex-col gap-2 border-t border-(--border) pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p

@@ -24,6 +24,7 @@
     import IconButton from '../ui/IconButton.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
+    import SettingsGroup from '../ui/SettingsGroup.svelte';
     import Select from '../ui/Select.svelte';
     import TextInput from '../ui/TextInput.svelte';
     import ToggleRow from '../ui/ToggleRow.svelte';
@@ -135,13 +136,13 @@ settings) when the panel holds its picture. Held by the Display service, shared 
 device; the frame's Button B steps to the next mode the same way. Under "Showing now",
 whether the frame is still checking in for its picture.
 -->
-<div class="@container flex flex-col gap-6">
-    {#if modeStore.error}
-        <InlineMessage tone="error">Can't reach the Display service — modes can't be changed right now.</InlineMessage>
-    {/if}
-
-    <div>
-        <p class="eyebrow mb-2">Showing now</p>
+{#if modeStore.error}
+    <InlineMessage tone="error" class="mb-4"
+        >Can't reach the Display service — modes can't be changed right now.</InlineMessage
+    >
+{/if}
+<div class="@container flex flex-col gap-5">
+    <SettingsGroup title="Now">
         {#if current}
             <p class="type-body text-(--text-1)">
                 <span class="font-semibold">{frameModeLabel(current.mode)}</span>
@@ -157,10 +158,8 @@ whether the frame is still checking in for its picture.
             <InlineMessage tone={frameCheckIn.stale ? 'error' : 'muted'} class="mt-2">{frameCheckIn.text}</InlineMessage
             >
         {/if}
-    </div>
 
-    <div>
-        <p class="eyebrow mb-2">Show instead</p>
+        <p class="type-label mt-4 mb-2 text-(--text-2)">Show instead</p>
         <div class="mb-3">
             <ChoiceChips
                 label="Mode to show"
@@ -184,10 +183,9 @@ whether the frame is still checking in for its picture.
                 Show {frameModeLabel(chosen)}
             </Button>
         </div>
-    </div>
+    </SettingsGroup>
 
-    <div>
-        <p class="eyebrow mb-2">Schedule</p>
+    <SettingsGroup title="Schedule">
         <label class="type-label mb-3 flex flex-wrap items-center gap-2 text-(--text-2)">
             Otherwise show
             <Select
@@ -307,10 +305,9 @@ whether the frame is still checking in for its picture.
             one mode steps through them in order, starting on the first, and holds its place through quiet hours. Times
             are in your home’s time zone, set under <a href={settingsHref('home')} class="underline">Home</a>.
         </p>
-    </div>
+    </SettingsGroup>
 
-    <div>
-        <p class="eyebrow mb-2">Quiet hours</p>
+    <SettingsGroup title="Quiet hours">
         <ToggleRow
             checked={frameSettings.quietHours !== null}
             onchange={() => (frameSettings.quietHours = frameSettings.quietHours ? null : { ...DEFAULT_QUIET_HOURS })}
@@ -337,5 +334,5 @@ whether the frame is still checking in for its picture.
                 />
             </span>
         {/if}
-    </div>
+    </SettingsGroup>
 </div>

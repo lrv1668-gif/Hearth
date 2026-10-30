@@ -12,6 +12,7 @@
     import IconButton from '$lib/components/ui/IconButton.svelte';
     import InlineMessage from '$lib/components/ui/InlineMessage.svelte';
     import Modal from '$lib/components/ui/Modal.svelte';
+    import SettingsGroup from '$lib/components/ui/SettingsGroup.svelte';
     import ToggleRow from '$lib/components/ui/ToggleRow.svelte';
     import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
     import FontThemePicker from '$lib/components/settings/FontThemePicker.svelte';
@@ -367,7 +368,7 @@
                         displays. Can also be activated with <code class="font-mono">?kiosk=1</code> in the URL.
                     </ToggleRow>
                     {#if settings.kioskMode}
-                        <div class="mt-4 border-t border-(--border) pt-4">
+                        <div class="mt-3">
                             <Button variant="link" href="/">Go to Dashboard →</Button>
                             <p class="type-label mt-0.5 text-(--text-2)">
                                 The navigation bar is hidden in kiosk mode — use this link to return to the dashboard.
@@ -376,15 +377,17 @@
                     {/if}
                 {/snippet}
                 {#snippet fontContent()}
-                    <FontThemePicker />
-                    <p class="type-body mt-6 mb-1 font-medium text-(--text-1)">Size</p>
-                    <p class="type-label mb-4 text-(--text-2)">Scales all text and icons across the dashboard.</p>
-                    <SizeSlider
-                        value={fontSizeStore.scale}
-                        min={MIN_FONT_SCALE}
-                        max={MAX_FONT_SCALE}
-                        oninput={setFontSize}
-                    />
+                    <div class="flex flex-col gap-5">
+                        <SettingsGroup title="Font"><FontThemePicker /></SettingsGroup>
+                        <SettingsGroup title="Size" description="Scales all text and icons across the dashboard.">
+                            <SizeSlider
+                                value={fontSizeStore.scale}
+                                min={MIN_FONT_SCALE}
+                                max={MAX_FONT_SCALE}
+                                oninput={setFontSize}
+                            />
+                        </SettingsGroup>
+                    </div>
                 {/snippet}
                 <div class="flex flex-col gap-4">
                     {@render card(
