@@ -26,6 +26,7 @@ import {
 } from '#lib/constants/frameModes.ts';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '#lib/constants/frameThemes.ts';
 import {
+    DEFAULT_FRAME_SLOTS,
     DEFAULT_FRAME_TEMPLATE,
     isFrameTemplateId,
     normalizeSlots,
@@ -68,7 +69,7 @@ class FrameSettingsStore {
     /** Daily's layout template; 'columns' uses `layout` and `split`. */
     template = $state<FrameTemplateId>(DEFAULT_FRAME_TEMPLATE);
     /** The template's widget per slot, '' for an empty slot (see normalizeSlots). */
-    slots = $state<(FrameWidgetId | '')[]>([]);
+    slots = $state<(FrameWidgetId | '')[]>([...DEFAULT_FRAME_SLOTS]);
     ambientPosition = $state<AmbientPosition>(DEFAULT_AMBIENT_POSITION);
     photoSource = $state<PhotoSource>('unsplash');
     photoCategories = $state<PhotoCategory[]>(['nature', 'architecture']);

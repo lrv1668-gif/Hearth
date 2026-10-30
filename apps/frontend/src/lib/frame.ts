@@ -454,6 +454,22 @@ export function durationLabel(from: Date, to: Date): string {
     return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} m`;
 }
 
+/** A moment for Settings' frame status, "3:15 PM", or "Sat 3:15 PM" when it isn't today. */
+export function clockLabel(iso: string, now: Date): string {
+    const at = new Date(iso);
+    const time = at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return at.toDateString() === now.toDateString()
+        ? time
+        : `${at.toLocaleDateString('en-US', { weekday: 'short' })} ${time}`;
+}
+
+/** When a photo frame was drawn, "7:05 AM" — never a clock, which would be wrong in between.
+ *  Only Ambient and Photo show it: they redraw on the photo interval anyway, while in the
+ *  15-minute modes a changing time would make every render a full ~30 s panel refresh. */
+export function updatedTime(now: Date): string {
+    return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
 /** The masthead's one sentence of weather: "Partly cloudy, 58° now and rising to 63°."
  *  Once the day's high is (about) reached it looks ahead to the low instead. */
 export function weatherSentence(current: CurrentWeather, today: ForecastDay | null): string {

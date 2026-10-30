@@ -391,6 +391,21 @@ export interface ModeSchedule {
     rules: ModeRule[];
 }
 
+/** One stretch of today's schedule ("HH:mm", household time; `end` "24:00" for midnight),
+ *  the modes shown in it, and the index of the rule holding it — null for the default. */
+export interface ModeSpan {
+    start: string;
+    end: string;
+    modes: FrameModeId[];
+    rule: number | null;
+}
+
+/** Today's schedule, midnight to midnight, for Settings' timeline. */
+export interface ModeTimeline {
+    date: string;
+    spans: ModeSpan[];
+}
+
 /** What the frame shows now and why; `until` is when that may next change. */
 export interface ResolvedMode {
     mode: FrameModeId;
@@ -481,6 +496,9 @@ class ApiClient {
             this.get<ResolvedMode>('/display/mode', { timeoutMs: 5000 }),
 
         schedule: (): Promise<ModeSchedule | null> => this.get<ModeSchedule>('/display/mode/schedule'),
+
+        /** Today's schedule as a timeline, in household time. */
+        day: (): Promise<ModeTimeline | null> => this.get<ModeTimeline>('/display/mode/day'),
 
         saveSchedule: (schedule: ModeSchedule): Promise<ModeSchedule> =>
             this.put<ModeSchedule>('/display/mode/schedule', schedule),

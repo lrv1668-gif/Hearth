@@ -109,3 +109,13 @@ public sealed record ModeOverride(string Mode, DateTimeOffset? Until = null, str
 /// change — the override's expiry or the next schedule boundary; null if nothing is due.
 /// </summary>
 public sealed record ResolvedMode(string Mode, string Reason, DateTimeOffset? Until, string? PhotoId = null);
+
+/// <summary>
+/// One stretch of a household day in the schedule: <paramref name="Start"/> to
+/// <paramref name="End"/> ("HH:mm", End "24:00" for midnight), the modes shown in it, and
+/// the index of the rule that holds it — null for the default mode.
+/// </summary>
+public sealed record ModeSpan(string Start, string End, IReadOnlyList<string> Modes, int? Rule);
+
+/// <summary>Today's schedule from midnight to midnight, for Settings' timeline.</summary>
+public sealed record ModeTimeline(DateOnly Date, IReadOnlyList<ModeSpan> Spans);

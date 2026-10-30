@@ -3,11 +3,14 @@
     import { lastPlayedStore } from '#lib/stores/LastPlayedStore.svelte.ts';
     import { playedLabel } from '#lib/music.ts';
     import type { FrameSize } from '#lib/constants/frameTemplates.ts';
+    import FrameEmpty from '../FrameEmpty.svelte';
 
     // `size`: a template slot's size class — S drops the sleeve for the text alone, L
     // grows it to the slot's full height (up to half its width; the slot body is a size
     // container) with a larger title. Omitted (the frame's columns) is M.
-    let { now, size = 'm' }: { now: Date; size?: FrameSize } = $props();
+    let { now, size }: { now: Date; size?: FrameSize } = $props();
+    // Empty states stay body-sized in the columns and S slots, like the other widgets'.
+    const small = $derived(size === undefined || size === 's');
 
     const track = $derived(lastPlayedStore.lastPlayed?.track ?? null);
     const topArtist = $derived(lastPlayedStore.lastPlayed?.top_artist ?? null);
@@ -24,13 +27,13 @@ album art, when it played, and this month's top artist. History, not now-playing
 stays true between the frame's scheduled refreshes.
 -->
 {#if lastPlayedStore.connection === 'disconnected'}
-    <p class="type-body text-(--text-2)">Connect Spotify in Settings to show what you’ve played.</p>
+    <FrameEmpty text="Connect Spotify in Settings to show what you’ve played" {small} />
 {:else if lastPlayedStore.connection === 'reconnect'}
-    <p class="type-body text-(--text-2)">Reconnect Spotify in Settings to show what you’ve played.</p>
+    <FrameEmpty text="Reconnect Spotify in Settings to show what you’ve played" {small} />
 {:else if lastPlayedStore.error}
-    <p class="type-body text-(--text-2)">Listening history unavailable.</p>
+    <FrameEmpty text="Listening history unavailable" {small} />
 {:else if !track && !topArtist}
-    <p class="type-body text-(--text-2)">Nothing played lately.</p>
+    <FrameEmpty text="Nothing played lately" {small} />
 {:else}
     <div class="type-body flex gap-[0.75em]">
         {#if track && size !== 's'}

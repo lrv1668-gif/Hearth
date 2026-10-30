@@ -11,7 +11,6 @@
     import SettingsGroup from '../ui/SettingsGroup.svelte';
     import SizeSlider from '../ui/SizeSlider.svelte';
     import {
-        AMBIENT_POSITIONS,
         FRAME_SIZE_PRESETS,
         MAX_FRAME_SIZE,
         MAX_FRAME_TEXT_SIZE,
@@ -42,7 +41,7 @@
         <!-- Color ↔ B&W: saved on its own (the frame's Button C flips it too) and applied at once -->
         <SegmentedControl
             options={[
-                { value: 'color', label: 'Color' },
+                { value: 'color', label: 'Colour' },
                 { value: 'bw', label: 'Black & white' },
             ]}
             value={modeStore.palette}
@@ -150,7 +149,7 @@
         <Disclosure class="mt-3">
             {#snippet summary()}
                 <span class="type-label font-medium text-(--text-1)">
-                    Panel size, dithering &amp; ambient card
+                    Panel size &amp; dithering
                     <span class="font-normal text-(--text-2) tabular-nums">
                         · {frameSettings.width}×{frameSettings.height}
                     </span>
@@ -220,35 +219,6 @@
                         {frameSettings.dithering === 'hearth'
                             ? 'Hearth dithers each mode to the six inks — crisp text and even tints.'
                             : 'The frame gets the undithered picture and dithers it itself (inky’s Floyd–Steinberg). The preview still shows Hearth’s, and Hearth still dithers black & white.'}
-                    </p>
-                </div>
-
-                <!-- Ambient card position: a 3×2 pad laid out like the frame -->
-                <div>
-                    <p class="type-label mb-2 text-(--text-2)">Ambient card</p>
-                    <div
-                        class="grid w-fit grid-cols-3 gap-1 rounded border border-(--border) p-1"
-                        role="radiogroup"
-                        aria-label="Ambient card position"
-                    >
-                        {#each AMBIENT_POSITIONS as p (p.value)}
-                            {@const selected = frameSettings.ambientPosition === p.value}
-                            <button
-                                type="button"
-                                role="radio"
-                                aria-checked={selected}
-                                title={p.label}
-                                onclick={() => (frameSettings.ambientPosition = p.value)}
-                                class="type-label rounded px-3 py-1.5 transition-colors {selected
-                                    ? 'bg-(--accent) text-(--accent-fg)'
-                                    : 'text-(--text-2) hover:bg-(--surface-hi)'}"
-                            >
-                                {p.label}
-                            </button>
-                        {/each}
-                    </div>
-                    <p class="type-caption mt-2 text-(--text-2)">
-                        Where the time and weather sit on the photo. The photos themselves are chosen under Ambient.
                     </p>
                 </div>
             </div>

@@ -7,6 +7,7 @@
         onBlockInk,
         pickBlockInk,
         plateRect,
+        updatedTime,
         weatherSentence,
         type Pixels,
     } from '#lib/frame.ts';
@@ -14,6 +15,7 @@
     import type { PhotoCard } from '#lib/constants/frameModes.ts';
     import { localDateKey } from '#lib/utils.ts';
     import FrameDateBlock from './FrameDateBlock.svelte';
+    import FrameDatePoster from './FrameDatePoster.svelte';
 
     let {
         now,
@@ -27,7 +29,7 @@
 
     // When the frame was drawn: the panel holds a render for up to the photo interval, so
     // this is a timestamp ("Updated 3:15"), never a clock that would be wrong in between.
-    const updated = $derived(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
+    const updated = $derived(updatedTime(now));
     const today = $derived(weatherStore.forecast.find((f) => f.date === localDateKey(now)) ?? null);
 
     // Theme tokens that are a pure ink the date block may switch to.
@@ -90,7 +92,8 @@ close to that colour; then it switches to whichever of the theme's other pure in
 stands out most there (pickBlockInk in lib/frame.ts).
 In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure B&W).
 Photo mode reuses this view with `card`: "caption" keeps just an upload's caption on
-the flat --bg panel, "none" leaves the photo bare.
+the flat --bg panel, "none" leaves the photo bare. With no photo at all it shows a date
+poster (FrameDatePoster) instead of the plate.
 -->
 {#if photo}
     <img
@@ -100,12 +103,12 @@ the flat --bg panel, "none" leaves the photo bare.
         class="absolute inset-0 h-full w-full object-cover"
     />
 {:else}
-    <div class="absolute inset-0 flex items-center justify-center">
-        <p class="type-subtitle tracking-widest text-(--text-2) uppercase">No photo available</p>
-    </div>
+    <!-- No photo to hang: a date poster rather than an error message, which would stay up for hours -->
+    <FrameDatePoster {now} note="No photo to show" />
+    <p class="type-caption absolute right-16 bottom-8 text-(--text-2)">Updated {updated}</p>
 {/if}
 
-{#if card === 'caption' && caption}
+{#if photo && card === 'caption' && caption}
     <div class="plate absolute bg-(--bg) px-8 pt-5 pb-4">
         <p class="type-label font-(family-name:--display-family) text-(--text-1) italic">{caption}</p>
     </div>
@@ -113,7 +116,7 @@ the flat --bg panel, "none" leaves the photo bare.
 
 <!-- No border or shadow — the solid inks alone separate the plate from the photo
      (shadows or translucency would dither into speckle on the panel). -->
-{#if card === 'full'}
+{#if photo && card === 'full'}
     <div
         bind:this={plate}
         bind:clientWidth={plateW}

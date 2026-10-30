@@ -2,8 +2,12 @@
     import { sportsStore } from '#lib/stores/SportsStore.svelte.ts';
     import { broadcastLabel, opponentLabel, resultLabel, resultWhen, upcomingLabel } from '#lib/sports.ts';
     import { itemsThatFit } from '#lib/frame.ts';
+    import type { FrameSize } from '#lib/constants/frameTemplates.ts';
+    import FrameEmpty from '../FrameEmpty.svelte';
 
-    let { now, lines }: { now: Date; lines: number } = $props();
+    // `size`: the template slot's size class; omitted in the free columns.
+    let { now, lines, size }: { now: Date; lines: number; size?: FrameSize } = $props();
+    const small = $derived(size === undefined || size === 's');
 
     // A team (name, result, next game) is ~3.5 lines with its gap; the last needs no gap.
     const shown = $derived(sportsStore.teams.slice(0, Math.min(4, itemsThatFit(lines + 0.5, 3.5))));
@@ -16,9 +20,9 @@ game. A game in progress shows as "Playing now" with no score — the panel redr
 15 minutes, so a live score would be wrong most of the time it's up.
 -->
 {#if sportsStore.error}
-    <p class="type-body text-(--text-2)">Scores unavailable.</p>
+    <FrameEmpty text="Scores unavailable" {small} />
 {:else if shown.length === 0}
-    <p class="type-body text-(--text-2)">Follow a team in Settings to show its results.</p>
+    <FrameEmpty text="Follow a team in Settings to show its results" {small} />
 {:else}
     <ul class="type-body flex flex-col gap-[0.6em]">
         {#each shown as t (`${t.team.league}:${t.team.id}`)}

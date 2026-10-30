@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { Plus, X } from '@lucide/svelte';
+    import { ArrowDown, ArrowUp, Plus, X } from '@lucide/svelte';
     import type { ModeRule } from '#lib/api.ts';
     import {
         DEFAULT_ROTATE_MINUTES,
@@ -14,10 +13,8 @@
     } from '#lib/constants/frameModes.ts';
     import { clearOverride, modeStore, saveSchedule, setOverride } from '#lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
-    import { checkIn, DEFAULT_QUIET_HOURS } from '#lib/frame.ts';
+    import { clockLabel, DEFAULT_QUIET_HOURS } from '#lib/frame.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
-    import { frameStatusStore, loadFrameStatus } from '#lib/stores/FrameStatusStore.svelte.ts';
-    import { poll } from '#lib/utils.ts';
     import Button from '../ui/Button.svelte';
     import ChoiceChips from '../ui/ChoiceChips.svelte';
     import DayPicker from '../ui/DayPicker.svelte';
@@ -28,39 +25,28 @@
     import Select from '../ui/Select.svelte';
     import TextInput from '../ui/TextInput.svelte';
     import ToggleRow from '../ui/ToggleRow.svelte';
+    import ScheduleTimeline from './ScheduleTimeline.svelte';
 
     const HOUR_MS = 60 * 60 * 1000;
     const WEEKDAYS: ModeDay[] = ['mon', 'tue', 'wed', 'thu', 'fri'];
 
-    let chosen = $state<FrameModeId>('daily');
+    // "Show instead" starts on a mode the frame isn't already showing, until one is picked
+    let picked = $state<FrameModeId | null>(null);
     let hold = $state<'hour' | 'midnight' | 'forever'>('hour');
 
     const current = $derived(modeStore.current);
+    const chosen = $derived<FrameModeId>(picked ?? frameModes.find((m) => m.id !== current?.mode)?.id ?? 'daily');
 
-    // The frame's last check-in; `now` ticks with each refresh so "3 min ago" stays true
-    const STATUS_REFRESH_MS = 60_000;
-    let now = $state(new Date());
-    onMount(() => {
-        loadFrameStatus();
-        return poll(() => {
-            now = new Date();
-            loadFrameStatus();
-        }, STATUS_REFRESH_MS);
-    });
-    const frameCheckIn = $derived(frameStatusStore.status ? checkIn(frameStatusStore.status, now) : null);
-
-    function setQuiet(patch: Partial<{ start: string; end: string }>) {
-        const next = { ...(frameSettings.quietHours ?? DEFAULT_QUIET_HOURS), ...patch };
-        // Display refuses a window that starts and ends at the same time; keep the last good one
+    function setQuiet(input: HTMLInputElement, key: 'start' | 'end') {
+        const saved = frameSettings.quietHours ?? DEFAULT_QUIET_HOURS;
+        const next = { ...saved, [key]: input.value };
+        // Display refuses a window that starts and ends at the same time; keep the last good
+        // one, and put it back in the field so it never shows a time that wasn't saved
         if (next.start && next.end && next.start !== next.end) frameSettings.quietHours = next;
+        else input.value = saved[key];
     }
 
-    function timeLabel(iso: string): string {
-        const at = new Date(iso);
-        const sameDay = at.toDateString() === new Date().toDateString();
-        const time = at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        return sameDay ? time : `${at.toLocaleDateString('en-US', { weekday: 'short' })} ${time}`;
-    }
+    const timeLabel = (iso: string) => clockLabel(iso, new Date());
 
     const why = $derived.by(() => {
         if (!current) return '';
@@ -120,6 +106,13 @@
         setModes(i, [...modes, next]);
     }
 
+    // Order matters — the first matching time wins — so rules move up and down
+    function move(i: number, by: -1 | 1) {
+        const next = [...rules];
+        [next[i], next[i + by]] = [next[i + by], next[i]];
+        commit(next);
+    }
+
     function toggleDay(i: number, day: ModeDay) {
         const days = rules[i].days;
         update(i, { days: days.includes(day) ? days.filter((d) => d !== day) : [...days, day] });
@@ -133,8 +126,8 @@ that beats the schedule for an hour, until midnight, or until changed), then the
 default mode and the time-of-day rules (each one mode, or several it rotates through
 every few minutes), and the quiet hours (saved with the frame
 settings) when the panel holds its picture. Held by the Display service, shared by every
-device; the frame's Button B steps to the next mode the same way. Under "Showing now",
-whether the frame is still checking in for its picture.
+device; the frame's Button B steps to the next mode the same way. Today's schedule is
+drawn as a timeline above the rules. Whether the frame is checking in is FrameStatusBar's.
 -->
 {#if modeStore.error}
     <InlineMessage tone="error" class="mb-4"
@@ -151,12 +144,8 @@ whether the frame is still checking in for its picture.
             {#if current.reason === 'override'}
                 <Button variant="link" class="mt-2" onclick={() => clearOverride()}>Back to schedule</Button>
             {/if}
-        {:else if modeStore.loaded}
+        {:else if modeStore.loaded && !modeStore.error}
             <p class="type-body text-(--text-2)">Unknown.</p>
-        {/if}
-        {#if frameCheckIn}
-            <InlineMessage tone={frameCheckIn.stale ? 'error' : 'muted'} class="mt-2">{frameCheckIn.text}</InlineMessage
-            >
         {/if}
 
         <p class="type-label mt-4 mb-2 text-(--text-2)">Show instead</p>
@@ -165,7 +154,7 @@ whether the frame is still checking in for its picture.
                 label="Mode to show"
                 options={frameModes.map((m) => ({ value: m.id, label: m.label, description: m.description }))}
                 value={chosen}
-                onchange={(v) => (chosen = v)}
+                onchange={(v) => (picked = v)}
             />
         </div>
         <div class="flex flex-wrap items-center gap-3">
@@ -180,7 +169,8 @@ whether the frame is still checking in for its picture.
                 label="How long"
             />
             <Button variant="primary" onclick={show} disabled={modeStore.error}>
-                Show {frameModeLabel(chosen)}
+                {chosen === current?.mode ? 'Keep showing' : 'Show'}
+                {frameModeLabel(chosen)}
             </Button>
         </div>
     </SettingsGroup>
@@ -201,11 +191,18 @@ whether the frame is still checking in for its picture.
             </Select>
         </label>
 
+        {#if modeStore.day && rules.length > 0}
+            <div class="mb-4">
+                <ScheduleTimeline day={modeStore.day} quiet={frameSettings.quietHours} />
+            </div>
+        {/if}
+
         <div class="flex flex-col gap-3">
             {#each rules as rule, i (i)}
                 {@const modes = ruleModes(rule)}
                 <div class="flex flex-wrap items-center gap-2 rounded-lg border border-(--border) p-3">
                     <span class="flex w-full flex-wrap items-center gap-1.5">
+                        <span class="type-label mr-1 font-semibold text-(--text-2) tabular-nums">{i + 1}.</span>
                         {#each modes as mode, k (k)}
                             <!-- A step stays on one line when the row wraps -->
                             <span class="flex items-center gap-1.5">
@@ -277,14 +274,33 @@ whether the frame is still checking in for its picture.
                             aria-label="To"
                         />
                     </span>
-                    <IconButton
-                        label="Remove rule"
-                        size="sm"
-                        class="ml-auto"
-                        onclick={() => commit(rules.filter((_, j) => j !== i))}
-                    >
-                        <X class="icon-sm" />
-                    </IconButton>
+                    <span class="ml-auto flex items-center">
+                        {#if rules.length > 1}
+                            <IconButton
+                                label="Move time {i + 1} up"
+                                size="sm"
+                                disabled={i === 0}
+                                onclick={() => move(i, -1)}
+                            >
+                                <ArrowUp class="icon-sm" />
+                            </IconButton>
+                            <IconButton
+                                label="Move time {i + 1} down"
+                                size="sm"
+                                disabled={i === rules.length - 1}
+                                onclick={() => move(i, 1)}
+                            >
+                                <ArrowDown class="icon-sm" />
+                            </IconButton>
+                        {/if}
+                        <IconButton
+                            label="Remove rule"
+                            size="sm"
+                            onclick={() => commit(rules.filter((_, j) => j !== i))}
+                        >
+                            <X class="icon-sm" />
+                        </IconButton>
+                    </span>
                     {#if rule.days.length === 0}
                         <InlineMessage tone="error" class="w-full"
                             >Pick at least one day to save this rule.</InlineMessage
@@ -301,9 +317,12 @@ whether the frame is still checking in for its picture.
             <Plus class="icon-sm" /> Add a time
         </Button>
         <p class="type-caption mt-2 text-(--text-2)">
-            The first matching time wins. A time that ends before it starts runs past midnight. A time with more than
-            one mode steps through them in order, starting on the first, and holds its place through quiet hours. Times
-            are in your home’s time zone, set under <a href={settingsHref('home')} class="underline">Home</a>.
+            The first matching time wins — move a time up to give it priority. A time that ends before it starts runs
+            past midnight. A time with more than one mode steps through them in order, starting on the first, and holds
+            its place through quiet hours. Times are in your home’s time zone, set under <a
+                href={settingsHref('home')}
+                class="underline">Home</a
+            >.
         </p>
     </SettingsGroup>
 
@@ -321,7 +340,7 @@ whether the frame is still checking in for its picture.
                     size="sm"
                     type="time"
                     value={frameSettings.quietHours.start}
-                    onchange={(e) => setQuiet({ start: (e.target as HTMLInputElement).value })}
+                    onchange={(e) => setQuiet(e.target as HTMLInputElement, 'start')}
                     aria-label="Quiet from"
                 />
                 <span class="type-label text-(--text-2)">to</span>
@@ -329,7 +348,7 @@ whether the frame is still checking in for its picture.
                     size="sm"
                     type="time"
                     value={frameSettings.quietHours.end}
-                    onchange={(e) => setQuiet({ end: (e.target as HTMLInputElement).value })}
+                    onchange={(e) => setQuiet(e.target as HTMLInputElement, 'end')}
                     aria-label="Quiet until"
                 />
             </span>

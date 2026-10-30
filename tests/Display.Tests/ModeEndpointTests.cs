@@ -196,4 +196,16 @@ public sealed class ModeEndpointTests : IDisposable
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetDay_ReturnsTodaysTimelineInHomeTime()
+    {
+        await PutSchedule(new { default_mode = "ambient", rules = new[] { new { mode = "daily", days = new[] { "mon" }, start = "07:00", end = "09:00" } } });
+
+        var day = await _client.GetFromJsonAsync<ModeTimeline>("/display/mode/day", HearthJson.SnakeCaseLower);
+
+        Assert.Equal(new DateOnly(2026, 10, 19), day!.Date);
+        Assert.Equal(["00:00", "07:00", "09:00"], day.Spans.Select(s => s.Start));
+        Assert.Equal(0, day.Spans[1].Rule);
+    }
 }

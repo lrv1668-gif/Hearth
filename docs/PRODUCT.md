@@ -91,7 +91,7 @@ What the frame shows is decided in one place, shared by every device:
 
 **Quiet hours** (Settings → Frame → Mode, e.g. 11pm–6am) hold the picture overnight: no redraws on the 15-minute or photo timer, so the panel doesn't flash while people sleep. A mode change from the schedule, a button press or a settings change still redraws it, so a Night rule that starts with the quiet hours still goes up. A rotating rule holds the step it was on when quiet hours began and moves on once they end.
 
-The same card says whether the frame is still checking in: "The frame checked in 3 min ago and has the latest picture", or a warning once it has been silent for an hour.
+A status bar at the top of Settings → Frame says whether the frame is still checking in, and when it next redraws: "The frame checked in 3 min ago and has the latest picture", or a warning once it has been silent for an hour.
 
 Ideas for later modes: **Guest** (a Wi-Fi QR code and house notes), a full **Week/Month** calendar, **Gallery** art (public-domain paintings with a museum placard), and **Occasion** cards on birthdays and holidays.
 

@@ -27,6 +27,7 @@
     import { frameSettings, loadFrameSettings, syncFrameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import WidgetLayoutEditor from '#lib/components/settings/WidgetLayoutEditor.svelte';
     import FramePreview from '#lib/components/settings/FramePreview.svelte';
+    import FrameStatusBar from '#lib/components/settings/FrameStatusBar.svelte';
     import {
         allWidgets,
         fixedFooterWidgets,
@@ -441,7 +442,7 @@
                     {#snippet right()}
                         {@render card(
                             'On the frame',
-                            'How often the panel changes photo, and what Photo mode shows.',
+                            'How often the panel changes photo, where Ambient’s card sits, and what Photo mode shows.',
                             framePhotos
                         )}
                         {@render card(
@@ -498,8 +499,8 @@
                 {#snippet frameModeContent()}
                     <FrameModeSettings />
                     <p class="type-caption mt-4 text-(--text-2)">
-                        Ambient and Photo mode’s photos, and how often they change, are set in
-                        <a href={settingsHref('photos')} class="underline">Photos</a>.
+                        Ambient and Photo mode — their photos, how often they change and where Ambient’s card sits — are
+                        set in <a href={settingsHref('photos')} class="underline">Photos</a>.
                     </p>
                 {/snippet}
                 {#snippet frameModeOptionsContent()}<FrameModeOptions />{/snippet}
@@ -515,6 +516,7 @@
                 rather than below all of them. The left column becomes `display: contents` on
                 narrow screens so its cards keep their order.
             -->
+                <FrameStatusBar />
                 <div class="@container" bind:clientWidth={frameColumnWidth}>
                     <div
                         class="flex flex-col gap-4 @4xl:grid @4xl:grid-cols-[minmax(0,1fr)_minmax(320px,42%)] @4xl:items-start"
@@ -529,9 +531,16 @@
                             </div>
                             <div class="order-1">
                                 {@render card(
-                                    'E-paper frame',
+                                    'Look',
                                     'Colours, typeface, orientation, and panel size for the wall frame. Themes use only colours the panel can print cleanly.',
                                     frameAppearanceContent
+                                )}
+                            </div>
+                            <div class="order-3">
+                                {@render card(
+                                    'Daily layout',
+                                    'What Daily mode shows: pick a layout template and a widget for each slot, or Custom for free columns.',
+                                    frameLayoutContent
                                 )}
                             </div>
                             <div class="order-3">
@@ -539,13 +548,6 @@
                                     'Countdown & Note',
                                     'What Countdown and Note modes show.',
                                     frameModeOptionsContent
-                                )}
-                            </div>
-                            <div class="order-3">
-                                {@render card(
-                                    'Widgets',
-                                    'What Daily mode shows: pick a layout template and a widget for each slot, or use free columns.',
-                                    frameLayoutContent
                                 )}
                             </div>
                         </div>

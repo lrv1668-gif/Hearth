@@ -95,7 +95,7 @@
                     <FrameComingUp {now} lines={n} />
                 {/if}
             {:else if id === 'week'}
-                <FrameWeek {now} lines={n} />
+                <FrameWeek {now} lines={n} {size} />
             {:else if id === 'countdowns'}
                 <FrameCountdowns {now} {size} />
             {:else if id === 'almanac'}
@@ -117,7 +117,7 @@
             {:else if id === 'last-played'}
                 <FrameLastPlayed {now} {size} />
             {:else if id === 'sports'}
-                <FrameSports {now} lines={n} />
+                <FrameSports {now} lines={n} {size} />
             {/if}
         </div>
     </section>
