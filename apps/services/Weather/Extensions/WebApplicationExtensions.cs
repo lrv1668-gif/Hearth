@@ -18,6 +18,8 @@ public static class WebApplicationExtensions
         Duration = TimeSpan.FromMinutes(30),
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromHours(6),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     public static void InitializeWebAppForWeather(this WebApplication app)

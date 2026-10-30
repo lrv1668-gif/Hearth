@@ -14,6 +14,19 @@ public static class HearthCache
     public static readonly JsonSerializerOptions SerializerOptions = new(HearthJson.SnakeCaseLower) { IncludeFields = true };
 
     /// <summary>
+    /// For an entry's <c>FactorySoftTimeout</c>: how long a request waits on a slow upstream
+    /// when a stale value is on hand. Past it the stale value is served and the refresh
+    /// finishes in the background, so an expired entry never holds a widget up.
+    /// </summary>
+    public static readonly TimeSpan SoftTimeout = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// For an entry's <c>EagerRefreshThreshold</c>: a hit in the last 10% of the entry's
+    /// duration refreshes it in the background, so a regularly polled entry rarely expires.
+    /// </summary>
+    public const float EagerRefresh = 0.9f;
+
+    /// <summary>
     /// Registers FusionCache for caching upstream API responses. Fail-safe is on by default: when a
     /// refresh fails, the last good value keeps being served (up to the entry's FailSafeMaxDuration)
     /// rather than an error — a quiet wall display should show slightly old data, not a broken widget.

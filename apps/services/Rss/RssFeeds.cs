@@ -1,5 +1,6 @@
 using System.Net;
 using Rss.Records;
+using ServiceDefaults;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace Rss;
@@ -21,6 +22,8 @@ public sealed class RssFeeds(RssFetcher fetcher, IFusionCache cache, ILogger<Rss
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(1),
         FailSafeThrottleDuration = RetryAfter,
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     /// <summary>The feed, or null when it has never been fetched successfully (logged).</summary>

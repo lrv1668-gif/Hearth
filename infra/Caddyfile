@@ -6,6 +6,12 @@
 
 # Routes shared by the plain-HTTP and HTTPS sites below
 (hearth) {
+    # Text responses only (HTML, JS, CSS, JSON) — Caddy's default matcher leaves
+    # images like the frame PNG alone, so its ETag is untouched. Not Dozzle, which
+    # streams its logs
+    @compress not path /logs*
+    encode @compress zstd gzip
+
     handle /tasks* {
         reverse_proxy tasks:8081
     }

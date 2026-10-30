@@ -1,3 +1,4 @@
+using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Time.Testing;
@@ -85,5 +86,31 @@ public sealed class SqliteDistributedCacheTests : IDisposable
         var restarted = new SqliteDistributedCache(_tmp.Db, _time);
 
         Assert.Equal([7], restarted.Get("k"));
+    }
+
+    private long RowCount() =>
+        _tmp.Db.QueryOne("SELECT COUNT(*) AS n FROM distributed_cache", r => r.Field<long>("n"));
+
+    [Fact]
+    public void Set_WithinPurgeInterval_LeavesExpiredRows()
+    {
+        _cache.Set("old", [1], ExpiresIn(TimeSpan.FromMinutes(1)));
+        _time.Advance(TimeSpan.FromMinutes(2));
+
+        _cache.Set("new", [2], ExpiresIn(TimeSpan.FromMinutes(5)));
+
+        Assert.Equal(2, RowCount());
+    }
+
+    [Fact]
+    public void Set_AfterPurgeInterval_PurgesExpiredRows()
+    {
+        _cache.Set("old", [1], ExpiresIn(TimeSpan.FromMinutes(1)));
+        _time.Advance(SqliteDistributedCache.PurgeInterval);
+
+        _cache.Set("new", [2], ExpiresIn(TimeSpan.FromMinutes(5)));
+
+        Assert.Equal(1, RowCount());
+        Assert.Equal([2], _cache.Get("new"));
     }
 }
