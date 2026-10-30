@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { calcMoonPhase, moonPath, upcomingPhases } from '$lib/constants/moonphase';
+    import { calcMoonPhase, moonPath, upcomingPhases } from '#lib/constants/moonphase.ts';
 
     // L adds the lunar month ahead as a strip of the next four major phases.
     let { now, large = false }: { now: Date; large?: boolean } = $props();

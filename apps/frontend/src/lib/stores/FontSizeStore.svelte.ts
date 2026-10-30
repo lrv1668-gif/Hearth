@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 
 export const MIN_FONT_SCALE = 0.8;
 export const MAX_FONT_SCALE = 1.5;

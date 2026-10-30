@@ -1,10 +1,10 @@
 <script lang="ts">
     import { Trash2, Pin } from '@lucide/svelte';
-    import { api, type UploadedPhoto } from '$lib/api';
+    import { api, type UploadedPhoto } from '#lib/api.ts';
     import PhotoUploadButton from '../PhotoUploadButton.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
     import Modal from '../ui/Modal.svelte';
-    import { clearOverride, loadModes, modeStore, pinPhoto } from '$lib/stores/ModeStore.svelte.ts';
+    import { clearOverride, loadModes, modeStore, pinPhoto } from '#lib/stores/ModeStore.svelte.ts';
 
     interface Props {
         open?: boolean;

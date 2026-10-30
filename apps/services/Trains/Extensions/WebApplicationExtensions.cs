@@ -13,6 +13,8 @@ public static class WebApplicationExtensions
         Duration = TimeSpan.FromSeconds(45),
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromMinutes(10),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     public static void InitializeWebAppForTrains(this WebApplication app)

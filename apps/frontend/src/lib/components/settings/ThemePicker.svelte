@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { themes } from '$lib/constants/themes';
-    import { themeStore, setTheme } from '$lib/stores/ThemeStore.svelte.ts';
+    import { themes } from '#lib/constants/themes.ts';
+    import { themeStore, setTheme } from '#lib/stores/ThemeStore.svelte.ts';
     import Disclosure from '../ui/Disclosure.svelte';
 
     const current = $derived(themes.find((t) => t.id === themeStore.theme) ?? themes[0]);

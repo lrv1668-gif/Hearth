@@ -29,7 +29,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 
 ## Frontend
 
-### SvelteKit 2 + Svelte 5 + Tailwind CSS v4 + Lucide Svelte
+### SvelteKit 3 + Svelte 5 + Tailwind CSS v4 + Lucide Svelte
 
 - Lightweight runtime, well-suited for an always-on ambient display
 - Svelte 5 runes syntax (`$state`, `$effect`, `$props`, `$derived`) for fine-grained reactivity
@@ -289,10 +289,10 @@ JSON responses use `JsonNamingPolicy.SnakeCaseLower` (via `HearthJson.SnakeCaseL
 Services that proxy a third-party API with a simple "fetch, cache, serve" shape — Weather, Birds, Trains, Quote — cache through [FusionCache](https://github.com/ZiggyCreatures/FusionCache) (`IFusionCache.GetOrSetAsync`) instead of hand-written cache tables. `ServiceDefaults.AddHearthCache()` registers it with:
 
 - **Fail-safe** on: when a refresh fails, the last good value keeps being served (up to the entry's `FailSafeMaxDuration`) instead of an error. Endpoints only return `502` when nothing was ever cached.
-- **SQLite L2** when the service registered one via `AddSqliteDistributedCache(key)` (a `distributed_cache` table in the service's own `DB_PATH` file), so cached values survive container restarts. Without one (Quote), the cache is memory-only.
+- **SQLite L2** when the service registered one via `AddSqliteDistributedCache(key)` (a `distributed_cache` table in the service's own `DB_PATH` file), so cached values survive container restarts. Without one (Quote), the cache is memory-only. Expired rows are purged on a write at most every 10 minutes. `Database` opens every file in WAL mode, so reads don't wait on a write.
 - `HearthJson.SnakeCaseLower` serialization for the L2 payloads.
 
-Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint. Calendar keeps its own relational SQLite cache (items per provider); Photos keeps its in-memory `IMemoryCache` batch.
+Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint, plus `FactorySoftTimeout = HearthCache.SoftTimeout` (1 s) and `EagerRefreshThreshold = HearthCache.EagerRefresh` (0.9). These go on every entry because FusionCache's default entry options don't apply to a call that passes its own. Together they mean an expired entry never holds a request up: a hit in the last 10% of the duration refreshes in the background, and a refresh slower than a second serves the stale value while it finishes in the background. Calendar keeps its own relational SQLite cache (items per provider); Photos keeps its in-memory `IMemoryCache` batch.
 
 ### Home location and time zone
 
@@ -544,7 +544,7 @@ The `quote` service fetches the daily quote from the ZenQuotes API and caches it
 | ------ | -------- | -----------------------------------------------------------------|
 | `GET`  | `/quote` | Returns the current day's quote as `{ q: string, a: string }`  |
 
-If the cached quote is from a prior UTC day (or absent), the service re-fetches before responding. On fetch failure, fail-safe returns the last cached quote (up to 24 hours old); if no quote has been fetched since the service started, it returns 503.
+If the cached quote is from a prior UTC day (or absent), the service re-fetches before responding (a re-fetch slower than a second serves the old quote and finishes in the background). On fetch failure, fail-safe returns the last cached quote (up to 24 hours old); if no quote has been fetched since the service started, it returns 503.
 
 ### Caching
 
@@ -575,7 +575,7 @@ The `rss` service fetches articles from one or more user-configured RSS/Atom fee
 
 Every supplied `url` is validated by `FeedUrlValidator` before any fetch (SSRF protection): only absolute `http`/`https` URLs are accepted, and the host — after DNS resolution when it is not an IP literal — must resolve exclusively to publicly routable addresses. Loopback, RFC 1918 private, link-local (including the `169.254.169.254` cloud metadata IP), CGNAT, multicast, and the IPv6 equivalents (`::1`, `fc00::/7`, `fe80::/10`, IPv4-mapped) are rejected. Any invalid or disallowed URL causes the endpoint to return `400 Bad Request` with an `error` message.
 
-Feeds are fetched in parallel (`RssFeeds`, 15 s timeout each). A feed is re-fetched once its 30-minute entry expires, by one request at a time however many screens ask. When a refresh fails, fail-safe keeps serving the last good copy for up to a day and retries every 5 minutes; a feed that has never been fetched successfully is left out of the response.
+Feeds are fetched in parallel (`RssFeeds`, 15 s timeout each). A feed is re-fetched once its 30-minute entry expires (or in the background when it's asked for in the entry's last 3 minutes), by one request at a time however many screens ask. When a refresh fails, fail-safe keeps serving the last good copy for up to a day and retries every 5 minutes; a feed that has never been fetched successfully is left out of the response.
 
 ### Caching
 
@@ -963,7 +963,7 @@ The Caddy config is the same in development and production — the only differen
 cd infra && docker compose watch
 ```
 
-`infra/docker-compose.override.yml` swaps the frontend for `apps/frontend/Dockerfile.dev` (Vite dev server). File changes under `apps/frontend/src/` and `apps/frontend/static/` sync into the container via HMR; changes to `package.json`, `svelte.config.js`, or `vite.config.ts` trigger a rebuild. HMR WebSocket goes through Caddy on port 80 via `HMR_CLIENT_PORT=80`.
+`infra/docker-compose.override.yml` swaps the frontend for `apps/frontend/Dockerfile.dev` (Vite dev server). File changes under `apps/frontend/src/` and `apps/frontend/static/` sync into the container via HMR; changes to `package.json` or `vite.config.ts` (which also holds the SvelteKit config) trigger a rebuild. HMR WebSocket goes through Caddy on port 80 via `HMR_CLIENT_PORT=80`.
 
 ### Production build
 

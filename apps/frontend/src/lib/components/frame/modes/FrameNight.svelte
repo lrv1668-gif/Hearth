@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { calcMoonPhase, moonPath } from '$lib/constants/moonphase';
-    import { nextSunrise } from '$lib/frame';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import { calcMoonPhase, moonPath } from '#lib/constants/moonphase.ts';
+    import { nextSunrise } from '#lib/frame.ts';
 
     let { now }: { now: Date } = $props();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { taskStore } from '$lib/stores/TaskStore.svelte.ts';
-    import { heroCountdown } from '$lib/frame';
+    import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
+    import { heroCountdown } from '#lib/frame.ts';
 
     let { now, countdownId = null }: { now: Date; countdownId?: number | null } = $props();
 

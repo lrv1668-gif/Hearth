@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { Photo } from '$lib/api';
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
+    import type { Photo } from '#lib/api.ts';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import {
         getFrameScale,
         isAmbientPosition,
@@ -9,10 +9,10 @@
         plateRect,
         weatherSentence,
         type Pixels,
-    } from '$lib/frame';
-    import { FRAME_INKS } from '$lib/constants/frameThemes';
-    import type { PhotoCard } from '$lib/constants/frameModes';
-    import { localDateKey } from '$lib/utils';
+    } from '#lib/frame.ts';
+    import { FRAME_INKS } from '#lib/constants/frameThemes.ts';
+    import type { PhotoCard } from '#lib/constants/frameModes.ts';
+    import { localDateKey } from '#lib/utils.ts';
     import FrameDateBlock from './FrameDateBlock.svelte';
 
     let {

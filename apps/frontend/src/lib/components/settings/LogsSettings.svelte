@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { ExternalLink } from '@lucide/svelte';
-    import { api } from '$lib/api';
+    import { api } from '#lib/api.ts';
     import Button from '../ui/Button.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
 

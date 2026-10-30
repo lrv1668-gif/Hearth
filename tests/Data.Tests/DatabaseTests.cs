@@ -17,6 +17,14 @@ public sealed class DatabaseTests : IDisposable
     public void Dispose() => _tmp.Dispose();
 
     [Fact]
+    public void Constructor_NewFile_UsesWalJournalMode()
+    {
+        var mode = _db.QueryOne("PRAGMA journal_mode", r => r.GetString(0));
+
+        Assert.Equal("wal", mode);
+    }
+
+    [Fact]
     public void NonQuery_Insert_QueryOneReturnsRow()
     {
         _db.NonQuery("INSERT INTO widgets (id, name) VALUES (1, 'sprocket')");

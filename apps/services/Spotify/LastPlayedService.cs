@@ -1,6 +1,7 @@
 using System.Net;
 using Spotify.Records;
 using SpotifyAPI.Web;
+using ServiceDefaults;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace Spotify;
@@ -30,6 +31,8 @@ public sealed class LastPlayedService(
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(1),
         FailSafeThrottleDuration = TimeSpan.FromMinutes(5),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     private static readonly FusionCacheEntryOptions TopArtistOptions = new()
@@ -38,6 +41,8 @@ public sealed class LastPlayedService(
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(7),
         FailSafeThrottleDuration = TimeSpan.FromMinutes(30),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     // Album art at the frame's size: Spotify lists 640, 300 and 64px versions

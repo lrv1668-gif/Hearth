@@ -27,7 +27,7 @@ Domain data and math (third-party calls, caching, astronomy, recurrence) belong 
 
 ## Tech Stack
 
-- **Frontend:** SvelteKit 2 + Svelte 5 (runes syntax) + Tailwind CSS v4 + Lucide Svelte (`@lucide/svelte`), built with Vite
+- **Frontend:** SvelteKit 3 + Svelte 5 (runes syntax) + Tailwind CSS v4 + Lucide Svelte (`@lucide/svelte`), built with Vite
 - **Services:** .NET 10, ASP.NET Core Minimal APIs, SQLite (isolated to `apps/services/Data`)
 - **Renderer:** Node + Playwright (headless Chromium) sidecar that screenshots and dithers the frame
 - **Proxy:** Caddy 2

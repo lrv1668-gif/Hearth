@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Plus, X } from '@lucide/svelte';
-    import type { ModeRule } from '$lib/api';
+    import type { ModeRule } from '#lib/api.ts';
     import {
         DEFAULT_ROTATE_MINUTES,
         frameModeLabel,
@@ -11,13 +11,13 @@
         rotateIntervals,
         type FrameModeId,
         type ModeDay,
-    } from '$lib/constants/frameModes';
-    import { clearOverride, modeStore, saveSchedule, setOverride } from '$lib/stores/ModeStore.svelte.ts';
-    import { settingsHref } from '$lib/constants/settingsSections';
-    import { checkIn, DEFAULT_QUIET_HOURS } from '$lib/frame';
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { frameStatusStore, loadFrameStatus } from '$lib/stores/FrameStatusStore.svelte.ts';
-    import { poll } from '$lib/utils';
+    } from '#lib/constants/frameModes.ts';
+    import { clearOverride, modeStore, saveSchedule, setOverride } from '#lib/stores/ModeStore.svelte.ts';
+    import { settingsHref } from '#lib/constants/settingsSections.ts';
+    import { checkIn, DEFAULT_QUIET_HOURS } from '#lib/frame.ts';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { frameStatusStore, loadFrameStatus } from '#lib/stores/FrameStatusStore.svelte.ts';
+    import { poll } from '#lib/utils.ts';
     import Button from '../ui/Button.svelte';
     import ChoiceChips from '../ui/ChoiceChips.svelte';
     import DayPicker from '../ui/DayPicker.svelte';

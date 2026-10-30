@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { Task, CalendarItem, Item } from '$lib/api';
-    import { formatTime, providerLabel } from '$lib/utils';
+    import type { Task, CalendarItem, Item } from '#lib/api.ts';
+    import { formatTime, providerLabel } from '#lib/utils.ts';
     import { Calendar as CalendarIcon } from '@lucide/svelte';
     import TaskCheckbox from './TaskCheckbox.svelte';
 

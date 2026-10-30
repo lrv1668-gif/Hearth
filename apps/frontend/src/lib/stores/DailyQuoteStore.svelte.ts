@@ -1,4 +1,4 @@
-import { api, type Quote } from '$lib/api';
+import { api, type Quote } from '#lib/api.ts';
 
 class DailyQuoteStore {
     quote = $state<Quote | null>(null);

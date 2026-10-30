@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { NowPlaying } from '$lib/api';
-import { mockFetch } from '$lib/test/fetch';
+import type { NowPlaying } from '#lib/api.ts';
+import { mockFetch } from '#lib/test/fetch.ts';
 import { pollNowPlaying, refreshNowPlaying, spotifyStore } from './SpotifyStore.svelte.ts';
 
 const track: NowPlaying = {

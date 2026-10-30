@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { taskStore } from '$lib/stores/TaskStore.svelte.ts';
-    import { calendarStore } from '$lib/stores/CalendarStore.svelte.ts';
-    import { weekAhead, type WeekDay } from '$lib/frame';
+    import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
+    import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
+    import { weekAhead, type WeekDay } from '#lib/frame.ts';
 
     let { now, lines }: { now: Date; lines: number } = $props();
 

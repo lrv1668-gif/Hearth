@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { api, HomeSettingsRejected, type HomeSettings } from '$lib/api';
-import { mockFetch } from '$lib/test/fetch';
+import { api, HomeSettingsRejected, type HomeSettings } from '#lib/api.ts';
+import { mockFetch } from '#lib/test/fetch.ts';
 
 const { respond, respondRaw, unreachable, call } = mockFetch();
 

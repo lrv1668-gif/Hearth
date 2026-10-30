@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { DEFAULT_THEME, isValidThemeId, type ThemeId } from '../constants/themes';
 
 function getInitialTheme(): ThemeId {

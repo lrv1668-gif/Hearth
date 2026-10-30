@@ -81,5 +81,34 @@ public sealed class HearthCacheTests
         Assert.Equal(("cached", 3), value);
     }
 
+    [Fact]
+    public async Task GetOrSetAsync_StaleEntryAndSlowFactory_ServesStaleThenRefreshesInBackground()
+    {
+        using var sp = BuildProvider();
+        var cache = sp.GetRequiredService<IFusionCache>();
+        var options = Options.Duplicate();
+        options.FactorySoftTimeout = HearthCache.SoftTimeout;
+        await cache.SetAsync("k", "last good", options);
+        await cache.ExpireAsync("k");
+        var release = new TaskCompletionSource();
+
+        var value = await cache.GetOrSetAsync<string>("k", async _ =>
+        {
+            await release.Task;
+            return "fresh";
+        }, options);
+
+        Assert.Equal("last good", value);
+
+        release.SetResult();
+        string? refreshed = null;
+        for (var i = 0; i < 100 && refreshed != "fresh"; i++)
+        {
+            await Task.Delay(50);
+            refreshed = await cache.GetOrDefaultAsync<string>("k");
+        }
+        Assert.Equal("fresh", refreshed);
+    }
+
     private sealed record Payload(string Name, int Count);
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Plus } from '@lucide/svelte';
-    import { api, type SportsLeague, type SportsTeam } from '$lib/api';
-    import { followedTeams, followTeam, loadFollowedTeams, unfollowTeam } from '$lib/stores/SportsStore.svelte.ts';
+    import { api, type SportsLeague, type SportsTeam } from '#lib/api.ts';
+    import { followedTeams, followTeam, loadFollowedTeams, unfollowTeam } from '#lib/stores/SportsStore.svelte.ts';
     import Button from '../ui/Button.svelte';
     import Field from '../ui/Field.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';

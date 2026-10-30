@@ -1,4 +1,4 @@
-import { api, type CalendarItem } from '$lib/api';
+import { api, type CalendarItem } from '#lib/api.ts';
 
 interface CalendarStoreState {
     items: CalendarItem[];

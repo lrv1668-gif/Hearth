@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Leaf, SunMedium, Sunrise, Sunset, Wind } from '@lucide/svelte';
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { weatherIcon } from '$lib/constants/weather';
-    import { localDateKey } from '$lib/utils';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import { weatherIcon } from '#lib/constants/weather.ts';
+    import { localDateKey } from '#lib/utils.ts';
 
     function formatSunTime(iso: string): string {
         return new Date(iso).toLocaleTimeString('en-US', {

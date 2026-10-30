@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { frameThemes } from '$lib/constants/frameThemes';
-    import { fontThemes } from '$lib/constants/fontThemes';
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { modeStore, setPalette } from '$lib/stores/ModeStore.svelte.ts';
+    import { frameThemes } from '#lib/constants/frameThemes.ts';
+    import { fontThemes } from '#lib/constants/fontThemes.ts';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { modeStore, setPalette } from '#lib/stores/ModeStore.svelte.ts';
     import Chip from '../ui/Chip.svelte';
     import Disclosure from '../ui/Disclosure.svelte';
     import { fieldClass } from '../ui/field';
@@ -18,7 +18,7 @@
         MIN_FRAME_SIZE,
         MIN_FRAME_TEXT_SIZE,
         normalizeFrameSize,
-    } from '$lib/frame';
+    } from '#lib/frame.ts';
 
     const currentTheme = $derived(frameThemes.find((t) => t.id === frameSettings.theme) ?? frameThemes[0]);
 

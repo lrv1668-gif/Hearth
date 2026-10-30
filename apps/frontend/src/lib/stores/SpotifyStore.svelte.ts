@@ -1,5 +1,5 @@
 import { api, type NowPlaying } from '../api';
-import { MINUTE } from '$lib/utils';
+import { MINUTE } from '#lib/utils.ts';
 
 // undefined = not authenticated, null = authenticated but nothing playing
 export const spotifyStore = $state({ nowPlaying: undefined as NowPlaying | null | undefined });

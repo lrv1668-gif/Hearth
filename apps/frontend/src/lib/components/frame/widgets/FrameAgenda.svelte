@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { calendarStore } from '$lib/stores/CalendarStore.svelte.ts';
-    import { fitAgenda } from '$lib/frame';
+    import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
+    import { fitAgenda } from '#lib/frame.ts';
     import FrameEmpty from '../FrameEmpty.svelte';
 
     // `lines`: the slot's line budget. L sets the headings and titles a step larger.

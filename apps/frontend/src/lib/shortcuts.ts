@@ -1,5 +1,5 @@
 import { defaultKeybindingsHandlerIgnore } from 'tinykeys';
-import { settingsSections } from '$lib/constants/settingsSections';
+import { settingsSections } from '#lib/constants/settingsSections.ts';
 
 // Keyboard shortcuts, bound with tinykeys where they act (Settings, and
 // KeyboardShortcuts.svelte for the global ones). "Mod" is ⌘ on a Mac and Ctrl everywhere

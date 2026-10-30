@@ -1,13 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Images } from '@lucide/svelte';
-    import { api, type UploadedPhoto } from '$lib/api';
-    import { photoCards, photoIntervals } from '$lib/constants/frameModes';
-    import { upcomingCountdowns } from '$lib/frame';
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { loadTasks, taskStore } from '$lib/stores/TaskStore.svelte.ts';
-    import { modeStore, setOverride } from '$lib/stores/ModeStore.svelte.ts';
-    import { settingsHref } from '$lib/constants/settingsSections';
+    import { api, type UploadedPhoto } from '#lib/api.ts';
+    import { photoCards, photoIntervals } from '#lib/constants/frameModes.ts';
+    import { upcomingCountdowns } from '#lib/frame.ts';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { loadTasks, taskStore } from '#lib/stores/TaskStore.svelte.ts';
+    import { modeStore, setOverride } from '#lib/stores/ModeStore.svelte.ts';
+    import { settingsHref } from '#lib/constants/settingsSections.ts';
     import Button from '../ui/Button.svelte';
     import PhotoModePicker from './PhotoModePicker.svelte';
     import { fieldClass } from '../ui/field';

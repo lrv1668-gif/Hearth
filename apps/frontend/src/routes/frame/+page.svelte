@@ -2,18 +2,18 @@
     import { onMount } from 'svelte';
     import { setLucideProps } from '@lucide/svelte';
     import { page } from '$app/state';
-    import { api, type Photo } from '$lib/api';
-    import { loadWeather } from '$lib/stores/WeatherStore.svelte.ts';
-    import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
-    import { loadCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
-    import { loadAlmanac } from '$lib/stores/AlmanacStore.svelte.ts';
-    import { loadDailyQuote } from '$lib/stores/DailyQuoteStore.svelte.ts';
-    import { loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
-    import { loadLastPlayed } from '$lib/stores/LastPlayedStore.svelte.ts';
-    import { loadSports } from '$lib/stores/SportsStore.svelte.ts';
-    import { parseFrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
-    import { parseFrameTemplate } from '$lib/constants/frameTemplates';
-    import { SECOND } from '$lib/utils';
+    import { api, type Photo } from '#lib/api.ts';
+    import { loadWeather } from '#lib/stores/WeatherStore.svelte.ts';
+    import { loadTasks } from '#lib/stores/TaskStore.svelte.ts';
+    import { loadCalendarItems } from '#lib/stores/CalendarStore.svelte.ts';
+    import { loadAlmanac } from '#lib/stores/AlmanacStore.svelte.ts';
+    import { loadDailyQuote } from '#lib/stores/DailyQuoteStore.svelte.ts';
+    import { loadBirds } from '#lib/stores/BirdsStore.svelte.ts';
+    import { loadLastPlayed } from '#lib/stores/LastPlayedStore.svelte.ts';
+    import { loadSports } from '#lib/stores/SportsStore.svelte.ts';
+    import { parseFrameLayout, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
+    import { parseFrameTemplate } from '#lib/constants/frameTemplates.ts';
+    import { SECOND } from '#lib/utils.ts';
     import {
         frameCanvas,
         isAmbientPosition,
@@ -21,17 +21,17 @@
         isFrameTextSize,
         setFrameScale,
         type Pixels,
-    } from '$lib/frame';
-    import { parsePhotoParam } from '$lib/photos';
-    import FrameAmbient from '$lib/components/frame/FrameAmbient.svelte';
-    import FrameDaily from '$lib/components/frame/FrameDaily.svelte';
-    import FrameCountdownHero from '$lib/components/frame/modes/FrameCountdownHero.svelte';
-    import FrameNight from '$lib/components/frame/modes/FrameNight.svelte';
-    import FrameNote from '$lib/components/frame/modes/FrameNote.svelte';
-    import { DEFAULT_FRAME_MODE, isFrameMode, type FrameModeId } from '$lib/constants/frameModes';
-    import { frameDataTheme, isValidFrameThemeId, type FramePalette } from '$lib/constants/frameThemes';
-    import { isValidFontThemeId } from '$lib/constants/fontThemes';
-    import { frameSettings, loadFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
+    } from '#lib/frame.ts';
+    import { parsePhotoParam } from '#lib/photos.ts';
+    import FrameAmbient from '#lib/components/frame/FrameAmbient.svelte';
+    import FrameDaily from '#lib/components/frame/FrameDaily.svelte';
+    import FrameCountdownHero from '#lib/components/frame/modes/FrameCountdownHero.svelte';
+    import FrameNight from '#lib/components/frame/modes/FrameNight.svelte';
+    import FrameNote from '#lib/components/frame/modes/FrameNote.svelte';
+    import { DEFAULT_FRAME_MODE, isFrameMode, type FrameModeId } from '#lib/constants/frameModes.ts';
+    import { frameDataTheme, isValidFrameThemeId, type FramePalette } from '#lib/constants/frameThemes.ts';
+    import { isValidFontThemeId } from '#lib/constants/fontThemes.ts';
+    import { frameSettings, loadFrameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
 
     // The e-paper render target: a fixed-size canvas that the (future) Display service
     // screenshots and dithers. Everything it needs comes from the URL, because a

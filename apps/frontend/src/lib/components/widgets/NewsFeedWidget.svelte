@@ -1,11 +1,11 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { MINUTE, poll } from '$lib/utils';
+    import { MINUTE, poll } from '#lib/utils.ts';
     import { Rss } from '@lucide/svelte';
-    import { rssStore, loadRssArticles } from '$lib/stores/RssFeedStore.svelte.ts';
-    import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
-    import ScrollFadeList from '$lib/components/ScrollFadeList.svelte';
-    import { settingsHref } from '$lib/constants/settingsSections';
+    import { rssStore, loadRssArticles } from '#lib/stores/RssFeedStore.svelte.ts';
+    import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
+    import { settingsHref } from '#lib/constants/settingsSections.ts';
 
     function toTimestamp(s: string | null): number {
         if (!s) return 0;

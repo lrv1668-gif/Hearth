@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,id=npm,target=/root/.npm,sharing=locked npm ci
 COPY . .
-# .svelte-kit/ is dockerignored; regenerate it (tsconfig.json extends its tsconfig)
+# .svelte-kit/ is dockerignored; regenerate it and the $app/tsconfig that tsconfig.json extends
 RUN npx svelte-kit sync && npm run build
 
 FROM node:26-alpine

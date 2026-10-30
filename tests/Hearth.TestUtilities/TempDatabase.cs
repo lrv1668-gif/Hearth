@@ -18,6 +18,8 @@ public sealed class TempDatabase : IDisposable
 
     public void Dispose()
     {
-        try { if (File.Exists(Path)) File.Delete(Path); } catch { /* best effort */ }
+        // WAL mode leaves -wal and -shm files beside the database
+        foreach (var path in new[] { Path, Path + "-wal", Path + "-shm" })
+            try { if (File.Exists(path)) File.Delete(path); } catch { /* best effort */ }
     }
 }

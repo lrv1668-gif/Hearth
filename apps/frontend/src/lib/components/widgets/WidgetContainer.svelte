@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-    import type { WidgetId } from '$lib/constants/widgets';
+    import { settings } from '#lib/stores/SettingsStore.svelte.ts';
+    import type { WidgetId } from '#lib/constants/widgets.ts';
     import type { Snippet } from 'svelte';
 
     interface Props {

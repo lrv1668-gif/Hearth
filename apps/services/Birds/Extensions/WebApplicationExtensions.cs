@@ -18,6 +18,8 @@ public static class WebApplicationExtensions
         Duration = TimeSpan.FromMinutes(60),
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromHours(24),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     public static void InitializeWebAppForBirds(this WebApplication app)

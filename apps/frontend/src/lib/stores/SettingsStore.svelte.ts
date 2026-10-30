@@ -1,15 +1,15 @@
-import { browser } from '$app/environment';
-import { DEFAULT_RSS_FEEDS, type RssFeed } from '$lib/constants/rss';
-import { DEFAULT_TRAIN_STOPS, type TrainStop } from '$lib/constants/trains';
-import { LEGACY_FRAME_SETTINGS_KEY } from '$lib/stores/FrameSettingsStore.svelte.ts';
+import { browser } from '$app/env';
+import { DEFAULT_RSS_FEEDS, type RssFeed } from '#lib/constants/rss.ts';
+import { DEFAULT_TRAIN_STOPS, type TrainStop } from '#lib/constants/trains.ts';
+import { LEGACY_FRAME_SETTINGS_KEY } from '#lib/stores/FrameSettingsStore.svelte.ts';
 import {
     ALL_WIDGET_IDS,
     DEFAULT_ENABLED_WIDGETS_IDS,
     DEFAULT_WIDGET_COLUMNS,
     type WidgetId,
     type AllWidgetId,
-} from '$lib/constants/widgets';
-import { mergeNewWidgets } from '$lib/widgetLayout';
+} from '#lib/constants/widgets.ts';
+import { mergeNewWidgets } from '#lib/widgetLayout.ts';
 
 const STORAGE_KEY = 'hearth-settings';
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { mockFetch } from '$lib/test/fetch';
-import { task } from '$lib/test/fixtures';
+import { mockFetch } from '#lib/test/fetch.ts';
+import { task } from '#lib/test/fixtures.ts';
 import { loadTasks, removeTask, taskStore } from './TaskStore.svelte.ts';
 
 const { respond, unreachable } = mockFetch();

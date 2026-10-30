@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { frameWidgets, type FrameLayout, type FrameWidgetId } from '$lib/constants/frameWidgets';
-    import { frameTemplate, type FrameSize, type FrameTemplateId } from '$lib/constants/frameTemplates';
-    import { allocateLines, COLUMN_LINES, slotLines } from '$lib/frame';
+    import { frameWidgets, type FrameLayout, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
+    import { frameTemplate, type FrameSize, type FrameTemplateId } from '#lib/constants/frameTemplates.ts';
+    import { allocateLines, COLUMN_LINES, slotLines } from '#lib/frame.ts';
     import FrameEditionLine from './FrameEditionLine.svelte';
     import FrameDateBlock from './FrameDateBlock.svelte';
     import FrameSunPath from './FrameSunPath.svelte';
     import FrameForecast from './FrameForecast.svelte';
-    import DayArcWidget from '$lib/components/widgets/DayArcWidget.svelte';
+    import DayArcWidget from '#lib/components/widgets/DayArcWidget.svelte';
     import FrameToday from './widgets/FrameToday.svelte';
     import FrameComingUp from './widgets/FrameComingUp.svelte';
     import FrameAgenda from './widgets/FrameAgenda.svelte';
@@ -16,13 +16,13 @@
     import FrameCountdowns from './widgets/FrameCountdowns.svelte';
     import FrameLastPlayed from './widgets/FrameLastPlayed.svelte';
     import FrameSports from './widgets/FrameSports.svelte';
-    import AlmanacView from '$lib/components/widgets/views/AlmanacView.svelte';
-    import MoonPhaseView from '$lib/components/widgets/views/MoonPhaseView.svelte';
-    import DailyQuoteView from '$lib/components/widgets/views/DailyQuoteView.svelte';
-    import BirdSightingsView from '$lib/components/widgets/views/BirdSightingsView.svelte';
-    import { almanacStore } from '$lib/stores/AlmanacStore.svelte.ts';
-    import { dailyQuoteStore } from '$lib/stores/DailyQuoteStore.svelte.ts';
-    import { birdsStore } from '$lib/stores/BirdsStore.svelte.ts';
+    import AlmanacView from '#lib/components/widgets/views/AlmanacView.svelte';
+    import MoonPhaseView from '#lib/components/widgets/views/MoonPhaseView.svelte';
+    import DailyQuoteView from '#lib/components/widgets/views/DailyQuoteView.svelte';
+    import BirdSightingsView from '#lib/components/widgets/views/BirdSightingsView.svelte';
+    import { almanacStore } from '#lib/stores/AlmanacStore.svelte.ts';
+    import { dailyQuoteStore } from '#lib/stores/DailyQuoteStore.svelte.ts';
+    import { birdsStore } from '#lib/stores/BirdsStore.svelte.ts';
 
     interface Props {
         now: Date;

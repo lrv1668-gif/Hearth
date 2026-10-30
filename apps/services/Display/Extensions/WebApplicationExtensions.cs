@@ -16,6 +16,8 @@ public static class WebApplicationExtensions
         Duration = TimeSpan.FromDays(7),
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromDays(30),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     // Long enough for a render queued behind another (see RendererClient's timeout), short

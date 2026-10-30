@@ -5,7 +5,7 @@
     import PhotoUploadButton from '../PhotoUploadButton.svelte';
     import Button from '../ui/Button.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
-    import { api, type UploadedPhoto } from '$lib/api';
+    import { api, type UploadedPhoto } from '#lib/api.ts';
 
     let photos = $state<UploadedPhoto[]>([]);
     let showModal = $state(false);

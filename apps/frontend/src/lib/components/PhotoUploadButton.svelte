@@ -1,7 +1,7 @@
 <script lang="ts">
     import { ImageUp } from '@lucide/svelte';
-    import { api, type UploadedPhoto } from '$lib/api';
-    import { checkPhotoFiles, PHOTO_UPLOAD_TYPES, summarizeUploadErrors } from '$lib/photos';
+    import { api, type UploadedPhoto } from '#lib/api.ts';
+    import { checkPhotoFiles, PHOTO_UPLOAD_TYPES, summarizeUploadErrors } from '#lib/photos.ts';
     import FileUploadButton from './ui/FileUploadButton.svelte';
 
     interface Props {

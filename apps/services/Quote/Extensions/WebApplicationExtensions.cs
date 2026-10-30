@@ -13,6 +13,8 @@ public static class WebApplicationExtensions
     {
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromHours(24),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
     };
 
     public static void InitializeWebAppForQuote(this WebApplication app)

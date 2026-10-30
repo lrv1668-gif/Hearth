@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { mockFetch } from '$lib/test/fetch';
+import { mockFetch } from '#lib/test/fetch.ts';
 import { calendarStore, loadCalendarItems, loadCalendarStatus } from './CalendarStore.svelte.ts';
 
 const { respond, unreachable } = mockFetch();

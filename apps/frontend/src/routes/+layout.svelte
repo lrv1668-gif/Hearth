@@ -1,15 +1,15 @@
 <script lang="ts">
     import '../app.css';
-    import { browser } from '$app/environment';
+    import { browser } from '$app/env';
     import { page } from '$app/state';
-    import Nav from '$lib/components/Nav.svelte';
-    import KeyboardShortcuts from '$lib/components/KeyboardShortcuts.svelte';
-    import { loadTasks } from '$lib/stores/TaskStore.svelte.ts';
-    import { initTheme } from '$lib/stores/ThemeStore.svelte.ts';
-    import { initFontTheme } from '$lib/stores/FontThemeStore.svelte.ts';
-    import { initFontSize } from '$lib/stores/FontSizeStore.svelte.ts';
-    import { loadCalendarStatus, loadCalendarItems } from '$lib/stores/CalendarStore.svelte.ts';
-    import { MINUTE, poll } from '$lib/utils';
+    import Nav from '#lib/components/Nav.svelte';
+    import KeyboardShortcuts from '#lib/components/KeyboardShortcuts.svelte';
+    import { loadTasks } from '#lib/stores/TaskStore.svelte.ts';
+    import { initTheme } from '#lib/stores/ThemeStore.svelte.ts';
+    import { initFontTheme } from '#lib/stores/FontThemeStore.svelte.ts';
+    import { initFontSize } from '#lib/stores/FontSizeStore.svelte.ts';
+    import { loadCalendarStatus, loadCalendarItems } from '#lib/stores/CalendarStore.svelte.ts';
+    import { MINUTE, poll } from '#lib/utils.ts';
     let { children } = $props();
 
     let loaded = $state(false);

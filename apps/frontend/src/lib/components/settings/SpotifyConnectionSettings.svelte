@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Disc3 } from '@lucide/svelte';
-    import { spotifyStore, refreshNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
-    import { api } from '$lib/api';
+    import { spotifyStore, refreshNowPlaying } from '#lib/stores/SpotifyStore.svelte.ts';
+    import { api } from '#lib/api.ts';
     import Button from '../ui/Button.svelte';
     import ConnectionRow from '../ui/ConnectionRow.svelte';
 

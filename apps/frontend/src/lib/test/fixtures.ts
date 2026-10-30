@@ -1,4 +1,4 @@
-import type { Task } from '$lib/api';
+import type { Task } from '#lib/api.ts';
 
 /** A pending, untimed, one-off task due Monday 19 October 2026, with `overrides` on top. */
 export function task(overrides: Partial<Task> = {}): Task {

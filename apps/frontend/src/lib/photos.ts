@@ -1,5 +1,5 @@
-import type { Photo, PhotoGroup, UploadedPhoto } from '$lib/api';
-import type { PhotoSource } from '$lib/constants/photos';
+import type { Photo, PhotoGroup, UploadedPhoto } from '#lib/api.ts';
+import type { PhotoSource } from '#lib/constants/photos.ts';
 
 /** The /ambient slideshow's photo choice (the frame's is the Display service's FramePhotos). */
 

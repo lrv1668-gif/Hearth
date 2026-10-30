@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { CircleCheck, CircleDashed, CircleX, RefreshCw, TriangleAlert } from '@lucide/svelte';
-    import { api, type ServiceHealth } from '$lib/api';
-    import { hearthServices, type HearthServiceId } from '$lib/constants/services';
-    import { summarizeHealth, type HealthTone } from '$lib/diagnostics';
-    import { poll } from '$lib/utils';
+    import { api, type ServiceHealth } from '#lib/api.ts';
+    import { hearthServices, type HearthServiceId } from '#lib/constants/services.ts';
+    import { summarizeHealth, type HealthTone } from '#lib/diagnostics.ts';
+    import { poll } from '#lib/utils.ts';
     import IconButton from '../ui/IconButton.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
     import ListRow from '../ui/ListRow.svelte';
