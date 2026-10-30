@@ -1,4 +1,6 @@
+import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { createLogger } from 'vite';
 import { defineConfig } from 'vitest/config';
@@ -18,7 +20,10 @@ for (const level of ['warn', 'warnOnce'] as const) {
 export default defineConfig({
     // Tailwind's Vite plugin (not @tailwindcss/postcss) so @imported CSS keeps
     // its own base for relative url()s — e.g. @fontsource's ./files/*.woff2
-    plugins: [tailwindcss(), sveltekit()],
+    plugins: [
+        tailwindcss(),
+        sveltekit({ preprocess: vitePreprocess(), adapter: adapter(), alias: { $lib: 'src/lib' } }),
+    ],
     customLogger: logger,
     test: {
         environment: 'node',

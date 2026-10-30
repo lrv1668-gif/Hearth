@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { DEFAULT_FONT_THEME, isValidFontThemeId, type FontThemeId } from '../constants/fontThemes';
 
 function getInitialFontTheme(): FontThemeId {

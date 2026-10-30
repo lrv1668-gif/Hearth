@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, tick } from 'svelte';
-    import { browser } from '$app/environment';
+    import { browser } from '$app/env';
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
     import { MediaQuery } from 'svelte/reactivity';
@@ -147,7 +147,7 @@
     }
 
     function goToSection(id: SettingsSection) {
-        goto(settingsHref(id), { replaceState: true, noScroll: true, keepFocus: true });
+        goto(settingsHref(id), { replace: true, reset: false });
     }
 
     function stepSection(by: 1 | -1) {

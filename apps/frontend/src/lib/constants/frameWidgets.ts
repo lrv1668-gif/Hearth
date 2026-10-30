@@ -74,7 +74,7 @@ export function clampSplit(value: number): number {
  *  back to `fallback` (the saved Settings → Frame layout in a browser, else the
  *  default); an empty one (`left=`) means an intentionally empty column. */
 export function parseFrameLayout(
-    params: URLSearchParams,
+    params: Pick<URLSearchParams, 'get'>,
     fallback: FrameLayout & { split: number } = { ...DEFAULT_FRAME_LAYOUT, split: DEFAULT_FRAME_SPLIT }
 ): FrameLayout & { split: number } {
     const column = (key: 'left' | 'right') => {

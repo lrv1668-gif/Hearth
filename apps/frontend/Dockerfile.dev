@@ -5,7 +5,7 @@ USER node
 COPY --chown=node:node package.json package-lock.json ./
 RUN npm ci
 COPY --chown=node:node . .
-# .svelte-kit/ is dockerignored; regenerate it (tsconfig.json extends its tsconfig)
+# .svelte-kit/ is dockerignored; regenerate it and the $app/tsconfig that tsconfig.json extends
 RUN npx svelte-kit sync
 EXPOSE 3000
 CMD ["npm", "run", "dev", "--", "--host", "--port", "3000"]

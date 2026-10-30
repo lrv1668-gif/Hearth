@@ -106,7 +106,7 @@ export function normalizeSlots(template: FrameTemplateId, slots: readonly string
 /** Reads `?template=feature&slots=coming-up,,quote` from the frame URL, falling back
  *  to `fallback` (the saved settings) for a missing param. */
 export function parseFrameTemplate(
-    params: URLSearchParams,
+    params: Pick<URLSearchParams, 'get'>,
     fallback: { template: FrameTemplateId; slots: readonly string[] }
 ): { template: FrameTemplateId; slots: (FrameWidgetId | '')[] } {
     const raw = params.get('template');
