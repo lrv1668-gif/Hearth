@@ -13,7 +13,7 @@ public sealed class GoogleAuthServiceTests
 
     private static GoogleAuthService MakeService(TempDatabase db, FakeTimeProvider time)
     {
-        var store = new CalendarStore(db.Db, TestDataProtection.Provider);
+        var store = new CalendarStore(db.Db, TestDataProtection.Provider, time);
         store.Migrate();
 
         var config = new ConfigurationBuilder()

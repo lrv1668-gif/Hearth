@@ -273,13 +273,12 @@ public sealed class GoogleCalendarProviderMappingTests
     }
 
     [Fact]
-    public void MapGoogleTasks_DueShorterThanTenChars_ThrowsArgumentOutOfRangeException()
+    public void MapGoogleTasks_DueShorterThanADate_KeepsTheTaskUndated()
     {
-        // Documents a real gap found while writing these tests: MapGoogleTasks does
-        // `t.Due[..10]` with no length guard. A malformed/short Due string from Google
-        // (or corrupted cache data) crashes rather than degrading gracefully.
         var tasks = new List<GTask> { new() { Id = "task-1", Due = "2026" } };
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => GoogleCalendarProvider.MapGoogleTasks(tasks, "@default"));
+        var item = Assert.Single(GoogleCalendarProvider.MapGoogleTasks(tasks, "@default"));
+
+        Assert.Null(item.Start);
     }
 }

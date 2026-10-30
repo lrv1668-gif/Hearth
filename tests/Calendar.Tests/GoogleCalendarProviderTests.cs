@@ -1,22 +1,39 @@
 using System.Text.Json;
 using Calendar.Providers.Google;
 using Calendar.Records;
-using Data.Abstractions;
 using Hearth.TestUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
+using ServiceDefaults;
 
 namespace Calendar.Tests;
 
-public sealed class GoogleCalendarProviderTests
+public sealed class GoogleCalendarProviderTests : IDisposable
 {
-    private static readonly JsonSerializerOptions JsonOpts =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+    private static readonly DateTimeOffset Now = new(2026, 7, 20, 12, 0, 0, TimeSpan.Zero);
 
-    private static (GoogleCalendarProvider Provider, CalendarStore Store) MakeProvider(TempDatabase db)
+    // The window /calendar/items asks for: yesterday at UTC midnight to 60 days ahead
+    private static readonly DateTimeOffset From = new(2026, 7, 19, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset To = From.AddDays(61);
+
+    private static readonly string ItemsJson = JsonSerializer.Serialize(new List<CalendarItem>
     {
-        var store = new CalendarStore(db.Db, TestDataProtection.Provider);
-        store.Migrate();
+        new(Kind: "event", Id: "evt-1", Title: "Standup", Description: null, Location: null,
+            Start: "2026-07-20T09:00:00+00:00", End: "2026-07-20T09:30:00+00:00", IsAllDay: false,
+            CalendarName: null, Provider: "google", IsCompleted: null, TaskListId: null, HtmlLink: null),
+    }, HearthJson.SnakeCaseLower);
+
+    private readonly TempDatabase _db = new();
+    // Starts before Now so CacheItems can save "in the past" (the fake clock only moves forward)
+    private readonly FakeTimeProvider _clock = new(Now.AddHours(-1));
+    private readonly CalendarStore _store;
+    private readonly GoogleCalendarProvider _provider;
+
+    public GoogleCalendarProviderTests()
+    {
+        _store = new CalendarStore(_db.Db, TestDataProtection.Provider, _clock);
+        _store.Migrate();
 
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -27,29 +44,19 @@ public sealed class GoogleCalendarProviderTests
             })
             .Build();
 
-        var authService = new GoogleAuthService(store, config, TimeProvider.System);
-        var provider = new GoogleCalendarProvider(store, authService, NullLogger<GoogleCalendarProvider>.Instance);
-        return (provider, store);
+        var authService = new GoogleAuthService(_store, config, _clock);
+        _provider = new GoogleCalendarProvider(_store, authService, _clock, NullLogger<GoogleCalendarProvider>.Instance);
     }
 
-    private static void SeedCacheAt(TempDatabase db, string provider, string json, DateTimeOffset cachedAt) =>
-        db.Db.NonQuery("""
-            INSERT OR REPLACE INTO calendar_items_cache (provider, items_json, cached_at)
-            VALUES ($provider, $json, $cached_at)
-            """, cmd =>
-        {
-            cmd.AddParam("$provider", provider);
-            cmd.AddParam("$json", json);
-            cmd.AddParam("$cached_at", cachedAt.ToString("o"));
-        });
+    public void Dispose() => _db.Dispose();
 
-    private static List<CalendarItem> SampleItems() =>
-    [
-        new CalendarItem(
-            Kind: "event", Id: "evt-1", Title: "Standup", Description: null, Location: null,
-            Start: "2026-07-20T09:00:00+00:00", End: "2026-07-20T09:30:00+00:00", IsAllDay: false,
-            CalendarName: null, Provider: "google", IsCompleted: null, TaskListId: null, HtmlLink: null),
-    ];
+    /// <summary>Caches the sample items for <see cref="From"/>–<see cref="To"/>, <paramref name="age"/> ago.</summary>
+    private void CacheItems(TimeSpan age, DateTimeOffset? from = null)
+    {
+        _clock.SetUtcNow(Now - age);
+        _store.SaveItemsCache("google", GoogleCalendarProvider.CacheRange(from ?? From, To), ItemsJson);
+        _clock.SetUtcNow(Now);
+    }
 
     // --- NeedsTokenRefresh boundary ---
 
@@ -60,78 +67,46 @@ public sealed class GoogleCalendarProviderTests
     [InlineData(3600, false)]  // well before expiry
     public void NeedsTokenRefresh_SecondsToExpiry_RefreshesWithinThirtySeconds(double seconds, bool expected)
     {
-        var now = new DateTimeOffset(2026, 7, 20, 12, 0, 0, TimeSpan.Zero);
-
-        Assert.Equal(expected, GoogleCalendarProvider.NeedsTokenRefresh(now.AddTicks((long)(seconds * TimeSpan.TicksPerSecond)), now));
+        Assert.Equal(expected, GoogleCalendarProvider.NeedsTokenRefresh(Now.AddTicks((long)(seconds * TimeSpan.TicksPerSecond)), Now));
     }
 
     // --- GetItemsAsync cache/token paths (no network) ---
+    // No token is saved, so anything not served from the cache comes back empty.
 
     [Fact]
-    public async Task GetItemsAsync_FreshCache_ReturnsCachedItemsWithoutTouchingToken()
+    public async Task GetItemsAsync_FreshCacheForTheRange_ReturnsCachedItems()
     {
-        using var db = new TempDatabase();
-        var (provider, store) = MakeProvider(db);
-        var items = SampleItems();
-        store.SaveItemsCache("google", JsonSerializer.Serialize(items, JsonOpts));
+        CacheItems(TimeSpan.FromMinutes(1));
 
-        var result = (await provider.GetItemsAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(14))).ToList();
+        var item = Assert.Single(await _provider.GetItemsAsync(From, To));
 
-        var item = Assert.Single(result);
         Assert.Equal("evt-1", item.Id);
-        Assert.False(store.HasToken("google")); // never seeded — proves the token path was never reached
     }
 
     [Fact]
-    public async Task GetItemsAsync_FreshCache_IgnoresRequestedDateRange()
+    public async Task GetItemsAsync_FreshCacheForAnotherRange_IsNotServed()
     {
-        // Documents a real quirk found while writing these tests: the cache check runs
-        // before any comparison against the requested from/to, so a fresh cache entry is
-        // served regardless of what range is actually asked for.
-        using var db = new TempDatabase();
-        var (provider, store) = MakeProvider(db);
-        var items = SampleItems();
-        store.SaveItemsCache("google", JsonSerializer.Serialize(items, JsonOpts));
+        // Cached at 23:59 for yesterday's window, asked at 00:00 for today's
+        CacheItems(TimeSpan.FromMinutes(1), from: From.AddDays(-1));
 
-        var farFuture = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var result = (await provider.GetItemsAsync(farFuture, farFuture.AddDays(14))).ToList();
-
-        Assert.Single(result);
+        Assert.Empty(await _provider.GetItemsAsync(From, To));
     }
 
-    [Fact]
-    public async Task GetItemsAsync_StaleCacheNoToken_ReturnsEmptyList()
+    [Theory]
+    [InlineData(299, 1)] // just inside the 5-minute TTL
+    [InlineData(300, 0)] // exactly 5 minutes: stale
+    [InlineData(600, 0)]
+    public async Task GetItemsAsync_CacheAge_ServedOnlyUnderFiveMinutes(int ageSeconds, int expected)
     {
-        using var db = new TempDatabase();
-        var (provider, _) = MakeProvider(db);
-        SeedCacheAt(db, "google", JsonSerializer.Serialize(SampleItems(), JsonOpts), DateTimeOffset.UtcNow.AddMinutes(-10));
+        CacheItems(TimeSpan.FromSeconds(ageSeconds));
 
-        var result = await provider.GetItemsAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(14));
-
-        Assert.Empty(result);
+        Assert.Equal(expected, (await _provider.GetItemsAsync(From, To)).Count());
     }
 
     [Fact]
     public async Task GetItemsAsync_NoCacheNoToken_ReturnsEmptyList()
     {
-        using var db = new TempDatabase();
-        var (provider, _) = MakeProvider(db);
-
-        var result = await provider.GetItemsAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(14));
-
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public async Task GetItemsAsync_CacheFiveMinutesOld_IsTreatedAsStale()
-    {
-        using var db = new TempDatabase();
-        var (provider, _) = MakeProvider(db);
-        SeedCacheAt(db, "google", JsonSerializer.Serialize(SampleItems(), JsonOpts), DateTimeOffset.UtcNow.AddMinutes(-5));
-
-        var result = await provider.GetItemsAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(14));
-
-        Assert.Empty(result);
+        Assert.Empty(await _provider.GetItemsAsync(From, To));
     }
 
     // --- IsAuthenticated / Disconnect ---
@@ -139,26 +114,22 @@ public sealed class GoogleCalendarProviderTests
     [Fact]
     public void IsAuthenticated_FollowsTheStoredToken()
     {
-        using var db = new TempDatabase();
-        var (provider, store) = MakeProvider(db);
-        Assert.False(provider.IsAuthenticated);
+        Assert.False(_provider.IsAuthenticated);
 
-        store.SaveToken("google", "access", "refresh", DateTimeOffset.UtcNow.AddHours(1));
+        _store.SaveToken("google", "access", "refresh", Now.AddHours(1));
 
-        Assert.True(provider.IsAuthenticated);
+        Assert.True(_provider.IsAuthenticated);
     }
 
     [Fact]
     public void Disconnect_ClearsTokenAndCache()
     {
-        using var db = new TempDatabase();
-        var (provider, store) = MakeProvider(db);
-        store.SaveToken("google", "access", "refresh", DateTimeOffset.UtcNow.AddHours(1));
-        store.SaveItemsCache("google", "[]");
+        _store.SaveToken("google", "access", "refresh", Now.AddHours(1));
+        CacheItems(TimeSpan.Zero);
 
-        provider.Disconnect();
+        _provider.Disconnect();
 
-        Assert.False(store.HasToken("google"));
-        Assert.Null(store.LoadItemsCache("google"));
+        Assert.False(_store.HasToken("google"));
+        Assert.Null(_store.LoadItemsCache("google"));
     }
 }

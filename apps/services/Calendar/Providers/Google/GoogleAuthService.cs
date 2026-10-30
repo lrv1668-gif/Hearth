@@ -53,7 +53,7 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
             ProviderKey,
             tokenResponse.AccessToken,
             tokenResponse.RefreshToken,
-            DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresInSeconds ?? 3600));
+            timeProvider.GetUtcNow().AddSeconds(tokenResponse.ExpiresInSeconds ?? 3600));
     }
 
     /// <summary>
