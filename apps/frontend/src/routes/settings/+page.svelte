@@ -22,6 +22,7 @@
     import AmbientCadenceSettings from '#lib/components/settings/AmbientCadenceSettings.svelte';
     import AmbientCategorySettings from '#lib/components/settings/AmbientCategorySettings.svelte';
     import LocalPhotosSettings from '#lib/components/settings/LocalPhotosSettings.svelte';
+    import FramePhotoSettings from '#lib/components/settings/FramePhotoSettings.svelte';
     import { settings } from '#lib/stores/SettingsStore.svelte.ts';
     import { frameSettings, loadFrameSettings, syncFrameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import WidgetLayoutEditor from '#lib/components/settings/WidgetLayoutEditor.svelte';
@@ -409,11 +410,12 @@
                     'Use this device’s location, search for a city, or type coordinates.',
                     homeContent
                 )}
-            {:else if active === 'ambient'}
+            {:else if active === 'photos'}
                 {#snippet source()}<AmbientSourceSettings />{/snippet}
                 {#snippet cadence()}<AmbientCadenceSettings />{/snippet}
                 {#snippet categories()}<AmbientCategorySettings />{/snippet}
                 {#snippet localPhotos()}<LocalPhotosSettings />{/snippet}
+                {#snippet framePhotos()}<FramePhotoSettings />{/snippet}
                 {#if frameSettings.error}
                     <InlineMessage tone="error" class="mb-4">
                         Can't reach the Display service — photo choices here won't be saved or reach the frame.
@@ -423,7 +425,7 @@
                     {#snippet left()}
                         {@render card(
                             'Photo source',
-                            'Curated Unsplash photos, your own uploads, or a mix of both — for the frame and every device.',
+                            'Curated Unsplash photos, your own uploads, or a mix of both — for Ambient on the frame and every device.',
                             source
                         )}
                         {#if frameSettings.photoSource === 'unsplash' || frameSettings.photoSource === 'both'}
@@ -433,11 +435,15 @@
                                 categories
                             )}
                         {/if}
+                        <!-- Always shown: Photo mode picks from uploads whatever Ambient's source is -->
+                        {@render card('My photos', 'Upload and manage your local photo collection.', localPhotos)}
                     {/snippet}
                     {#snippet right()}
-                        {#if frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both'}
-                            {@render card('My photos', 'Upload and manage your local photo collection.', localPhotos)}
-                        {/if}
+                        {@render card(
+                            'On the frame',
+                            'How often the panel changes photo, and what Photo mode shows.',
+                            framePhotos
+                        )}
                         {@render card(
                             'Browser slideshow',
                             'How often the /ambient slideshow in this browser changes photo — slower at night — and whether photos drift. The frame keeps its own schedule.',
@@ -489,7 +495,13 @@
                         </div>
                     {/if}
                 {/snippet}
-                {#snippet frameModeContent()}<FrameModeSettings />{/snippet}
+                {#snippet frameModeContent()}
+                    <FrameModeSettings />
+                    <p class="type-caption mt-4 text-(--text-2)">
+                        Ambient and Photo mode’s photos, and how often they change, are set in
+                        <a href={settingsHref('photos')} class="underline">Photos</a>.
+                    </p>
+                {/snippet}
                 {#snippet frameModeOptionsContent()}<FrameModeOptions />{/snippet}
                 {#snippet framePreviewContent()}
                     <div bind:this={previewWrap}>
@@ -524,8 +536,8 @@
                             </div>
                             <div class="order-3">
                                 {@render card(
-                                    'Photo, Countdown & Note',
-                                    'What Photo, Countdown and Note modes show.',
+                                    'Countdown & Note',
+                                    'What Countdown and Note modes show.',
                                     frameModeOptionsContent
                                 )}
                             </div>
