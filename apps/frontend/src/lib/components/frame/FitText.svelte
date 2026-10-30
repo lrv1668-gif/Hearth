@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
-    import { fitFontSize, getFrameScale } from '$lib/frame';
+    import { fitFontSize, getFrameScale } from '#lib/frame.ts';
 
     interface Props {
         /** Size bounds in px at the 1600×1200 reference panel (scaled with the frame). */

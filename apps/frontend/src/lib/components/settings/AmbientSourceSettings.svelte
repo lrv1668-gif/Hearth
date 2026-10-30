@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { api } from '$lib/api';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { api } from '#lib/api.ts';
     import ChoiceChips from '../ui/ChoiceChips.svelte';
 
     const sourceLabels: Record<string, string> = {

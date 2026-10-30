@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { taskStore } from '$lib/stores/TaskStore.svelte.ts';
-    import { itemsThatFit, todayTasks } from '$lib/frame';
-    import { formatTime } from '$lib/utils';
-    import type { FrameSize } from '$lib/constants/frameTemplates';
+    import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
+    import { itemsThatFit, todayTasks } from '#lib/frame.ts';
+    import { formatTime } from '#lib/utils.ts';
+    import type { FrameSize } from '#lib/constants/frameTemplates.ts';
     import FrameEmpty from '../FrameEmpty.svelte';
 
     // `size`: a template slot's size class — L sets the ledger a step larger. Omitted

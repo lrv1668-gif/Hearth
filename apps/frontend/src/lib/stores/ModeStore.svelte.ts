@@ -1,6 +1,6 @@
-import { api, type ModeOverride, type ModeSchedule, type ResolvedMode } from '$lib/api';
-import { DEFAULT_FRAME_MODE } from '$lib/constants/frameModes';
-import type { FramePalette } from '$lib/constants/frameThemes';
+import { api, type ModeOverride, type ModeSchedule, type ResolvedMode } from '#lib/api.ts';
+import { DEFAULT_FRAME_MODE } from '#lib/constants/frameModes.ts';
+import type { FramePalette } from '#lib/constants/frameThemes.ts';
 
 /**
  * Which mode the e-paper frame shows: the Display service resolves a manual override

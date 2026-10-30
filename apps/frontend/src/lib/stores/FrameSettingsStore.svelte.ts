@@ -1,5 +1,5 @@
 import { browser } from '$app/env';
-import { api, type AmbientPosition, type FrameSettings } from '$lib/api';
+import { api, type AmbientPosition, type FrameSettings } from '#lib/api.ts';
 import {
     DEFAULT_AMBIENT_POSITION,
     DEFAULT_FRAME_DITHERING,
@@ -15,23 +15,23 @@ import {
     type FrameDithering,
     type QuietHours,
     type PortraitRotation,
-} from '$lib/frame';
-import { categoryOptions } from '$lib/constants/ambient';
-import type { PhotoCategory, PhotoSource } from '$lib/constants/photos';
+} from '#lib/frame.ts';
+import { categoryOptions } from '#lib/constants/ambient.ts';
+import type { PhotoCategory, PhotoSource } from '#lib/constants/photos.ts';
 import {
     DEFAULT_PHOTO_INTERVAL_MINUTES,
     isPhotoCard,
     isPhotoInterval,
     type PhotoCard,
-} from '$lib/constants/frameModes';
-import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '$lib/constants/frameThemes';
+} from '#lib/constants/frameModes.ts';
+import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '#lib/constants/frameThemes.ts';
 import {
     DEFAULT_FRAME_TEMPLATE,
     isFrameTemplateId,
     normalizeSlots,
     type FrameTemplateId,
-} from '$lib/constants/frameTemplates';
-import { DEFAULT_FONT_THEME, isValidFontThemeId, type FontThemeId } from '$lib/constants/fontThemes';
+} from '#lib/constants/frameTemplates.ts';
+import { DEFAULT_FONT_THEME, isValidFontThemeId, type FontThemeId } from '#lib/constants/fontThemes.ts';
 import {
     clampSplit,
     DEFAULT_FRAME_LAYOUT,
@@ -40,7 +40,7 @@ import {
     normalizeFrameLayout,
     type FrameLayout,
     type FrameWidgetId,
-} from '$lib/constants/frameWidgets';
+} from '#lib/constants/frameWidgets.ts';
 
 /** Where SettingsStore parks frame settings it finds in an old localStorage snapshot,
  *  so they can be moved to the Display service once (see loadFrameSettings). */

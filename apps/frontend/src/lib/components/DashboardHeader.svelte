@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
-    import { weatherIcon } from '$lib/constants/weather';
-    import { MINUTE } from '$lib/utils';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import { weatherIcon } from '#lib/constants/weather.ts';
+    import { MINUTE } from '#lib/utils.ts';
 
     let now = $state(new Date());
 

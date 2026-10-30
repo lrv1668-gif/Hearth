@@ -1,9 +1,9 @@
 <script lang="ts">
     import { CalendarDays, Image, Keyboard, LayoutList, Settings } from '@lucide/svelte';
     import { page } from '$app/state';
-    import { showShortcuts } from '$lib/components/KeyboardShortcuts.svelte';
-    import IconButton from '$lib/components/ui/IconButton.svelte';
-    import { kioskStore } from '$lib/stores/KioskStore.svelte.ts';
+    import { showShortcuts } from '#lib/components/KeyboardShortcuts.svelte';
+    import IconButton from '#lib/components/ui/IconButton.svelte';
+    import { kioskStore } from '#lib/stores/KioskStore.svelte.ts';
 
     const links = [
         { href: '/', label: 'Dashboard', icon: LayoutList },

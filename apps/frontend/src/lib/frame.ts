@@ -1,8 +1,8 @@
-import type { AmbientPosition, CalendarItem, CurrentWeather, ForecastDay, FrameStatus, Photo, Task } from '$lib/api';
-import { eventDateKey, formatTime, localDateKey } from '$lib/utils';
-import type { FrameLayout, FrameWidgetId } from '$lib/constants/frameWidgets';
-import type { FrameTemplateId } from '$lib/constants/frameTemplates';
-import type { FrameModeId } from '$lib/constants/frameModes';
+import type { AmbientPosition, CalendarItem, CurrentWeather, ForecastDay, FrameStatus, Photo, Task } from '#lib/api.ts';
+import { eventDateKey, formatTime, localDateKey } from '#lib/utils.ts';
+import type { FrameLayout, FrameWidgetId } from '#lib/constants/frameWidgets.ts';
+import type { FrameTemplateId } from '#lib/constants/frameTemplates.ts';
+import type { FrameModeId } from '#lib/constants/frameModes.ts';
 import { getContext, setContext } from 'svelte';
 
 /**

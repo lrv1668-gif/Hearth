@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { LocateFixed, Search } from '@lucide/svelte';
-    import { api, HomeSettingsRejected, type Place } from '$lib/api';
+    import { api, HomeSettingsRejected, type Place } from '#lib/api.ts';
     import {
         browserTimeZone,
         canonicalTimeZone,
@@ -10,7 +10,7 @@
         knownTimeZones,
         loadHomeLocation,
         saveHomeLocation,
-    } from '$lib/stores/HomeLocationStore.svelte.ts';
+    } from '#lib/stores/HomeLocationStore.svelte.ts';
     import Button from '../ui/Button.svelte';
     import Field from '../ui/Field.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';

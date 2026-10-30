@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Snowflake, Sprout, Sun } from '@lucide/svelte';
-    import type { AlmanacResponse } from '$lib/api';
-    import { frostTiming, shortDate, trendText } from '$lib/almanac';
+    import type { AlmanacResponse } from '#lib/api.ts';
+    import { frostTiming, shortDate, trendText } from '#lib/almanac.ts';
 
     /** `lines`: the frame's line budget — each extra fact appears only if there's room
      *  (the season block needs ~3.3 lines; the daylight line can wrap to two in a

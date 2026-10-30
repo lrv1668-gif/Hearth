@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { almanacStore } from '$lib/stores/AlmanacStore.svelte.ts';
-    import { dayOfYear } from '$lib/frame';
+    import { almanacStore } from '#lib/stores/AlmanacStore.svelte.ts';
+    import { dayOfYear } from '#lib/frame.ts';
 
     /** `wrap`: allow a second line (portrait, where it shares the row with the sun path). */
     let { now, wrap = false }: { now: Date; wrap?: boolean } = $props();

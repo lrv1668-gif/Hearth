@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { dailyQuoteStore } from '$lib/stores/DailyQuoteStore.svelte.ts';
+    import { dailyQuoteStore } from '#lib/stores/DailyQuoteStore.svelte.ts';
     import FitText from '../FitText.svelte';
     import FrameEmpty from '../FrameEmpty.svelte';
 

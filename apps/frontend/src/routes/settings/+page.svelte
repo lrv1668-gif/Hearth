@@ -7,25 +7,25 @@
     import { innerHeight } from 'svelte/reactivity/window';
     import { tinykeys } from 'tinykeys';
     import { ChevronLeft, ChevronRight, Eye, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
-    import Button from '$lib/components/ui/Button.svelte';
-    import CardColumns from '$lib/components/ui/CardColumns.svelte';
-    import IconButton from '$lib/components/ui/IconButton.svelte';
-    import InlineMessage from '$lib/components/ui/InlineMessage.svelte';
-    import Modal from '$lib/components/ui/Modal.svelte';
-    import SettingsGroup from '$lib/components/ui/SettingsGroup.svelte';
-    import ToggleRow from '$lib/components/ui/ToggleRow.svelte';
-    import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
-    import FontThemePicker from '$lib/components/settings/FontThemePicker.svelte';
-    import SizeSlider from '$lib/components/ui/SizeSlider.svelte';
-    import { fontSizeStore, setFontSize, MIN_FONT_SCALE, MAX_FONT_SCALE } from '$lib/stores/FontSizeStore.svelte.ts';
-    import AmbientSourceSettings from '$lib/components/settings/AmbientSourceSettings.svelte';
-    import AmbientCadenceSettings from '$lib/components/settings/AmbientCadenceSettings.svelte';
-    import AmbientCategorySettings from '$lib/components/settings/AmbientCategorySettings.svelte';
-    import LocalPhotosSettings from '$lib/components/settings/LocalPhotosSettings.svelte';
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-    import { frameSettings, loadFrameSettings, syncFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import WidgetLayoutEditor from '$lib/components/settings/WidgetLayoutEditor.svelte';
-    import FramePreview from '$lib/components/settings/FramePreview.svelte';
+    import Button from '#lib/components/ui/Button.svelte';
+    import CardColumns from '#lib/components/ui/CardColumns.svelte';
+    import IconButton from '#lib/components/ui/IconButton.svelte';
+    import InlineMessage from '#lib/components/ui/InlineMessage.svelte';
+    import Modal from '#lib/components/ui/Modal.svelte';
+    import SettingsGroup from '#lib/components/ui/SettingsGroup.svelte';
+    import ToggleRow from '#lib/components/ui/ToggleRow.svelte';
+    import ThemePicker from '#lib/components/settings/ThemePicker.svelte';
+    import FontThemePicker from '#lib/components/settings/FontThemePicker.svelte';
+    import SizeSlider from '#lib/components/ui/SizeSlider.svelte';
+    import { fontSizeStore, setFontSize, MIN_FONT_SCALE, MAX_FONT_SCALE } from '#lib/stores/FontSizeStore.svelte.ts';
+    import AmbientSourceSettings from '#lib/components/settings/AmbientSourceSettings.svelte';
+    import AmbientCadenceSettings from '#lib/components/settings/AmbientCadenceSettings.svelte';
+    import AmbientCategorySettings from '#lib/components/settings/AmbientCategorySettings.svelte';
+    import LocalPhotosSettings from '#lib/components/settings/LocalPhotosSettings.svelte';
+    import { settings } from '#lib/stores/SettingsStore.svelte.ts';
+    import { frameSettings, loadFrameSettings, syncFrameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import WidgetLayoutEditor from '#lib/components/settings/WidgetLayoutEditor.svelte';
+    import FramePreview from '#lib/components/settings/FramePreview.svelte';
     import {
         allWidgets,
         fixedFooterWidgets,
@@ -33,7 +33,7 @@
         toggleableWidgets,
         type AllWidgetId,
         type WidgetId,
-    } from '$lib/constants/widgets';
+    } from '#lib/constants/widgets.ts';
     import {
         fixedFrameFooter,
         fixedFrameHeader,
@@ -41,21 +41,21 @@
         MAX_COLUMN_WIDGETS,
         normalizeFrameLayout,
         type FrameWidgetId,
-    } from '$lib/constants/frameWidgets';
-    import SpotifyConnectionSettings from '$lib/components/settings/SpotifyConnectionSettings.svelte';
-    import GoogleCalendarConnectionSettings from '$lib/components/settings/GoogleCalendarConnectionSettings.svelte';
-    import FeedSettings from '$lib/components/settings/FeedSettings.svelte';
-    import TrainStopSettings from '$lib/components/settings/TrainStopSettings.svelte';
-    import SportsTeamSettings from '$lib/components/settings/SportsTeamSettings.svelte';
-    import FrameAppearanceSettings from '$lib/components/settings/FrameAppearanceSettings.svelte';
-    import FrameModeSettings from '$lib/components/settings/FrameModeSettings.svelte';
-    import FrameModeOptions from '$lib/components/settings/FrameModeOptions.svelte';
-    import FrameTemplateEditor from '$lib/components/settings/FrameTemplateEditor.svelte';
-    import { loadModes } from '$lib/stores/ModeStore.svelte.ts';
-    import HomeLocationSettings from '$lib/components/settings/HomeLocationSettings.svelte';
-    import ServiceHealthSettings from '$lib/components/settings/ServiceHealthSettings.svelte';
-    import LogsSettings from '$lib/components/settings/LogsSettings.svelte';
-    import SettingsSubnav from '$lib/components/settings/SettingsSubnav.svelte';
+    } from '#lib/constants/frameWidgets.ts';
+    import SpotifyConnectionSettings from '#lib/components/settings/SpotifyConnectionSettings.svelte';
+    import GoogleCalendarConnectionSettings from '#lib/components/settings/GoogleCalendarConnectionSettings.svelte';
+    import FeedSettings from '#lib/components/settings/FeedSettings.svelte';
+    import TrainStopSettings from '#lib/components/settings/TrainStopSettings.svelte';
+    import SportsTeamSettings from '#lib/components/settings/SportsTeamSettings.svelte';
+    import FrameAppearanceSettings from '#lib/components/settings/FrameAppearanceSettings.svelte';
+    import FrameModeSettings from '#lib/components/settings/FrameModeSettings.svelte';
+    import FrameModeOptions from '#lib/components/settings/FrameModeOptions.svelte';
+    import FrameTemplateEditor from '#lib/components/settings/FrameTemplateEditor.svelte';
+    import { loadModes } from '#lib/stores/ModeStore.svelte.ts';
+    import HomeLocationSettings from '#lib/components/settings/HomeLocationSettings.svelte';
+    import ServiceHealthSettings from '#lib/components/settings/ServiceHealthSettings.svelte';
+    import LogsSettings from '#lib/components/settings/LogsSettings.svelte';
+    import SettingsSubnav from '#lib/components/settings/SettingsSubnav.svelte';
     import {
         parseSettingsSection,
         settingsCardId,
@@ -63,8 +63,8 @@
         settingsSection,
         settingsSections as sections,
         type SettingsSection,
-    } from '$lib/constants/settingsSections';
-    import { formatKeys, ignoreWhileEditing, ignoreWhileTyping, isMacPlatform, SIDEBAR_KEYS } from '$lib/shortcuts';
+    } from '#lib/constants/settingsSections.ts';
+    import { formatKeys, ignoreWhileEditing, ignoreWhileTyping, isMacPlatform, SIDEBAR_KEYS } from '#lib/shortcuts.ts';
 
     // Shared by the Dashboard and Frame sections' Widgets cards.
     const dashboardLabel = (id: string) => allWidgets.find((w) => w.id === id)?.label ?? id;

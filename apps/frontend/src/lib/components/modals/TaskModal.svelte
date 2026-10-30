@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Task } from '$lib/api';
+    import type { Task } from '#lib/api.ts';
     import TaskAddEdit from '../TaskAddEdit.svelte';
     import Button from '../ui/Button.svelte';
     import IconButton from '../ui/IconButton.svelte';

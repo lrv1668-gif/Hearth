@@ -1,9 +1,9 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { MINUTE, poll } from '$lib/utils';
-    import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
-    import ScrollFadeList from '$lib/components/ScrollFadeList.svelte';
-    import { birdsStore, loadBirds } from '$lib/stores/BirdsStore.svelte.ts';
+    import { MINUTE, poll } from '#lib/utils.ts';
+    import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
+    import { birdsStore, loadBirds } from '#lib/stores/BirdsStore.svelte.ts';
     import BirdSightingsView from './views/BirdSightingsView.svelte';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));

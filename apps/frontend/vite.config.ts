@@ -20,10 +20,7 @@ for (const level of ['warn', 'warnOnce'] as const) {
 export default defineConfig({
     // Tailwind's Vite plugin (not @tailwindcss/postcss) so @imported CSS keeps
     // its own base for relative url()s — e.g. @fontsource's ./files/*.woff2
-    plugins: [
-        tailwindcss(),
-        sveltekit({ preprocess: vitePreprocess(), adapter: adapter(), alias: { $lib: 'src/lib' } }),
-    ],
+    plugins: [tailwindcss(), sveltekit({ preprocess: vitePreprocess(), adapter: adapter() })],
     customLogger: logger,
     test: {
         environment: 'node',

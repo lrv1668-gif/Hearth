@@ -1,4 +1,4 @@
-import { api, type LastPlayed } from '$lib/api';
+import { api, type LastPlayed } from '#lib/api.ts';
 
 class LastPlayedStore {
     /** null until loaded, or when there's no listening history yet. */

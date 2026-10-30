@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { categoryOptions } from '$lib/constants/ambient';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { categoryOptions } from '#lib/constants/ambient.ts';
     import Chip from '../ui/Chip.svelte';
 </script>
 

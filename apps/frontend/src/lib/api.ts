@@ -1,7 +1,7 @@
-import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '$lib/frame';
-import type { FrameModeId, ModeDay, PhotoCard } from '$lib/constants/frameModes';
-import type { FramePalette } from '$lib/constants/frameThemes';
-import type { HearthServiceId } from '$lib/constants/services';
+import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '#lib/frame.ts';
+import type { FrameModeId, ModeDay, PhotoCard } from '#lib/constants/frameModes.ts';
+import type { FramePalette } from '#lib/constants/frameThemes.ts';
+import type { HearthServiceId } from '#lib/constants/services.ts';
 
 // ---- Types ----
 

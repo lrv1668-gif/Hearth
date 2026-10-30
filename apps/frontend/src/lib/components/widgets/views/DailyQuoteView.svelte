@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Quote } from '$lib/api';
+    import type { Quote } from '#lib/api.ts';
 
     /** `lines`: the frame's line budget — clamps the quote so it never pushes the next
      *  widget off the panel. Omit to show it whole. */

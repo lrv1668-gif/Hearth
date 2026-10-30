@@ -2,11 +2,11 @@
     import { onMount, onDestroy } from 'svelte';
     import { fade } from 'svelte/transition';
     import { goto } from '$app/navigation';
-    import { api, type Photo, type UploadedPhoto } from '$lib/api';
-    import { settings } from '$lib/stores/SettingsStore.svelte.ts';
-    import { frameSettings, loadFrameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
-    import { photoQuery, resolveSource, uploadToPhoto } from '$lib/photos';
-    import { settingsHref } from '$lib/constants/settingsSections';
+    import { api, type Photo, type UploadedPhoto } from '#lib/api.ts';
+    import { settings } from '#lib/stores/SettingsStore.svelte.ts';
+    import { frameSettings, loadFrameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { photoQuery, resolveSource, uploadToPhoto } from '#lib/photos.ts';
+    import { settingsHref } from '#lib/constants/settingsSections.ts';
     import { MediaQuery } from 'svelte/reactivity';
 
     const isPortrait = new MediaQuery('orientation: portrait');

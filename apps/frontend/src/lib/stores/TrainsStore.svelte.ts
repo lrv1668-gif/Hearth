@@ -1,4 +1,4 @@
-import { api, type StopDepartures } from '$lib/api';
+import { api, type StopDepartures } from '#lib/api.ts';
 import { settings } from './SettingsStore.svelte';
 
 export const trainsStore = $state<{ groups: StopDepartures[] }>({

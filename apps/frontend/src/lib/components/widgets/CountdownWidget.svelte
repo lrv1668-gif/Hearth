@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { Task } from '$lib/api';
-    import { upcomingCountdowns } from '$lib/frame';
+    import type { Task } from '#lib/api.ts';
+    import { upcomingCountdowns } from '#lib/frame.ts';
 
     interface Props {
         tasks: Task[];

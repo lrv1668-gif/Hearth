@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Disc3 } from '@lucide/svelte';
-    import { lastPlayedStore } from '$lib/stores/LastPlayedStore.svelte.ts';
-    import { playedLabel } from '$lib/music';
-    import type { FrameSize } from '$lib/constants/frameTemplates';
+    import { lastPlayedStore } from '#lib/stores/LastPlayedStore.svelte.ts';
+    import { playedLabel } from '#lib/music.ts';
+    import type { FrameSize } from '#lib/constants/frameTemplates.ts';
 
     // `size`: a template slot's size class — S drops the sleeve for the text alone, L
     // grows it to the slot's full height (up to half its width; the slot body is a size

@@ -104,7 +104,7 @@ readonly yours = {
 
 **2. `apps/frontend/src/lib/stores/YourStore.svelte.ts`** — one store per data type (the `.svelte.ts` suffix is required for runes):
 ```typescript
-import { api, type YourItem } from '$lib/api';
+import { api, type YourItem } from '#lib/api.ts';
 
 class YourStore {
     items = $state<YourItem[]>([]);
@@ -129,9 +129,9 @@ export async function loadYours() {
 ```svelte
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { MINUTE, poll } from '$lib/utils';
-    import SkeletonLoader from '$lib/components/SkeletonLoader.svelte';
-    import { yourStore, loadYours } from '$lib/stores/YourStore.svelte.ts';
+    import { MINUTE, poll } from '#lib/utils.ts';
+    import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import { yourStore, loadYours } from '#lib/stores/YourStore.svelte.ts';
 
     let loadPromise = $state<Promise<void>>(new Promise(() => {}));
 
@@ -196,7 +196,7 @@ Buttons, inputs, toggles, dialogs: use the shared components in `apps/frontend/s
 
 ```svelte
 <!-- At the top of the script block -->
-import YourWidget from '$lib/components/widgets/YourWidget.svelte';
+import YourWidget from '#lib/components/widgets/YourWidget.svelte';
 
 <!-- Inside the renderWidget snippet -->
 {:else if id === 'your-widget-id'}

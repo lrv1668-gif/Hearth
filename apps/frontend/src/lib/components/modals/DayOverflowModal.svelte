@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Task, CalendarItem, Item } from '$lib/api';
+    import type { Task, CalendarItem, Item } from '#lib/api.ts';
     import DayItemList from '../DayItemList.svelte';
     import Modal from '../ui/Modal.svelte';
 

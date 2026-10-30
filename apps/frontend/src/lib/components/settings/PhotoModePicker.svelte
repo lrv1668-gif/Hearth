@@ -1,9 +1,9 @@
 <script lang="ts">
     import { onMount, untrack } from 'svelte';
     import { Check, Plus } from '@lucide/svelte';
-    import { api, type PhotoGroup, type UploadedPhoto } from '$lib/api';
-    import { isGroupPicked, pickPhotoIn, toggleGroup, type PickMode } from '$lib/photos';
-    import { frameSettings } from '$lib/stores/FrameSettingsStore.svelte.ts';
+    import { api, type PhotoGroup, type UploadedPhoto } from '#lib/api.ts';
+    import { isGroupPicked, pickPhotoIn, toggleGroup, type PickMode } from '#lib/photos.ts';
+    import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import Button from '../ui/Button.svelte';
     import Chip from '../ui/Chip.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';

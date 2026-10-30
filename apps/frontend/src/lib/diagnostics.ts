@@ -1,4 +1,4 @@
-import type { ServiceHealth } from '$lib/api';
+import type { ServiceHealth } from '#lib/api.ts';
 
 /**
  * ok: running. unset: running, but an optional integration's keys aren't set — a choice,

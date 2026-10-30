@@ -1,9 +1,9 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { SECOND, poll } from '$lib/utils';
+    import { SECOND, poll } from '#lib/utils.ts';
     import { Monitor, Music } from '@lucide/svelte';
-    import { spotifyStore, refreshNowPlaying, pollNowPlaying } from '$lib/stores/SpotifyStore.svelte.ts';
-    import { weatherStore } from '$lib/stores/WeatherStore.svelte.ts';
+    import { spotifyStore, refreshNowPlaying, pollNowPlaying } from '#lib/stores/SpotifyStore.svelte.ts';
+    import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
 
     onMount(() => {
         refreshNowPlaying();

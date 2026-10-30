@@ -1,5 +1,5 @@
-import type { SportsGame, TeamGames } from '$lib/api';
-import { playedLabel } from '$lib/music';
+import type { SportsGame, TeamGames } from '#lib/api.ts';
+import { playedLabel } from '#lib/music.ts';
 
 /** Display wording for the Sports widget and the frame's Last Result / Next Game card. */
 
