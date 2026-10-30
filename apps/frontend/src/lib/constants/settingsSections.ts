@@ -33,13 +33,13 @@ export const settingsSections = [
         description: 'Manage which widgets appear and configure their layout on the dashboard page.',
     },
     {
-        id: 'ambient',
-        label: 'Ambient',
-        subtitle: 'Photos · slideshow',
+        id: 'photos',
+        label: 'Photos',
+        subtitle: 'Library · frame · slideshow',
         icon: Image,
-        heading: 'Ambient Mode',
+        heading: 'Photos',
         description:
-            'Choose the photos for Ambient mode — shared by the frame and every device — and how this browser’s slideshow plays them.',
+            'Your photo collection, where Ambient’s photos come from, what the frame’s photo modes show — shared by every device — and how this browser’s slideshow plays them.',
     },
     {
         id: 'connections',
@@ -79,7 +79,11 @@ export type SettingsSection = (typeof settingsSections)[number]['id'];
 
 export const DEFAULT_SETTINGS_SECTION: SettingsSection = 'display';
 
+// Sections that were renamed, so old links still land in the right place
+const renamedSections: Record<string, SettingsSection> = { ambient: 'photos' };
+
 export function parseSettingsSection(value: string | null): SettingsSection {
+    if (value && Object.hasOwn(renamedSections, value)) return renamedSections[value];
     return settingsSections.find((s) => s.id === value)?.id ?? DEFAULT_SETTINGS_SECTION;
 }
 

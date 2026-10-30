@@ -13,6 +13,11 @@ describe('parseSettingsSection', () => {
     it('falls back to display for an unknown or mis-cased section', () => {
         expect(parseSettingsSection('bogus')).toBe('display');
         expect(parseSettingsSection('Frame')).toBe('display');
+        expect(parseSettingsSection('constructor')).toBe('display');
+    });
+
+    it('sends a renamed section to its new name', () => {
+        expect(parseSettingsSection('ambient')).toBe('photos');
     });
 });
 

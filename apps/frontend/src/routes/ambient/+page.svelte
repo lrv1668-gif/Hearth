@@ -129,7 +129,7 @@
         if (frameSettings.photoSource === 'local' || frameSettings.photoSource === 'both') {
             const uploads = await api.photos.list();
             if (uploads.length === 0 && frameSettings.photoSource === 'local') {
-                goto(settingsHref('ambient'));
+                goto(settingsHref('photos'));
                 return;
             }
             localQueue = shuffle(uploads);
