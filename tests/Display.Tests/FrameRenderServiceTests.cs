@@ -249,4 +249,24 @@ public sealed class FrameRenderServiceTests
     {
         Assert.True(FrameRenderService.NextPhoto(Frame(FrameModes.Ambient), new(FrameModes.Ambient, "default", null), true, true, null));
     }
+
+    [Fact]
+    public void ShowsDailyPhoto_InAColumn()
+    {
+        Assert.True(FrameRenderService.ShowsDailyPhoto(Saved with { Right = ["today", "photo"] }));
+        Assert.False(FrameRenderService.ShowsDailyPhoto(Saved with { Left = ["today"], Slots = ["photo"] }));
+    }
+
+    [Fact]
+    public void ShowsDailyPhoto_InATemplateSlot()
+    {
+        Assert.True(FrameRenderService.ShowsDailyPhoto(Saved with { Template = "quad", Slots = ["today", "", "photo"] }));
+        Assert.False(FrameRenderService.ShowsDailyPhoto(Saved with { Template = "quad", Left = ["photo"], Slots = ["today"] }));
+    }
+
+    [Fact]
+    public void ShowsDailyPhoto_NothingSaved_IsFalse()
+    {
+        Assert.False(FrameRenderService.ShowsDailyPhoto(null));
+    }
 }

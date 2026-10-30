@@ -18,7 +18,7 @@ A calm, self-hosted home dashboard for a wall-mounted e-paper frame and any brow
 ## What it shows
 
 - **Dashboard widgets:** Agenda (tasks and calendar events), Weather, Countdowns, Moon Phase, Today's News (RSS), Daily Quote, Today's Arc, Birds Nearby, Almanac, Trains & Buses, Sports, plus Now Playing from Spotify.
-- **Frame modes:** Ambient, Daily (laid out in a template of small, medium and large slots — Full, Halves, Feature, Banner, Quarters — or free columns, with Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played, Last Result & Next Game), Photo, Countdown, Night and Note, on a schedule you set in Settings → Frame.
+- **Frame modes:** Ambient, Daily (laid out in a template of small, medium and large slots — Full, Halves, Feature, Banner, Quarters — or free columns, with Today's Arc, Today, Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played, Last Result & Next Game, a photo of the day), Photo, Countdown, Night and Note, on a schedule you set in Settings → Frame.
 - **Pages:** `/` dashboard, `/calendar` month grid, `/ambient` photo slideshow, `/settings`, `/frame` e-paper render target, and an optional `/logs` (Dozzle).
 
 ## How it works

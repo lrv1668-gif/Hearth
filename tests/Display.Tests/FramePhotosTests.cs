@@ -317,6 +317,106 @@ public sealed class FramePhotosTests : IDisposable
         Assert.Equal("ocean,forest", FramePhotos.Query(["ocean", "forest"]));
     }
 
+    private static readonly DateOnly Today = new(2026, 10, 19);
+
+    [Fact]
+    public async Task Daily_SameDay_KeepsThePhoto()
+    {
+        var photos = Holder();
+        await photos.GetDailyAsync(Saved, Today);
+        _photos.ResponseJson = Unsplash("s2");
+
+        Assert.Equal("s1", (await photos.GetDailyAsync(Saved, Today))?.Id);
+        Assert.Equal(1, RandomCalls);
+    }
+
+    [Fact]
+    public async Task Daily_NextDay_PicksAgain()
+    {
+        var photos = Holder();
+        await photos.GetDailyAsync(Saved, Today);
+        _photos.ResponseJson = Unsplash("s2");
+
+        Assert.Equal("s2", (await photos.GetDailyAsync(Saved, Today.AddDays(1)))?.Id);
+    }
+
+    [Fact]
+    public async Task Daily_Next_PicksAgain()
+    {
+        var photos = Holder();
+        await photos.GetDailyAsync(Saved, Today);
+        _photos.ResponseJson = Unsplash("s2");
+
+        Assert.Equal("s2", (await photos.GetDailyAsync(Saved, Today, next: true))?.Id);
+        Assert.Equal("s2", (await photos.GetDailyAsync(Saved, Today))?.Id);
+    }
+
+    [Fact]
+    public async Task Daily_ChoiceChange_PicksAgain()
+    {
+        var photos = Holder();
+        await photos.GetDailyAsync(Saved, Today);
+        _photos.ResponseJson = Unsplash("s2");
+
+        Assert.Equal("s2", (await photos.GetDailyAsync(Saved with { PhotoCategories = ["ocean"] }, Today))?.Id);
+    }
+
+    [Fact]
+    public async Task Daily_HeldApartFromAmbient()
+    {
+        var photos = Holder();
+        await photos.GetAsync(FrameModes.Ambient, Saved);
+        _photos.ResponseJson = Unsplash("s2");
+
+        Assert.Equal("s2", (await photos.GetDailyAsync(Saved, Today))?.Id);
+        Assert.Equal("s1", (await photos.GetAsync(FrameModes.Ambient, Saved))?.Id);
+    }
+
+    [Fact]
+    public async Task Daily_Uploads_PicksOne()
+    {
+        var photo = await Holder().GetDailyAsync(Saved with { PhotoSource = "local" }, Today);
+
+        Assert.Equal("local", photo?.Source);
+        Assert.Equal(0, RandomCalls);
+    }
+
+    [Fact]
+    public async Task Daily_SurvivesARestart()
+    {
+        await Holder().GetDailyAsync(Saved, Today);
+        _photos.ResponseJson = Unsplash("s2");
+
+        Assert.Equal("s1", (await Holder().GetDailyAsync(Saved, Today))?.Id);
+    }
+
+    [Fact]
+    public async Task Daily_PhotosDown_KeepsYesterdays()
+    {
+        var photos = Holder();
+        await photos.GetDailyAsync(Saved, Today);
+        _photos.Status = HttpStatusCode.InternalServerError;
+
+        Assert.Equal("s1", (await photos.GetDailyAsync(Saved, Today.AddDays(1)))?.Id);
+    }
+
+    [Fact]
+    public async Task Daily_NoPhotosUrl_IsNull()
+    {
+        Assert.Null(await Holder(baseUrl: null).GetDailyAsync(Saved, Today));
+        Assert.Empty(_photos.RequestUris);
+    }
+
+    [Fact]
+    public void Today_IsTheHouseholdsDate()
+    {
+        var lateUtc = new DateTimeOffset(2026, 10, 20, 2, 0, 0, TimeSpan.Zero);
+        var chicago = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
+
+        Assert.Equal(new DateOnly(2026, 10, 19), FramePhotos.Today(chicago, lateUtc));
+        Assert.Equal(new DateOnly(2026, 10, 20), FramePhotos.Today(TimeZoneInfo.Utc, lateUtc));
+    }
+
     private static UploadedPhoto Uploaded(string id) => new(id, $"/photos/files/{id}.jpg", null, null);
 
     private static string Upload(string id) =>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Display.Records;
 using ServiceDefaults;
@@ -5,18 +6,20 @@ using ServiceDefaults;
 namespace Display;
 
 /// <summary>
-/// The photo the frame shows in Ambient and in Photo mode — one held for each, so the
-/// panel, Settings' preview and /frame in a browser all show the same picture instead of
-/// each making its own random pick.
+/// The photo the frame shows in Ambient and in Photo mode, and in Daily's Photo widget — one
+/// held for each, so the panel, Settings' preview and /frame in a browser all show the same
+/// picture instead of each making its own random pick.
 /// <para>
 /// A held photo stays until its choice changes (Ambient: the source, categories and
 /// orientation; Photo: the pinned upload or album), it's no longer uploaded, or a
 /// <c>next</c> read asks for another — the panel's interval render and Button A, so the
 /// preview follows the panel — or a <c>maxAge</c> read finds it older than that (the panel
 /// coming back to Ambient after a schedule's Daily hours). Look changes (theme, font, card position) keep it. Photo
-/// mode with nothing picked, or none still uploaded, shows Ambient's photo. A new pick is
+/// mode with nothing picked, or none still uploaded, shows Ambient's photo. Daily's photo is
+/// drawn from Ambient's choice too, but held for the household's day (<see cref="GetDailyAsync"/>):
+/// Daily re-renders every 15 minutes, so only a new day or Button A moves it on. A new pick is
 /// dealt like a shuffled deck — one not yet shown this pass, until every photo has been — for
-/// Photo mode's album, Ambient's uploads and Unsplash's photos alike. Kept, with each deck's
+/// Photo mode's album, Ambient's uploads and Unsplash's photos alike (Daily shares Ambient's decks). Kept, with each deck's
 /// pass, in <c>photos.json</c> beside display.db, so a restart doesn't put a new photo on the panel.
 /// </para>
 /// </summary>
@@ -27,7 +30,7 @@ public sealed class FramePhotos(PhotosClient photos, string directory, TimeProvi
     /// <summary>A held photo, the choice it was picked for and when.</summary>
     public sealed record Held(string Key, FramePhoto Photo, DateTimeOffset PickedAt);
 
-    private sealed record Saved(Held? Ambient, Held? Photo, Dictionary<string, List<string>>? Shown);
+    private sealed record Saved(Held? Ambient, Held? Photo, Dictionary<string, List<string>>? Shown, Held? Daily = null);
 
     /// <summary>The Unsplash ids remembered at most — its pool changes daily, so a pass may never finish.</summary>
     public const int MaxShownUnsplash = 60;
@@ -36,6 +39,7 @@ public sealed class FramePhotos(PhotosClient photos, string directory, TimeProvi
     private bool _loaded;
     private Held? _ambient;
     private Held? _photo;
+    private Held? _daily;
     // Each deck's ids shown this pass, in order: "photo" (the album), "local" and "unsplash" (Ambient)
     private Dictionary<string, List<string>> _shown = [];
 
@@ -72,6 +76,50 @@ public sealed class FramePhotos(PhotosClient photos, string directory, TimeProvi
             _gate.Release();
         }
     }
+
+    /// <summary>
+    /// The photo Daily's Photo widget shows on <paramref name="today"/> (the household's date): drawn
+    /// from Ambient's choice, held for the day — a new day, a new choice or <paramref name="next"/>
+    /// (Button A) picks another. Null when there's none, PHOTOS_URL is unset or the Photos service
+    /// can't be reached with nothing held.
+    /// </summary>
+    public async Task<FramePhoto?> GetDailyAsync(
+        FrameSettings? saved, DateOnly today, bool next = false, CancellationToken ct = default)
+    {
+        if (!photos.Configured) return null;
+        await _gate.WaitAsync(ct);
+        try
+        {
+            if (!_loaded) Load();
+            var key = AmbientKey(saved) + "|" + today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            var source = saved?.PhotoSource ?? FrameSettings.DefaultPhotoSource;
+            IReadOnlyList<UploadedPhoto>? listed = null;
+            async Task<IReadOnlyList<UploadedPhoto>> Uploads() => listed ??= await photos.UploadsAsync(ct);
+            if (_daily is { } held && held.Key == key && !next &&
+                (held.Photo.Source != "local" || (await Uploads()).Any(u => u.Id == held.Photo.Id)))
+                return held.Photo;
+
+            var uploads = source is "local" or "both" ? await Uploads() : [];
+            // Yesterday's photo beats none when there's nothing new to pick
+            if (await PickAsync(source, uploads, saved, _daily?.Photo.Id, ct) is not { } picked) return _daily?.Photo;
+            _daily = new Held(key, picked, clock.GetUtcNow());
+            Save();
+            return picked;
+        }
+        catch (Exception ex) when ((ex is HttpRequestException or JsonException or TaskCanceledException) && !ct.IsCancellationRequested)
+        {
+            logger.LogWarning(ex, "Couldn't pick the frame's daily photo — keeping the last one");
+            return _daily?.Photo;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <summary>The household's date at <paramref name="now"/> — the day Daily's photo is held for.</summary>
+    public static DateOnly Today(TimeZoneInfo zone, DateTimeOffset now) =>
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone).DateTime);
 
     /// <summary>The ambient choice a held photo is picked for.</summary>
     public static string AmbientKey(FrameSettings? saved) => string.Join('|',
@@ -146,14 +194,21 @@ public sealed class FramePhotos(PhotosClient photos, string directory, TimeProvi
             return held.Photo;
 
         var uploads = source is "local" or "both" ? await Uploads() : [];
-        var from = ResolveSource(source, uploads.Count, Random.Shared.NextDouble());
-        var picked = from == "local"
-            ? uploads.Count > 0 ? Deal(uploads, Shown("local"), _ambient?.Photo.Id, Random.Shared).ToPhoto() : null
-            : await UnsplashAsync(from, saved, ct);
+        var picked = await PickAsync(source, uploads, saved, _ambient?.Photo.Id, ct);
         if (picked is null) return _ambient?.Key == key ? _ambient.Photo : null;
         _ambient = new Held(key, picked, now);
         Save();
         return picked;
+    }
+
+    /// <summary>A new pick from Ambient's choice — an upload or a photo from <paramref name="source"/> — other than <paramref name="currentId"/>.</summary>
+    private async Task<FramePhoto?> PickAsync(
+        string source, IReadOnlyList<UploadedPhoto> uploads, FrameSettings? saved, string? currentId, CancellationToken ct)
+    {
+        var from = ResolveSource(source, uploads.Count, Random.Shared.NextDouble());
+        return from == "local"
+            ? uploads.Count > 0 ? Deal(uploads, Shown("local"), currentId, Random.Shared).ToPhoto() : null
+            : await UnsplashAsync(from, saved, ct);
     }
 
     /// <summary>
@@ -179,7 +234,7 @@ public sealed class FramePhotos(PhotosClient photos, string directory, TimeProvi
         {
             if (!File.Exists(FilePath)) return;
             var saved = JsonSerializer.Deserialize<Saved>(File.ReadAllText(FilePath), Json);
-            (_ambient, _photo, _shown) = (saved?.Ambient, saved?.Photo, saved?.Shown ?? []);
+            (_ambient, _photo, _daily, _shown) = (saved?.Ambient, saved?.Photo, saved?.Daily, saved?.Shown ?? []);
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
@@ -193,7 +248,7 @@ public sealed class FramePhotos(PhotosClient photos, string directory, TimeProvi
         {
             Directory.CreateDirectory(directory);
             var tmp = FilePath + ".tmp";
-            File.WriteAllBytes(tmp, JsonSerializer.SerializeToUtf8Bytes(new Saved(_ambient, _photo, _shown), Json));
+            File.WriteAllBytes(tmp, JsonSerializer.SerializeToUtf8Bytes(new Saved(_ambient, _photo, _shown, _daily), Json));
             File.Move(tmp, FilePath, overwrite: true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

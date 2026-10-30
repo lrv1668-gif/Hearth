@@ -11,6 +11,7 @@
     import { loadBirds } from '#lib/stores/BirdsStore.svelte.ts';
     import { loadLastPlayed } from '#lib/stores/LastPlayedStore.svelte.ts';
     import { loadSports } from '#lib/stores/SportsStore.svelte.ts';
+    import { loadFramePhoto } from '#lib/stores/FramePhotoStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
     import { parseFrameTemplate } from '#lib/constants/frameTemplates.ts';
     import { SECOND } from '#lib/utils.ts';
@@ -64,9 +65,9 @@
     //                                 uses left/right/split)
     //   ?position=top-left|top-middle|top-right|bottom-left|bottom-middle|bottom-right
     //                                (Ambient info card)
-    //   ?photo={...}          (Ambient/Photo's photo as JSON — Display passes the one it
-    //                          holds for the panel, and Settings' preview the same one;
-    //                          default: GET /display/photo, so every view matches)
+    //   ?photo={...}          (Ambient/Photo's photo, or Daily's Photo widget's, as JSON —
+    //                          Display passes the one it holds for the panel, and Settings'
+    //                          preview the same one; default: GET /display/photo, so every view matches)
     // The root's data-ready flips to "true" once data, fonts and the photo have
     // settled, or after READY_DEADLINE_MS regardless, so one hung upstream can't
     // hold back the whole frame — screenshot after that. No polling: the renderer
@@ -126,6 +127,7 @@
         birds: loadBirds,
         'last-played': loadLastPlayed,
         sports: loadSports,
+        photo: () => loadFramePhoto(photoParam),
     };
 
     const now = new Date();
