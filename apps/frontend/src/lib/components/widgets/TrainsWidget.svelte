@@ -3,7 +3,7 @@
     import { MINUTE, poll } from '#lib/utils.ts';
     import { Bus, TrainFront } from '@lucide/svelte';
     import { trainsStore, loadTrainDepartures } from '#lib/stores/TrainsStore.svelte.ts';
-    import { settings } from '#lib/stores/SettingsStore.svelte.ts';
+    import { household } from '#lib/stores/HouseholdStore.svelte.ts';
     import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
     import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
@@ -16,7 +16,7 @@
     });
 
     function stopLabel(stopKey: string, fallback: string | null): string {
-        return settings.trainStops.find((s) => s.stopKey === stopKey)?.label ?? fallback ?? stopKey;
+        return household.trainStops.find((s) => s.stopKey === stopKey)?.label ?? fallback ?? stopKey;
     }
 
     // Departure times are "HH:MM:SS" in the stop's local time (GTFS allows hours >= 24 for
@@ -85,7 +85,7 @@
 
             // An unset filter means "show all"; a set filter (even []) means "show only these" —
             // [] is how the Settings "Deselect all" control hides every line for a stop.
-            const lineFilter = settings.trainStops.find((s) => s.stopKey === group.stop_key)?.lineFilter;
+            const lineFilter = household.trainStops.find((s) => s.stopKey === group.stop_key)?.lineFilter;
             if (lineFilter) {
                 const allowed = new Set(lineFilter);
                 lines = lines.filter((line) => allowed.has(line.key));
@@ -109,7 +109,7 @@
 </script>
 
 <SkeletonLoader promise={loadPromise}>
-    {#if settings.trainStops.length === 0}
+    {#if household.trainStops.length === 0}
         <div class="flex flex-col gap-1 py-4 text-(--text-2)">
             <TrainFront class="icon-sm mb-1" />
             <p class="type-label">No stops added yet.</p>

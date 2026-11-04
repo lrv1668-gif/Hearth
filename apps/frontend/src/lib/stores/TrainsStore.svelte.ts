@@ -1,12 +1,13 @@
 import { api, type StopDepartures } from '#lib/api.ts';
-import { settings } from './SettingsStore.svelte';
+import { ensureHousehold, household } from './HouseholdStore.svelte.ts';
 
 export const trainsStore = $state<{ groups: StopDepartures[] }>({
     groups: [],
 });
 
 export async function loadTrainDepartures() {
-    const stopKeys = settings.trainStops.map((s) => s.stopKey);
+    await ensureHousehold();
+    const stopKeys = household.trainStops.map((s) => s.stopKey);
     if (stopKeys.length === 0) {
         trainsStore.groups = [];
         return;

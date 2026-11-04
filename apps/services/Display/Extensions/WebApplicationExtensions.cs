@@ -34,6 +34,7 @@ public static class WebApplicationExtensions
     {
         app.Services.GetRequiredService<FrameSettingsStore>().Migrate();
         app.Services.GetRequiredService<HomeSettingsStore>().Migrate();
+        app.Services.GetRequiredService<HouseholdSettingsStore>().Migrate();
         app.Services.GetRequiredService<ModeStore>().Migrate();
         app.Services.GetRequiredService<PaletteStore>().Migrate();
         app.AddDisplayEndpoints();
@@ -310,6 +311,19 @@ public static class WebApplicationExtensions
         {
             if (home.Validate() is { } error) return Results.BadRequest(error);
             var saved = store.Save(home);
+            frame.Invalidate();
+            return Results.Ok(saved);
+        });
+
+        // The RSS feeds and transit stops every device follows (Settings → Dashboard),
+        // read by the dashboard and the frame's renderer alike. 204 until saved.
+        app.MapGet("/display/household", (HouseholdSettingsStore store) =>
+            store.Get() is { } household ? Results.Ok(household) : Results.NoContent());
+
+        app.MapPut("/display/household", (HouseholdSettings household, HouseholdSettingsStore store, FrameRenderService frame) =>
+        {
+            if (household.Validate() is { } error) return Results.BadRequest(error);
+            var saved = store.Save(household);
             frame.Invalidate();
             return Results.Ok(saved);
         });

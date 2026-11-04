@@ -17,6 +17,9 @@
     import FrameLastPlayed from './widgets/FrameLastPlayed.svelte';
     import FrameSports from './widgets/FrameSports.svelte';
     import FramePhoto from './widgets/FramePhoto.svelte';
+    import FrameHeadlines from './widgets/FrameHeadlines.svelte';
+    import FrameTimetable from './widgets/FrameTimetable.svelte';
+    import FrameOnThisDay from './widgets/FrameOnThisDay.svelte';
     import AlmanacView from '#lib/components/widgets/views/AlmanacView.svelte';
     import MoonPhaseView from '#lib/components/widgets/views/MoonPhaseView.svelte';
     import DailyQuoteView from '#lib/components/widgets/views/DailyQuoteView.svelte';
@@ -121,6 +124,12 @@
                 <FrameSports {now} lines={n} {size} />
             {:else if id === 'photo'}
                 <FramePhoto {size} />
+            {:else if id === 'headlines'}
+                <FrameHeadlines lines={n} {size} />
+            {:else if id === 'timetable'}
+                <FrameTimetable lines={n} {size} />
+            {:else if id === 'on-this-day'}
+                <FrameOnThisDay lines={n} {size} />
             {/if}
         </div>
     </section>

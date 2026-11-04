@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\apps\services\Rss\Rss.csproj" />
   </ItemGroup>
 </Project>

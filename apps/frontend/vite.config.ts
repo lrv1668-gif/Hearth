@@ -36,6 +36,7 @@ export default defineConfig({
             '/photos': process.env.PHOTOS_URL ?? 'http://localhost:8084',
             '/rss': process.env.RSS_URL ?? 'http://localhost:8085',
             '/quote': process.env.QUOTE_URL ?? 'http://localhost:8086',
+            '/history': process.env.HISTORY_URL ?? 'http://localhost:8095',
             '/birds': process.env.BIRDS_URL ?? 'http://localhost:8088',
             '/almanac': process.env.ALMANAC_URL ?? 'http://localhost:8089',
             '/trains': process.env.TRAINS_URL ?? 'http://localhost:8091',

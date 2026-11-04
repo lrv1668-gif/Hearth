@@ -25,6 +25,7 @@
     import FramePhotoSettings from '#lib/components/settings/FramePhotoSettings.svelte';
     import { settings } from '#lib/stores/SettingsStore.svelte.ts';
     import { frameSettings, loadFrameSettings, syncFrameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
+    import { loadHousehold, syncHousehold } from '#lib/stores/HouseholdStore.svelte.ts';
     import WidgetLayoutEditor from '#lib/components/settings/WidgetLayoutEditor.svelte';
     import FramePreview from '#lib/components/settings/FramePreview.svelte';
     import FrameStatusBar from '#lib/components/settings/FrameStatusBar.svelte';
@@ -79,12 +80,18 @@
         let stopSync: (() => void) | undefined;
         let cancelled = false;
         loadModes();
+        let stopHouseholdSync: (() => void) | undefined;
         loadFrameSettings().then(() => {
             if (!cancelled) stopSync = syncFrameSettings();
+        });
+        // The dashboard's feeds and stops are shared the same way.
+        loadHousehold().then(() => {
+            if (!cancelled) stopHouseholdSync = syncHousehold();
         });
         return () => {
             cancelled = true;
             stopSync?.();
+            stopHouseholdSync?.();
         };
     });
 

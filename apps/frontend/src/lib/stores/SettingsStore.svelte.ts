@@ -1,7 +1,6 @@
 import { browser } from '$app/env';
-import { DEFAULT_RSS_FEEDS, type RssFeed } from '#lib/constants/rss.ts';
-import { DEFAULT_TRAIN_STOPS, type TrainStop } from '#lib/constants/trains.ts';
 import { LEGACY_FRAME_SETTINGS_KEY } from '#lib/stores/FrameSettingsStore.svelte.ts';
+import { LEGACY_HOUSEHOLD_KEY } from '#lib/stores/HouseholdStore.svelte.ts';
 import {
     ALL_WIDGET_IDS,
     DEFAULT_ENABLED_WIDGETS_IDS,
@@ -21,8 +20,6 @@ class SettingsStore {
     widgetColumns = $state<{ left: AllWidgetId[]; right: AllWidgetId[] }>(DEFAULT_WIDGET_COLUMNS);
     leftColumnWidth = $state(60);
     rssArticleCount = $state(5);
-    rssFeeds = $state<RssFeed[]>(DEFAULT_RSS_FEEDS);
-    trainStops = $state<TrainStop[]>(DEFAULT_TRAIN_STOPS);
     kioskMode = $state(false);
     settingsSidebarHidden = $state(false);
 
@@ -63,6 +60,8 @@ function createSettings(): SettingsStore {
                 photoCategories,
                 showAttribution: _attribution, // dropped: Unsplash credit is always shown
                 knownWidgetIds,
+                rssFeeds,
+                trainStops,
                 ...rest
             } = JSON.parse(raw);
             Object.assign(store, rest);
@@ -84,6 +83,14 @@ function createSettings(): SettingsStore {
                         photo_categories: photoCategories,
                     })
                 );
+            }
+
+            // RSS feeds and transit stops now live in the Display service too
+            // (HouseholdStore). Park them the same way, before the next save drops them.
+            const hasLists =
+                (Array.isArray(rssFeeds) && rssFeeds.length) || (Array.isArray(trainStops) && trainStops.length);
+            if (hasLists && localStorage.getItem(LEGACY_HOUSEHOLD_KEY) === null) {
+                localStorage.setItem(LEGACY_HOUSEHOLD_KEY, JSON.stringify({ rssFeeds, trainStops }));
             }
 
             // Merge any widgets added after this settings snapshot was saved. Snapshots from
@@ -121,8 +128,6 @@ if (browser) {
                     knownWidgetIds: ALL_WIDGET_IDS,
                     leftColumnWidth: settings.leftColumnWidth,
                     rssArticleCount: settings.rssArticleCount,
-                    rssFeeds: settings.rssFeeds,
-                    trainStops: settings.trainStops,
                     kioskMode: settings.kioskMode,
                     settingsSidebarHidden: settings.settingsSidebarHidden,
                 })
@@ -133,26 +138,4 @@ if (browser) {
 
 export function updateRssArticleCount(n: number) {
     settings.rssArticleCount = n;
-}
-
-export function subscribeToRssFeed(title: string, url: string) {
-    settings.rssFeeds = [...settings.rssFeeds, { title, url }];
-}
-
-export function unsubscribeFromRssFeed(title: string) {
-    settings.rssFeeds = settings.rssFeeds.filter((rssFeed) => rssFeed.title != title);
-}
-
-export function subscribeToTrainStop(label: string, stopKey: string) {
-    settings.trainStops = [...settings.trainStops, { label, stopKey }];
-}
-
-export function unsubscribeFromTrainStop(stopKey: string) {
-    settings.trainStops = settings.trainStops.filter((stop) => stop.stopKey != stopKey);
-}
-
-export function updateTrainStopLineFilter(stopKey: string, lineFilter: string[] | undefined) {
-    settings.trainStops = settings.trainStops.map((stop) =>
-        stop.stopKey === stopKey ? { ...stop, lineFilter } : stop
-    );
 }

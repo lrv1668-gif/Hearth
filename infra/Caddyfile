@@ -39,6 +39,9 @@
     handle /quote* {
         reverse_proxy quote:8086
     }
+    handle /history* {
+        reverse_proxy history:8095
+    }
     handle /birds* {
         reverse_proxy birds:8088
     }

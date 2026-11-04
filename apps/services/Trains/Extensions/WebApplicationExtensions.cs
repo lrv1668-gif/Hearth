@@ -59,5 +59,53 @@ public static class WebApplicationExtensions
 
             return Results.Ok(results);
         });
+
+        // The frame's Scheduled Departures: timetabled times to the end of the next hour,
+        // picked once per clock hour so the panel redraws for them at most hourly.
+        app.MapGet("/trains/timetable", async (
+            IFusionCache cache, TrainsFetcher fetcher, IConfiguration config, TimeProvider clock, string[]? stop, CancellationToken ct) =>
+        {
+            if (stop is null || stop.Length == 0)
+                return Results.Ok(Array.Empty<StopTimetable>());
+
+            if (config.RequireOrFail(
+                    app.Logger,
+                    _ => Results.Json(new { error = "trains not configured" }, statusCode: 503),
+                    "TRANSITLAND_API_KEY") is { } configError)
+            {
+                return configError;
+            }
+
+            var apiKey = config["TRANSITLAND_API_KEY"]!;
+            var now = clock.GetUtcNow();
+            var hour = Timetable.HourOf(now);
+            var options = new FusionCacheEntryOptions
+            {
+                // Until the next hour's edition; fail-safe keeps an old one only within its own window
+                Duration = hour.AddHours(1) - now,
+                IsFailSafeEnabled = true,
+                FailSafeMaxDuration = TimeSpan.FromHours(Timetable.Hours),
+                FactorySoftTimeout = HearthCache.SoftTimeout,
+            };
+
+            var results = new List<StopTimetable>();
+            foreach (var stopKey in stop)
+            {
+                try
+                {
+                    results.Add(await cache.GetOrSetAsync<StopTimetable>(
+                        $"timetable:{stopKey}:{hour:yyyyMMddHH}",
+                        async (_, token) => Timetable.Build(
+                            await fetcher.FetchAsync(apiKey, stopKey, token, Timetable.NextSeconds(now), Timetable.FetchLimit), now),
+                        options, ct));
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    app.Logger.LogError(ex, "Failed to fetch the timetable for stop {StopKey}", stopKey);
+                }
+            }
+
+            return Results.Ok(results);
+        });
     }
 }

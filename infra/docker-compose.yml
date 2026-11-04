@@ -146,6 +146,21 @@ services:
         environment:
             - ASPNETCORE_HTTP_PORTS=8086
 
+    history:
+        <<: *defaults
+        image: ${HEARTH_IMAGE_PREFIX:-hearth}-history:${HEARTH_TAG:-latest}
+        healthcheck:
+            <<: *probe
+            test: ["CMD", "/app/service", "--health", "/history/health"]
+        build:
+            context: ../apps/services
+            args:
+                SERVICE: History
+        environment:
+            - ASPNETCORE_HTTP_PORTS=8095
+            # The household's time zone saved in Settings decides which day it is
+            - DISPLAY_URL=http://display:8090
+
     birds:
         <<: *defaults
         image: ${HEARTH_IMAGE_PREFIX:-hearth}-birds:${HEARTH_TAG:-latest}
@@ -294,6 +309,7 @@ services:
             - rss
             - calendar
             - quote
+            - history
             - birds
             - almanac
             - trains
@@ -335,6 +351,8 @@ services:
             calendar:
                 condition: service_started
             quote:
+                condition: service_started
+            history:
                 condition: service_started
             birds:
                 condition: service_started

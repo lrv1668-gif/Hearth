@@ -1,5 +1,6 @@
 import { api, type RssFeedGroup } from '#lib/api.ts';
 import { settings } from './SettingsStore.svelte';
+import { ensureHousehold, household } from './HouseholdStore.svelte.ts';
 
 export const rssStore = $state<{ groups: RssFeedGroup[] }>({
     groups: [],
@@ -24,7 +25,8 @@ function sortGroups(groups: RssFeedGroup[]): RssFeedGroup[] {
 }
 
 export async function loadRssArticles() {
-    const urls = settings.rssFeeds.map((f) => f.url);
+    await ensureHousehold();
+    const urls = household.rssFeeds.map((f) => f.url);
     if (urls.length === 0) {
         rssStore.groups = [];
         return;

@@ -1,4 +1,5 @@
 using Data.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ServiceDefaults;
 
 namespace Rss.Extensions;
@@ -13,6 +14,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<FeedUrlValidator>();
         services.AddSingleton<RssFetcher>();
         services.AddSingleton<RssFeeds>();
+        services.AddSingleton<Headlines>();
+        services.TryAddSingleton(TimeProvider.System);
 
         services.AddHearthWebDefaults();
         services.AddHealthChecks().AddDatabase("rss");

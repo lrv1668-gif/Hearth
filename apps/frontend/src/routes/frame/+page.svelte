@@ -12,6 +12,9 @@
     import { loadLastPlayed } from '#lib/stores/LastPlayedStore.svelte.ts';
     import { loadSports } from '#lib/stores/SportsStore.svelte.ts';
     import { loadFramePhoto } from '#lib/stores/FramePhotoStore.svelte.ts';
+    import { loadHeadlines } from '#lib/stores/HeadlinesStore.svelte.ts';
+    import { loadTimetable } from '#lib/stores/TimetableStore.svelte.ts';
+    import { loadOnThisDay } from '#lib/stores/OnThisDayStore.svelte.ts';
     import { parseFrameLayout, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
     import { parseFrameTemplate } from '#lib/constants/frameTemplates.ts';
     import { SECOND } from '#lib/utils.ts';
@@ -128,6 +131,9 @@
         'last-played': loadLastPlayed,
         sports: loadSports,
         photo: () => loadFramePhoto(photoParam),
+        headlines: loadHeadlines,
+        timetable: loadTimetable,
+        'on-this-day': loadOnThisDay,
     };
 
     const now = new Date();

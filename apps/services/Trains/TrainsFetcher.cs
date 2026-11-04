@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Trains.Records;
 
@@ -5,9 +6,16 @@ namespace Trains;
 
 public sealed class TrainsFetcher(HttpClient http)
 {
-    public async Task<StopDepartures> FetchAsync(string apiKey, string stopKey, CancellationToken ct = default)
+    /// <summary>
+    /// The stop's departures over the next hour, or the next <paramref name="nextSeconds"/>
+    /// (Transitland's own default window is an hour, in the stop's local time).
+    /// </summary>
+    public async Task<StopDepartures> FetchAsync(
+        string apiKey, string stopKey, CancellationToken ct = default, int? nextSeconds = null, int? limit = null)
     {
         var url = $"https://transit.land/api/v2/rest/stops/{Uri.EscapeDataString(stopKey)}/departures?apikey={apiKey}";
+        if (nextSeconds is { } next) url += string.Create(CultureInfo.InvariantCulture, $"&next={next}");
+        if (limit is { } max) url += string.Create(CultureInfo.InvariantCulture, $"&limit={max}");
 
         using var response = await http.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
@@ -69,10 +77,13 @@ public sealed class TrainsFetcher(HttpClient http)
             // estimated, estimated_local, estimated_utc, delay, uncertainty} — "estimated" is null
             // when no real-time prediction is available (e.g. schedule_relationship == "STATIC").
             string? estimated = null;
-            if (d.TryGetProperty("departure", out var depEl) && depEl.ValueKind == JsonValueKind.Object &&
-                depEl.TryGetProperty("estimated", out var est) && est.ValueKind == JsonValueKind.String)
+            string? scheduledUtc = null;
+            if (d.TryGetProperty("departure", out var depEl) && depEl.ValueKind == JsonValueKind.Object)
             {
-                estimated = est.GetString();
+                if (depEl.TryGetProperty("estimated", out var est) && est.ValueKind == JsonValueKind.String)
+                    estimated = est.GetString();
+                if (depEl.TryGetProperty("scheduled_utc", out var utc) && utc.ValueKind == JsonValueKind.String)
+                    scheduledUtc = utc.GetString();
             }
 
             yield return new TrainDeparture(
@@ -83,7 +94,8 @@ public sealed class TrainsFetcher(HttpClient http)
                 headsign,
                 scheduled,
                 estimated,
-                isRealtime);
+                isRealtime,
+                scheduledUtc);
         }
     }
 

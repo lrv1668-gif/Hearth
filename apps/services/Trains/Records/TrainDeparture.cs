@@ -9,4 +9,6 @@ public record TrainDeparture(
     string? Headsign,
     string? ScheduledDeparture,
     string? EstimatedDeparture,
-    bool IsRealtime);
+    bool IsRealtime,
+    // The timetabled departure as an instant (Transitland's departure.scheduled_utc)
+    string? ScheduledUtc = null);

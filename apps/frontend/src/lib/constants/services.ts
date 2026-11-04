@@ -10,6 +10,7 @@ export const hearthServices = [
     { id: 'sports', label: 'Sports' },
     { id: 'rss', label: 'News feeds' },
     { id: 'quote', label: 'Quote' },
+    { id: 'history', label: 'On this day' },
     { id: 'spotify', label: 'Spotify' },
     { id: 'photos', label: 'Photos' },
     { id: 'display', label: 'Display & frame' },
