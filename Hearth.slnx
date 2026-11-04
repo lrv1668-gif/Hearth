@@ -11,6 +11,7 @@
     <Project Path="apps/services/Rss/Rss.csproj" />
     <Project Path="apps/services/Calendar/Calendar.csproj" />
 
+    <Project Path="apps/services/History/History.csproj" />
     <Project Path="apps/services/Quote/Quote.csproj" />
     <Project Path="apps/services/Birds/Birds.csproj" />
     <Project Path="apps/services/Almanac/Almanac.csproj" />
@@ -27,6 +28,7 @@
     <Project Path="tests/Rss.Tests/Rss.Tests.csproj" />
     <Project Path="tests/Photos.Tests/Photos.Tests.csproj" />
     <Project Path="tests/Spotify.Tests/Spotify.Tests.csproj" />
+    <Project Path="tests/History.Tests/History.Tests.csproj" />
     <Project Path="tests/Quote.Tests/Quote.Tests.csproj" />
     <Project Path="tests/Calendar.Tests/Calendar.Tests.csproj" />
     <Project Path="tests/Birds.Tests/Birds.Tests.csproj" />

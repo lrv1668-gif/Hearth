@@ -15,6 +15,7 @@ Browser
         ├── /photos*   → Photos     :8084
         ├── /rss*      → Rss        :8085
         ├── /quote*    → Quote      :8086
+        ├── /history*  → History    :8095
         ├── /calendar* → Calendar   :8087
         ├── /birds*    → Birds      :8088
         ├── /almanac*  → Almanac    :8089
@@ -25,7 +26,7 @@ Browser
         └── /*         → Frontend   :3000
 ```
 
-Every service is an independently deployable **ASP.NET Core 10 Minimal API** process with its own SQLite database — except Almanac, which is stateless.
+Every service is an independently deployable **ASP.NET Core 10 Minimal API** process with its own SQLite database — except Almanac, Quote and History, which keep nothing on disk.
 
 ## Frontend
 
@@ -36,7 +37,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 - Tailwind v4 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
 - API calls are centralised in `apps/frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
-- In development, Vite proxies each API path (`/tasks`, `/weather`, `/spotify`, `/photos`, `/rss`, `/quote`, `/calendar`, `/birds`, `/almanac`, `/trains`, `/sports`) to its service's `$<NAME>_URL` env var; in production, Caddy handles the same routing
+- In development, Vite proxies each API path (`/tasks`, `/weather`, `/spotify`, `/photos`, `/rss`, `/quote`, `/history`, `/calendar`, `/birds`, `/almanac`, `/trains`, `/sports`) to its service's `$<NAME>_URL` env var; in production, Caddy handles the same routing
 
 ### Shared UI components
 
@@ -100,7 +101,7 @@ The dashboard, nav, and footer all switch between mobile and desktop layouts at 
 - **Countdown** (`components/frame/modes/FrameCountdownHero.svelte`): one countdown as a poster — the day count at `.type-poster` (400px) in the display face, a `--block` rule, the title and date. `heroCountdown()` shows the frame settings' `countdown_id` while it's ahead, else the next one coming up.
 - **Night** (`components/frame/modes/FrameNight.svelte`): a large moon in tonight's phase (drawn like `MoonPhaseView`, from `calcMoonPhase`/`moonPath`), its name and illumination, and one line with the next sunrise (`nextSunrise()`) and the temperature. Meant for overnight schedule rules.
 - **Note** (`components/frame/modes/FrameNote.svelte`): the frame settings' `note_title` in the display face over a `--block` rule, then `note_body` one paragraph per typed line (blank lines become gaps). Sized by measuring: `fitFontSize()` in `lib/frame.ts` binary-searches the largest px size (22–320 × `--frame-scale`) at which it fits the panel, once with lines kept whole (`nowrap`) and once wrapping, and keeps the unwrapped size unless it's under 60% of the wrapped one. It refits after `document.fonts.ready` and when the preview swaps `data-font`, so sizes are inline px rather than `.type-*` classes.
-- **Daily** (`FrameDaily.svelte`), laid out as today's edition of an almanac: a compact masthead (`FrameDateBlock` — the day of the month on a solid `--block` square; `FrameEditionLine` — a small-caps line with the day-of-year issue number, the season and days to its next marker, from the Almanac service — over the weekday in the display face; `FrameSunPath` — today's daylight as a low dome with the elapsed part filled, the sun as an accent disc, the temperature under the dome, sunrise and sunset beside its base and the daylight length below a hatched horizon) and a 5-day forecast band (`FrameForecast` — a conditions line with the current wind, today's peak UV and the air quality, each with its category word, over low–high range bars on one shared scale over a hatched track; peak rather than current UV because the frame redraws on a schedule), with the configurable widget area between them — a layout template's sized slots, or two free columns (`left`/`right`, up to 3 each, at `split`%) under the `columns` template (see Layout templates below). Frame widgets are registered in `constants/frameWidgets.ts`. Moon Phase, Daily Quote, Birds Nearby and Almanac are shared views in `components/widgets/views/` (`MoonPhaseView`, `DailyQuoteView`, `BirdSightingsView`, `AlmanacView`) that the dashboard widgets wrap with loading and polling and the frame renders directly with a `lines` budget; they size off `type-*`/`icon-*` tokens and em units, so the frame's larger tokens scale them, and the frame route sets `--stroke: 3px` and restyles their `.meter` bar as an outlined pure-ink bar. Today's Arc reuses `DayArcWidget`. Today, Coming Up, Week Ahead and Countdowns are frame-specific designs in `components/frame/widgets/` (the dashboard versions are interactive), as is Last Played (the latest Spotify track with its album art, when it played, and this month's top artist — the dashboard has live now-playing instead) and Photo (`FramePhoto` — Daily's photo of the day from `FramePhotoStore`, filling its slot or a fixed 6-line band in the free columns, with the Unsplash credit or the upload's caption under it; ordered-dithered with the rest of Daily), sharing their selection logic through `lib/frame.ts` (e.g. both countdown widgets use `upcomingCountdowns`). Trains, now-playing and live scores are deliberately excluded — they go stale between scheduled refreshes; Last Played stands in for now-playing, and Last Result & Next Game (`FrameSports.svelte`) shows a game in progress as "Playing now" with no score. In portrait the free columns stay side by side at `split`% (about 500px each at an even split; Coming Up's rail moves the day and time above each title when its column is under 640px, and the countdown stamps fit fewer per row), and the masthead keeps the edition line and weekday under the date block, beside the sun path.
+- **Daily** (`FrameDaily.svelte`), laid out as today's edition of an almanac: a compact masthead (`FrameDateBlock` — the day of the month on a solid `--block` square; `FrameEditionLine` — a small-caps line with the day-of-year issue number, the season and days to its next marker, from the Almanac service — over the weekday in the display face; `FrameSunPath` — today's daylight as a low dome with the elapsed part filled, the sun as an accent disc, the temperature under the dome, sunrise and sunset beside its base and the daylight length below a hatched horizon) and a 5-day forecast band (`FrameForecast` — a conditions line with the current wind, today's peak UV and the air quality, each with its category word, over low–high range bars on one shared scale over a hatched track; peak rather than current UV because the frame redraws on a schedule), with the configurable widget area between them — a layout template's sized slots, or two free columns (`left`/`right`, up to 3 each, at `split`%) under the `columns` template (see Layout templates below). Frame widgets are registered in `constants/frameWidgets.ts`. Moon Phase, Daily Quote, Birds Nearby and Almanac are shared views in `components/widgets/views/` (`MoonPhaseView`, `DailyQuoteView`, `BirdSightingsView`, `AlmanacView`) that the dashboard widgets wrap with loading and polling and the frame renders directly with a `lines` budget; they size off `type-*`/`icon-*` tokens and em units, so the frame's larger tokens scale them, and the frame route sets `--stroke: 3px` and restyles their `.meter` bar as an outlined pure-ink bar. Today's Arc reuses `DayArcWidget`. Today, Coming Up, Week Ahead and Countdowns are frame-specific designs in `components/frame/widgets/` (the dashboard versions are interactive), as is Last Played (the latest Spotify track with its album art, when it played, and this month's top artist — the dashboard has live now-playing instead) and Photo (`FramePhoto` — Daily's photo of the day from `FramePhotoStore`, filling its slot or a fixed 6-line band in the free columns, with the Unsplash credit or the upload's caption under it; ordered-dithered with the rest of Daily), sharing their selection logic through `lib/frame.ts` (e.g. both countdown widgets use `upcomingCountdowns`). Live departures, now-playing and live scores are deliberately excluded — they go stale between scheduled refreshes; Scheduled Departures (`FrameTimetable`) prints the timetable instead, Last Played stands in for now-playing, and Last Result & Next Game (`FrameSports.svelte`) shows a game in progress as "Playing now" with no score. In portrait the free columns stay side by side at `split`% (about 500px each at an even split; Coming Up's rail moves the day and time above each title when its column is under 640px, and the countdown stamps fit fewer per row), and the masthead keeps the edition line and weekday under the date block, beside the sun path.
 - **Layout templates** (`constants/frameTemplates.ts`): the widget area as a fixed arrangement of sized slots, the model of TRMNL's mashups and iOS widget families. `frameTemplates` lists each template's slot sizes — S (about a quarter of the area), M (a half) or L (all of it) — and its `grid-template-areas` per orientation: `full` (L), `halves` (M M, stacked in portrait), `feature` (M beside S over S), `banner` (M over S S) and `quad` (four S); `columns` has no slots and keeps the free columns. `frameWidgetSizes` lists the sizes each widget is designed for (a `Record` over every frame widget id, so a new widget must declare them); a widget only goes in a slot of one of its sizes (`fitsSlot`, `widgetsForSize`), so every combination is one that was designed. Every widget takes S, M and L except Week Ahead (M/L — seven day rows don't read in a quarter). Slots are saved by position with `''` for an empty one; `normalizeSlots` pads or trims to the template and empties unknown, repeated or wrong-size ids, and `moveToTemplate` carries the placed widgets to a newly picked template, pickiest (fewest sizes) first. FrameDaily lays the slots on a grid of `minmax(0,1fr)` tracks, so a slot's size comes from the template, never its content. Each slot measures its own height for a line budget (`slotLines`: the slot's lines less the kicker), and its body under the kicker is a CSS size container (`container-type: size`), so widgets size to it with `cqw`/`cqh` units and switch wide/tall arrangements with `@container (aspect-ratio …)` rules.
   - **Size variants:** a list widget keeps its design and fits more items (Today steps its type and boxes up in L); others change shape. S and the free columns use the compact designs; M and L route to slot designs in `components/frame/widgets/`: Coming Up → `FrameAgenda` (days under display-face headings, today's in `--accent`, times in a margin; `fitAgenda()` in `lib/frame.ts` starts a day only if its heading and one row fit, and a slot over 1.8× as wide as tall flows into two columns), Moon Phase → `FrameMoon` (the disc sized to the slot, the name beside it or below in a tall slot; L adds the next four major phases from `upcomingPhases()`), Daily Quote → `FrameQuote` (fitted with `FitText`), Countdowns → a poster of the soonest (its day count fitted to the slot in `--accent`, the rest beside or below — a dotted-leader list in M, stamps in L; S is one stamp with its title), Last Played's album art grows to the slot's height in M and L (none in S). Moon Phase and Daily Quote's dashboard views stay as they were; the slot designs are frame-only.
   - **`FitText`** (`components/frame/FitText.svelte`) fits its content to its box with `fitFontSize()` (as Note mode does), between a `min` and `max` in reference px scaled by `--frame-scale`, refitting on resize and after `document.fonts.ready`.
@@ -134,7 +135,8 @@ Shortcuts are bound with [tinykeys](https://github.com/jamiebuilds/tinykeys), wh
 | `theme`        | `ThemeStore.svelte.ts`      | `localStorage`  | Active theme ID; writes `dataset.theme` on change                     |
 | `fontTheme`    | `FontThemeStore.svelte.ts`  | `localStorage`  | Active font theme ID; writes `dataset.font` on change                 |
 | `fontSize`     | `FontSizeStore.svelte.ts`   | `localStorage`  | User size multiplier (0.9–1.3); sets `--font-user-scale` inline on `<html>` |
-| `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | `/ambient` slideshow cadence (day/night) and motion, RSS feeds config, kiosk mode, subscribed train stops + per-stop line filters |
+| `settings`     | `SettingsStore.svelte.ts`   | `localStorage`  | `/ambient` slideshow cadence (day/night) and motion, RSS article count, kiosk mode |
+| `household`    | `HouseholdStore.svelte.ts`  | Server (Display) | RSS feeds and subscribed train stops + per-stop line filters, shared by every browser and the frame (`/display/household`) |
 | `homeLocation` | `HomeLocationStore.svelte.ts` | Server (SQLite) | The household's location and time zone — one shared copy in the Display service; Settings → Home loads it and saves the form on Save (the zone defaults to this browser's, unsaved) |
 | `modeStore` | `ModeStore.svelte.ts` | Server (SQLite) | The frame's resolved mode, its schedule and override (including the "Show on frame" pinned photo) — Settings → Frame's Mode card and the photo collection's pin switch |
 | `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, panel size, layout, split, Daily template and slots, Ambient card position, Photo mode's album and card and Countdown mode's countdown, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
@@ -252,13 +254,14 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `weather`  | 8082 | Implemented | Polls Open-Meteo, caches current + forecast                          |
 | `spotify`  | 8083 | Implemented | Spotify OAuth + now-playing                                          |
 | `photos`   | 8084 | Implemented | Fetches Unsplash photos, caches batch for 24 hours                   |
-| `rss`      | 8085 | Implemented | Fetches RSS/Atom feed articles, caches for 30 minutes                |
+| `rss`      | 8085 | Implemented | Fetches RSS/Atom feed articles, caches for 30 minutes; the frame's hourly Headlines |
 | `quote`    | 8086 | Implemented | Fetches daily quote from ZenQuotes, caches until next day            |
+| `history`  | 8095 | Implemented | Wikipedia's "On this day" events for the household's date, cached until local midnight |
 | `calendar` | 8087 | Implemented | Google Calendar + Google Tasks OAuth, aggregated events/tasks        |
 | `birds`    | 8088 | Implemented | Nearby eBird sightings, cached for 60 minutes                        |
 | `almanac`  | 8089 | Implemented | Season/daylight/frost facts, computed locally (no external API, no DB) |
 | `display`  | 8090 | Partial     | Shared e-paper frame settings, the dithered frame preview and the scheduled panel render at `GET /display/frame` (via the `renderer` sidecar); the Color ↔ B&W palette (`/display/palette`); presence endpoints are planned (`HARDWARE.md`) |
-| `trains`   | 8091 | Implemented | Transitland departures for subscribed stops, cached for 45 seconds   |
+| `trains`   | 8091 | Implemented | Transitland departures for subscribed stops, cached for 45 seconds; the frame's hourly timetable |
 | `sports`   | 8094 | Implemented | Followed teams' live games, results and fixtures from ESPN, cached for 30 seconds while live |
 
 **Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
@@ -563,6 +566,36 @@ If the cached quote is from a prior UTC day (or absent), the service re-fetches 
 
 `DailyQuoteWidget.svelte` loads the quote on mount via `DailyQuoteStore.svelte.ts` and re-checks hourly.
 
+## History Service
+
+The `history` service (port 8095, no database) serves Wikipedia's curated "On this day" events for the household's date, for the frame's On This Day.
+
+### Endpoints
+
+| Method | Path                  | Description |
+| ------ | --------------------- | ----------- |
+| `GET`  | `/history/onthisday`  | `OnThisDay` — `date` (the household's `yyyy-MM-dd`) and `events`: up to 6 `{ year, text, page_title }` (negative years are BC). `503` when nothing could be fetched |
+
+`HistoryFetcher` calls `https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/selected/{MM}/{DD}` (free, no key) with a generic descriptive `User-Agent`, as Wikimedia asks. Of the editors' picks it keeps six spread evenly across the years, oldest first (`Spread`), so the card reads like an almanac rather than leading with last year's news. "Today" is the date in the Settings → Home time zone (`HomeLocationClient`, else `TZ`, else UTC).
+
+### Caching
+
+| Field  | Value |
+| ------ | ----- |
+| TTL    | Until the household's next local midnight (`HistoryExpiry`), keyed `onthisday:{date}`; fail-safe within the day |
+| Source | Wikimedia feed API — content is CC BY-SA, so the widget always shows "From Wikipedia · CC BY-SA" |
+
+### Environment variables
+
+| Variable                | Required | Description |
+| ----------------------- | -------- | ----------- |
+| `DISPLAY_URL`           | No       | The Display service, for the household's time zone |
+| `ASPNETCORE_HTTP_PORTS` | —        | Set to `8095` in Docker |
+
+### Frontend integration
+
+`FrameOnThisDay.svelte` loads through `OnThisDayStore.svelte.ts` (`api.history.onThisDay()`). S slots and the free columns list events year first; M and L lead with the first in the display face (`FitText`), the year in `--accent`, and list a few more below.
+
 ## RSS Service
 
 The `rss` service fetches articles from one or more user-configured RSS/Atom feed URLs and caches them per feed with FusionCache (SQLite L2, so the cache survives restarts).
@@ -574,6 +607,8 @@ The `rss` service fetches articles from one or more user-configured RSS/Atom fee
 | `GET`  | `/rss/articles` | Accepts one or more `url` query params and a `count` (default 10); returns a `RssFeedGroup[]` sorted by publish date |
 
 Every supplied `url` is validated by `FeedUrlValidator` before any fetch (SSRF protection): only absolute `http`/`https` URLs are accepted, and the host — after DNS resolution when it is not an IP literal — must resolve exclusively to publicly routable addresses. Loopback, RFC 1918 private, link-local (including the `169.254.169.254` cloud metadata IP), CGNAT, multicast, and the IPv6 equivalents (`::1`, `fc00::/7`, `fe80::/10`, IPv4-mapped) are rejected. Any invalid or disallowed URL causes the endpoint to return `400 Bad Request` with an `error` message.
+
+`GET /rss/headlines` takes the same `url` params (validated the same way) and a `count` (default 8, at most 20) and returns `Headline[]` (`title`, `feed_title`, `published_at` — ISO 8601 UTC or null) for the frame's Headlines. `Headlines.Pick` parses each feed's dates (RFC 822 or ISO 8601), sorts newest first and takes from each feed in turn, freshest feed first, so one busy feed can't fill the column. The pick is cached per clock hour (keyed by a hash of the URLs and count) until the top of the next hour, so the panel redraws for news at most hourly even as the feeds update underneath.
 
 Feeds are fetched in parallel (`RssFeeds`, 15 s timeout each). A feed is re-fetched once its 30-minute entry expires (or in the background when it's asked for in the entry's last 3 minutes), by one request at a time however many screens ask. When a refresh fails, fail-safe keeps serving the last good copy for up to a day and retries every 5 minutes; a feed that has never been fetched successfully is left out of the response.
 
@@ -593,7 +628,7 @@ Feeds are fetched in parallel (`RssFeeds`, 15 s timeout each). A feed is re-fetc
 
 ### Frontend integration
 
-`NewsFeedWidget.svelte` loads articles on mount via `RssFeedStore.svelte.ts` (`api.rss.articles()`) and refreshes every 30 minutes. Feed URLs and the article count are controlled by the settings persisted in `SettingsStore.svelte.ts`, configurable in Settings → RSS Feeds. Clicking an article opens the link in a new tab.
+`NewsFeedWidget.svelte` loads articles on mount via `RssFeedStore.svelte.ts` (`api.rss.articles()`) and refreshes every 30 minutes. The feed URLs live in the Display service (`HouseholdStore.svelte.ts`, `/display/household`) so the frame sees them too; the article count is per browser (`SettingsStore.svelte.ts`). Both are set in Settings → RSS Feeds. The frame's Headlines (`FrameHeadlines.svelte`, `HeadlinesStore.svelte.ts`) lists them in S slots and the free columns, and leads with the top story in the display face (`FitText`) in M and L. Clicking an article opens the link in a new tab.
 
 ## Calendar Service
 
@@ -767,6 +802,8 @@ Stored in `apps/services/Almanac/.env`.
 | `PUT /display/settings`  | Replaces them. `400` unless orientation is `landscape`/`portrait`, each column has at most 3 widgets with none repeated, `split` is 30–70, `template` is set (≤ 40 characters; omitted → `columns`) with at most 6 `slots` and no widget id repeated among them (`""` marks an empty slot), `ambient_position` is one of the six positions (omitted → `bottom-left`), and `width`/`height` (the panel's native size; omitted → 1600×1200) are 200–4000 with width ≥ height; also at most 500 `photo_ids`, `photo_card` one of `full`/`caption`/`none`, `note_title` ≤ 80 characters and `note_body` ≤ 600 characters over at most 12 lines, `photo_interval_minutes` 15–1440 (omitted → 60), `portrait_rotation` 90 or 270 (omitted → 90) `text_size` 100–150 (omitted → 100), `dithering` `hearth` or `frame` (omitted → `hearth`), and `quiet_start`/`quiet_end` both `HH:mm` and different, or both omitted. Saving re-renders the panel frame |
 | `GET /display/home`      | The saved `HomeSettings` (`latitude`, `longitude`, `name`, `time_zone`), or `204` if nothing has been saved — services then use their env vars |
 | `PUT /display/home`      | Replaces them. `400` unless latitude is −90–90 and longitude −180–180 (both or neither), `name` is ≤ 100 characters, and `time_zone` (optional) is an IANA zone the host knows |
+| `GET /display/household` | The shared `HouseholdSettings` (`rss_feeds`: `{ title, url }[]`; `train_stops`: `{ label, stop_key, line_filter }[]` — `line_filter` null shows every line, `[]` none), or `204` if nothing has been saved |
+| `PUT /display/household` | Replaces them. `400` unless there are at most 50 feeds, each with a title and an absolute `http(s)` URL (Rss's `FeedUrlValidator` does the full check when a feed is read), and at most 20 stops, each with a label and `stop_key` and at most 200 `line_filter` keys. Saving re-renders the panel frame |
 | `GET /display/places?q=` | City search for Settings → Home via Open-Meteo's keyless geocoding API → `Place[]` (`name`, `label`, `latitude`, `longitude`, `time_zone`), cached 7 days (FusionCache, memory-only). `400` unless `q` is 2–100 characters, `502` when the geocoder fails |
 | `GET /display/mode`      | What the frame shows now → `ResolvedMode` (`mode`, `reason`: `override`/`schedule`/`default`, `until` — when that may next change, or null — and `photo_id` for a pinned photo). A live override wins, then the first schedule rule whose window holds the household's time (Settings → Home zone, else `TZ`), then the schedule's default. `/frame` asks this when its URL has no `mode` |
 | `GET /display/mode/schedule` | The `ModeSchedule` (`default_mode`, `rules`: `mode`, `days` `sun`–`sat`, `start`/`end` `HH:mm`, and optionally `rotate` — up to 5 more modes — with `rotate_minutes`); `ambient` with no rules until saved. A rule ending before it starts runs past midnight (it belongs to the day it starts); equal times mean all day. A rotating rule shows `mode`, then each `rotate` mode, stepping every `rotate_minutes` from its window's start (midnight for all-day rules) and wrapping round; `until` is the next step (or the window's end). Inside the quiet hours it keeps the step it was on when they began — the window's first if it began during them — until they end |
@@ -784,11 +821,11 @@ Stored in `apps/services/Almanac/.env`.
 | `GET /display/frame/status` | `{ mode, rendered_at, checked_at, next_render_at, etag, last_error, last_poll }` — what the panel frame shows, when its pixels last changed and were last checked, when the next render is due, the last render error, and the frame client's last `GET /display/frame` (`{ at, address, user_agent, etag }` — `address` from Caddy's `X-Forwarded-For`, `etag` the picture it was left holding, null on a `503`; `FramePolls`, in memory only, so null until the first poll after a restart). Settings → Frame's status bar (`FrameStatusBar`) shows it as "The frame checked in 3 min ago and has the latest picture", warning after an hour without one, with the next redraw and the last render error |
 | `POST /display/frame/refresh` | Re-renders the panel frame now with the next Ambient/Photo photo, or Daily's next photo of the day (e.g. a long press on Button A) → `202` |
 
-The schedule, settings, palette and override endpoints (`PUT /display/settings`, `PUT /display/home`, `PUT /display/mode/schedule`, `PUT`/`DELETE /display/mode/override`, `POST /display/mode/next`, `PUT /display/palette`, `POST /display/palette/toggle`) each invalidate the panel frame so it re-renders.
+The schedule, settings, palette and override endpoints (`PUT /display/settings`, `PUT /display/home`, `PUT /display/household`, `PUT /display/mode/schedule`, `PUT`/`DELETE /display/mode/override`, `POST /display/mode/next`, `PUT /display/palette`, `POST /display/palette/toggle`) each invalidate the panel frame so it re-renders.
 
 The mode ids live in `Records/FrameModes.cs` and `apps/frontend/src/lib/constants/frameModes.ts` — keep them in step. `ModeResolver` is a pure function of the schedule, override, time, zone and quiet hours (a rotation's step is worked out from the clock, not stored, so restarts and edits keep it in step); `ModeStore` keeps the schedule and override in their own one-row tables, and `PaletteStore` the palette — apart from the frame settings, which the frontend saves whole, so Button C's flip isn't put back by an open Settings tab. `DitherFor` ordered-dithers the flat modes (Daily, Countdown, Night, Note) and error-diffuses the photo ones (Ambient, Photo).
 
-`FrameSettingsStore` and `HomeSettingsStore` each keep one row (`id = 1`) in `display.db` (`DB_PATH`) — separate tables, because the frontend saves the frame settings whole on every change. Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once.
+`FrameSettingsStore` and `HomeSettingsStore` each keep one row (`id = 1`) in `display.db` (`DB_PATH`) — separate tables, because the frontend saves the frame settings whole on every change. Theme, font and widget ids are the frontend's; `FrameSettingsStore.svelte.ts` drops ids it doesn't know when it reads them. On first load with nothing saved, the frontend uploads any frame settings an older `localStorage` snapshot held (parked under `hearth-frame-legacy` by `SettingsStore`), once. `HouseholdSettingsStore` keeps the RSS feeds and train stops the same way (one row, each list a JSON column); they moved off `localStorage` so the frame's headless renderer sees them, and `SettingsStore` parks an older snapshot's lists under `hearth-household-legacy` for `HouseholdStore` to upload once when nothing is saved yet.
 
 | Variable                | Required | Description |
 | ----------------------- | -------- | ----------- |
@@ -817,6 +854,7 @@ The `trains` service fetches upcoming departures for user-subscribed transit sto
 | Method | Path                 | Description                                                                        |
 | ------ | --------------------- | -------------------------------------------------------------------------------------|
 | `GET`  | `/trains/departures` | Accepts one or more repeated `stop` query params (Transitland Onestop IDs); returns `StopDepartures[]` |
+| `GET`  | `/trains/timetable`  | The same `stop` params → `StopTimetable[]` (`stop_key`, `stop_name`, `window_start`/`window_end` ISO UTC, `lines`: `{ route_short_name, headsign, mode, departures }` with timetabled instants) for the frame's Scheduled Departures |
 
 Behavior:
 
@@ -875,7 +913,9 @@ Stored in `apps/services/Trains/.env`.
 
 ### Frontend integration
 
-`TrainsStore.svelte.ts` loads departures for every stop key in `settings.trainStops` via `api.trains.departures()`, which builds repeated `?stop=` query params and returns `null` on any non-OK response (the store then keeps the last good board). The widget refreshes every 60 seconds. `TrainsWidget.svelte` groups departures by line, shows up to 3 upcoming times per line (e.g. "5, 20, 38 min"), clusters bus vs. train/rail lines (whichever has the soonest departure first), and applies each stop's `lineFilter`. `TrainStopSettings.svelte` is the Settings-page UI for subscribing to stops (`subscribeToTrainStop` / `unsubscribeFromTrainStop`) and configuring per-line filters.
+`TrainsStore.svelte.ts` loads departures for every stop key in `household.trainStops` (`HouseholdStore.svelte.ts`, shared through `/display/household`) via `api.trains.departures()`, which builds repeated `?stop=` query params and returns `null` on any non-OK response (the store then keeps the last good board). The widget refreshes every 60 seconds. `TrainsWidget.svelte` groups departures by line, shows up to 3 upcoming times per line (e.g. "5, 20, 38 min"), clusters bus vs. train/rail lines (whichever has the soonest departure first), and applies each stop's `lineFilter`. `TrainStopSettings.svelte` is the Settings-page UI for subscribing to stops (`subscribeToTrainStop` / `unsubscribeFromTrainStop`) and configuring per-line filters.
+
+The frame's Scheduled Departures (`FrameTimetable.svelte`, `TimetableStore.svelte.ts`) reads `/trains/timetable`: for each stop, Transitland departures from now to the end of the next clock hour (`next=` seconds, `limit=100`), cut to [the top of this hour, +2 h) by their `departure.scheduled_utc` and grouped by line and direction (`Timetable.Build`). Only timetabled times are kept — no predictions — and the result is cached as `timetable:{stop}:{hour}` until the next hour (fail-safe within its own window), so the panel redraws for it at most hourly; times that have passed stay up until then, as on a posted timetable. The widget applies each stop's `lineFilter` (`lib/timetable.ts`), prints "Scheduled · 7–9 pm" over one row per line (the route on a `--block` tab, the direction, the times), keeps to the first stop in an S slot, and heads each stop when it shows more than one.
 
 ## Sports Service
 
@@ -919,6 +959,7 @@ Each team's games come from three ESPN calls, merged by event id with the latest
 /photos/*           →  photos:8084
 /rss/*              →  rss:8085
 /quote/*            →  quote:8086
+/history/*          →  history:8095
 /calendar/google/*  →  calendar:8087
 /calendar/items*    →  calendar:8087
 /birds/*            →  birds:8088

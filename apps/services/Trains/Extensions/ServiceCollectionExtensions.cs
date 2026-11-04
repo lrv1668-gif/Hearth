@@ -1,4 +1,5 @@
 using Data.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ServiceDefaults;
 
 namespace Trains.Extensions;
@@ -11,6 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddSqliteDistributedCache("trains");
         services.AddHearthCache();
         services.AddHttpClient<TrainsFetcher>();
+        services.TryAddSingleton(TimeProvider.System);
 
         services.AddHearthWebDefaults();
         services.AddHealthChecks().AddDatabase("trains").AddRequiredConfig("TRANSITLAND_API_KEY");

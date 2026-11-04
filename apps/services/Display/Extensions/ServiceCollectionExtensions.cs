@@ -11,6 +11,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSqliteDatabase("display", "display.db");
         serviceCollection.AddSingleton<FrameSettingsStore>();
         serviceCollection.AddSingleton<HomeSettingsStore>();
+        serviceCollection.AddSingleton<HouseholdSettingsStore>();
         serviceCollection.AddSingleton<ModeStore>();
         serviceCollection.AddSingleton<PaletteStore>();
         // The panel's frame: rendered in the background, cached beside display.db

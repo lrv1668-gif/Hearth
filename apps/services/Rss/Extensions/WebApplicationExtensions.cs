@@ -23,12 +23,7 @@ public static class WebApplicationExtensions
                 return Results.Ok(Array.Empty<FeedGroup>());
 
             var pinned = await Task.WhenAll(url.Select(validator.ResolvePinnedAddressAsync));
-            for (var i = 0; i < url.Length; i++)
-            {
-                if (pinned[i] is not null) continue;
-                app.Logger.LogError("Rejected disallowed RSS feed URL: {Url}", url[i]);
-                return Results.BadRequest(new { error = $"invalid or disallowed feed url: {url[i]}" });
-            }
+            if (Disallowed(app, url, pinned) is { } rejected) return rejected;
 
             // Every feed at once: a slow one no longer delays the rest
             var fetched = await Task.WhenAll(url.Select((feedUrl, i) => feeds.GetAsync(feedUrl, pinned[i]!, ct)));
@@ -46,5 +41,31 @@ public static class WebApplicationExtensions
 
             return Results.Ok(groups);
         });
+
+        // The frame's Headlines: newest stories across the feeds, held for the clock hour.
+        app.MapGet("/rss/headlines", async (
+            Headlines headlines, FeedUrlValidator validator, string[]? url, CancellationToken ct, int count = 8) =>
+        {
+            if (url is null || url.Length == 0)
+                return Results.Ok(Array.Empty<Headline>());
+
+            var pinned = await Task.WhenAll(url.Select(validator.ResolvePinnedAddressAsync));
+            if (Disallowed(app, url, pinned) is { } rejected) return rejected;
+
+            var picked = await headlines.GetAsync(
+                url.Zip(pinned, (u, p) => (u, p!)).ToList(), Math.Clamp(count, 1, Headlines.MaxCount), ct);
+            return Results.Ok(picked);
+        });
+    }
+
+    private static IResult? Disallowed(WebApplication app, string[] url, System.Net.IPAddress?[] pinned)
+    {
+        for (var i = 0; i < url.Length; i++)
+        {
+            if (pinned[i] is not null) continue;
+            app.Logger.LogError("Rejected disallowed RSS feed URL: {Url}", url[i]);
+            return Results.BadRequest(new { error = $"invalid or disallowed feed url: {url[i]}" });
+        }
+        return null;
     }
 }

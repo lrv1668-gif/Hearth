@@ -196,6 +196,28 @@ export interface RssFeedGroup {
     articles: RssArticle[];
 }
 
+/** Something that happened on today's date, from Wikipedia's "On this day" (CC BY-SA). */
+export interface HistoryEvent {
+    /** Negative for BC. */
+    year: number;
+    text: string;
+    page_title: string | null;
+}
+
+export interface OnThisDay {
+    /** The household's date the events are for, yyyy-MM-dd. */
+    date: string;
+    /** Spread across the centuries, oldest first. */
+    events: HistoryEvent[];
+}
+
+/** One story on the frame's Headlines, picked once per clock hour by the Rss service. */
+export interface Headline {
+    title: string;
+    feed_title: string;
+    published_at: string | null;
+}
+
 export interface TrainDeparture {
     route_short_name: string;
     route_long_name: string | null;
@@ -205,6 +227,24 @@ export interface TrainDeparture {
     scheduled_departure: string | null;
     estimated_departure: string | null;
     is_realtime: boolean;
+}
+
+/** The frame's Scheduled Departures for one stop: timetabled times for the hour and the next. */
+export interface StopTimetable {
+    stop_key: string;
+    stop_name: string | null;
+    /** ISO UTC: the top of the hour this edition belongs to, and two hours later. */
+    window_start: string;
+    window_end: string;
+    lines: TimetableLine[];
+}
+
+export interface TimetableLine {
+    route_short_name: string;
+    headsign: string | null;
+    mode: string;
+    /** Scheduled departure instants, ISO UTC, in order. */
+    departures: string[];
 }
 
 export interface StopDepartures {
@@ -290,6 +330,12 @@ export type Item = { kind: 'task'; data: Task } | { kind: 'event'; data: Calenda
 
 /** The household's location and time zone, held by the Display service and read by
  *  Weather, Birds, Almanac and the frame's renderer. Coordinates come as a pair. */
+/** The RSS feeds and transit stops every device shares, as Display stores them (snake_case). */
+export interface HouseholdSettings {
+    rss_feeds: { title: string; url: string }[];
+    train_stops: { label: string; stop_key: string; line_filter: string[] | null }[];
+}
+
 export interface HomeSettings {
     latitude: number | null;
     longitude: number | null;
@@ -547,6 +593,15 @@ class ApiClient {
             return res.json() as Promise<HomeSettings>;
         },
 
+        /** The shared feeds and stops; null when none are saved yet, undefined when the
+         *  Display service can't be reached. */
+        household: (): Promise<HouseholdSettings | null | undefined> =>
+            // Bounded like settings(), so a hung service can't hold up /frame's ready signal.
+            this.getSaved<HouseholdSettings>('/display/household', { timeoutMs: 5000 }),
+
+        saveHousehold: (household: HouseholdSettings): Promise<HouseholdSettings> =>
+            this.put<HouseholdSettings>('/display/household', household),
+
         /** Cities matching `query`, each with its coordinates and time zone; null on failure. */
         places: (query: string): Promise<Place[] | null> =>
             this.get<Place[]>(`/display/places?${new URLSearchParams({ q: query })}`),
@@ -576,6 +631,18 @@ class ApiClient {
             urls.forEach((url) => params.append('url', url));
             return this.get<RssFeedGroup[]>(`/rss/articles?${params}`);
         },
+
+        /** The newest stories across `urls`, held for the clock hour so the panel doesn't redraw for each. */
+        headlines: (urls: string[], count: number): Promise<Headline[] | null> => {
+            const params = new URLSearchParams({ count: String(count) });
+            urls.forEach((url) => params.append('url', url));
+            return this.get<Headline[]>(`/rss/headlines?${params}`, { timeoutMs: 15000 });
+        },
+    };
+
+    readonly history = {
+        /** Today's events; null when the History service can't be reached or has none. */
+        onThisDay: (): Promise<OnThisDay | null> => this.get<OnThisDay>('/history/onthisday', { timeoutMs: 10000 }),
     };
 
     readonly trains = {
@@ -583,6 +650,13 @@ class ApiClient {
             const params = new URLSearchParams();
             stopKeys.forEach((key) => params.append('stop', key));
             return this.get<StopDepartures[]>(`/trains/departures?${params}`);
+        },
+
+        /** Timetabled departures to the end of the next hour, held for the clock hour. */
+        timetable: (stopKeys: string[]): Promise<StopTimetable[] | null> => {
+            const params = new URLSearchParams();
+            stopKeys.forEach((key) => params.append('stop', key));
+            return this.get<StopTimetable[]>(`/trains/timetable?${params}`, { timeoutMs: 15000 });
         },
     };
 

@@ -27,6 +27,10 @@ services:
     ports:
       - "127.0.0.1:8086:8086"
 
+  history:
+    ports:
+      - "127.0.0.1:8095:8095"
+
   birds:
     ports:
       - "127.0.0.1:8088:8088"
@@ -67,6 +71,7 @@ services:
       - RSS_URL=http://rss:8085
       - CALENDAR_URL=http://calendar:8087
       - QUOTE_URL=http://quote:8086
+      - HISTORY_URL=http://history:8095
       - BIRDS_URL=http://birds:8088
       - ALMANAC_URL=http://almanac:8089
       - TRAINS_URL=http://trains:8091

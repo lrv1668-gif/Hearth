@@ -1,6 +1,7 @@
 /* Widgets that can fill the e-paper frame's Daily-mode columns. The frame redraws
    on a schedule, not live, so only widgets that stay correct for an hour or more
-   belong here — no trains, no now-playing (Last Played shows the listening history
+   belong here — no live trains (Scheduled Departures prints the timetable for this hour
+   and the next, picked hourly), no now-playing (Last Played shows the listening history
    instead, cached for an hour so it doesn't redraw the panel every track), no live
    scores (Last Result & Next Game shows a game in progress as "Playing now"); Photo holds one
    photo for the whole day. The edition bar, masthead (date block,
@@ -18,6 +19,13 @@ export const frameWidgets = [
     { id: 'last-played', label: 'Last Played', description: 'The latest track from Spotify, with its album art' },
     { id: 'sports', label: 'Last Result & Next Game', description: 'Last result and next game for teams you follow' },
     { id: 'photo', label: 'Photo', description: 'A photo of the day from your Ambient photos' },
+    { id: 'headlines', label: 'Headlines', description: 'The newest stories from your feeds, picked hourly' },
+    {
+        id: 'timetable',
+        label: 'Scheduled Departures',
+        description: 'Timetabled times at your stops for the next two hours',
+    },
+    { id: 'on-this-day', label: 'On This Day', description: 'Events from history on today’s date, from Wikipedia' },
 ] as const;
 
 export type FrameWidgetId = (typeof frameWidgets)[number]['id'];

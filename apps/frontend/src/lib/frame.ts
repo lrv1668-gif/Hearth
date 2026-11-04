@@ -396,6 +396,8 @@ const FIXED_LINES: Partial<Record<FrameWidgetId, number>> = {
     countdowns: 4.5,
     'last-played': 5.3,
     photo: 7.4,
+    // One event (year, three lines of text) and the Wikipedia credit
+    'on-this-day': 6.2,
 };
 
 /** Content lines (excluding its heading) each widget in a column gets. */

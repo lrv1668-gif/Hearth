@@ -1,10 +1,10 @@
 <script lang="ts">
     import {
-        settings,
+        household,
         subscribeToTrainStop,
         unsubscribeFromTrainStop,
         updateTrainStopLineFilter,
-    } from '#lib/stores/SettingsStore.svelte.ts';
+    } from '#lib/stores/HouseholdStore.svelte.ts';
     import { api } from '#lib/api.ts';
     import type { TrainStop } from '#lib/constants/trains.ts';
     import { ChevronDown, ChevronUp, Plus } from '@lucide/svelte';
@@ -18,7 +18,7 @@
     let newStopKey = $state('');
     // The add form folds behind a button once there's a stop, so the list stays short.
     let adding = $state(false);
-    const formOpen = $derived(adding || settings.trainStops.length === 0);
+    const formOpen = $derived(adding || (household.loaded && household.trainStops.length === 0));
 
     function isValidNewStop() {
         return newLabel.trim() !== '' && newStopKey.trim() !== '';
@@ -93,7 +93,7 @@
     <!-- Subscribed stops list -->
     <SettingsGroup title="Watched stops">
         <div class="flex flex-col">
-            {#each settings.trainStops as stop}
+            {#each household.trainStops as stop}
                 {@const expanded = expandedStopKey === stop.stopKey}
                 <div class="flex flex-col">
                     <ListRow
@@ -208,7 +208,7 @@
                     </Field>
                 </div>
                 <div class="flex justify-end gap-2">
-                    {#if settings.trainStops.length > 0}
+                    {#if household.trainStops.length > 0}
                         <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
                     {/if}
                     <Button onclick={handleAdd} disabled={!isValidNewStop()}>Add stop</Button>

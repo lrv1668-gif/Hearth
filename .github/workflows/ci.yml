@@ -173,6 +173,7 @@ jobs:
           - { service: rss, project: Rss }
           - { service: calendar, project: Calendar }
           - { service: quote, project: Quote }
+          - { service: history, project: History }
           - { service: birds, project: Birds }
           - { service: almanac, project: Almanac }
           - { service: trains, project: Trains }

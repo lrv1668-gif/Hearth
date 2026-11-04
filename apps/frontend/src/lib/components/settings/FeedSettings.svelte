@@ -1,10 +1,6 @@
 <script lang="ts">
-    import {
-        settings,
-        subscribeToRssFeed,
-        unsubscribeFromRssFeed,
-        updateRssArticleCount,
-    } from '#lib/stores/SettingsStore.svelte.ts';
+    import { settings, updateRssArticleCount } from '#lib/stores/SettingsStore.svelte.ts';
+    import { household, subscribeToRssFeed, unsubscribeFromRssFeed } from '#lib/stores/HouseholdStore.svelte.ts';
     import { Plus } from '@lucide/svelte';
     import Button from '../ui/Button.svelte';
     import ChoiceChips from '../ui/ChoiceChips.svelte';
@@ -16,7 +12,7 @@
     let newRssUrl = $state('');
     // The add form folds behind a button once there's a feed, so the list stays short.
     let adding = $state(false);
-    const formOpen = $derived(adding || settings.rssFeeds.length === 0);
+    const formOpen = $derived(adding || (household.loaded && household.rssFeeds.length === 0));
 
     const countOptions = [5, 10, 15, 20].map((n) => ({ value: n, label: String(n) }));
 
@@ -52,7 +48,7 @@
     <!-- Subscribed feeds list -->
     <SettingsGroup title="Subscribed feeds">
         <div class="flex flex-col">
-            {#each settings.rssFeeds as feed}
+            {#each household.rssFeeds as feed}
                 <ListRow title={feed.title} subtitle={feed.url} onremove={() => unsubscribeFromRssFeed(feed.title)} />
             {:else}
                 <p class="type-label py-4 text-center text-(--text-2)">No feeds added yet.</p>
@@ -82,7 +78,7 @@
                     </Field>
                 </div>
                 <div class="flex justify-end gap-2">
-                    {#if settings.rssFeeds.length > 0}
+                    {#if household.rssFeeds.length > 0}
                         <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
                     {/if}
                     <Button onclick={handleAdd} disabled={!isValidNewRssFeed()}>Add feed</Button>
