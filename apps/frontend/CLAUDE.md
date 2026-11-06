@@ -34,7 +34,7 @@ Every picker theme must keep `--text-2` ≥ 4.5:1 and `--text-3` ≥ 3:1 against
 
 Each theme defines: `--bg`, `--surface`, `--surface-hi`, `--border`, `--text-1` through `--text-4`, `--done`, `--done-bg`, `--accent`, `--accent-hi`, `--accent-fg`, `--danger`, and `color-scheme` (for native inputs).
 
-`--accent` is the theme's one chromatic hue. Use it sparingly: now/today, chosen or active state, primary actions and widget titles. Never use it for errors (`--danger`) or bulk text. Icons sit one `--text-*` step quieter than the data they label.
+`--accent` is the theme's one chromatic hue. Use it sparingly: now/today, chosen or active state, primary actions, widget titles and settings section titles (`SettingsGroup`). Never use it for errors (`--danger`) or bulk text. Icons sit one `--text-*` step quieter than the data they label.
 
 ## Frame themes
 

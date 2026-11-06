@@ -257,7 +257,7 @@
                 </div>
             {:else if !isEdit && !isCountdown}
                 <div class="space-y-2">
-                    <p class="eyebrow">Repeat</p>
+                    <p class="eyebrow text-(--accent)">Repeat</p>
                     <ChoiceChips
                         label="Repeat"
                         options={repeatChoices}

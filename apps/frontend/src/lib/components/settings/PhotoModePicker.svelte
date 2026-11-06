@@ -138,7 +138,7 @@ Groups live in the Photos service; the picks are saved with the frame settings.
 
     <div class="mb-5">
         <div class="mb-2 flex items-center justify-between gap-3">
-            <p class="eyebrow">Groups</p>
+            <p class="eyebrow text-(--accent)">Groups</p>
             {#if groups.length > 0}
                 <Button variant="ghost" size="sm" onclick={() => (editing = !editing)}>
                     {editing ? 'Done' : 'Edit groups'}
