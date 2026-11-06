@@ -3,6 +3,7 @@
     import { SECOND } from '#lib/utils.ts';
     import { Trophy } from '@lucide/svelte';
     import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import Skeleton from '#lib/components/Skeleton.svelte';
     import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
     import { sportsStore, loadSports } from '#lib/stores/SportsStore.svelte.ts';
     import { broadcastLabel, opponentLabel, resultLabel, resultWhen, sides, upcomingLabel } from '#lib/sports.ts';
@@ -24,7 +25,21 @@
     });
 </script>
 
-<SkeletonLoader promise={loadPromise}>
+{#snippet teamsSkeleton()}
+    <div class="flex flex-col gap-4">
+        {#each ['w-1/2', 'w-2/5'] as width (width)}
+            <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2">
+                    <Skeleton class="icon-md shrink-0 rounded-full" />
+                    <Skeleton class="h-4 {width}" />
+                </div>
+                <Skeleton class="h-4 w-3/4" />
+            </div>
+        {/each}
+    </div>
+{/snippet}
+
+<SkeletonLoader promise={loadPromise} skeleton={teamsSkeleton}>
     {#if sportsStore.error}
         <p class="type-label text-(--text-2)">Scores unavailable.</p>
     {:else if sportsStore.teams.length === 0}

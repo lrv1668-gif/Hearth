@@ -13,6 +13,7 @@
     import IconButton from '../ui/IconButton.svelte';
     import ListRow from '../ui/ListRow.svelte';
     import TextInput from '../ui/TextInput.svelte';
+    import Spinner from '../ui/Spinner.svelte';
 
     let newLabel = $state('');
     let newStopKey = $state('');
@@ -125,7 +126,9 @@
                     {#if expanded}
                         <div class="ml-3 flex flex-col gap-2 border-l border-(--border) py-2 pl-4">
                             {#if linesByStop[stop.stopKey] === 'loading'}
-                                <p class="type-label text-(--text-2)">Loading lines…</p>
+                                <p class="type-label flex items-center gap-1.5 text-(--text-2)">
+                                    <Spinner />Loading lines…
+                                </p>
                             {:else if linesByStop[stop.stopKey] === 'empty' || !linesByStop[stop.stopKey]}
                                 <p class="type-label text-(--text-2)">
                                     No departures right now to pick from — try again during service hours.

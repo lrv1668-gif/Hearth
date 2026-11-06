@@ -28,6 +28,18 @@ describe('calendar store', () => {
         expect(calendarStore.error).toBe(true);
     });
 
+    it('marks the items loaded after the first attempt, even a failed one', async () => {
+        calendarStore.loaded = false;
+        unreachable();
+        await loadCalendarItems();
+        expect(calendarStore.loaded).toBe(true);
+
+        calendarStore.loaded = false;
+        respond(200, []);
+        await loadCalendarItems();
+        expect(calendarStore.loaded).toBe(true);
+    });
+
     it('keeps the connection status when the check fails', async () => {
         unreachable();
         await loadCalendarStatus();

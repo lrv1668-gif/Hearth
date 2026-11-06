@@ -61,6 +61,9 @@ Form controls and other repeated pieces live in `apps/frontend/src/lib/component
 | `SizeSlider` | A text-size range between a small and large "A", showing the size as a percent (the dashboard's size and the frame's text size) |
 | `ListRow`, `ConnectionRow` | A settings list row with remove/extra actions; an outside service with its status and buttons |
 | `FileUploadButton`, `InlineMessage` | A file picker styled as a secondary button; an error (`--danger`, `role="alert"`) or muted note |
+| `Spinner` | A small decorative spinner for a short in-place wait (a status line, a busy button, a sub-list) — always beside words like "Checking…"; takes the text colour and stops under reduced motion |
+
+Loading follows one rule: a widget shows a skeleton shaped like its content until its first load finishes (`Skeleton` bars, or `SkeletonLoader` around a load promise with an optional shaped `skeleton` snippet; stores that several screens share expose a `loaded` flag), and an empty state only appears after that — never "Nothing scheduled" while tasks are still on their way. Short waits inside a screen use `Spinner`. Skeletons pulse only under `motion-safe`. The `/frame` copies never show either: the frame awaits its data before it renders.
 
 Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks (`box` or `dot`, `role="checkbox"`), and `PhotoUploadButton` validates (`checkPhotoFiles` in `lib/photos.ts`) and uploads photos for both the Photos settings and the photo collection. Settings groups use `SettingsGroup`, whose small-caps title is in `--accent` (as is a menu heading like the task editor's Repeat) so sections stand out from the `--text-2` descriptions and field labels; other small-caps headings (a list's, a tray's) use the `.eyebrow` class from `app.css`.
 

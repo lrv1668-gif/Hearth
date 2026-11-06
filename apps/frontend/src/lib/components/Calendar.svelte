@@ -16,6 +16,7 @@
     import TaskCheckbox from './TaskCheckbox.svelte';
     import Button from './ui/Button.svelte';
     import IconButton from './ui/IconButton.svelte';
+    import Spinner from './ui/Spinner.svelte';
     import { DAY_NAMES, MONTH_NAMES } from '#lib/constants/calendar.ts';
 
     interface Props {
@@ -28,6 +29,8 @@
         onDateClick: (date: string) => void;
         onEventClick?: (event: CalendarItem) => void;
         onToggleCalendarTask?: (taskListId: string, taskId: string, completed: boolean) => void;
+        /** Tasks or calendar items haven't finished their first load. */
+        loading?: boolean;
     }
 
     let {
@@ -40,6 +43,7 @@
         onDateClick,
         onEventClick,
         onToggleCalendarTask,
+        loading = false,
     }: Props = $props();
     const today = new Date();
 
@@ -214,6 +218,13 @@
             {/if}
             Today
         </Button>
+
+        <!-- After the arrows and Today, so its coming and going moves nothing -->
+        {#if loading}
+            <span class="type-label flex items-center gap-1.5 text-(--text-2)" role="status">
+                <Spinner />Loading…
+            </span>
+        {/if}
 
         <div class="flex-1"></div>
 

@@ -5,12 +5,15 @@ interface CalendarStoreState {
     googleConnected: boolean;
     /** The Calendar service couldn't be reached and there are no items to show. */
     error: boolean;
+    /** The first items load has finished, successfully or not. */
+    loaded: boolean;
 }
 
 export const calendarStore = $state<CalendarStoreState>({
     items: [],
     googleConnected: false,
     error: false,
+    loaded: false,
 });
 
 // A failed check or refresh keeps what's already known
@@ -21,6 +24,7 @@ export async function loadCalendarStatus(): Promise<void> {
 
 export async function loadCalendarItems(): Promise<void> {
     const items = await api.calendar.items();
+    calendarStore.loaded = true;
     if (!items) {
         calendarStore.error = calendarStore.items.length === 0;
         return;

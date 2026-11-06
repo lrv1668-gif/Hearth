@@ -1,14 +1,17 @@
 <script lang="ts">
     import type { Task } from '#lib/api.ts';
     import { upcomingCountdowns } from '#lib/frame.ts';
+    import Skeleton from '#lib/components/Skeleton.svelte';
 
     interface Props {
         tasks: Task[];
         onEdit: (task: Task) => void;
         limit?: number;
+        /** Tasks haven't finished their first load — no list yet isn't "no countdowns". */
+        loading?: boolean;
     }
 
-    let { tasks, onEdit, limit = 5 }: Props = $props();
+    let { tasks, onEdit, limit = 5, loading = false }: Props = $props();
 
     function formatDate(dueDate: string): string {
         return new Date(`${dueDate.slice(0, 10)}T00:00`).toLocaleDateString('en-US', {
@@ -20,7 +23,21 @@
     const upcoming = $derived(upcomingCountdowns(tasks, new Date(), limit));
 </script>
 
-{#if upcoming.length === 0}
+{#if upcoming.length === 0 && loading}
+    <ul class="space-y-3" aria-busy="true" aria-label="Loading countdowns">
+        {#each ['w-1/2', 'w-2/5'] as width (width)}
+            <li class="flex items-start gap-3">
+                <div class="flex w-[calc(var(--font-title)*1.75)] flex-shrink-0 justify-end">
+                    <Skeleton class="h-8 w-8" />
+                </div>
+                <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <Skeleton class="h-4 {width}" />
+                    <Skeleton class="h-3 w-12" />
+                </div>
+            </li>
+        {/each}
+    </ul>
+{:else if upcoming.length === 0}
     <p class="type-label text-(--text-2)">No countdowns added yet.</p>
 {:else}
     <ul class="space-y-3">

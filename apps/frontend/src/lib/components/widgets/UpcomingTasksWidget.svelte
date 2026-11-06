@@ -6,6 +6,7 @@
     import TaskCheckbox from '#lib/components/TaskCheckbox.svelte';
     import Button from '#lib/components/ui/Button.svelte';
     import IconButton from '#lib/components/ui/IconButton.svelte';
+    import Skeleton from '#lib/components/Skeleton.svelte';
 
     interface Props {
         tasks: Task[];
@@ -15,9 +16,20 @@
         onEdit: (task: Task) => void;
         onEventClick?: (event: CalendarItem) => void;
         onToggleCalendarTask?: (taskListId: string, taskId: string, completed: boolean) => void;
+        /** Tasks or calendar items haven't finished their first load — an empty list isn't "nothing scheduled" yet. */
+        loading?: boolean;
     }
 
-    let { tasks, calItems, onToggle, onDelete, onEdit, onEventClick, onToggleCalendarTask }: Props = $props();
+    let {
+        tasks,
+        calItems,
+        onToggle,
+        onDelete,
+        onEdit,
+        onEventClick,
+        onToggleCalendarTask,
+        loading = false,
+    }: Props = $props();
 
     let confirmDeleteId = $state<number | null>(null);
 
@@ -135,7 +147,19 @@
     }
 </script>
 
-{#if groups.length === 0}
+{#if groups.length === 0 && loading}
+    <div class="space-y-1" aria-busy="true" aria-label="Loading agenda">
+        <Skeleton class="h-3 w-24" />
+        <ul class="space-y-2">
+            {#each ['w-2/3', 'w-1/2', 'w-3/5'] as width (width)}
+                <li class="flex items-center gap-2 py-2 sm:gap-3 sm:px-3 sm:py-2.5">
+                    <Skeleton class="icon-md shrink-0 rounded-full" />
+                    <Skeleton class="h-4 {width}" />
+                </li>
+            {/each}
+        </ul>
+    </div>
+{:else if groups.length === 0}
     <p class="type-body py-4 text-center text-(--text-2)">Nothing scheduled.</p>
 {:else}
     <div class="space-y-4">

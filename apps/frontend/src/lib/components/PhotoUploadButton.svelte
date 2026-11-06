@@ -3,6 +3,7 @@
     import { api, type UploadedPhoto } from '#lib/api.ts';
     import { checkPhotoFiles, PHOTO_UPLOAD_TYPES, summarizeUploadErrors } from '#lib/photos.ts';
     import FileUploadButton from './ui/FileUploadButton.svelte';
+    import Spinner from './ui/Spinner.svelte';
 
     interface Props {
         label?: string;
@@ -49,7 +50,7 @@ shared by the Ambient settings and the photo collection.
 -->
 <FileUploadButton
     label={uploading ? busyLabel : label}
-    icon={ImageUp}
+    icon={uploading ? Spinner : ImageUp}
     accept={PHOTO_UPLOAD_TYPES.join(',')}
     multiple
     disabled={uploading}

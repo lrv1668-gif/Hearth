@@ -80,11 +80,12 @@
                 onEdit={openEditTask}
                 onEventClick={(e) => e.kind === 'event' && (selectedEvent = e)}
                 onToggleCalendarTask={toggleCalendarTask}
+                loading={!taskStore.loaded || !calendarStore.loaded}
             />
         </WidgetContainer>
     {:else if id === 'countdowns'}
         <WidgetContainer title="Countdowns" associatedWidgetId="countdowns">
-            <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} />
+            <CountdownWidget tasks={taskStore.tasks} onEdit={openEditTask} loading={!taskStore.loaded} />
         </WidgetContainer>
     {:else if id === 'moon-phase'}
         <WidgetContainer title="Moon Phase" associatedWidgetId="moon-phase">
