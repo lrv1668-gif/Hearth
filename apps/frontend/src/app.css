@@ -205,17 +205,21 @@ dialog:modal {
     }
 }
 
-/* ── Scrollbar utility ───────────────────────────────────────────────────── */
-.scroll-thin::-webkit-scrollbar {
-    width: 3px;
+/* ── Scrollbars ──────────────────────────────────────────────────────────── */
+/* Themes set color-scheme only on inputs, so without this Edge/Chrome draw
+   the stock light-grey scrollbar on dark themes. The standard properties
+   (Chromium 121+, Firefox) override ::-webkit-scrollbar wherever they're
+   set, so they're the one source of truth. scrollbar-color inherits, so
+   setting it on html themes every scroll container.                         */
+html {
+    scrollbar-color: var(--text-4) transparent;
 }
-.scroll-thin::-webkit-scrollbar-track {
-    background: transparent;
+
+/* Hairline variant for inner lists. */
+.scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
 }
-.scroll-thin::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 9999px;
-}
-.scroll-thin::-webkit-scrollbar-thumb:hover {
-    background: var(--text-3);
+.scroll-thin:hover {
+    scrollbar-color: var(--text-3) transparent;
 }
