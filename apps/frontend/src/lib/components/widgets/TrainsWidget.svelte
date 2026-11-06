@@ -5,6 +5,7 @@
     import { trainsStore, loadTrainDepartures } from '#lib/stores/TrainsStore.svelte.ts';
     import { household } from '#lib/stores/HouseholdStore.svelte.ts';
     import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import Skeleton from '#lib/components/Skeleton.svelte';
     import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
 
@@ -108,7 +109,20 @@
     );
 </script>
 
-<SkeletonLoader promise={loadPromise}>
+{#snippet departuresSkeleton()}
+    <div class="flex flex-col gap-1.5">
+        <Skeleton class="h-3 w-28" />
+        {#each ['w-1/2', 'w-2/5', 'w-3/5'] as width (width)}
+            <div class="flex items-center gap-2.5">
+                <Skeleton class="icon-sm shrink-0" />
+                <div class="min-w-0 flex-1"><Skeleton class="h-4 {width}" /></div>
+                <Skeleton class="h-3 w-14 shrink-0" />
+            </div>
+        {/each}
+    </div>
+{/snippet}
+
+<SkeletonLoader promise={loadPromise} skeleton={departuresSkeleton}>
     {#if household.trainStops.length === 0}
         <div class="flex flex-col gap-1 py-4 text-(--text-2)">
             <TrainFront class="icon-sm mb-1" />

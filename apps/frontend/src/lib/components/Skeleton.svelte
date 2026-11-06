@@ -2,4 +2,4 @@
     let { class: className = '' }: { class?: string } = $props();
 </script>
 
-<div class="animate-pulse rounded bg-(--surface-hi) {className}"></div>
+<div class="rounded bg-(--surface-hi) motion-safe:animate-pulse {className}" aria-hidden="true"></div>

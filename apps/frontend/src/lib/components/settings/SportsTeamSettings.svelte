@@ -8,6 +8,7 @@
     import InlineMessage from '../ui/InlineMessage.svelte';
     import ListRow from '../ui/ListRow.svelte';
     import Select from '../ui/Select.svelte';
+    import Spinner from '../ui/Spinner.svelte';
 
     let leagues = $state<SportsLeague[]>([]);
     let league = $state('nwsl');
@@ -64,8 +65,12 @@
                     removeLabel="Unfollow {team.name}"
                 />
             {:else}
-                <p class="type-label py-4 text-center text-(--text-2)">
-                    {followedTeams.loaded ? 'No teams followed yet.' : 'Loading…'}
+                <p class="type-label flex items-center justify-center gap-1.5 py-4 text-(--text-2)">
+                    {#if followedTeams.loaded}
+                        No teams followed yet.
+                    {:else}
+                        <Spinner />Loading…
+                    {/if}
                 </p>
             {/each}
         </div>
@@ -111,7 +116,9 @@
                     {#if followedTeams.teams.length > 0}
                         <Button variant="ghost" onclick={() => (adding = false)}>Cancel</Button>
                     {/if}
-                    <Button onclick={handleAdd} disabled={!teamId || saving}>Follow team</Button>
+                    <Button onclick={handleAdd} disabled={!teamId || saving}>
+                        {#if saving}<Spinner class="icon-sm" />{/if}Follow team
+                    </Button>
                 </div>
             </div>
         </SettingsGroup>

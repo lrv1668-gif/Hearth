@@ -3,6 +3,7 @@
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import { weatherIcon } from '#lib/constants/weather.ts';
     import { localDateKey } from '#lib/utils.ts';
+    import Skeleton from '#lib/components/Skeleton.svelte';
 
     function formatSunTime(iso: string): string {
         return new Date(iso).toLocaleTimeString('en-US', {
@@ -13,7 +14,21 @@
     }
 </script>
 
-{#if weatherStore.current}
+{#if !weatherStore.loaded}
+    <!-- Shaped like the loaded widget so nothing jumps when the forecast lands -->
+    <div class="space-y-3" aria-busy="true" aria-label="Loading weather">
+        <div class="flex items-center gap-3">
+            <Skeleton class="icon-lg shrink-0 rounded-full" />
+            <Skeleton class="h-8 w-40" />
+        </div>
+        <div class="flex gap-1">
+            {#each { length: 5 }, i (i)}
+                <Skeleton class="h-20 min-w-0 flex-1 rounded-lg" />
+            {/each}
+        </div>
+        <Skeleton class="h-4 w-3/4" />
+    </div>
+{:else if weatherStore.current}
     {@const WeatherIcon = weatherIcon(weatherStore.current.weather_code)}
     <div class="space-y-3">
         <div class="flex items-center gap-3">

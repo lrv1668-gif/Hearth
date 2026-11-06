@@ -4,6 +4,7 @@
     import { Rss } from '@lucide/svelte';
     import { rssStore, loadRssArticles } from '#lib/stores/RssFeedStore.svelte.ts';
     import SkeletonLoader from '#lib/components/SkeletonLoader.svelte';
+    import Skeleton from '#lib/components/Skeleton.svelte';
     import ScrollFadeList from '#lib/components/ScrollFadeList.svelte';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
 
@@ -34,7 +35,18 @@
     });
 </script>
 
-<SkeletonLoader promise={loadPromise}>
+{#snippet articleSkeleton()}
+    <div class="flex flex-col">
+        {#each ['w-full', 'w-4/5', 'w-11/12'] as width (width)}
+            <div class="flex flex-col gap-1.5 py-2 pl-3 first:pt-1">
+                <Skeleton class="h-4 {width}" />
+                <Skeleton class="h-3 w-1/3" />
+            </div>
+        {/each}
+    </div>
+{/snippet}
+
+<SkeletonLoader promise={loadPromise} skeleton={articleSkeleton}>
     {#if flatArticles.length === 0}
         <div class="flex flex-col gap-1 py-4 text-(--text-2)">
             <Rss class="icon-sm mb-1" />

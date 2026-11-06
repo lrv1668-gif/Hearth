@@ -5,6 +5,7 @@
     import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
     import { eventDateKey, localDateKey } from '#lib/utils.ts';
     import { nearestHour } from '#lib/frame.ts';
+    import Skeleton from '#lib/components/Skeleton.svelte';
 
     /** `hourly`: the e-paper frame's copy — the "now" dot (and which marks have passed)
      *  moves in whole hours, so a re-render within the hour keeps the same pixels. */
@@ -73,7 +74,19 @@
     }
 </script>
 
-{#if !sunrise || !sunset || !goldenStart || !morningGoldenEnd}
+{#if !weatherStore.loaded && !hourly}
+    <!-- The frame (hourly) awaits its data before rendering, so only the dashboard waits here -->
+    <div class="flex flex-col gap-2" aria-busy="true" aria-label="Loading sun times">
+        <div class="flex h-8 items-center">
+            <Skeleton class="h-2 w-full rounded-full" />
+        </div>
+        <div class="flex justify-between gap-2">
+            <Skeleton class="h-4 w-16" />
+            <Skeleton class="h-4 w-28" />
+            <Skeleton class="h-4 w-16" />
+        </div>
+    </div>
+{:else if !sunrise || !sunset || !goldenStart || !morningGoldenEnd}
     <p class="type-label text-(--text-2)">Sun times unavailable — set up the Weather service.</p>
 {:else}
     <div class="flex flex-col gap-2">

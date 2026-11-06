@@ -8,6 +8,7 @@
     import IconButton from '../ui/IconButton.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
     import ListRow from '../ui/ListRow.svelte';
+    import Spinner from '../ui/Spinner.svelte';
 
     // undefined until the first answer; null when a service didn't answer
     let reports = $state<Partial<Record<HearthServiceId, ServiceHealth | null>>>({});
@@ -47,9 +48,9 @@
 </script>
 
 <div class="mb-2 flex items-center justify-between gap-2">
-    <InlineMessage>
+    <InlineMessage class="flex items-center gap-1.5">
         {#if !loaded}
-            Checking…
+            <Spinner />Checking…
         {:else if needAttention === 0}
             Everything is running{notSetUp > 0 ? ` — ${notSetUp} not set up` : ''}.
         {:else}
@@ -57,7 +58,7 @@
         {/if}
     </InlineMessage>
     <IconButton label="Check again" onclick={load} disabled={checking}>
-        <RefreshCw class="icon-sm {checking ? 'animate-spin' : ''}" />
+        <RefreshCw class="icon-sm {checking ? 'motion-safe:animate-spin' : ''}" />
     </IconButton>
 </div>
 

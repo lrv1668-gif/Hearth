@@ -52,6 +52,7 @@
         onDateClick={openDateTask}
         onEventClick={(e) => e.kind === 'event' && (selectedEvent = e)}
         onToggleCalendarTask={toggleCalendarTask}
+        loading={!taskStore.loaded || !calendarStore.loaded}
     />
 </main>
 

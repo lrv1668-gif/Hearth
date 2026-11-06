@@ -43,7 +43,7 @@
     {#snippet actions()}
         {#if calendarStore.googleConnected}
             <Button onclick={handleRefresh} disabled={refreshing} aria-label="Refresh calendar data">
-                <RefreshCw class="icon-xs {refreshing ? 'animate-spin' : ''}" aria-hidden="true" />
+                <RefreshCw class="icon-xs {refreshing ? 'motion-safe:animate-spin' : ''}" aria-hidden="true" />
                 {refreshing ? 'Refreshing…' : 'Refresh'}
             </Button>
             <Button onclick={handleDisconnect}>Disconnect</Button>

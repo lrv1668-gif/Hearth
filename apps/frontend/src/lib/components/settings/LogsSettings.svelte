@@ -4,6 +4,7 @@
     import { api } from '#lib/api.ts';
     import Button from '../ui/Button.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
+    import Spinner from '../ui/Spinner.svelte';
 
     // undefined while checking. Dozzle is opt-in (a Compose profile), so off is a normal state.
     let running = $state<boolean>();
@@ -14,7 +15,7 @@
 </script>
 
 {#if running === undefined}
-    <InlineMessage>Checking…</InlineMessage>
+    <InlineMessage class="flex items-center gap-1.5"><Spinner />Checking…</InlineMessage>
 {:else if running}
     <Button href="/logs/" target="_blank" rel="noopener">
         <ExternalLink class="icon-sm" aria-hidden="true" />

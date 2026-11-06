@@ -8,6 +8,7 @@
     import { photoQuery, resolveSource, uploadToPhoto } from '#lib/photos.ts';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
     import { MediaQuery } from 'svelte/reactivity';
+    import Spinner from '#lib/components/ui/Spinner.svelte';
 
     const isPortrait = new MediaQuery('orientation: portrait');
 
@@ -161,7 +162,9 @@
         {chromeVisible ? 'cursor-pointer' : 'cursor-none'}"
 >
     {#if loading}
-        <p class="type-body tracking-widest text-white/40 uppercase">Loading…</p>
+        <p class="type-body flex items-center gap-2 tracking-widest text-white/40 uppercase">
+            <Spinner class="icon-sm" />Loading…
+        </p>
     {:else if photo}
         {#key photo.id}
             <!-- The whole photo fits the screen; a blurred copy fills the letterbox -->

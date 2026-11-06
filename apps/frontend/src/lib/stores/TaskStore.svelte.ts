@@ -2,11 +2,14 @@ import { api, type Task } from '../api';
 
 // `error`: the Tasks service couldn't be reached and there's nothing to show, so an empty
 // list means "unknown", not "nothing due" — the frame says so rather than claim a clear day.
-export const taskStore = $state({ tasks: [] as Task[], error: false });
+// `loaded`: the first load has finished, successfully or not — until then an empty list is
+// still loading, so the dashboard shows a skeleton rather than "Nothing scheduled".
+export const taskStore = $state({ tasks: [] as Task[], error: false, loaded: false });
 
 // A failed refresh keeps the tasks already on screen
 export async function loadTasks() {
     const tasks = await api.tasks.list();
+    taskStore.loaded = true;
     if (!tasks) {
         taskStore.error = taskStore.tasks.length === 0;
         return;

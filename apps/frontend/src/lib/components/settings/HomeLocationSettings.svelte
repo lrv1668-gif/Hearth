@@ -14,6 +14,7 @@
     import Button from '../ui/Button.svelte';
     import Field from '../ui/Field.svelte';
     import InlineMessage from '../ui/InlineMessage.svelte';
+    import Spinner from '../ui/Spinner.svelte';
     import TextInput from '../ui/TextInput.svelte';
 
     // The form edits a draft; Save sends it whole.
@@ -279,7 +280,7 @@
                 onclick={save}
                 disabled={!!problem || saving || !homeLocation.loaded || homeLocation.error}
             >
-                {saving ? 'Saving…' : 'Save'}
+                {#if saving}<Spinner class="icon-sm" />Saving…{:else}Save{/if}
             </Button>
         </div>
     </div>

@@ -38,6 +38,18 @@ describe('loadTasks', () => {
         expect(taskStore.error).toBe(false);
     });
 
+    it('marks the store loaded after the first attempt, even a failed one', async () => {
+        taskStore.loaded = false;
+        unreachable();
+        await loadTasks();
+        expect(taskStore.loaded).toBe(true);
+
+        taskStore.loaded = false;
+        respond(200, []);
+        await loadTasks();
+        expect(taskStore.loaded).toBe(true);
+    });
+
     it('keeps the last good list when the network is down', async () => {
         unreachable();
         await expect(loadTasks()).resolves.toBeUndefined();

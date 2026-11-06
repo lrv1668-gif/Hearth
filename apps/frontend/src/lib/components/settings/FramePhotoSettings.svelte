@@ -10,6 +10,7 @@
     import PhotoModePicker from './PhotoModePicker.svelte';
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import SettingsGroup from '../ui/SettingsGroup.svelte';
+    import Spinner from '../ui/Spinner.svelte';
 
     let uploads = $state<UploadedPhoto[]>([]);
     let loaded = $state(false);
@@ -75,7 +76,7 @@ Saved with the rest of the frame settings.
     <SettingsGroup title="Photo mode">
         <p class="type-caption mb-2 text-(--text-2)">
             {#if !loaded}
-                Loading your photos…
+                <span class="inline-flex items-center gap-1.5"><Spinner />Loading your photos…</span>
             {:else if uploads.length === 0}
                 No uploads yet — add some under <a href="#{settingsCardId('My photos')}" class="underline">My photos</a
                 >.
