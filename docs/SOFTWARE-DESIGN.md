@@ -62,7 +62,7 @@ Form controls and other repeated pieces live in `apps/frontend/src/lib/component
 | `ListRow`, `ConnectionRow` | A settings list row with remove/extra actions; an outside service with its status and buttons |
 | `FileUploadButton`, `InlineMessage` | A file picker styled as a secondary button; an error (`--danger`, `role="alert"`) or muted note |
 
-Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks (`box` or `dot`, `role="checkbox"`), and `PhotoUploadButton` validates (`checkPhotoFiles` in `lib/photos.ts`) and uploads photos for both the Photos settings and the photo collection. Settings groups use `SettingsGroup`; other small-caps headings (a list's, a tray's) use the `.eyebrow` class from `app.css`.
+Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks (`box` or `dot`, `role="checkbox"`), and `PhotoUploadButton` validates (`checkPhotoFiles` in `lib/photos.ts`) and uploads photos for both the Photos settings and the photo collection. Settings groups use `SettingsGroup`, whose small-caps title is in `--accent` (as is a menu heading like the task editor's Repeat) so sections stand out from the `--text-2` descriptions and field labels; other small-caps headings (a list's, a tray's) use the `.eyebrow` class from `app.css`.
 
 ### Routes
 

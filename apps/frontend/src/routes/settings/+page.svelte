@@ -313,8 +313,13 @@
                     tabindex="-1"
                     class="scroll-mt-6 rounded-xl border-2 border-(--border) bg-(--surface) p-4 outline-none sm:p-6"
                 >
-                    {#if title}<p class="type-subtitle mb-1 font-medium text-(--text-1)">{title}</p>{/if}
-                    {#if description}<p class="type-body mb-4 text-(--text-2)">{description}</p>{/if}
+                    <!-- A hairline under the header marks where the card's own settings start -->
+                    {#if title || description}
+                        <div class="mb-5 border-b border-(--border) pb-4">
+                            {#if title}<h2 class="type-subtitle font-semibold text-(--text-1)">{title}</h2>{/if}
+                            {#if description}<p class="type-body mt-1 text-(--text-2)">{description}</p>{/if}
+                        </div>
+                    {/if}
                     {@render children()}
                 </div>
             {/snippet}
