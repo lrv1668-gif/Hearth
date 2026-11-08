@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { fly } from 'svelte/transition';
-    import { Music } from '@lucide/svelte';
+    import { Music, Pause, Play } from '@lucide/svelte';
     import { SECOND, poll } from '#lib/utils.ts';
     import { formatTrackTime, trackPosition } from '#lib/music.ts';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
@@ -35,14 +35,14 @@
 <!--
 @component
 The dashboard's Now Playing widget: a record that spins while Spotify plays (the album art is
-its label), bouncing equalizer bars and a progress bar that ticks between polls. Nothing
+its label), a play/pause icon and a progress bar that ticks between polls. Nothing
 playing leaves the record still; no Spotify login points to Settings → Connections. It polls
 `/spotify/now-playing` every 5 s, so it only polls while it's on the dashboard.
 -->
 <SkeletonLoader promise={loadPromise}>
     {#snippet skeleton()}
         <div class="flex items-center gap-4">
-            <Skeleton class="size-16 shrink-0 rounded-full" />
+            <Skeleton class="size-24 shrink-0 rounded-full" />
             <div class="flex flex-1 flex-col gap-2">
                 <Skeleton class="h-4 w-2/3" />
                 <Skeleton class="h-4 w-1/2" />
@@ -63,7 +63,7 @@ playing leaves the record still; no Spotify login points to Settings → Connect
         </div>
     {:else}
         <section aria-label="Now playing" class="flex min-w-0 items-center gap-4" class:paused={!playing}>
-            <div class="record size-16 shrink-0" aria-hidden="true">
+            <div class="record size-24 shrink-0" aria-hidden="true">
                 <div class="label">
                     {#if track?.album_art_url}
                         <img src={track.album_art_url} alt="" class="size-full object-cover" />
@@ -79,9 +79,11 @@ playing leaves the record still; no Spotify login points to Settings → Connect
                     <div class="flex min-w-0 flex-1 flex-col gap-1" in:fly={{ y: 6, duration: 300 }}>
                         <div class="flex min-w-0 items-center gap-2">
                             <p class="type-body min-w-0 flex-1 truncate font-bold text-(--text-1)">{track.title}</p>
-                            <span class="eq shrink-0" aria-hidden="true">
-                                <span></span><span></span><span></span><span></span>
-                            </span>
+                            {#if playing}
+                                <Play class="icon-sm shrink-0 fill-current text-(--accent)" aria-label="Playing" />
+                            {:else}
+                                <Pause class="icon-sm shrink-0 fill-current text-(--text-3)" aria-label="Paused" />
+                            {/if}
                         </div>
                         <p class="type-label truncate text-(--text-2)">
                             {track.artist}{track.album_name ? ` · ${track.album_name}` : ''}
@@ -133,60 +135,29 @@ playing leaves the record still; no Spotify login points to Settings → Connect
         box-shadow:
             0 0 0 1px var(--border),
             0 1px 4px color-mix(in srgb, var(--vinyl) 35%, transparent);
-        animation: spin 4s linear infinite;
+        /* Slow, like a turntable seen from across the room — enough to feel alive, not to pull the eye */
+        animation: spin 24s linear infinite;
     }
     .label {
         display: grid;
         place-items: center;
-        width: 52%;
-        height: 52%;
+        width: 64%;
+        height: 64%;
         overflow: hidden;
         border-radius: 9999px;
         background: var(--accent);
     }
     .spindle {
         position: absolute;
-        width: 8%;
-        height: 8%;
+        width: 6%;
+        height: 6%;
         border-radius: 9999px;
         background: var(--bg);
     }
 
-    .eq {
-        display: flex;
-        align-items: flex-end;
-        gap: 2px;
-        height: 0.875em;
-    }
-    .eq span {
-        width: 3px;
-        height: 100%;
-        border-radius: 1px;
-        background: var(--accent);
-        transform-origin: bottom;
-        animation: bounce 0.9s ease-in-out infinite alternate;
-    }
-    .eq span:nth-child(2) {
-        animation-delay: -0.45s;
-        animation-duration: 0.7s;
-    }
-    .eq span:nth-child(3) {
-        animation-delay: -0.2s;
-        animation-duration: 1.05s;
-    }
-    .eq span:nth-child(4) {
-        animation-delay: -0.6s;
-        animation-duration: 0.8s;
-    }
-
-    /* Paused: the record stops where it is and the bars rest low */
+    /* Paused: the record stops where it is */
     .paused .record {
         animation-play-state: paused;
-    }
-    .paused .eq span {
-        animation: none;
-        transform: scaleY(0.25);
-        opacity: 0.6;
     }
 
     @keyframes spin {
@@ -194,22 +165,10 @@ playing leaves the record still; no Spotify login points to Settings → Connect
             transform: rotate(360deg);
         }
     }
-    @keyframes bounce {
-        from {
-            transform: scaleY(0.2);
-        }
-        to {
-            transform: scaleY(1);
-        }
-    }
 
     @media (prefers-reduced-motion: reduce) {
-        .record,
-        .eq span {
+        .record {
             animation: none;
-        }
-        .eq span {
-            transform: scaleY(0.6);
         }
     }
 </style>
