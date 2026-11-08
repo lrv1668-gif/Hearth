@@ -21,13 +21,14 @@ export const toggleableWidgets = [
         label: 'Sports',
         description: 'Live scores, results and next games for teams you follow, via ESPN',
     },
+    { id: 'now-playing', label: 'Now Playing', description: "What's playing on Spotify, on a spinning record" },
 ] as const;
 
 export type WidgetId = (typeof toggleableWidgets)[number]['id'];
 export const DEFAULT_ENABLED_WIDGETS_IDS: WidgetId[] = toggleableWidgets.map((w) => w.id);
 
 // Widgets that can be placed in columns. Does not include widgets fixed in the
-// header (time/date, current conditions) or footer (now playing, refresh time).
+// header (time/date, current conditions) or footer (refresh time).
 export const allWidgets = [
     { id: 'upcoming-tasks', label: 'Agenda' },
     { id: 'weather', label: 'Weather' },
@@ -40,12 +41,13 @@ export const allWidgets = [
     { id: 'almanac', label: 'Almanac' },
     { id: 'trains', label: 'Trains & Buses' },
     { id: 'sports', label: 'Sports' },
+    { id: 'now-playing', label: 'Now Playing' },
 ] as const;
 
 export type AllWidgetId = (typeof allWidgets)[number]['id'];
 
 export const DEFAULT_WIDGET_COLUMNS: { left: AllWidgetId[]; right: AllWidgetId[] } = {
-    left: ['day-arc', 'upcoming-tasks', 'sports'],
+    left: ['now-playing', 'day-arc', 'upcoming-tasks', 'sports'],
     right: ['weather', 'rss-feeds', 'countdowns', 'moon-phase', 'almanac', 'daily-quote', 'birds', 'trains'],
 };
 
@@ -54,4 +56,4 @@ export const ALL_WIDGET_IDS: AllWidgetId[] = allWidgets.map((w) => w.id);
 // Items always visible in the header and footer — not configurable.
 export const fixedHeaderWidgets = [{ label: 'Date & Time' }, { label: 'Current Conditions' }] as const;
 
-export const fixedFooterWidgets = [{ label: 'Now Playing' }, { label: 'Refresh Time' }] as const;
+export const fixedFooterWidgets = [{ label: 'Refresh Time' }] as const;

@@ -1,8 +1,9 @@
 import { api, type NowPlaying } from '../api';
 import { MINUTE } from '#lib/utils.ts';
 
-// undefined = not authenticated, null = authenticated but nothing playing
-export const spotifyStore = $state({ nowPlaying: undefined as NowPlaying | null | undefined });
+// undefined = not authenticated, null = authenticated but nothing playing.
+// fetchedAt is when nowPlaying was last reported, so the progress bar can tick between polls.
+export const spotifyStore = $state({ nowPlaying: undefined as NowPlaying | null | undefined, fetchedAt: 0 });
 
 let lastChecked = 0;
 
@@ -10,6 +11,7 @@ export async function refreshNowPlaying() {
     lastChecked = Date.now();
     try {
         spotifyStore.nowPlaying = await api.spotify.nowPlaying();
+        spotifyStore.fetchedAt = Date.now();
     } catch {
         // Spotify unreachable or rate-limited: keep showing what's there until it answers
     }
