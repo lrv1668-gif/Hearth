@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { fly } from 'svelte/transition';
-    import { Music, Pause, Play } from '@lucide/svelte';
+    import { Disc3, Pause, Play } from '@lucide/svelte';
     import { SECOND, poll } from '#lib/utils.ts';
     import { formatTrackTime, trackPosition } from '#lib/music.ts';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
@@ -68,7 +68,7 @@ playing leaves the record still; no Spotify login points to Settings → Connect
                     {#if track?.album_art_url}
                         <img src={track.album_art_url} alt="" class="size-full object-cover" />
                     {:else}
-                        <Music class="icon-xs text-(--accent-fg)" />
+                        <Disc3 class="label-icon text-(--accent-fg)" />
                     {/if}
                 </div>
                 <span class="spindle"></span>
@@ -146,6 +146,12 @@ playing leaves the record still; no Spotify login points to Settings → Connect
         overflow: hidden;
         border-radius: 9999px;
         background: var(--accent);
+    }
+    /* No album art: a disc fills most of the label. It's symmetric, so it centres on the
+       spindle, and at this size its hub ring is about the spindle's size. */
+    .label :global(.label-icon) {
+        width: 58%;
+        height: 58%;
     }
     .spindle {
         position: absolute;
