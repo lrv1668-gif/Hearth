@@ -26,8 +26,7 @@
     import { settings } from '#lib/stores/SettingsStore.svelte.ts';
     import type { AllWidgetId } from '#lib/constants/widgets.ts';
     import { MediaQuery } from 'svelte/reactivity';
-    import { Music } from '@lucide/svelte';
-    import { spotifyStore } from '#lib/stores/SpotifyStore.svelte.ts';
+    import NowPlayingWidget from '#lib/components/widgets/NowPlayingWidget.svelte';
 
     // Loaded here rather than in WeatherWidget: the header, footer and day arc read it too.
     onMount(() => {
@@ -119,6 +118,10 @@
         <WidgetContainer title="Sports" associatedWidgetId="sports">
             <SportsWidget />
         </WidgetContainer>
+    {:else if id === 'now-playing'}
+        <WidgetContainer title="Now Playing" associatedWidgetId="now-playing">
+            <NowPlayingWidget />
+        </WidgetContainer>
     {/if}
 {/snippet}
 
@@ -145,18 +148,6 @@
                     </p>
                 {/if}
             </div>
-        {/if}
-        <!-- Below lg the footer is hidden, so Now Playing moves up here (DashboardFooter still does the polling) -->
-        {#if spotifyStore.nowPlaying}
-            <p
-                class="type-label mb-4 flex min-w-0 items-center gap-1.5 rounded-lg bg-(--surface) p-2 text-(--text-2) lg:hidden"
-            >
-                <Music class="icon-sm flex-shrink-0" />
-                <span class="truncate">
-                    <span class="font-bold text-(--text-1)">{spotifyStore.nowPlaying.title}</span>
-                    {spotifyStore.nowPlaying.artist}
-                </span>
-            </p>
         {/if}
 
         <div class="flex w-full gap-8">

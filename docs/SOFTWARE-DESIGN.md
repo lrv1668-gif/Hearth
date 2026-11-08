@@ -77,7 +77,7 @@ Outside `ui/`, `TaskCheckbox` is the done checkbox for tasks and calendar tasks 
 | `/settings` | Sections (`?section=`): theme and type pickers, kiosk mode, home location and time zone, photos (collection, source and categories, the frame's photo interval and Photo mode album, the browser slideshow), widget layout and visibility, service health and a link to the logs (Diagnostics) — a sidebar on wide screens (hidden with ⌘B / Ctrl+B), a drill-in list on phones |
 | `/frame`    | E-paper render target — panel-sized canvas (default 1600×1200), no nav (see below)        |
 
-The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one (left column first, then right), the bottom tab bar replaces the masthead, the kiosk footer is hidden (Now Playing moves to the top of the dashboard), a one-line date and current conditions open the dashboard outside kiosk mode, and `ScrollFadeList` lists (news, birds, trains) clip with a Show more/less toggle instead of scrolling inside the page. Settings opens on a section list there, with a back link from each section, in place of the sidebar. On wide screens the sidebar lists the active section's cards under it (`SettingsSubnav.svelte`) and highlights the one in view; it reads them off the page — every titled card rendered through the page's `card` snippet is listed — so a new card needs no nav code, and a new section is one entry in `constants/settingsSections.ts` plus its `{:else if}` block. The calendar switches earlier, at `md` (768px): below it day cells show marks instead of titles (squares for tasks, circles for events), a horizontal swipe on the grid changes month, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows — with an Add task button in place of the header's New Task. Below `sm` (640px) every modal (`ui/Modal.svelte`, a `<dialog class="sheet">`) becomes a bottom sheet (`app.css`), and the agenda puts each time above its title.
+The dashboard, nav, and footer all switch between mobile and desktop layouts at one breakpoint: Tailwind's `lg` (1024px). Below it the widget columns stack into one (left column first, then right), the bottom tab bar replaces the masthead, the kiosk footer is hidden, a one-line date and current conditions open the dashboard outside kiosk mode, and `ScrollFadeList` lists (news, birds, trains) clip with a Show more/less toggle instead of scrolling inside the page. Settings opens on a section list there, with a back link from each section, in place of the sidebar. On wide screens the sidebar lists the active section's cards under it (`SettingsSubnav.svelte`) and highlights the one in view; it reads them off the page — every titled card rendered through the page's `card` snippet is listed — so a new card needs no nav code, and a new section is one entry in `constants/settingsSections.ts` plus its `{:else if}` block. The calendar switches earlier, at `md` (768px): below it day cells show marks instead of titles (squares for tasks, circles for events), a horizontal swipe on the grid changes month, and tapping a day lists its items under the grid in `DayItemList.svelte` — the same rows the desktop `DayOverflowModal.svelte` shows — with an Add task button in place of the header's New Task. Below `sm` (640px) every modal (`ui/Modal.svelte`, a `<dialog class="sheet">`) becomes a bottom sheet (`app.css`), and the agenda puts each time above its title.
 
 #### Frame route
 
@@ -123,7 +123,7 @@ Kiosk mode can be activated in two ways: toggle **Settings → Display → Kiosk
 
 - The desktop navigation header (`Nav.svelte`) is hidden.
 - The `DashboardHeader` strip (live clock + date + current weather) is shown above the widget columns.
-- The `DashboardFooter` (now-playing + refresh time) is shown below the widget columns.
+- The `DashboardFooter` (refresh time) is shown below the widget columns.
 
 The persistent setting is the recommended choice for a dedicated wall display. The URL param is useful when the setting cannot be changed (e.g. a shared device or a hardcoded display URL). The standard URL with no param and the setting off shows the nav and hides the dashboard header/footer chrome, which suits regular browser access.
 
@@ -145,7 +145,7 @@ Shortcuts are bound with [tinykeys](https://github.com/jamiebuilds/tinykeys), wh
 | `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, panel size, layout, split, Daily template and slots, Ambient card position, Photo mode's album and card and Countdown mode's countdown, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
 | `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
 | `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
-| `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `DashboardFooter`     |
+| `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `NowPlayingWidget`    |
 | `lastPlayed`   | `LastPlayedStore.svelte.ts` | Server (SQLite) | Spotify listening history and top artist; loaded once per render by the frame's Last Played card |
 | `rssStore`     | `RssFeedStore.svelte.ts`    | Server (SQLite) | RSS article list; refreshed every 30 min by `NewsFeedWidget`          |
 | `weatherStore` | `WeatherStore.svelte.ts`    | Server (SQLite) | Current conditions + 7-day forecast; refreshed every 30 min by the dashboard page |
@@ -464,13 +464,7 @@ Stored in `apps/services/Spotify/.env` (loaded by `DotNetEnv`; also referenced v
 
 ### Frontend integration
 
-`NowPlaying.svelte` polls `/spotify/now-playing` every 5 seconds via `SpotifyStore.ts`. The store value drives three UI states:
-
-- `undefined` — 401 response → shows "Connect Spotify" link pointing to `/spotify/auth`
-- `null` — 204 response → shows "Nothing playing · Disconnect" button
-- `NowPlaying` — 200 response → shows track card with album art, progress bar, and a hover-revealed disconnect button
-
-Clicking disconnect calls `DELETE /spotify/auth` then immediately re-polls, which returns 401 and flips the store back to `undefined`.
+The Now Playing dashboard widget (`widgets/NowPlayingWidget.svelte`, id `now-playing`, movable and hideable like the others) polls `/spotify/now-playing` every 5 seconds while it is shown, via `SpotifyStore.svelte.ts` (`undefined` on a 401, `null` on a 204, the track otherwise, plus `fetchedAt` for when it last answered). It renders a record that spins while playing and stops where it is on pause, with the album art as its label, accent equalizer bars, and a progress bar that ticks every second between polls (`trackPosition()` and `formatTrackTime()` in `lib/music.ts`). Nothing playing leaves the record still; no login links to Settings → Connections. Motion stops under `prefers-reduced-motion`. Connecting and disconnecting live in Settings → Connections (`SpotifyConnectionSettings.svelte`).
 
 The frame's Last Played card (`FrameLastPlayed.svelte`, frame-only) reads `/spotify/recent` through `LastPlayedStore.svelte.ts`, whose loader also decodes the album art so the screenshot waits for it; the art is marked `data-dither="diffuse"`, like the Photo widget's photo, so the renderer error-diffuses it inside Daily's ordered dithering. `LastPlayedService` caches the history for an hour and the top artist for 12 hours (fail-safe on; a failed top-artist lookup only drops that line): Display re-renders Daily every 15 minutes and any changed pixel redraws the whole panel, so following every track would flash it through a listening session. `/spotify/callback` and `DELETE /spotify/auth` drop both cache entries. `playedLabel()` in `lib/music.ts` words the time so it stays true until the next render — "this morning", "last night", "Tuesday evening", then a date — never "2 hours ago".
 
