@@ -56,9 +56,6 @@ export type FrameTemplateId = (typeof frameTemplates)[number]['id'];
 export const DEFAULT_FRAME_TEMPLATE: FrameTemplateId = 'feature';
 export const DEFAULT_FRAME_SLOTS: readonly FrameWidgetId[] = ['coming-up', 'countdowns', 'today'];
 
-/** Slots in the largest template — the most widgets a template shows. */
-export const MAX_TEMPLATE_SLOTS = Math.max(...frameTemplates.map((t) => t.slots.length));
-
 /** The sizes each widget is designed for. Countdowns, Moon, Quote and Last Played
  *  change shape per size; the lists only change how many items fit (their `lines`).
  *  Week Ahead's seven day rows don't read in a quarter, so it's M/L only. */

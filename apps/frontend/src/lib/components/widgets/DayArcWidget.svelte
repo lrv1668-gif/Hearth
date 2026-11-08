@@ -93,22 +93,22 @@
         <div class="relative h-8">
             <!-- night track -->
             <div
-                class="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-night,var(--surface-hi))]"
+                class="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--arc-night,var(--surface-hi))"
             ></div>
 
             <!-- daylight band -->
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-day,var(--border))] shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--arc-day,var(--border)) shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
                 style="left: {pct(sunrise)}%; width: {pct(sunset) - pct(sunrise)}%"
             ></div>
 
             <!-- golden hour bands -->
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-golden,color-mix(in_srgb,var(--text-1)_40%,transparent))] shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--arc-golden,color-mix(in_srgb,var(--text-1)_40%,transparent)) shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
                 style="left: {pct(sunrise)}%; width: {pct(morningGoldenEnd) - pct(sunrise)}%"
             ></div>
             <div
-                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[var(--arc-golden,color-mix(in_srgb,var(--text-1)_40%,transparent))] shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
+                class="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-(--arc-golden,color-mix(in_srgb,var(--text-1)_40%,transparent)) shadow-[inset_0_0_0_2px_var(--arc-outline,transparent)]"
                 style="left: {pct(goldenStart)}%; width: {pct(sunset) - pct(goldenStart)}%"
             ></div>
 
