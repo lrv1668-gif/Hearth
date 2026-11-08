@@ -951,3 +951,19 @@ td:first-child {
 .site-footer a {
     color: var(--text-2);
 }
+
+/* ---------- Privacy & terms ---------- */
+.legal {
+    padding-top: 0;
+}
+.legal h2 {
+    font-size: clamp(1.35rem, 1.2rem + 0.6vw, 1.7rem);
+    margin-block: 2.5rem 0.75rem;
+}
+.legal h2:first-child {
+    margin-top: 0;
+}
+.legal p + h2,
+.legal ul + h2 {
+    margin-top: 2.5rem;
+}

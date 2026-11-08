@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Hearth Privacy Policy</title>
+        <meta
+            name="description"
+            content="How Hearth handles your data, including data from Google Calendar and Google Tasks. Hearth runs on your own network; its developer receives none of it."
+        />
+        <meta
+            name="theme-color"
+            content="#f6f1e8"
+            media="(prefers-color-scheme: light)"
+        />
+        <meta
+            name="theme-color"
+            content="#171411"
+            media="(prefers-color-scheme: dark)"
+        />
+        <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+        <link
+            rel="preload"
+            href="assets/fonts/fraunces-latin-wght-normal.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <link
+            rel="preload"
+            href="assets/fonts/inter-latin-wght-normal.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <link rel="stylesheet" href="assets/style.css" />
+    </head>
+    <body>
+        <header class="site-header">
+            <div class="wrap">
+                <a class="wordmark" href="./">Hearth</a>
+                <nav class="site-nav" aria-label="Main">
+                    <a class="nav-optional" href="./#modes">The frame</a>
+                    <a class="nav-optional" href="./#dashboard">Dashboard</a>
+                    <a href="build.html">Build one</a>
+                    <a href="https://github.com/lrv1668-gif/Hearth">GitHub</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <div class="page-head">
+                <div class="wrap">
+                    <p class="edition">
+                        <span>Privacy</span
+                        ><span>Effective November 8, 2026</span>
+                    </p>
+                    <h1>Privacy Policy.</h1>
+                    <p class="lede">
+                        Hearth is software you run on your own computer. Your
+                        data stays on that computer and the services you connect
+                        it to. The developer of Hearth never receives any of it.
+                    </p>
+                </div>
+            </div>
+
+            <section class="legal">
+                <div class="wrap">
+                    <div class="prose">
+                        <h2>Who this covers</h2>
+                        <p>
+                            This policy covers the Hearth home dashboard and its
+                            e-paper frame (“Hearth”), including the Google
+                            sign-in that Hearth uses to show your Google
+                            Calendar events and Google Tasks. Hearth is open
+                            source and is published by Lucas Vertrees (“we”). We
+                            don't run a hosted version of Hearth or any servers
+                            your Hearth talks to.
+                        </p>
+
+                        <h2>Where your data lives</h2>
+                        <p>
+                            Each Hearth install runs on a machine its owner
+                            controls, called the host. Everything Hearth stores
+                            is kept in databases on that host, such as tasks,
+                            settings, cached calendar items and sign-in tokens.
+                            Hearth contacts third-party services directly from
+                            the host. Nothing is sent to us, and Hearth has no
+                            analytics, telemetry, advertising or tracking.
+                        </p>
+
+                        <h2>Google user data</h2>
+                        <p>
+                            When you connect a Google account, Hearth asks for
+                            two permissions:
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>Google Calendar, read-only</strong>
+                                (<code>calendar.readonly</code>). Hearth reads
+                                your events from yesterday through the next 60
+                                days to show them on the dashboard, the calendar
+                                page and the frame. It never creates, changes or
+                                deletes events.
+                            </li>
+                            <li>
+                                <strong>Google Tasks</strong>
+                                (<code>tasks</code>). Hearth reads your task
+                                lists and tasks to show them. It changes a task
+                                only when you tick or untick its checkbox in
+                                Hearth, which marks that task complete or not
+                                complete.
+                            </li>
+                        </ul>
+                        <p>
+                            <strong>How it's stored.</strong> Google's access
+                            and refresh tokens are encrypted and stored in the
+                            calendar service's database on your host. Events and
+                            tasks are cached there for a few minutes so the
+                            screen doesn't ask Google on every load. All of this
+                            stays on your host.
+                        </p>
+                        <p>
+                            <strong>How it's shared.</strong> Hearth doesn't
+                            share, sell or transfer Google user data to anyone.
+                            It only shows that data on the screens and frame of
+                            the Hearth install that you signed in to. Google
+                            user data is never used to serve ads, and never used
+                            to develop, improve or train generalized artificial
+                            intelligence or machine learning models.
+                        </p>
+                        <p>
+                            Hearth's use and transfer of information received
+                            from Google APIs adheres to the
+                            <a
+                                href="https://developers.google.com/terms/api-services-user-data-policy"
+                                >Google API Services User Data Policy</a
+                            >, including the Limited Use requirements.
+                        </p>
+
+                        <h2>Other services you connect</h2>
+                        <p>
+                            Depending on what you set up, your host may contact
+                            other services, for example Spotify (what's
+                            playing), Open-Meteo (weather for your location),
+                            Unsplash (photos), eBird (nearby birds), Transitland
+                            (departures), ESPN (scores), Wikipedia, ZenQuotes
+                            and the RSS feeds you add. Those requests go
+                            straight from your host to the service, and each
+                            service's own privacy policy applies. Some requests
+                            include the location you set in Hearth, so the
+                            service can return local weather, sightings or
+                            departures.
+                        </p>
+
+                        <h2>Deleting your data</h2>
+                        <ul>
+                            <li>
+                                <strong>Disconnect Google</strong> in Hearth's
+                                Settings → Connections. This deletes the stored
+                                tokens and the cached calendar items from your
+                                host.
+                            </li>
+                            <li>
+                                <strong>Revoke access</strong> at any time from
+                                your Google Account's
+                                <a
+                                    href="https://myaccount.google.com/connections"
+                                    >third-party connections</a
+                                >
+                                page.
+                            </li>
+                            <li>
+                                <strong>Remove everything</strong> by deleting
+                                Hearth's Docker volumes on your host.
+                            </li>
+                        </ul>
+
+                        <h2>Children</h2>
+                        <p>
+                            Hearth isn't directed at children under 13, and we
+                            don't knowingly collect anyone's data.
+                        </p>
+
+                        <h2>Changes</h2>
+                        <p>
+                            If this policy changes, the new version will be
+                            posted on this page with a new effective date.
+                            Earlier versions are in the project's
+                            <a
+                                href="https://github.com/lrv1668-gif/Hearth/commits/main/site/privacy.html"
+                                >history on GitHub</a
+                            >.
+                        </p>
+
+                        <h2>Contact</h2>
+                        <p>
+                            For questions about this policy, open an issue on
+                            <a
+                                href="https://github.com/lrv1668-gif/Hearth/issues"
+                                >Hearth's GitHub</a
+                            >.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <div class="wrap">
+                <span>Hearth — a calm, self-hosted home display.</span>
+                <span>
+                    <a href="privacy.html" aria-current="page">Privacy</a> ·
+                    <a href="terms.html">Terms</a> ·
+                    <a href="https://github.com/lrv1668-gif/Hearth"
+                        >Source on GitHub</a
+                    >, licensed
+                    <a
+                        href="https://github.com/lrv1668-gif/Hearth/blob/main/LICENSE"
+                        >AGPL-3.0</a
+                    >.
+                </span>
+            </div>
+        </footer>
+    </body>
+</html>
