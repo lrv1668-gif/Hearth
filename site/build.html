@@ -142,7 +142,7 @@
                         <span class="kicker">Run it</span>
                         <h2>From clone to dashboard.</h2>
                         <p class="lede">
-                            You'll need Docker Engine 25+ with Compose v2.22+. The
+                            You'll need Docker Engine 25+ with Compose v2.24+. The
                             <a href="https://github.com/lrv1668-gif/Hearth#readme">README</a> has the setup details.
                         </p>
                     </div>
@@ -154,16 +154,15 @@
 cd Hearth</code></pre>
                         </li>
                         <li>
-                            <h3>Tell it where home is</h3>
+                            <h3>Add keys (optional)</h3>
                             <p>
-                                Services that need an API key read a small <code>.env</code> file. Create one for each
-                                service listed in the
-                                <a href="https://github.com/lrv1668-gif/Hearth#configuration">README</a> — Compose
-                                expects them all to exist, but you can leave the keys blank for integrations you
-                                don't use. Tasks, quotes and news need nothing. The home location and time zone are
-                                set later, in Settings → Home.
+                                Services that need an API key read a small <code>.env</code> file, copied from the
+                                <code>.env.example</code> beside it — the
+                                <a href="https://github.com/lrv1668-gif/Hearth#configuration">README</a> lists them.
+                                Skip any integration you don't use; tasks, quotes and news need nothing. The home
+                                location and time zone are set later, in Settings → Home.
                             </p>
-                            <pre><code>touch apps/services/{Weather,Spotify,Calendar,Photos,Birds,Almanac,Trains}/.env</code></pre>
+                            <pre><code>cp apps/services/Weather/.env.example apps/services/Weather/.env</code></pre>
                         </li>
                         <li>
                             <h3>Start the stack</h3>

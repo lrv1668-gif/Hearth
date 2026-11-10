@@ -18,7 +18,7 @@ Creates new widgets for the Hearth SvelteKit home dashboard.
 | `apps/frontend/src/lib/stores/YourStore.svelte.ts` | One store per data type (data-fetching widgets) |
 | `apps/frontend/src/lib/components/widgets/views/YourView.svelte` | Shared markup, if the widget also goes on the e-paper frame (Step 5) |
 | `apps/frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `routes/frame/+page.svelte` | Frame registration, slot and data loader (Step 5) |
-| `README.md` (the `/` row of the Pages table, plus the `/frame` row for frame widgets), `docs/SOFTWARE-DESIGN.md` | Add the widget to the feature list / frontend integration notes |
+| `README.md` ("What it shows": **Dashboard widgets**, or the Daily list under **Frame modes** for frame widgets), `docs/SOFTWARE-DESIGN.md` | Add the widget to the feature list / frontend integration notes |
 | `site/index.html` | The widget grid on the project site (`Frame` badge for frame widgets) |
 
 **Backend first:** domain data and math (API calls to third parties, caching, astronomy, recurrence, unit conversion) belong in a backend service under `apps/services/`, not in the widget. If the widget needs data that no service provides yet, add a service first — use the `hearth-service` skill. The frontend stays a thin renderer and never calls third-party APIs directly.
@@ -242,5 +242,5 @@ Check it at `/frame?mode=daily&left=your-id` and in each size it takes — e.g. 
 - [ ] Wrapped in `<WidgetContainer>` with correct `title` and optional `associatedWidgetId`
 - [ ] Intervals cleaned up via `return () => clearInterval(id)` inside `$effect`
 - [ ] Frame widget (if any): shared view in `widgets/views/`, registered in `frameWidgets.ts`, sizes in `frameWidgetSizes`, slot in `FrameDaily.svelte`, loader in `widgetLoaders`
-- [ ] Widget added to `README.md` (Pages table), `docs/SOFTWARE-DESIGN.md` and the `site/index.html` widget grid
+- [ ] Widget added to `README.md` ("What it shows" list), `docs/SOFTWARE-DESIGN.md` and the `site/index.html` widget grid
 - [ ] `npm run check` and `npm run test` pass, and the widget was checked in the real UI with the `verify` skill

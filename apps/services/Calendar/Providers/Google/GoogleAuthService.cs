@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Tasks.v1;
+using ServiceDefaults;
 
 namespace Calendar.Providers.Google;
 
@@ -16,16 +16,11 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
         TasksService.Scope.Tasks,
     ];
 
-    // State tokens expire after 10 minutes (mirrors Spotify pattern).
-    private readonly ConcurrentDictionary<string, DateTimeOffset> _pendingStates = new();
+    private readonly OAuthStateStore _pendingStates = new(timeProvider);
 
     public string GenerateAuthUrl(string state)
     {
-        var now = timeProvider.GetUtcNow();
-        foreach (var key in _pendingStates.Where(kv => kv.Value < now).Select(kv => kv.Key).ToList())
-            _pendingStates.TryRemove(key, out _);
-
-        _pendingStates[state] = now.AddMinutes(10);
+        _pendingStates.Remember(state);
         var flow    = BuildFlow();
         var request = flow.CreateAuthorizationCodeRequest(config["GOOGLE_REDIRECT_URI"]!);
         request.State = state;
@@ -34,11 +29,7 @@ public sealed class GoogleAuthService(CalendarStore store, IConfiguration config
         return request.Build() + "&prompt=consent";
     }
 
-    public bool ValidateAndConsumeState(string state)
-    {
-        if (!_pendingStates.TryRemove(state, out var expiry)) return false;
-        return expiry >= timeProvider.GetUtcNow();
-    }
+    public bool ValidateAndConsumeState(string state) => _pendingStates.TryConsume(state);
 
     public async Task HandleCallbackAsync(string code, CancellationToken ct = default)
     {

@@ -391,8 +391,15 @@ public sealed class FrameEndpointTests : IDisposable
     {
         await DailyWithPhoto(photo: false);
         await Frame();
+        // The startup render ran in the default mode, before the Daily override, and may have
+        // picked a photo; count only what Daily's own renders ask for
+        var picks = PhotoPicks;
+        var renders = _renderer.RequestCount;
 
-        Assert.Equal(0, PhotoPicks);
+        _clock.Advance(FrameRenderService.FlatInterval);
+        await RendersSince(renders);
+
+        Assert.Equal(picks, PhotoPicks);
         Assert.DoesNotContain("photo=", RenderQuery);
     }
 }

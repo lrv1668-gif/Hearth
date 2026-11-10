@@ -23,6 +23,14 @@ Registered in `src/lib/constants/frameWidgets.ts`, with the slot sizes they're d
 - Colors come from theme tokens with Tailwind v4's shorthand: `text-(--text-2)`, `bg-(--surface)`, `border-(--border)` — never hardcoded colors or the older `text-[var(--…)]` form.
 - Tailwind's `fontWeight` scale is redefined to the weight vars, so text styling must use `.type-*` size classes plus `font-medium`/`font-semibold`/`font-bold` — never raw `text-sm`-style size utilities or numeric `font-[...]` weights.
 - Use `--text-3`/`--text-4` only for icons and decoration, never for text people need to read.
+- Icon sizes are `icon-xs`/`icon-sm`/`icon-md`/`icon-lg` only (tokens and classes in `src/app.css`). Tailwind and `svelte-check` don't flag an undefined class like `icon-xl`: it silently does nothing and the icon falls back to lucide's 24px. Add the token and class to `app.css` first if you need a new size.
+- A component's scoped `<style>` rule (`.label.svelte-xyz`) outranks a single Tailwind utility on the same element, so a utility like `flex` on an element whose scoped CSS sets `display` has no effect. Change the scoped rule instead.
+
+## Tests
+
+- Store tests stub `fetch` with `mockFetch()` from `src/lib/test/fetch.ts`. When a store fires parallel requests, answer by path with `fetchMock.mockImplementation` (see `ModeStore.test.ts`) rather than relying on queue order.
+- `mockFetch`'s `afterEach` calls `vi.unstubAllGlobals()`, so stub any other global (`localStorage`, …) in `beforeEach`, not at the top level (see `FrameSettingsStore.test.ts`).
+- When a store action both reports failure and then refreshes, check that the refresh doesn't overwrite the `error` flag. Test the failure path, not just the success path.
 
 ## Themes
 

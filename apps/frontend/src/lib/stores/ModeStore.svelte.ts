@@ -70,8 +70,10 @@ export async function setOverride(manual: ModeOverride) {
 
 /** Back to the schedule. With `photoId`, only if that photo is the one pinned. */
 export async function clearOverride(photoId?: string) {
-    if (!(await api.display.clearOverride(photoId))) modeStore.error = true;
+    const cleared = await api.display.clearOverride(photoId);
     await refreshCurrent();
+    // After the refresh, which resets the flag from whether Display answered
+    if (!cleared) modeStore.error = true;
 }
 
 /** Switch the frame between Color and B&W; Display re-renders the panel. */

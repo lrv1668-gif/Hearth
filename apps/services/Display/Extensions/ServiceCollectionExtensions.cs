@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
         // The photo Ambient and Photo show, held beside the cached frame
         serviceCollection.AddSingleton(services => new FramePhotos(
             services.GetRequiredService<PhotosClient>(),
-            FrameCache.DirectoryFor(Environment.GetEnvironmentVariable("DB_PATH")),
+            services.GetRequiredService<FrameCache>().Folder,
             services.GetRequiredService<TimeProvider>(),
             services.GetRequiredService<ILogger<FramePhotos>>()));
         serviceCollection.AddSingleton<FrameRenderService>();

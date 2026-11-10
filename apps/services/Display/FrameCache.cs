@@ -27,6 +27,9 @@ public sealed class FrameCache(string directory, ILogger<FrameCache> logger)
     private (RenderedFrame Info, byte[] Png)? _frame;
     private TaskCompletionSource _changed = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    /// <summary>Where the frame is kept; <see cref="FramePhotos"/> keeps its state here too.</summary>
+    public string Folder => directory;
+
     private string PngPath => Path.Combine(directory, "frame.png");
     private string InfoPath => Path.Combine(directory, "frame.json");
 

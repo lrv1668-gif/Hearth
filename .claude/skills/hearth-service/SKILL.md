@@ -110,10 +110,11 @@ public static void InitializeWebAppFor<Service>(this WebApplication app)
 - **Location/time zone:** read through `HomeLocationClient`, never `LATITUDE`/`LONGITUDE`/`TZ` directly (it falls back to them).
 - **Numbers and URLs:** `config.GetValue<double>(…)` (invariant culture), never `double.Parse(config[…])`; build URLs with `string.Create(CultureInfo.InvariantCulture, …)`.
 - **Records:** PascalCase properties; the snake_case JSON comes from `AddHearthWebDefaults()`.
+- **OAuth sign-in:** keep the CSRF `state` in a `ServiceDefaults.OAuthStateStore` (`Issue()` on `/auth`, `TryConsume(state)` on `/callback`) — never a hand-rolled dictionary, which grows with every unauthenticated `/auth` hit. See `apps/services/Spotify/Extensions/WebApplicationExtensions.cs`.
 
 ## Step 2: Environment variables (if any)
 
-1. `apps/services/<Service>/.env.example` — every var, commented, with where to get keys. The real `apps/services/<Service>/.env` is gitignored; create an empty one so Compose starts.
+1. `apps/services/<Service>/.env.example` — every var, commented, with where to get keys. The real `apps/services/<Service>/.env` is gitignored and optional — Compose loads it with `required: false` (below), so a fresh clone starts without it.
 2. README → Configuration: a `**<Service>** (\`apps/services/<Service>/.env\`)` block.
 
 ## Step 3: Wire it up
@@ -121,7 +122,7 @@ public static void InitializeWebAppFor<Service>(this WebApplication app)
 | File | Add |
 |------|-----|
 | `Hearth.slnx` | `<Project Path="apps/services/<Service>/<Service>.csproj" />` in the `/services/` folder |
-| `infra/docker-compose.yml` | A service block (below), plus `<prefix>-data:` under `volumes:` if it has a database |
+| `infra/docker-compose.yml` | A service block (below), plus `<prefix>-data:` under `volumes:` if it has a database, and `<prefix>` in **both** `frontend.depends_on` and `caddy.depends_on` (`condition: service_started`) — the two lists must name the same services |
 | `infra/docker-compose.override.yml` | `<prefix>: ports: ["127.0.0.1:<port>:<port>"]`, and `<PREFIX>_URL=http://<prefix>:<port>` under `frontend.environment` |
 | `infra/Caddyfile` | `handle /<prefix>* { reverse_proxy <prefix>:<port> }` alongside the others |
 | `apps/frontend/vite.config.ts` | `'/<prefix>': process.env.<PREFIX>_URL ?? 'http://localhost:<port>'` in the dev proxy |
@@ -138,11 +139,12 @@ There are no per-service Dockerfiles — `apps/services/Dockerfile` builds every
             <<: *probe
             test: ["CMD", "/app/service", "--health", "/<prefix>/health"]
         build:
-            context: ./src
+            context: ../apps/services
             args:
                 SERVICE: <Service>
         env_file:                       # only with env vars
-            - ./src/<Service>/.env
+            - path: ../apps/services/<Service>/.env
+              required: false           # a fresh clone has no .env yet
         environment:
             - DB_PATH=/data/<prefix>.db # only with a database
             - ASPNETCORE_HTTP_PORTS=<port>
@@ -174,7 +176,7 @@ Use the `write-unit-tests` skill: `tests/<Service>.Tests/`, added to `Hearth.sln
 - [ ] `AddHearthWebDefaults()`, health checks, `MapHearthHealth("<prefix>")`
 - [ ] Stores use `[FromKeyedServices]` `IDatabase`; upstream calls cached with fail-safe FusionCache
 - [ ] Missing env vars → `RequireOrFail` (logs `LogError`, returns 503); `.env.example` + README Configuration
-- [ ] `Hearth.slnx`, `infra/docker-compose.yml` (+ volume), override (port + frontend env), `infra/Caddyfile`, `vite.config.ts`, `services.ts`, CI `publish-images` matrix
+- [ ] `Hearth.slnx`, `infra/docker-compose.yml` (+ volume, + `frontend` and `caddy` `depends_on`, `env_file` with `required: false`), override (port + frontend env), `infra/Caddyfile`, `vite.config.ts`, `services.ts`, CI `publish-images` matrix
 - [ ] `api.<prefix>` namespace in `api.ts`
 - [ ] Test project added; `dotnet build Hearth.slnx && dotnet test Hearth.slnx` pass
 - [ ] `docs/SOFTWARE-DESIGN.md`, `README.md`, `site/` updated
