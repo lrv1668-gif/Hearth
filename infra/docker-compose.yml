@@ -52,7 +52,8 @@ services:
             args:
                 SERVICE: Spotify
         env_file:
-            - ../apps/services/Spotify/.env
+            - path: ../apps/services/Spotify/.env
+              required: false
         environment:
             - DB_PATH=/data/spotify.db
             - ASPNETCORE_HTTP_PORTS=8083
@@ -71,7 +72,8 @@ services:
             args:
                 SERVICE: Weather
         env_file:
-            - ../apps/services/Weather/.env
+            - path: ../apps/services/Weather/.env
+              required: false
         environment:
             - DB_PATH=/data/weather.db
             - ASPNETCORE_HTTP_PORTS=8082
@@ -91,7 +93,8 @@ services:
             args:
                 SERVICE: Photos
         env_file:
-            - ../apps/services/Photos/.env
+            - path: ../apps/services/Photos/.env
+              required: false
         environment:
             - DATA_PATH=/data
             - ASPNETCORE_HTTP_PORTS=8084
@@ -125,7 +128,8 @@ services:
             args:
                 SERVICE: Calendar
         env_file:
-            - ../apps/services/Calendar/.env
+            - path: ../apps/services/Calendar/.env
+              required: false
         environment:
             - DB_PATH=/data/calendar.db
             - ASPNETCORE_HTTP_PORTS=8087
@@ -172,7 +176,8 @@ services:
             args:
                 SERVICE: Birds
         env_file:
-            - ../apps/services/Birds/.env
+            - path: ../apps/services/Birds/.env
+              required: false
         environment:
             - DB_PATH=/data/birds.db
             - ASPNETCORE_HTTP_PORTS=8088
@@ -192,7 +197,8 @@ services:
             args:
                 SERVICE: Almanac
         env_file:
-            - ../apps/services/Almanac/.env
+            - path: ../apps/services/Almanac/.env
+              required: false
         environment:
             - ASPNETCORE_HTTP_PORTS=8089
             # Home location and zone saved in Settings; .env values are the fallback
@@ -209,7 +215,8 @@ services:
             args:
                 SERVICE: Trains
         env_file:
-            - ../apps/services/Trains/.env
+            - path: ../apps/services/Trains/.env
+              required: false
         environment:
             - DB_PATH=/data/trains.db
             - ASPNETCORE_HTTP_PORTS=8091
@@ -359,6 +366,8 @@ services:
             almanac:
                 condition: service_started
             trains:
+                condition: service_started
+            sports:
                 condition: service_started
             display:
                 condition: service_started

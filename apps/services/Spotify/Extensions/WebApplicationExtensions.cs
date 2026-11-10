@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using ServiceDefaults;
 using Spotify;
 using Spotify.Records;
@@ -17,7 +16,7 @@ public static class WebApplicationExtensions
 
     private static void AddSpotifyEndpoints(this WebApplication app)
     {
-        var pendingStates = new ConcurrentDictionary<string, DateTimeOffset>();
+        var pendingStates = new OAuthStateStore(app.Services.GetService<TimeProvider>());
 
         app.MapGet("/spotify/auth", (IConfiguration config) =>
         {
@@ -29,8 +28,7 @@ public static class WebApplicationExtensions
                 return configError;
             }
 
-            var state = Guid.NewGuid().ToString("N");
-            pendingStates[state] = DateTimeOffset.UtcNow.AddMinutes(10);
+            var state = pendingStates.Issue();
 
             // RequireOrFail above guarantees these are present.
             var loginRequest = new LoginRequest(
@@ -60,7 +58,7 @@ public static class WebApplicationExtensions
                 return configError;
             }
 
-            if (!pendingStates.TryRemove(state, out var expiry) || expiry < DateTimeOffset.UtcNow)
+            if (!pendingStates.TryConsume(state))
                 return Results.BadRequest("invalid or expired state");
 
             // RequireOrFail above guarantees this is present.

@@ -49,11 +49,7 @@ flowchart LR
 
 ## Quick start
 
-You need [Docker](https://docs.docker.com/get-docker/) Engine 25+ and Compose v2.22+. Compose expects each service's `.env` file to exist, even if it's empty:
-
-```bash
-touch apps/services/{Almanac,Birds,Calendar,Photos,Spotify,Trains,Weather}/.env
-```
+You need [Docker](https://docs.docker.com/get-docker/) Engine 25+ and Compose v2.24+. Each service's `.env` file is optional — create one only when adding keys (below).
 
 ```bash
 cd infra && docker compose up --build
@@ -83,6 +79,8 @@ Add keys only for the integrations you want. Each file is read by one service:
 Before a PR, run `dotnet build Hearth.slnx && dotnet test Hearth.slnx`, and `npm run check && npm run test` in `apps/frontend/`. More in [Development workflow](docs/SOFTWARE-DESIGN.md#development-workflow).
 
 ## Deploying
+
+Hearth has no login of its own: anyone who can reach the host can change tasks, photos and settings, or disconnect Spotify and Google. Keep it on a trusted home network, and don't port-forward it or expose it to the internet. Put it behind a VPN or an authenticating proxy if you need remote access.
 
 CI publishes amd64 and arm64 images to GHCR on every green push to `main`. A host pulls them with [`infra/deploy/update.sh`](infra/deploy/update.sh), run by a systemd timer. See [Deploying to a host](docs/SOFTWARE-DESIGN.md#deploying-to-a-host).
 

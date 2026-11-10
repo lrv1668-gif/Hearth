@@ -16,7 +16,7 @@ Use the project skills in `.claude/skills/` for these workflows — they hold th
 - A service added or changed → `docs/SOFTWARE-DESIGN.md`.
 - Product decisions or feature scope change → `docs/PRODUCT.md`.
 - A theme added or removed → `docs/SOFTWARE-DESIGN.md` → Themes.
-- A widget added or removed → the `/` (and, for frame widgets, `/frame`) row of the Pages table in `README.md`, and the relevant section of `docs/SOFTWARE-DESIGN.md`.
+- A widget added or removed → the "What it shows" list in `README.md` (**Dashboard widgets**, or the Daily widgets under **Frame modes** for frame widgets), and the relevant section of `docs/SOFTWARE-DESIGN.md`.
 - The GitHub Pages site in `site/` repeats some of this — theme/palette/typeface counts, the widget grid, the host's service list, and the status table in `build.html`. When those change, or a planned piece gets built, update the site too.
 
 ## Project Overview
@@ -40,6 +40,7 @@ Hearth is a calm, self-hosted home dashboard. Its primary target is an always-on
 - Run a service's tests: `dotnet test tests/<Service>.Tests/<Service>.Tests.csproj`
 - Full CI equivalent: `dotnet build Hearth.slnx && dotnet test Hearth.slnx`; `npm run format:check && npm run check && npm run test && npm run build` in `apps/frontend/`; `npm test` in `apps/renderer/`
 - CI runs only the stacks a PR touches (the `changes` job's path filters in `.github/workflows/ci.yml`) and everything on pushes to `main` — a new top-level folder or root file a stack depends on needs adding to those filters
+- A new app or package folder (its own `package.json`, `.csproj` tree or `Dockerfile`) also needs an entry in `.github/dependabot.yml`. Dependencies locked to another version, like the renderer's `playwright` package and its Docker image tag, go under `ignore:` with a comment and are bumped together by hand
 - Before committing a UI-visible change, run the `verify` skill to drive the real UI
 - Run the app locally: `cd infra && docker compose up --build` (dev overrides in `infra/docker-compose.override.yml` expose service ports on localhost), then `cd apps/frontend && npm run dev` for a hot-reloading frontend — Vite's dev proxy in `apps/frontend/vite.config.ts` forwards `/tasks`, `/weather`, etc. to those ports
 - Deploying: CI's `publish-images` job pushes amd64+arm64 images to GHCR on every green push to `main`; a host pulls them via `infra/deploy/update.sh` (see `docs/SOFTWARE-DESIGN.md` → Deploying to a host)

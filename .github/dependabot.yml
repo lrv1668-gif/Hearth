@@ -33,6 +33,19 @@ updates:
       - dependency-name: "vite"
         update-types: ["version-update:semver-major"]
 
+  # Renderer npm packages. Playwright is bumped by hand: its version must match the
+  # mcr.microsoft.com/playwright image tag in apps/renderer/Dockerfile, so the
+  # package and the image move together in one PR.
+  - package-ecosystem: "npm"
+    directory: "/apps/renderer"
+    schedule:
+      interval: "weekly"
+    groups:
+      renderer-minor-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "playwright"
+
   # .NET NuGet packages — wildcards cover every service and test project;
   # /apps/services and /tests themselves cover the central Directory.Packages.props files
   - package-ecosystem: "nuget"
@@ -53,7 +66,8 @@ updates:
       nuget-minor-patch:
         update-types: ["minor", "patch"]
 
-  # Docker base images — apps/services/Dockerfile is shared by every backend service
+  # Docker base images — apps/services/Dockerfile is shared by every backend service.
+  # The renderer's Playwright image is bumped by hand with its npm package (above).
   - package-ecosystem: "docker"
     directories:
       - "/apps/frontend"
