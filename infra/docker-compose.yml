@@ -282,7 +282,7 @@ services:
     dozzle:
         <<: *defaults
         profiles: [logs]
-        image: amir20/dozzle:v11.4.0
+        image: amir20/dozzle:v11.4.1
         healthcheck:
             <<: *probe
             test: ["CMD", "/dozzle", "healthcheck"]
