@@ -1,7 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { CalendarPlus, Plus } from '@lucide/svelte';
-    import { addIcsFeed, calendarStore, loadIcsFeeds, removeIcsFeed } from '#lib/stores/CalendarStore.svelte.ts';
+    import { CalendarPlus, Plus, RefreshCw } from '@lucide/svelte';
+    import {
+        addIcsFeed,
+        calendarStore,
+        loadIcsFeeds,
+        refreshCalendarItems,
+        removeIcsFeed,
+    } from '#lib/stores/CalendarStore.svelte.ts';
     import Button from '../ui/Button.svelte';
     import ConnectionRow from '../ui/ConnectionRow.svelte';
     import Field from '../ui/Field.svelte';
@@ -16,6 +22,7 @@
     let url = $state('');
     let saving = $state(false);
     let error = $state<string | null>(null);
+    let refreshing = $state(false);
 
     const count = $derived(calendarStore.icsFeeds.length);
     const status = $derived(
@@ -29,6 +36,13 @@
         name = '';
         url = '';
         error = null;
+    }
+
+    // Re-reads every calendar now instead of waiting out the 15-minute cache
+    async function handleRefresh() {
+        refreshing = true;
+        await refreshCalendarItems();
+        refreshing = false;
     }
 
     async function handleAdd(e: SubmitEvent) {
@@ -50,6 +64,12 @@ ever sends back its host.
 <div class="flex flex-col gap-4">
     <ConnectionRow icon={CalendarPlus} name="Apple Calendar & calendar links" {status}>
         {#snippet actions()}
+            {#if count > 0}
+                <Button onclick={handleRefresh} disabled={refreshing} aria-label="Refresh subscribed calendars">
+                    <RefreshCw class="icon-xs {refreshing ? 'motion-safe:animate-spin' : ''}" aria-hidden="true" />
+                    {refreshing ? 'Refreshing…' : 'Refresh'}
+                </Button>
+            {/if}
             {#if !adding}
                 <Button onclick={() => (adding = true)}><Plus class="icon-sm" /> Add a calendar</Button>
             {/if}
