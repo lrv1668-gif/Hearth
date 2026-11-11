@@ -9,6 +9,9 @@ namespace Tasks
         // List() extends series as it reads, and every screen polls it: one extension at a time
         private readonly Lock _extendLock = new();
 
+        /// <summary>How long a done task with a due date stays in <see cref="List"/>.</summary>
+        public const int DoneHistoryDays = 365;
+
         public void Migrate()
         {
             db.NonQuery("""
@@ -78,16 +81,22 @@ namespace Tasks
         {
             ExtendNearingSeriesHorizon();
 
-            var through = DateTime.UtcNow.Date.AddDays(365).ToString("o");
+            var today = DateTime.UtcNow.Date;
+            // A year either way: a daily series ticked off for years would otherwise make
+            // every poll of this list longer. Undated tasks have no day to age by, so they stay.
             return db.Query("""
                 SELECT id, title, done, due_date, due_time, created_at,
                        description, assignee, recurrence_unit, recurrence_interval, recurrence_days, series_id, recurrence_end_date, is_countdown
                 FROM lu_tasks
-                WHERE done = 1
-                   OR due_date IS NULL
-                   OR date(due_date) <= date($through)
+                WHERE due_date IS NULL
+                   OR (done = 1 AND date(due_date) >= date($since))
+                   OR (done = 0 AND date(due_date) <= date($through))
                 ORDER BY due_date ASC, created_at DESC
-                """, Map, cmd => cmd.AddParam("$through", through));
+                """, Map, cmd =>
+            {
+                cmd.AddParam("$since", today.AddDays(-DoneHistoryDays).ToString("o"));
+                cmd.AddParam("$through", today.AddDays(365).ToString("o"));
+            });
         }
 
         public TaskItem Create(
@@ -121,7 +130,8 @@ namespace Tasks
             {
                 db.NonQuery("UPDATE lu_tasks SET series_id = $sid WHERE id = $id",
                     cmd => { cmd.AddParam("$sid", first.Id); cmd.AddParam("$id", first.Id); });
-                GenerateInstances(first.Id, first.Id, dueDate.Value, recurrenceUnit, recurrenceInterval ?? 1, recurrenceDays, recurrenceEndDate);
+                GenerateInstances(first.Id, first.Id, dueDate.Value, recurrenceUnit, recurrenceInterval ?? 1, recurrenceDays,
+                    recurrenceEndDate, dueDate.Value.Day);
                 return first with { SeriesId = first.Id };
             }
 
@@ -188,39 +198,46 @@ namespace Tasks
 
         /// <summary>
         /// Inserts the series' instances after <paramref name="start"/>, up to its end date or a year out,
-        /// copying everything but the due date from the <paramref name="templateId"/> row.
+        /// copying everything but the due date from the <paramref name="templateId"/> row. One
+        /// transaction, so a year of a daily task is a single commit and never half a series.
         /// </summary>
-        private void GenerateInstances(long seriesId, long templateId, DateTime start, string unit, int interval, string? days, DateTime? endDate = null)
+        /// <param name="anchorDay">The day of the month a monthly series falls on (see <see cref="ComputeNextDue"/>).</param>
+        private void GenerateInstances(
+            long seriesId, long templateId, DateTime start, string unit, int interval, string? days,
+            DateTime? endDate = null, int? anchorDay = null)
         {
             var horizon = endDate.HasValue
                 ? endDate.Value.Date
                 : DateTime.UtcNow.Date.AddYears(1);
             var current = start.Date;
-            int count = 0;
+            var dueDates = new List<DateTime>();
 
-            while (count < 400)
+            while (dueDates.Count < 400)
             {
-                current = ComputeNextDue(current, unit, interval, days);
-                if (current > horizon) break;
-                db.NonQuery("""
-                    INSERT INTO lu_tasks (title, due_date, due_time, description, assignee,
-                                          recurrence_unit, recurrence_interval, recurrence_days, series_id,
-                                          recurrence_end_date, is_countdown)
-                    SELECT title, $due_date, due_time, description, assignee,
-                           recurrence_unit, recurrence_interval, recurrence_days, $sid,
-                           recurrence_end_date, is_countdown
-                    FROM lu_tasks WHERE id = $template
-                      AND NOT EXISTS (
-                          SELECT 1 FROM lu_tasks e
-                          WHERE e.series_id = $sid AND date(e.due_date) = date($due_date))
-                    """, cmd =>
-                {
-                    cmd.AddParam("$due_date", current.ToString("o"));
-                    cmd.AddParam("$sid", seriesId);
-                    cmd.AddParam("$template", templateId);
-                });
-                count++;
+                var next = ComputeNextDue(current, unit, interval, days, anchorDay);
+                // A rule that doesn't move forward (a bad interval in an old row) would never end
+                if (next <= current || next > horizon) break;
+                dueDates.Add(current = next);
             }
+            if (dueDates.Count == 0) return;
+
+            db.NonQueryBatch("""
+                INSERT INTO lu_tasks (title, due_date, due_time, description, assignee,
+                                      recurrence_unit, recurrence_interval, recurrence_days, series_id,
+                                      recurrence_end_date, is_countdown)
+                SELECT title, $due_date, due_time, description, assignee,
+                       recurrence_unit, recurrence_interval, recurrence_days, $sid,
+                       recurrence_end_date, is_countdown
+                FROM lu_tasks WHERE id = $template
+                  AND NOT EXISTS (
+                      SELECT 1 FROM lu_tasks e
+                      WHERE e.series_id = $sid AND date(e.due_date) = date($due_date))
+                """, dueDates.Select(due => (Action<DbCommand>)(cmd =>
+            {
+                cmd.AddParam("$due_date", due.ToString("o"));
+                cmd.AddParam("$sid", seriesId);
+                cmd.AddParam("$template", templateId);
+            })));
         }
 
         private void ExtendNearingSeriesHorizon()
@@ -237,7 +254,14 @@ namespace Tasks
             var nearingTails = db.Query("""
                 SELECT t.series_id, MAX(t.due_date) AS tail, t.id,
                        t.recurrence_unit, t.recurrence_interval, t.recurrence_days,
-                       (SELECT MIN(e.recurrence_end_date) FROM lu_tasks e WHERE e.series_id = t.series_id) AS end_date
+                       (SELECT MIN(e.recurrence_end_date) FROM lu_tasks e WHERE e.series_id = t.series_id) AS end_date,
+                       -- The day of the month the series falls on: its first instance's, else (that
+                       -- row deleted) the latest day any instance has — a short month only ever clamps down
+                       COALESCE(
+                           (SELECT CAST(strftime('%d', r.due_date) AS INTEGER) FROM lu_tasks r
+                            WHERE r.id = t.series_id AND r.due_date IS NOT NULL),
+                           (SELECT MAX(CAST(strftime('%d', e.due_date) AS INTEGER)) FROM lu_tasks e
+                            WHERE e.series_id = t.series_id)) AS anchor_day
                 FROM lu_tasks t
                 WHERE t.series_id IS NOT NULL AND t.done = 0
                 GROUP BY t.series_id
@@ -250,26 +274,44 @@ namespace Tasks
                     Unit: r.GetString(3),
                     Interval: r.IsDBNull(4) ? 1 : r.GetInt32(4),
                     Days: r.IsDBNull(5) ? null : r.GetString(5),
-                    EndDate: r.IsDBNull(6) ? (DateTime?)null : r.GetDateTime(6)
+                    EndDate: r.IsDBNull(6) ? (DateTime?)null : r.GetDateTime(6),
+                    AnchorDay: r.IsDBNull(7) ? (int?)null : r.GetInt32(7)
                 ),
                 cmd => cmd.AddParam("$threshold", threshold));
 
             foreach (var s in nearingTails)
-                GenerateInstances(s.SeriesId, s.TemplateId, s.Tail, s.Unit, s.Interval, s.Days, s.EndDate);
+                GenerateInstances(s.SeriesId, s.TemplateId, s.Tail, s.Unit, s.Interval, s.Days, s.EndDate, s.AnchorDay);
         }
 
-        internal static DateTime ComputeNextDue(DateTime current, string unit, int interval, string? days)
+        /// <summary>
+        /// The occurrence after <paramref name="current"/>. A monthly series keeps to
+        /// <paramref name="anchorDay"/> — the day of the month it started on — so the 31st goes
+        /// Feb 28, Mar 31, not Feb 28 and then the 28th for good; without one it keeps
+        /// <paramref name="current"/>'s day.
+        /// </summary>
+        internal static DateTime ComputeNextDue(DateTime current, string unit, int interval, string? days, int? anchorDay = null)
         {
             return unit switch
             {
-                "month" => current.AddMonths(interval),
-                "week" when days is not null => NextMatchingWeekday(current, days),
+                "month" => OnAnchorDay(current.AddMonths(interval), anchorDay),
+                "week" when days is not null => NextMatchingWeekday(current, days, interval),
                 "week" => current.AddDays(interval * 7),
                 _ => current.AddDays(interval), // "day" and fallback
             };
         }
 
-        internal static DateTime NextMatchingWeekday(DateTime from, string days)
+        private static DateTime OnAnchorDay(DateTime date, int? anchorDay) =>
+            anchorDay is { } day
+                ? new DateTime(date.Year, date.Month, Math.Min(day, DateTime.DaysInMonth(date.Year, date.Month)))
+                : date;
+
+        /// <summary>
+        /// The next of <paramref name="days"/> after <paramref name="from"/>. With an
+        /// <paramref name="interval"/> above 1 the chosen days repeat every that many weeks
+        /// (Monday to Sunday): the rest of <paramref name="from"/>'s week, then that week again
+        /// <paramref name="interval"/> weeks on.
+        /// </summary>
+        internal static DateTime NextMatchingWeekday(DateTime from, string days, int interval = 1)
         {
             var targets = days.Split(',')
                 .Select(d => d.Trim() switch
@@ -287,10 +329,15 @@ namespace Tasks
 
             var next = from.AddDays(1);
             for (int i = 0; i < 7; i++, next = next.AddDays(1))
-                if (targets.Contains(next.DayOfWeek)) return next;
+            {
+                if (!targets.Contains(next.DayOfWeek)) continue;
+                return interval > 1 && WeekStart(next) > WeekStart(from) ? next.AddDays((interval - 1) * 7) : next;
+            }
 
-            return from.AddDays(7);
+            return from.AddDays(7 * Math.Max(interval, 1));
         }
+
+        private static DateTime WeekStart(DateTime date) => date.Date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
 
         private static TaskItem Map(DbDataReader r) =>
             new(r.Field<long>("id"),

@@ -8,7 +8,7 @@ This document covers what to buy and what to build to get Hearth running on a ph
 
 Don't treat "the frame" as one device. Split it into:
 
-1. **The host** — runs the full Docker Compose stack (11 backend services, including the Display service, + frontend). Its power draw is dominated by running Docker/.NET continuously, not by where it physically sits. Hearth is local-first and self-hosted, so the host can live anywhere on the LAN — a closet, a shelf, wherever — it does not need to be inside the frame.
+1. **The host** — runs the full Docker Compose stack (13 backend services, including the Display service, + the frontend and the renderer). Its power draw is dominated by running Docker/.NET continuously, not by where it physically sits. Hearth is local-first and self-hosted, so the host can live anywhere on the LAN — a closet, a shelf, wherever — it does not need to be inside the frame.
 2. **The frame client** — the Pi Zero 2 W mounted on the back of the Inky Impression. It does almost no work: fetch a pre-rendered bitmap over HTTP, push it to the panel via `inky`, listen for button presses, idle. A thin client by necessity, not just preference — with 512 MB of RAM the Zero 2 W can't run the Compose stack or headless Chromium, so all rendering stays on the host.
 
 Conflating these two is how you end up with a Raspberry Pi 5 (~2.7–3W idle) mounted in the frame. Splitting them keeps the frame at well under a watt while the host runs on whatever's convenient.

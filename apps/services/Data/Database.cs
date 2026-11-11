@@ -36,6 +36,26 @@ namespace Data
             cmd.ExecuteNonQuery();
         }
 
+        public void NonQueryBatch(string sql, IEnumerable<Action<DbCommand>> binds)
+        {
+            using var conn = Open();
+            using var tx = conn.BeginTransaction();
+            using var cmd = conn.CreateCommand();
+
+            cmd.Transaction = tx;
+            cmd.CommandText = sql;
+
+            foreach (var bind in binds)
+            {
+                cmd.Parameters.Clear();
+                bind(cmd);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Disposing without a commit (an exception above) rolls everything back
+            tx.Commit();
+        }
+
         public IEnumerable<T> Query<T>(string sql, Func<DbDataReader, T> map, Action<DbCommand>? bind = null)
         {
             using var conn = Open();

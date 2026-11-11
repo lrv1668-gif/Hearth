@@ -12,6 +12,20 @@
     @compress not path /logs*
     encode @compress zstd gzip
 
+    # Hearth has no login, so a page on another site must not be able to change things here.
+    # Browsers preflight JSON writes (and no service allows them), but not a form post or a
+    # body-less POST — photo uploads, the frame's mode and palette buttons. Browsers label
+    # every request with where it came from; the frame client and curl send no such header.
+    @crossSiteWrite {
+        not method GET HEAD OPTIONS
+        header Sec-Fetch-Site cross-site
+    }
+    # A rewrite, because it runs before every handle below; a respond here would sort after them
+    rewrite @crossSiteWrite /cross-site-blocked
+    handle /cross-site-blocked {
+        respond "cross-site requests are not allowed" 403
+    }
+
     handle /tasks* {
         reverse_proxy tasks:8081
     }

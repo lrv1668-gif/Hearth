@@ -69,6 +69,66 @@ public sealed class TaskEndpointTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    public static TheoryData<object> RejectedTasks => new()
+    {
+        new { title = " " },
+        new { title = new string('a', 201) },
+        new { title = "Bins", due_time = "9am" },
+        new { title = "Bins", due_date = "2030-01-01", recurrence_unit = "fortnight" },
+        new { title = "Bins", due_date = "2030-01-01", recurrence_unit = "day", recurrence_interval = 0 },
+        new { title = "Bins", due_date = "2030-01-01", recurrence_unit = "day", recurrence_interval = -1 },
+        new { title = "Bins", recurrence_unit = "day" },
+        new { title = "Bins", due_date = "2030-01-01", recurrence_unit = "week", recurrence_days = "Mon,Funday" },
+        new { title = "Bins", due_date = "2030-01-01", recurrence_unit = "day", recurrence_days = "Mon" },
+        new { title = "Bins", due_date = "2030-01-01", recurrence_unit = "day", recurrence_end_date = "2029-12-01" },
+        new { title = "Trip", due_date = "2030-01-01", recurrence_unit = "day", is_countdown = true },
+    };
+
+    [Theory]
+    [MemberData(nameof(RejectedTasks))]
+    public async Task Post_InvalidTask_Returns400AndCreatesNothing(object body)
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/tasks", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty((await client.GetFromJsonAsync<List<TaskItem>>("/tasks", ServiceDefaults.HearthJson.SnakeCaseLower))!);
+    }
+
+    [Fact]
+    public async Task Post_WeeklyOnChosenDays_CreatesTheSeries()
+    {
+        var client = _factory.CreateClient();
+        var start = DateTime.UtcNow.Date.AddDays(1);
+
+        var response = await client.PostAsJsonAsync("/tasks", new
+        {
+            title = "Bins",
+            due_date = start,
+            due_time = "07:30",
+            recurrence_unit = "week",
+            recurrence_interval = 1,
+            recurrence_days = "Mon,Thu",
+            recurrence_end_date = start.AddDays(14),
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var tasks = await client.GetFromJsonAsync<List<TaskItem>>("/tasks", ServiceDefaults.HearthJson.SnakeCaseLower);
+        Assert.Equal(5, tasks!.Count);
+    }
+
+    [Fact]
+    public async Task Put_MalformedDueTime_Returns400()
+    {
+        var client = _factory.CreateClient();
+        var task = await CreateAsync(client);
+
+        var response = await client.PutAsJsonAsync($"/tasks/{task.Id}", new { done = false, title = "Water plants", due_time = "25:00" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task Preflight_FromAnotherOrigin_IsNotAllowed()
     {

@@ -80,6 +80,66 @@ public sealed class TaskStoreTests : IDisposable
     }
 
     [Fact]
+    public void Create_MonthlyOnThe31st_KeepsToTheLastDayOfShorterMonths()
+    {
+        var start = new DateTime(DateTime.UtcNow.Year + 1, 1, 31);
+
+        var created = _store.Create("Rent", start, null, null, null, "month", 1, null, start.AddMonths(4));
+
+        var days = _db.Db.Query(
+            $"SELECT due_date FROM lu_tasks WHERE series_id = {created.Id} ORDER BY due_date",
+            r => r.GetDateTime(0).Day).ToList();
+        var february = DateTime.DaysInMonth(start.Year, 2);
+        Assert.Equal([31, february, 31, 30, 31], days);
+    }
+
+    [Fact]
+    public void List_MonthlySeriesNearingItsTail_ExtendsOnTheSeriesDayNotTheTailsClampedOne()
+    {
+        // The only undone instance left is February's, clamped from the 31st the series started on
+        var january = new DateTime(DateTime.UtcNow.Year, 1, 31);
+        var february = january.AddMonths(1);
+        var created = _store.Create("Rent", january, null, null, null, "month", 1, null, null);
+        _db.Db.NonQuery($"DELETE FROM lu_tasks WHERE series_id = {created.Id} AND date(due_date) > date('{february:o}')");
+        _db.Db.NonQuery($"UPDATE lu_tasks SET done = 1 WHERE id = {created.Id}");
+
+        _store.List();
+
+        var march = _db.Db.QueryOne(
+            $"SELECT due_date FROM lu_tasks WHERE series_id = {created.Id} AND date(due_date) > date('{february:o}') ORDER BY due_date",
+            r => r.GetDateTime(0));
+        Assert.Equal(new DateTime(january.Year, 3, 31), march);
+    }
+
+    [Fact]
+    public void Create_IntervalThatNeverAdvances_GeneratesNothing()
+    {
+        var start = DateTime.UtcNow.Date;
+
+        var created = _store.Create("Stuck", start, null, null, null, "day", 0, null, null);
+
+        Assert.Single(_store.List(), t => t.SeriesId == created.Id);
+    }
+
+    [Fact]
+    public void List_DoneTasks_DropsDatedOnesOlderThanAYearAndKeepsUndatedOnes()
+    {
+        var today = DateTime.UtcNow.Date;
+        var recent = _store.Create("Recent", today.AddDays(-30), null, null, null, null, null, null, null);
+        var old = _store.Create("Old", today.AddDays(-TaskStore.DoneHistoryDays - 30), null, null, null, null, null, null, null);
+        var undated = _store.Create("Undated", null, null, null, null, null, null, null, null);
+        var overdue = _store.Create("Overdue", today.AddDays(-TaskStore.DoneHistoryDays - 30), null, null, null, null, null, null, null);
+        foreach (var task in new[] { recent, old, undated })
+            _store.Update(task.Id, done: true, task.Title, task.DueDate, null, null, null);
+
+        var titles = _store.List().Select(t => t.Title).ToList();
+
+        // An undone task never ages out, however overdue
+        Assert.Equal(["Overdue", "Recent", "Undated"], titles.Order());
+        Assert.DoesNotContain(old.Title, titles);
+    }
+
+    [Fact]
     public void List_SeriesWithEndDateNearingTail_DoesNotExtendPastEnd()
     {
         var start = DateTime.UtcNow.Date;

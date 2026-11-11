@@ -27,6 +27,7 @@
     import type { AllWidgetId } from '#lib/constants/widgets.ts';
     import { MediaQuery } from 'svelte/reactivity';
     import NowPlayingWidget from '#lib/components/widgets/NowPlayingWidget.svelte';
+    import InlineMessage from '#lib/components/ui/InlineMessage.svelte';
 
     // Loaded here rather than in WeatherWidget: the header, footer and day arc read it too.
     onMount(() => {
@@ -71,6 +72,11 @@
         </WidgetContainer>
     {:else if id === 'upcoming-tasks'}
         <WidgetContainer title="Agenda">
+            {#if taskStore.saveError}
+                <InlineMessage tone="error" class="mb-2">
+                    That change wasn't saved — the Tasks service didn't answer. Try again.
+                </InlineMessage>
+            {/if}
             <UpcomingTasksWidget
                 tasks={taskStore.tasks.filter((t) => !t.is_countdown)}
                 calItems={calendarStore.items}

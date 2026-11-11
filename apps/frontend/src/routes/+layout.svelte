@@ -44,10 +44,6 @@
     });
 </script>
 
-<svelte:head>
-    <link rel="icon" href="/favicon.ico" />
-</svelte:head>
-
 {#if loaded && isFrame}
     {@render children()}
 {:else if loaded}
