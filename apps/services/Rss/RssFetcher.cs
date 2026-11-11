@@ -1,7 +1,7 @@
 using System.Net;
-using System.Net.Sockets;
 using System.Xml.Linq;
 using Rss.Records;
+using ServiceDefaults;
 
 namespace Rss;
 
@@ -17,32 +17,13 @@ public sealed class RssFetcher
     /// than re-resolving the URL's host. The address must come from
     /// <see cref="FeedUrlValidator.ResolvePinnedAddressAsync"/> for the same URL — using a
     /// pinned address closes the gap where the host's DNS answer could change between
-    /// validation and fetch (DNS rebinding). TLS/SNI and the Host header still use the
-    /// URL's original hostname, so HTTPS virtual hosting and certificate validation are
-    /// unaffected. Redirects are not followed, since a redirect target hasn't been validated.
+    /// validation and fetch (see <see cref="PinnedHttpHandler"/>); redirects are not followed.
     /// Throws when the feed can't be fetched or parsed, so <see cref="RssFeeds"/>' fail-safe
     /// can keep serving the last good copy.
     /// </summary>
     public async Task<Feed> FetchAsync(string url, IPAddress pinnedAddress, CancellationToken ct = default)
     {
-        using var handler = new SocketsHttpHandler
-        {
-            AllowAutoRedirect = false,
-            ConnectCallback = async (context, token) =>
-            {
-                var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                try
-                {
-                    await socket.ConnectAsync(pinnedAddress, context.DnsEndPoint.Port, token);
-                }
-                catch
-                {
-                    socket.Dispose();
-                    throw;
-                }
-                return new NetworkStream(socket, ownsSocket: true);
-            },
-        };
+        using var handler = PinnedHttpHandler.Create(pinnedAddress);
         using var http = new HttpClient(handler) { Timeout = FetchTimeout };
 
         var content = await http.GetStringAsync(new Uri(url), ct);

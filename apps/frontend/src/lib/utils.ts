@@ -7,7 +7,14 @@ export function stripHtml(html: string): string {
 
 export function providerLabel(provider: string): string {
     if (provider === 'google') return 'Google Calendar';
+    if (provider === 'ics') return 'Subscribed calendar';
     return provider;
+}
+
+/** Where a calendar item came from: its calendar's name when it has one (a subscribed
+ *  calendar's, e.g. "Family"), else its provider. */
+export function calendarLabel(item: { calendar_name?: string | null; provider: string }): string {
+    return item.calendar_name || providerLabel(item.provider);
 }
 
 /**

@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task, CalendarItem, Item } from '#lib/api.ts';
-    import { formatTime, providerLabel } from '#lib/utils.ts';
+    import { calendarLabel, formatTime } from '#lib/utils.ts';
     import { Calendar as CalendarIcon } from '@lucide/svelte';
     import TaskCheckbox from './TaskCheckbox.svelte';
 
@@ -61,7 +61,7 @@ One day's tasks and calendar items as rows — shared by the day overflow modal 
                     >
                         {calItem.title}
                     </span>
-                    <span class="type-label flex-shrink-0 text-(--text-2)">{providerLabel(calItem.provider)}</span>
+                    <span class="type-label flex-shrink-0 text-(--text-2)">{calendarLabel(calItem)}</span>
                 </li>
             {:else}
                 <li class="flex min-w-0 items-center gap-2">
@@ -81,7 +81,7 @@ One day's tasks and calendar items as rows — shared by the day overflow modal 
                             {/if}
                             {calItem.title}
                         </span>
-                        <span class="type-label text-(--text-2)">{providerLabel(calItem.provider)}</span>
+                        <span class="type-label text-(--text-2)">{calendarLabel(calItem)}</span>
                     </button>
                 </li>
             {/if}

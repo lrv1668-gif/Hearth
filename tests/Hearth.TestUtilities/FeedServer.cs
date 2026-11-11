@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Rss.Tests;
+namespace Hearth.TestUtilities;
 
-/// <summary>A loopback HTTP server answering every request with its feed, or a 500 while failing.</summary>
-internal sealed class FeedServer : IDisposable
+/// <summary>A loopback HTTP server answering every request with its feed (RSS, ICS, …), or a 500 while failing.</summary>
+public sealed class FeedServer : IDisposable
 {
     private readonly string _feed;
     private readonly TcpListener _listener = new(IPAddress.Loopback, 0);

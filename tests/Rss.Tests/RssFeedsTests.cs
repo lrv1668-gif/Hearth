@@ -1,3 +1,4 @@
+using Hearth.TestUtilities;
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rss.Records;

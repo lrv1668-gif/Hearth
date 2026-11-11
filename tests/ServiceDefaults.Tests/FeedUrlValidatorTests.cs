@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Rss.Tests;
+namespace ServiceDefaults.Tests;
 
 public sealed class FeedUrlValidatorTests
 {

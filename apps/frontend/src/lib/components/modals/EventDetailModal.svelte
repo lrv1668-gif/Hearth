@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { CalendarItem } from '#lib/api.ts';
-    import { formatTime, providerLabel } from '#lib/utils.ts';
+    import { calendarLabel, formatTime } from '#lib/utils.ts';
     import { CalendarDays, ExternalLink, MapPin, Plug, TextAlignStart } from '@lucide/svelte';
     import DOMPurify from 'dompurify';
     import Button from '../ui/Button.svelte';
@@ -66,7 +66,7 @@
             <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <Plug class="icon-sm text-(--text-2)" />
-                    <p class="type-body text-(--text-2)">{providerLabel(event.provider)}</p>
+                    <p class="type-body text-(--text-2)">{calendarLabel(event)}</p>
                 </div>
                 {#if event.html_link}
                     <Button variant="link" href={event.html_link} target="_blank" rel="noopener noreferrer">

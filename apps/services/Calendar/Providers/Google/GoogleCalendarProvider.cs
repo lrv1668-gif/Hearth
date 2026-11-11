@@ -24,6 +24,7 @@ public sealed class GoogleCalendarProvider(
 
     public string ProviderKey   => Key;
     public bool IsAuthenticated => store.HasToken(Key);
+    public bool IsConnected     => IsAuthenticated;
 
     public string GetAuthUrl(string state)                             => authService.GenerateAuthUrl(state);
     public Task HandleCallbackAsync(string code, CancellationToken ct) => authService.HandleCallbackAsync(code, ct);

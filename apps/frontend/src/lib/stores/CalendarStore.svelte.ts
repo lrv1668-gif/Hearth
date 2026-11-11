@@ -1,8 +1,10 @@
-import { api, type CalendarItem } from '#lib/api.ts';
+import { api, type CalendarItem, type IcsFeed } from '#lib/api.ts';
 
 interface CalendarStoreState {
     items: CalendarItem[];
     googleConnected: boolean;
+    /** Calendars subscribed to by link, oldest first. */
+    icsFeeds: IcsFeed[];
     /** The Calendar service couldn't be reached and there are no items to show. */
     error: boolean;
     /** The first items load has finished, successfully or not. */
@@ -12,6 +14,7 @@ interface CalendarStoreState {
 export const calendarStore = $state<CalendarStoreState>({
     items: [],
     googleConnected: false,
+    icsFeeds: [],
     error: false,
     loaded: false,
 });
@@ -20,6 +23,27 @@ export const calendarStore = $state<CalendarStoreState>({
 export async function loadCalendarStatus(): Promise<void> {
     const status = await api.calendar.googleStatus();
     if (status) calendarStore.googleConnected = status.authenticated;
+}
+
+export async function loadIcsFeeds(): Promise<void> {
+    const feeds = await api.calendar.icsFeeds();
+    if (feeds) calendarStore.icsFeeds = feeds;
+}
+
+/** Subscribes to a calendar link; its events load in the background. Returns the service's
+ *  reason when it refuses. */
+export async function addIcsFeed(name: string, url: string): Promise<string | null> {
+    const result = await api.calendar.addIcsFeed(name, url);
+    if ('error' in result) return result.error;
+    calendarStore.icsFeeds = [...calendarStore.icsFeeds, result.feed];
+    void loadCalendarItems();
+    return null;
+}
+
+export async function removeIcsFeed(id: string): Promise<void> {
+    if (!(await api.calendar.removeIcsFeed(id))) return;
+    calendarStore.icsFeeds = calendarStore.icsFeeds.filter((f) => f.id !== id);
+    await loadCalendarItems();
 }
 
 export async function loadCalendarItems(): Promise<void> {

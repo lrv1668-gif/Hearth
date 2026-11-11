@@ -1,6 +1,7 @@
 using Calendar;
 using Calendar.Providers;
 using Calendar.Providers.Google;
+using Calendar.Providers.Ics;
 using Calendar.Records;
 using Google.Apis.Auth.OAuth2.Responses;
 using ServiceDefaults;
@@ -12,6 +13,7 @@ public static class WebApplicationExtensions
     public static void InitializeWebAppForCalendar(this WebApplication app)
     {
         app.Services.GetRequiredService<CalendarStore>().Migrate();
+        app.Services.GetRequiredService<IcsFeedStore>().Migrate();
         app.AddCalendarEndpoints();
         app.MapHearthHealth("calendar");
     }
@@ -84,7 +86,7 @@ public static class WebApplicationExtensions
             return Results.NoContent();
         });
 
-        // GET /calendar/items — aggregates across all authenticated providers.
+        // GET /calendar/items — aggregates across all connected providers.
         // GetItemsAsync catches all exceptions internally and returns empty on failure,
         // so no outer try/catch is needed here.
         app.MapGet("/calendar/items", async (
@@ -99,12 +101,51 @@ public static class WebApplicationExtensions
             var to    = today.AddDays(60);
 
             var fetches = providers
-                .Where(p => p.IsAuthenticated)
+                .Where(p => p.IsConnected)
                 .Select(p => p.GetItemsAsync(from, to, ct));
 
             var all = await Task.WhenAll(fetches);
             return Results.Ok(all.SelectMany(e => e).ToList());
         });
+
+        // POST /calendar/items/refresh — the next /calendar/items asks every provider again
+        // instead of serving its cached copy.
+        app.MapPost("/calendar/items/refresh", async (
+            CalendarStore store,
+            IcsCalendarProvider ics,
+            CancellationToken ct) =>
+        {
+            store.InvalidateItemsCache(GoogleAuthService.ProviderKey);
+            await ics.RefreshAsync(ct);
+            return Results.NoContent();
+        });
+
+        // GET /calendar/ics/feeds — the calendars subscribed to by link. Only each link's host
+        // is returned: the link itself is a secret and never leaves the service.
+        app.MapGet("/calendar/ics/feeds", (IcsCalendarProvider ics) =>
+            Results.Ok(ics.Feeds.Select(ToResponse).ToList()));
+
+        // POST /calendar/ics/feeds — body { "name": string?, "url": string }. Reads the link once
+        // (public addresses only, webcal:// as https://) and subscribes; 400 { error } says why not.
+        app.MapPost("/calendar/ics/feeds", async (
+            AddIcsFeedRequest body,
+            IcsCalendarProvider ics,
+            CancellationToken ct) =>
+        {
+            try
+            {
+                var feed = await ics.AddFeedAsync(body.Name, body.Url, ct);
+                return Results.Created($"/calendar/ics/feeds/{feed.Id}", ToResponse(feed));
+            }
+            catch (IcsFeedException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
+
+        // DELETE /calendar/ics/feeds/{id} — unsubscribes and drops the calendar's cached items
+        app.MapDelete("/calendar/ics/feeds/{id}", async (string id, IcsCalendarProvider ics, CancellationToken ct) =>
+            await ics.RemoveFeedAsync(id, ct) ? Results.NoContent() : Results.NotFound());
 
         // POST /calendar/google/refresh — invalidates the items cache so the next /calendar/items
         // fetches directly from Google rather than serving the 5-minute cached result.
@@ -144,6 +185,8 @@ public static class WebApplicationExtensions
             }
         });
     }
+
+    private static IcsFeedResponse ToResponse(IcsFeed feed) => new(feed.Id, feed.Name, new Uri(feed.Url).Host);
 }
 
 internal record ToggleTaskRequest(bool Completed);

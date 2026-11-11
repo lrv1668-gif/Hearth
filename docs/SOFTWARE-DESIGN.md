@@ -144,7 +144,7 @@ Shortcuts are bound with [tinykeys](https://github.com/jamiebuilds/tinykeys), wh
 | `modeStore` | `ModeStore.svelte.ts` | Server (SQLite) | The frame's resolved mode, its schedule and override (including the "Show on frame" pinned photo) — Settings → Frame's Mode card and the photo collection's pin switch |
 | `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, panel size, layout, split, Daily template and slots, Ambient card position, Photo mode's album and card and Countdown mode's countdown, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
 | `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations; `saveError` when a write did not reach the service (shown above the Agenda and the calendar) |
-| `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
+| `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks), Google connection status and the calendars subscribed to by link |
 | `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `NowPlayingWidget`    |
 | `lastPlayed`   | `LastPlayedStore.svelte.ts` | Server (SQLite) | Spotify listening history and top artist; loaded once per render by the frame's Last Played card |
 | `rssStore`     | `RssFeedStore.svelte.ts`    | Server (SQLite) | RSS article list; refreshed every 30 min by `NewsFeedWidget`          |
@@ -174,7 +174,8 @@ export type Item =
 - `eventDateKey(event)` — Returns `"YYYY-MM-DD"` in local time; slices all-day strings directly to avoid the UTC midnight shift `new Date("YYYY-MM-DD")` causes in negative UTC offset timezones
 - `stripHtml(html)` — Strips HTML tags (replacing with a space) and collapses whitespace, for plain-text previews of rich content (e.g. calendar event descriptions)
 - `poll(fn, ms)` — Calls `fn` every `ms` and returns the cleanup; widgets do `onMount(() => { loadPromise = load(); return poll(load, ms); })`. `SECOND` / `MINUTE` constants for readable intervals
-- `providerLabel(provider)` — Maps a calendar provider key to its display label (e.g. `"google"` → `"Google Calendar"`)
+- `providerLabel(provider)` — Maps a calendar provider key to its display label (e.g. `"google"` → `"Google Calendar"`, `"ics"` → `"Subscribed calendar"`)
+- `calendarLabel(item)` — Where a calendar item came from: its `calendar_name` when it has one, else `providerLabel`
 
 ### Themes
 
@@ -260,7 +261,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `rss`      | 8085 | Implemented | Fetches RSS/Atom feed articles, caches for 30 minutes; the frame's hourly Headlines |
 | `quote`    | 8086 | Implemented | Fetches daily quote from ZenQuotes, caches until next day            |
 | `history`  | 8095 | Implemented | Wikipedia's "On this day" events for the household's date, cached until local midnight |
-| `calendar` | 8087 | Implemented | Google Calendar + Google Tasks OAuth, aggregated events/tasks        |
+| `calendar` | 8087 | Implemented | Google Calendar + Google Tasks (OAuth) and calendars subscribed to by ICS link (Apple Calendar), aggregated |
 | `birds`    | 8088 | Implemented | Nearby eBird sightings, cached for 60 minutes                        |
 | `almanac`  | 8089 | Implemented | Season/daylight/frost facts, computed locally (no external API, no DB) |
 | `display`  | 8090 | Partial     | Shared e-paper frame settings, the dithered frame preview and the scheduled panel render at `GET /display/frame` (via the `renderer` sidecar); the Color ↔ B&W palette (`/display/palette`); presence endpoints are planned (`HARDWARE.md`) |
@@ -279,7 +280,7 @@ Three shared projects live under `apps/services/` and are referenced by service 
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Data.Abstractions` | `IDatabase` interface (`NonQuery`, `Query`, `QueryOne`, and `NonQueryBatch` — one statement run for many parameter sets in a single transaction) and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
 | `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton, and `SqliteDistributedCache` / `AddSqliteDistributedCache(key)` — an `IDistributedCache` over that same database, used as FusionCache's L2. The only project that references `Microsoft.Data.Sqlite`. |
-| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 13** services, including the four with no SQLite database (Photos, Quote, History, Almanac). Provides `AddHearthWebDefaults()` (snake_case JSON; deliberately no CORS — every service is reached same-origin through Caddy or the Vite proxy, so a cross-origin policy would only let other sites read and change household data), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `OAuthStateStore` for the CSRF `state` of OAuth sign-ins in flight (10-minute, single-use, expired entries swept on each new one — Spotify and Calendar), `AddHearthCache()` (FusionCache — see below), `AddHearthHomeLocation()` (the shared home location — see below), and the health checks behind Settings → Diagnostics (`MapHearthHealth` — see below). |
+| `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 13** services, including the four with no SQLite database (Photos, Quote, History, Almanac). Provides `AddHearthWebDefaults()` (snake_case JSON; deliberately no CORS — every service is reached same-origin through Caddy or the Vite proxy, so a cross-origin policy would only let other sites read and change household data), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `FeedUrlValidator` and `PinnedHttpHandler` for fetching a caller-supplied URL without reaching non-public addresses (Rss's feeds, Calendar's subscription links), `OAuthStateStore` for the CSRF `state` of OAuth sign-ins in flight (10-minute, single-use, expired entries swept on each new one — Spotify and Calendar), `AddHearthCache()` (FusionCache — see below), `AddHearthHomeLocation()` (the shared home location — see below), and the health checks behind Settings → Diagnostics (`MapHearthHealth` — see below). |
 
 Service projects follow this pattern:
 
@@ -298,7 +299,7 @@ Services that proxy a third-party API with a simple "fetch, cache, serve" shape 
 - **SQLite L2** when the service registered one via `AddSqliteDistributedCache(key)` (a `distributed_cache` table in the service's own `DB_PATH` file), so cached values survive container restarts. Without one (Quote), the cache is memory-only. Expired rows are purged on a write at most every 10 minutes. `Database` opens every file in WAL mode, so reads don't wait on a write.
 - `HearthJson.SnakeCaseLower` serialization for the L2 payloads.
 
-Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint, plus `FactorySoftTimeout = HearthCache.SoftTimeout` (1 s) and `EagerRefreshThreshold = HearthCache.EagerRefresh` (0.9). These go on every entry because FusionCache's default entry options don't apply to a call that passes its own. Together they mean an expired entry never holds a request up: a hit in the last 10% of the duration refreshes in the background, and a refresh slower than a second serves the stale value while it finishes in the background. Calendar keeps its own relational SQLite cache (items per provider); Photos keeps its in-memory `IMemoryCache` batch.
+Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint, plus `FactorySoftTimeout = HearthCache.SoftTimeout` (1 s) and `EagerRefreshThreshold = HearthCache.EagerRefresh` (0.9). These go on every entry because FusionCache's default entry options don't apply to a call that passes its own. Together they mean an expired entry never holds a request up: a hit in the last 10% of the duration refreshes in the background, and a refresh slower than a second serves the stale value while it finishes in the background. Calendar keeps its own relational SQLite cache for Google's items (its subscribed calendars go through FusionCache); Photos keeps its in-memory `IMemoryCache` batch.
 
 ### Home location and time zone
 
@@ -633,26 +634,24 @@ Feeds are fetched in parallel (`RssFeeds`, 15 s timeout each). A feed is re-fetc
 
 ## Calendar Service
 
-The `calendar` service integrates with Google Calendar and Google Tasks via OAuth 2.0, surfacing events (read-only) and tasks (completable via checkbox) from the start of yesterday (UTC — so the viewer's whole local day is covered) through the next 60 days. It's built behind an `ICalendarProvider` interface so additional providers (Outlook, etc.) can be added without changing the aggregation endpoint.
+The `calendar` service surfaces events and tasks from the start of yesterday (UTC — so the viewer's whole local day is covered) through the next 60 days, from two providers behind an `ICalendarProvider` interface:
+
+- **Google** (`google`) — Google Calendar events (read-only) and Google Tasks (completable via checkbox), over OAuth 2.0.
+- **Calendar links** (`ics`) — calendars subscribed to by their iCalendar link: an Apple (iCloud) calendar's public `webcal://` address, or any other `.ics` URL. Read-only, no sign-in, any number of calendars (up to 20), each under its own name.
 
 ### Extensibility interface
 
 ```csharp
 public interface ICalendarProvider
 {
-    string ProviderKey { get; }          // "google", "outlook", etc.
-    bool IsAuthenticated { get; }        // sync SQLite row-presence check
-    string GetAuthUrl(string state);
-    Task HandleCallbackAsync(string code, CancellationToken ct = default);
-    void Disconnect();                   // clears token + items cache
+    string ProviderKey { get; }          // "google", "ics"
+    bool IsConnected { get; }            // sync SQLite row-presence check: a token, or a subscribed calendar
     Task<IEnumerable<CalendarItem>> GetItemsAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
-    Task SetTaskCompletedAsync(
-        string taskListId, string taskId, bool completed, CancellationToken ct = default);
 }
 ```
 
-`/calendar/items` injects `IEnumerable<ICalendarProvider>` and fans out across all authenticated providers. Adding a second provider means implementing `ICalendarProvider` and registering it with `services.AddSingleton<ICalendarProvider>(...)`.
+`/calendar/items` injects `IEnumerable<ICalendarProvider>` and fans out across all connected providers. How a provider is connected (Google's sign-in, callback and task toggle; a pasted link) lives on the concrete class behind its own endpoints, so the interface holds only what the aggregation needs. Adding a provider means implementing `ICalendarProvider` and registering it with `services.AddSingleton<ICalendarProvider>(...)` — and, because `/calendar` is a frontend page, routing its endpoint prefix in both `infra/Caddyfile` and the Vite proxy.
 
 ### Endpoints
 
@@ -662,8 +661,12 @@ public interface ICalendarProvider
 | `GET`    | `/calendar/google/callback`                | Validate state, exchange code for tokens, redirect to frontend. If Google refuses (consent declined, or `invalid_client` for a wrong client secret), logs it and redirects to `/settings?section=connections&calendar_error=<code>`, which the Calendar card explains |
 | `GET`    | `/calendar/google/status`                  | `{ authenticated: bool }`                                                 |
 | `DELETE` | `/calendar/google/auth`                    | Clear token + items cache (disconnect)                                   |
-| `GET`    | `/calendar/items`                          | Aggregated `CalendarItem[]` from all authenticated providers (5-min cache) |
+| `GET`    | `/calendar/items`                          | Aggregated `CalendarItem[]` from all connected providers (each cached — see Caching) |
+| `POST`   | `/calendar/items/refresh`                  | Makes the next `/calendar/items` ask every provider again (Settings' Refresh button) |
 | `PATCH`  | `/calendar/google/tasks/{listId}/{taskId}` | Toggle Google Task completion, invalidate cache                          |
+| `GET`    | `/calendar/ics/feeds`                      | The subscribed calendars as `{ id, name, host }[]` — the link itself is never returned |
+| `POST`   | `/calendar/ics/feeds`                      | Body `{ name?, url }`. Reads the link once and subscribes (`201` with the feed); `400 { error }` with a reason Settings shows when the link isn't a public http(s) address, can't be read, or isn't a calendar. A blank `name` takes the calendar's own (`X-WR-CALNAME`) |
+| `DELETE` | `/calendar/ics/feeds/{id}`                 | Unsubscribe and drop the calendar's cached items (`404` if unknown)      |
 
 ### SQLite schema
 
@@ -685,6 +688,16 @@ CREATE TABLE IF NOT EXISTS calendar_items_cache (
     cached_at   TEXT NOT NULL,    -- ISO 8601
     range       TEXT              -- "<from>/<to>" (ISO 8601 UTC); NULL on rows from before it, read as stale
 );
+
+-- Calendars subscribed to by link. `url` is encrypted like the tokens (protector purpose
+-- "Calendar.IcsFeeds.v1"): a public share link is all it takes to read the calendar.
+-- A row that no longer decrypts is left out of the list.
+CREATE TABLE IF NOT EXISTS calendar_ics_feeds (
+    id         TEXT PRIMARY KEY,
+    name       TEXT NOT NULL,
+    url        TEXT NOT NULL,     -- protected payload
+    created_at TEXT NOT NULL      -- ISO 8601
+);
 ```
 
 ### OAuth details
@@ -697,7 +710,18 @@ CREATE TABLE IF NOT EXISTS calendar_items_cache (
 
 ### Caching
 
-`GetItemsAsync` fetches Google Calendar events and Google Tasks in parallel, merges them, and caches the result for 5 minutes per provider. Toggling a task (`SetTaskCompletedAsync`) invalidates the cache so the next `/calendar/items` fetch reflects the change.
+Google: `GetItemsAsync` fetches Google Calendar events and Google Tasks in parallel, merges them, and caches the result for 5 minutes in `calendar_items_cache`. Toggling a task (`SetTaskCompletedAsync`) invalidates the cache so the next `/calendar/items` fetch reflects the change.
+
+Calendar links: each calendar's expanded items are held by FusionCache (L2 in `calendar.db`) for 15 minutes under `ics:<id>`. A failed refresh keeps serving the last good copy for up to a day, retrying every 5 minutes; a calendar that has never been read successfully contributes nothing and is logged by name (never by link). `POST /calendar/items/refresh` expires the entries without dropping the fail-safe copies.
+
+### Calendar links (ICS)
+
+`IcsCalendarProvider` (`Providers/Ics/`) reads public iCalendar feeds. They are read-only by nature, and an iCloud public link makes that calendar readable by anyone who has it — which is why the link is stored encrypted, never returned by the API and never logged. Private iCloud calendars would need CalDAV with an app-specific password, which Hearth doesn't do.
+
+- **Fetching** (`IcsFetcher`) works like the Rss service's: `webcal://` and `webcals://` are read as `https://`, the host is resolved and checked by `FeedUrlValidator` (every address must be public — no loopback, private, link-local or CGNAT ranges), the request is sent to that pinned address (`PinnedHttpHandler`, so a changed DNS answer can't redirect it) and redirects aren't followed. So a pasted link can't make the service read from the LAN. 15 s timeout, 10 MB cap.
+- **Parsing** (`IcsParser`) uses [Ical.Net](https://github.com/ical-org/ical.net), which expands recurring events (`RRULE`, `EXDATE`, `RECURRENCE-ID` overrides) into one item per occurrence inside the items window, starting a month early so an event already under way is included. `STATUS:CANCELLED` events are dropped, a calendar yields at most 2,000 items (a runaway rule can't flood the response), and `URL` becomes `html_link` only when it's http(s).
+- **Time zones**: the frontend shows the wall-clock time in an item's `start`, so timed events are written in the household's time zone (`HomeLocationClient` — Settings → Home, else `TZ`): `TZID` and UTC times are converted to it, and floating times (no zone) are taken to be in it. With no home zone, each time keeps its own offset. All-day events are `YYYY-MM-DD` dates with an exclusive end, as Google's are.
+- Items carry `provider: "ics"` and the calendar's name in `calendar_name`, which the day list and the event sheet show in place of the provider (`calendarLabel` in `utils.ts`).
 
 ### `CalendarItem` record
 
@@ -711,8 +735,8 @@ public record CalendarItem(
     string? Start,         // ISO 8601 with offset, "YYYY-MM-DD" for all-day/tasks, null for undated tasks
     string? End,           // null for tasks
     bool IsAllDay,
-    string? CalendarName,
-    string Provider,       // "google"
+    string? CalendarName,  // a subscribed calendar's name; null for Google
+    string Provider,       // "google" | "ics"
     bool? IsCompleted,     // null for events; true/false for tasks
     string? TaskListId,    // null for events; required for toggle endpoint
     string? HtmlLink       // direct URL to view in provider (event page or tasks.google.com)
@@ -723,17 +747,18 @@ public record CalendarItem(
 
 | Variable                | Required | Description                                                                                |
 | ------------------------ | -------- | ---------------------------------------------------------------------------------------------|
-| `GOOGLE_CLIENT_ID`      | Yes      | Google OAuth client ID                                                                     |
-| `GOOGLE_CLIENT_SECRET`  | Yes      | Google OAuth client secret                                                                  |
-| `GOOGLE_REDIRECT_URI`   | Yes      | Must match a URI registered in the Google Cloud Console (e.g. `http://127.0.0.1:8087/calendar/google/callback`) |
+| `GOOGLE_CLIENT_ID`      | For Google | Google OAuth client ID                                                                     |
+| `GOOGLE_CLIENT_SECRET`  | For Google | Google OAuth client secret                                                                  |
+| `GOOGLE_REDIRECT_URI`   | For Google | Must match a URI registered in the Google Cloud Console (e.g. `http://127.0.0.1:8087/calendar/google/callback`) |
 | `DB_PATH`               | No       | Path to SQLite cache file (default: `calendar.db`)                                          |
+| `DISPLAY_URL`           | No       | The Display service, for the household's time zone (set in Compose); without it `TZ` is used |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8087` in Docker                                                                     |
 
 Stored in `apps/services/Calendar/.env`.
 
 ### Frontend integration
 
-`Calendar.svelte`, `DayOverflowModal.svelte`, and `UpcomingTasksWidget.svelte` consume `CalendarStore.svelte.ts`, which loads Google connection status and items on layout mount.
+`Calendar.svelte`, `DayOverflowModal.svelte`, and `UpcomingTasksWidget.svelte` consume `CalendarStore.svelte.ts`, which loads Google connection status and items on layout mount. Settings → Connections' Calendar card holds `GoogleCalendarConnectionSettings.svelte` and `IcsCalendarSettings.svelte` (the subscribed calendars, with a form that takes a link and an optional name and shows the service's reason when it refuses one). Calendar links need no environment variables.
 
 ## Birds Service
 
@@ -804,7 +829,7 @@ Stored in `apps/services/Almanac/.env`.
 | `GET /display/home`      | The saved `HomeSettings` (`latitude`, `longitude`, `name`, `time_zone`), or `204` if nothing has been saved — services then use their env vars |
 | `PUT /display/home`      | Replaces them. `400` unless latitude is −90–90 and longitude −180–180 (both or neither), `name` is ≤ 100 characters, and `time_zone` (optional) is an IANA zone the host knows |
 | `GET /display/household` | The shared `HouseholdSettings` (`rss_feeds`: `{ title, url }[]`; `train_stops`: `{ label, stop_key, line_filter }[]` — `line_filter` null shows every line, `[]` none), or `204` if nothing has been saved |
-| `PUT /display/household` | Replaces them. `400` unless there are at most 50 feeds, each with a title and an absolute `http(s)` URL (Rss's `FeedUrlValidator` does the full check when a feed is read), and at most 20 stops, each with a label and `stop_key` and at most 200 `line_filter` keys. Saving re-renders the panel frame |
+| `PUT /display/household` | Replaces them. `400` unless there are at most 50 feeds, each with a title and an absolute `http(s)` URL (`FeedUrlValidator` does the full check when Rss reads a feed), and at most 20 stops, each with a label and `stop_key` and at most 200 `line_filter` keys. Saving re-renders the panel frame |
 | `GET /display/places?q=` | City search for Settings → Home via Open-Meteo's keyless geocoding API → `Place[]` (`name`, `label`, `latitude`, `longitude`, `time_zone`), cached 7 days (FusionCache, memory-only). `400` unless `q` is 2–100 characters, `502` when the geocoder fails |
 | `GET /display/mode`      | What the frame shows now → `ResolvedMode` (`mode`, `reason`: `override`/`schedule`/`default`, `until` — when that may next change, or null — and `photo_id` for a pinned photo). A live override wins, then the first schedule rule whose window holds the household's time (Settings → Home zone, else `TZ`), then the schedule's default. `/frame` asks this when its URL has no `mode` |
 | `GET /display/mode/schedule` | The `ModeSchedule` (`default_mode`, `rules`: `mode`, `days` `sun`–`sat`, `start`/`end` `HH:mm`, and optionally `rotate` — up to 5 more modes — with `rotate_minutes`); `ambient` with no rules until saved. A rule ending before it starts runs past midnight (it belongs to the day it starts); equal times mean all day. A rotating rule shows `mode`, then each `rotate` mode, stepping every `rotate_minutes` from its window's start (midnight for all-day rules) and wrapping round; `until` is the next step (or the window's end). Inside the quiet hours it keeps the step it was on when they began — the window's first if it began during them — until they end |
@@ -963,6 +988,7 @@ Each team's games come from three ESPN calls, merged by event id with the latest
 /history/*          →  history:8095
 /calendar/google/*  →  calendar:8087
 /calendar/items*    →  calendar:8087
+/calendar/ics*      →  calendar:8087
 /birds/*            →  birds:8088
 /almanac/*          →  almanac:8089
 /display/*          →  display:8090

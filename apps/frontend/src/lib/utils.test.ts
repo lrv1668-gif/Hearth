@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { eventDateKey, formatTime, poll, providerLabel, stripHtml } from './utils';
+import { calendarLabel, eventDateKey, formatTime, poll, providerLabel, stripHtml } from './utils';
 
 describe('stripHtml', () => {
     it('strips tags', () => {
@@ -20,8 +20,22 @@ describe('providerLabel', () => {
         expect(providerLabel('google')).toBe('Google Calendar');
     });
 
+    it('maps ics to Subscribed calendar', () => {
+        expect(providerLabel('ics')).toBe('Subscribed calendar');
+    });
+
     it('passes through unknown providers unchanged', () => {
         expect(providerLabel('outlook')).toBe('outlook');
+    });
+});
+
+describe('calendarLabel', () => {
+    it('uses the calendar name when there is one', () => {
+        expect(calendarLabel({ calendar_name: 'Family', provider: 'ics' })).toBe('Family');
+    });
+
+    it('falls back to the provider', () => {
+        expect(calendarLabel({ calendar_name: null, provider: 'google' })).toBe('Google Calendar');
     });
 });
 
