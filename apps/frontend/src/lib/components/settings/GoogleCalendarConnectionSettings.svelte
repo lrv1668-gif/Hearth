@@ -2,7 +2,12 @@
     import { onMount } from 'svelte';
     import { page } from '$app/state';
     import { CalendarDays, RefreshCw } from '@lucide/svelte';
-    import { calendarStore, loadCalendarStatus, refreshCalendarItems } from '#lib/stores/CalendarStore.svelte.ts';
+    import {
+        calendarStore,
+        loadCalendarItems,
+        loadCalendarStatus,
+        refreshCalendarItems,
+    } from '#lib/stores/CalendarStore.svelte.ts';
     import { api } from '#lib/api.ts';
     import Button from '../ui/Button.svelte';
     import ConnectionRow from '../ui/ConnectionRow.svelte';
@@ -29,8 +34,9 @@
 
     async function handleDisconnect() {
         await api.calendar.googleDisconnect();
-        calendarStore.items = [];
         await loadCalendarStatus();
+        // Other calendars (subscribed links) stay on screen
+        await loadCalendarItems();
     }
 </script>
 

@@ -44,6 +44,7 @@ export default defineConfig({
             '/display': process.env.DISPLAY_URL ?? 'http://localhost:8090',
             '/calendar/google': process.env.CALENDAR_URL ?? 'http://localhost:8087',
             '/calendar/items': process.env.CALENDAR_URL ?? 'http://localhost:8087',
+            '/calendar/ics': process.env.CALENDAR_URL ?? 'http://localhost:8087',
             '/calendar/health': process.env.CALENDAR_URL ?? 'http://localhost:8087',
             // Dozzle streams over SSE and websockets
             '/logs': { target: process.env.LOGS_URL ?? 'http://localhost:8093', ws: true },

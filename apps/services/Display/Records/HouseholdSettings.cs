@@ -32,7 +32,7 @@ public sealed record HouseholdSettings(IReadOnlyList<RssFeedSetting> RssFeeds, I
         {
             if (feed is null || string.IsNullOrWhiteSpace(feed.Title) || feed.Title.Length > MaxTextLength)
                 return "every feed needs a title";
-            // Rss's FeedUrlValidator does the real checks (private hosts, DNS) when the feed is read.
+            // FeedUrlValidator (ServiceDefaults) does the real checks (private hosts, DNS) when the feed is read.
             if (feed.Url is not { Length: <= MaxTextLength } ||
                 !Uri.TryCreate(feed.Url, UriKind.Absolute, out var uri) ||
                 uri.Scheme is not ("http" or "https"))

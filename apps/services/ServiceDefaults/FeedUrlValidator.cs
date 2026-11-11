@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Rss;
+namespace ServiceDefaults;
 
 /// <summary>
 /// Validates caller-supplied feed URLs before the service fetches them, to prevent
@@ -55,7 +55,7 @@ public sealed class FeedUrlValidator(Func<string, Task<IPAddress[]>>? resolveHos
         return addresses.Length > 0 && addresses.All(IsPublicAddress) ? addresses[0] : null;
     }
 
-    internal static bool IsPublicAddress(IPAddress ip)
+    public static bool IsPublicAddress(IPAddress ip)
     {
         // Normalize IPv4-mapped IPv6 (::ffff:a.b.c.d) so it is checked as IPv4.
         if (ip.IsIPv4MappedToIPv6)

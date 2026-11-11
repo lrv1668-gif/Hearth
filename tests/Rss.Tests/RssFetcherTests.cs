@@ -1,3 +1,4 @@
+using Hearth.TestUtilities;
 using System.Net;
 
 namespace Rss.Tests;

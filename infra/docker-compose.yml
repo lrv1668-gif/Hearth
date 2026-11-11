@@ -134,6 +134,7 @@ services:
             - DB_PATH=/data/calendar.db
             - ASPNETCORE_HTTP_PORTS=8087
             - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+            - DISPLAY_URL=http://display:8090
         volumes:
             - calendar-data:/data
 

@@ -29,7 +29,7 @@ One host runs everything behind Caddy. The Display service has the renderer scre
 flowchart LR
     browser["Phone / browser<br/>dashboard · settings"]
     frame["E-paper frame<br/>Pi Zero 2 W + Inky 13.3″<br/>runs inkypull"]
-    apis["Upstream APIs<br/>Open-Meteo · Unsplash · Google Calendar<br/>Spotify · eBird · Transitland · ESPN · ZenQuotes<br/>Wikipedia · RSS"]
+    apis["Upstream APIs<br/>Open-Meteo · Unsplash · Google + Apple Calendar<br/>Spotify · eBird · Transitland · ESPN · ZenQuotes<br/>Wikipedia · RSS"]
 
     subgraph host["Host — Docker Compose"]
         caddy["Caddy<br/>one origin"]
@@ -66,6 +66,7 @@ Add keys only for the integrations you want. Each file is read by one service:
 | Unsplash photos | `apps/services/Photos/.env` | `UNSPLASH_ACCESS_KEY` | [Unsplash developers](https://unsplash.com/developers) |
 | Spotify | `apps/services/Spotify/.env` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` | [Spotify dashboard](https://developer.spotify.com/dashboard) |
 | Google Calendar | `apps/services/Calendar/.env` | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | [Google Cloud console](https://console.cloud.google.com/apis/credentials) |
+| Apple Calendar (or any `.ics` link) | — | None: paste the calendar's public link in Settings → Connections | Calendar's sharing options → Public Calendar |
 | eBird | `apps/services/Birds/.env` | `EBIRD_API_KEY` | [eBird API key](https://ebird.org/api/keygen) |
 | Transitland | `apps/services/Trains/.env` | `TRANSITLAND_API_KEY` | [Transitland](https://www.transit.land/documentation) |
 | Frost dates (optional) | `apps/services/Almanac/.env` | `FIRST_FROST`, `LAST_FROST` (`MM-DD`) | — |
