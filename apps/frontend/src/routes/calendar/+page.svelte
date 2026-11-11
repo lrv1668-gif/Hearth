@@ -5,6 +5,7 @@
     import Calendar from '#lib/components/Calendar.svelte';
     import TaskModal from '#lib/components/modals/TaskModal.svelte';
     import EventDetailModal from '#lib/components/modals/EventDetailModal.svelte';
+    import InlineMessage from '#lib/components/ui/InlineMessage.svelte';
 
     let modalOpen = $state(false);
     let editingTask = $state<Task | null>(null);
@@ -42,6 +43,11 @@
 </svelte:head>
 
 <main class="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+    {#if taskStore.saveError}
+        <InlineMessage tone="error" class="mb-3">
+            That change wasn't saved — the Tasks service didn't answer. Try again.
+        </InlineMessage>
+    {/if}
     <Calendar
         tasks={taskStore.tasks}
         calItems={calendarStore.items}

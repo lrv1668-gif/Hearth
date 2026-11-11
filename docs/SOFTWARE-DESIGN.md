@@ -143,7 +143,7 @@ Shortcuts are bound with [tinykeys](https://github.com/jamiebuilds/tinykeys), wh
 | `homeLocation` | `HomeLocationStore.svelte.ts` | Server (SQLite) | The household's location and time zone — one shared copy in the Display service; Settings → Home loads it and saves the form on Save (the zone defaults to this browser's, unsaved) |
 | `modeStore` | `ModeStore.svelte.ts` | Server (SQLite) | The frame's resolved mode, its schedule and override (including the "Show on frame" pinned photo) — Settings → Frame's Mode card and the photo collection's pin switch |
 | `frameSettings` | `FrameSettingsStore.svelte.ts` | Server (SQLite) | E-paper frame theme, font, orientation, panel size, layout, split, Daily template and slots, Ambient card position, Photo mode's album and card and Countdown mode's countdown, plus the Ambient photo source and categories shared by the frame and `/ambient` — one shared copy in the Display service; Settings → Frame loads it and saves each change (debounced) |
-| `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations                                            |
+| `tasks`        | `TaskStore.svelte.ts`       | Server (SQLite) | Task list, CRUD operations; `saveError` when a write did not reach the service (shown above the Agenda and the calendar) |
 | `calendar`     | `CalendarStore.svelte.ts`   | Server (SQLite) | Calendar items (events + Google Tasks) and Google connection status   |
 | `nowPlaying`   | `SpotifyStore.svelte.ts`    | Server (SQLite) | Spotify now-playing state; polled every 5 s by `NowPlayingWidget`    |
 | `lastPlayed`   | `LastPlayedStore.svelte.ts` | Server (SQLite) | Spotify listening history and top artist; loaded once per render by the frame's Last Played card |
@@ -277,7 +277,7 @@ Three shared projects live under `apps/services/` and are referenced by service 
 
 | Project             | Responsibility                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `Data.Abstractions` | `IDatabase` interface and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
+| `Data.Abstractions` | `IDatabase` interface (`NonQuery`, `Query`, `QueryOne`, and `NonQueryBatch` — one statement run for many parameter sets in a single transaction) and `DbCommandExtensions`; depends only on `System.Data.Common` (BCL) — no SQLite or other NuGet packages |
 | `Data`              | `Database` — the concrete SQLite implementation of `IDatabase` — plus `AddSqliteDatabase(key, defaultDbFileName)`, an `IServiceCollection` extension that reads `DB_PATH` and registers the keyed singleton, and `SqliteDistributedCache` / `AddSqliteDistributedCache(key)` — an `IDistributedCache` over that same database, used as FusionCache's L2. The only project that references `Microsoft.Data.Sqlite`. |
 | `ServiceDefaults`   | ASP.NET Core + FusionCache (no SQLite) library referenced by **all 13** services, including the four with no SQLite database (Photos, Quote, History, Almanac). Provides `AddHearthWebDefaults()` (snake_case JSON; deliberately no CORS — every service is reached same-origin through Caddy or the Vite proxy, so a cross-origin policy would only let other sites read and change household data), the shared `HearthJson.SnakeCaseLower` options instance, `ConfigRequirement` (`RequireOrFail` / `WarnIfMissing`) for validating required env vars, `AddHearthDataProtection(appName)` for services that need to encrypt values at rest (keys persisted to `<DB_PATH dir>/keys`), `OAuthStateStore` for the CSRF `state` of OAuth sign-ins in flight (10-minute, single-use, expired entries swept on each new one — Spotify and Calendar), `AddHearthCache()` (FusionCache — see below), `AddHearthHomeLocation()` (the shared home location — see below), and the health checks behind Settings → Diagnostics (`MapHearthHealth` — see below). |
 
@@ -343,10 +343,12 @@ The `tasks` service handles full CRUD for household tasks with optional due date
 
 | Method   | Path          | Description                                                                                 |
 | -------- | ------------- | --------------------------------------------------------------------------------------------|
-| `GET`    | `/tasks`      | List tasks: all done tasks + undone tasks due within 1 year + undone tasks with no due date |
-| `POST`   | `/tasks`      | Create a task; pre-generates all recurring instances up to 1 year ahead                     |
+| `GET`    | `/tasks`      | List tasks: done tasks due within the last year + undone tasks due within 1 year + every task with no due date |
+| `POST`   | `/tasks`      | Create a task; pre-generates all recurring instances up to 1 year ahead, in one transaction |
 | `PUT`    | `/tasks/{id}` | Replace done status, title, due date, due time, description, and assignee — a null clears it |
 | `DELETE` | `/tasks/{id}` | Delete a task; `?series=true` deletes it and every later instance of its recurring series   |
+
+`POST` and `PUT` answer `400` with the reason (`TaskValidation`): a title is required (at most 200 characters; description 2000, assignee 100) and `due_time` is `HH:mm`. On `POST`, `recurrence_unit` is `day`, `week` or `month` and needs a due date, `recurrence_interval` is 1–365, `recurrence_days` (weekly only) lists `Mon`–`Sun` each once, `recurrence_end_date` isn't before the due date, and a countdown can't repeat.
 
 ### Recurrence Model
 
@@ -376,7 +378,9 @@ Recurring tasks use a **pre-generation** approach: when a task with a recurrence
 | Monthly   | `month`             | 1                       |
 | Yearly    | `month`             | 12                      |
 
-Weekly recurrences may additionally specify `recurrence_days` (e.g. `"Mon,Wed,Fri"`) to pin to specific weekdays.
+Weekly recurrences may additionally specify `recurrence_days` (e.g. `"Mon,Wed,Fri"`) to pin to specific weekdays; with an interval above 1 those days repeat every that many weeks (Monday to Sunday). The task form only offers days for plain Weekly.
+
+A monthly (or yearly) series keeps to the day of the month it started on, clamped to shorter months: one starting on the 31st falls on Feb 28, Mar 31, Apr 30. The horizon extension reads that day from the series' first instance (or, once that row is deleted, the latest day any instance has), not from the tail it extends.
 
 ### Countdown Events
 
@@ -971,6 +975,8 @@ The routes live in a `(hearth)` snippet that two sites import:
 
 - **`:80`** serves plain HTTP on any hostname. `auto_https disable_redirects` stops Caddy from redirecting the HTTPS hostname to HTTPS, so LAN clients like the frame keep working over HTTP.
 - **`{$HEARTH_HOST:localhost}`** serves HTTPS with `tls internal`, using a certificate from Caddy's own local CA. `HEARTH_HOST` comes from `infra/.env`. Browsers warn until that CA is trusted. Its root certificate is at `/data/caddy/pki/authorities/local/root.crt` in the `caddy-data` volume.
+
+Hearth has no login, so the snippet opens by refusing cross-site writes: any request other than `GET`/`HEAD`/`OPTIONS` that a browser labels `Sec-Fetch-Site: cross-site` is rewritten to `/cross-site-blocked`, which answers `403`. Services set no CORS, so browsers already preflight (and block) another site's JSON writes; this covers the requests they don't preflight — a multipart photo upload and the body-less `POST`s behind the frame's buttons. Clients that aren't browsers (inkypull, `curl`) send no such header and are unaffected. It is not access control: anyone on the network can still reach every route.
 
 The Caddy config is the same in development and production — the only difference is that `frontend:3000` points to the Vite dev server in dev and the Node production server in prod.
 

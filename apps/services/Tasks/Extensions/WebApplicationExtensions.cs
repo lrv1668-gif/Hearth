@@ -24,8 +24,7 @@ public static class WebApplicationExtensions
 
         app.MapPost("/tasks", (CreateTaskRequest req, TaskStore store) =>
         {
-            if (string.IsNullOrWhiteSpace(req.Title))
-                return Results.BadRequest("title required");
+            if (TaskValidation.Check(req) is { } error) return Results.BadRequest(error);
             var task = store.Create(req.Title, req.DueDate, req.DueTime,
                 req.Description, req.Assignee,
                 req.RecurrenceUnit, req.RecurrenceInterval, req.RecurrenceDays, req.RecurrenceEndDate,
@@ -36,9 +35,8 @@ public static class WebApplicationExtensions
         // A full replace: every editable field is written as sent, so a null clears it
         app.MapPut("/tasks/{id:long}", (long id, UpdateTaskRequest req, TaskStore store) =>
         {
-            if (string.IsNullOrWhiteSpace(req.Title))
-                return Results.BadRequest("title required");
-            var task = store.Update(id, req.Done, req.Title, req.DueDate, req.DueTime, req.Description, req.Assignee);
+            if (TaskValidation.Check(req) is { } error) return Results.BadRequest(error);
+            var task = store.Update(id, req.Done, req.Title!, req.DueDate, req.DueTime, req.Description, req.Assignee);
             return task is null ? Results.NotFound() : Results.Ok(task);
         });
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Task } from '#lib/api.ts';
+    import type { CreateTaskInput, Task } from '#lib/api.ts';
     import TaskAddEdit from '../TaskAddEdit.svelte';
     import Button from '../ui/Button.svelte';
     import IconButton from '../ui/IconButton.svelte';
@@ -9,18 +9,7 @@
     interface Props {
         open?: boolean;
         task?: Task | null;
-        onAdd?: (
-            title: string,
-            dueDate?: string,
-            dueTime?: string,
-            description?: string,
-            assignee?: string,
-            recurrenceUnit?: string,
-            recurrenceInterval?: number,
-            recurrenceDays?: string,
-            recurrenceEndDate?: string,
-            isCountdown?: boolean
-        ) => void;
+        onAdd?: (input: CreateTaskInput) => void;
         onSave?: (title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) => void;
         onDelete?: (id: number, series?: boolean) => void;
         initialDate?: string;
@@ -40,30 +29,8 @@
         open = false;
     }
 
-    function handleAdd(
-        title: string,
-        dueDate?: string,
-        dueTime?: string,
-        description?: string,
-        assignee?: string,
-        recurrenceUnit?: string,
-        recurrenceInterval?: number,
-        recurrenceDays?: string,
-        recurrenceEndDate?: string,
-        isCountdown?: boolean
-    ) {
-        onAdd?.(
-            title,
-            dueDate,
-            dueTime,
-            description,
-            assignee,
-            recurrenceUnit,
-            recurrenceInterval,
-            recurrenceDays,
-            recurrenceEndDate,
-            isCountdown
-        );
+    function handleAdd(input: CreateTaskInput) {
+        onAdd?.(input);
         close();
     }
 

@@ -1,27 +1,17 @@
 <script lang="ts">
-    import type { Task } from '#lib/api.ts';
+    import type { CreateTaskInput, Task } from '#lib/api.ts';
     import { ChevronDown, ChevronUp, RefreshCw, Timer } from '@lucide/svelte';
     import Button from './ui/Button.svelte';
     import ChoiceChips from './ui/ChoiceChips.svelte';
     import DayPicker from './ui/DayPicker.svelte';
+    import InlineMessage from './ui/InlineMessage.svelte';
     import TextArea from './ui/TextArea.svelte';
     import TextInput from './ui/TextInput.svelte';
 
     interface Props {
         task?: Task;
         initialDate?: string;
-        onAdd?: (
-            title: string,
-            dueDate?: string,
-            dueTime?: string,
-            description?: string,
-            assignee?: string,
-            recurrenceUnit?: string,
-            recurrenceInterval?: number,
-            recurrenceDays?: string,
-            recurrenceEndDate?: string,
-            isCountdown?: boolean
-        ) => void;
+        onAdd?: (input: CreateTaskInput) => void;
         onSave?: (title: string, dueDate?: string, dueTime?: string, description?: string, assignee?: string) => void;
     }
 
@@ -78,7 +68,7 @@
         const n = t.recurrence_interval ?? 1;
         if (t.recurrence_unit === 'day') return n === 1 ? 'Daily' : `Every ${n} days`;
         if (t.recurrence_unit === 'week') {
-            if (t.recurrence_days) return `Weekly · ${t.recurrence_days}`;
+            if (t.recurrence_days) return `${n === 1 ? 'Weekly' : `Every ${n} weeks`} · ${t.recurrence_days}`;
             return n === 2 ? 'Bi-weekly' : 'Weekly';
         }
         if (t.recurrence_unit === 'month') {
@@ -120,10 +110,14 @@
             : [...recurrenceDays, day];
     }
 
+    // The Tasks service repeats a task from its due date, so a repeating task needs one
+    const repeatNeedsDate = $derived(!isEdit && !!recurrenceUnit && !newDueDate);
+    const canSubmit = $derived(!(newDueDate && !allDay && !newDueTime) && !repeatNeedsDate);
+
     function handleSubmit() {
         const title = newTitle.trim();
         if (!title) return;
-        if (newDueDate && !allDay && !newDueTime) return;
+        if (!canSubmit) return;
 
         if (isEdit) {
             onSave?.(
@@ -134,18 +128,19 @@
                 assignee.trim() || undefined
             );
         } else {
-            onAdd?.(
+            onAdd?.({
                 title,
-                newDueDate || undefined,
-                !allDay && newDueTime ? newDueTime : undefined,
-                description.trim() || undefined,
-                assignee.trim() || undefined,
-                recurrenceUnit || undefined,
-                recurrenceUnit ? recurrenceInterval : undefined,
-                recurrenceUnit === 'week' && recurrenceDays.length > 0 ? recurrenceDays.join(',') : undefined,
-                recurrenceUnit && recurrenceEndDate ? recurrenceEndDate : undefined,
-                isCountdown
-            );
+                due_date: newDueDate || null,
+                due_time: !allDay && newDueTime ? newDueTime : null,
+                description: description.trim() || null,
+                assignee: assignee.trim() || null,
+                recurrence_unit: recurrenceUnit || null,
+                recurrence_interval: recurrenceUnit ? recurrenceInterval : null,
+                recurrence_days:
+                    recurrenceUnit === 'week' && recurrenceDays.length > 0 ? recurrenceDays.join(',') : null,
+                recurrence_end_date: recurrenceUnit && recurrenceEndDate ? recurrenceEndDate : null,
+                is_countdown: isCountdown,
+            });
 
             newTitle = '';
             newDueDate = '';
@@ -185,7 +180,7 @@
             aria-label="Due date"
             class="flex-1 sm:flex-none"
         />
-        <Button type="submit" variant="primary" size="lg" disabled={!!newDueDate && !allDay && !newDueTime}>
+        <Button type="submit" variant="primary" size="lg" disabled={!canSubmit}>
             {isEdit ? 'Save' : 'Add'}
         </Button>
     </div>
@@ -264,6 +259,9 @@
                         value={`${recurrenceUnit}:${recurrenceInterval}`}
                         onchange={chooseRepeat}
                     />
+                    {#if repeatNeedsDate}
+                        <InlineMessage>Pick a due date for the first one — it repeats from there.</InlineMessage>
+                    {/if}
 
                     {#if recurrenceUnit === 'week' && recurrenceInterval === 1}
                         <DayPicker days={weekdays} selected={recurrenceDays} ontoggle={toggleDay} label="Repeat on" />

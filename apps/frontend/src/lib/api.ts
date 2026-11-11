@@ -693,7 +693,9 @@ class ApiClient {
         items: (): Promise<CalendarItem[] | null> => this.get<CalendarItem[]>('/calendar/items'),
 
         toggleTask: (taskListId: string, taskId: string, completed: boolean): Promise<boolean> =>
-            this.patch(`/calendar/google/tasks/${taskListId}/${taskId}`, { completed }),
+            this.patch(`/calendar/google/tasks/${encodeURIComponent(taskListId)}/${encodeURIComponent(taskId)}`, {
+                completed,
+            }),
 
         refreshCache: async (): Promise<boolean> => {
             const res = await fetch('/calendar/google/refresh', { method: 'POST' });

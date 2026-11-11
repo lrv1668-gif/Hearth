@@ -82,6 +82,33 @@ public sealed class DatabaseTests : IDisposable
     }
 
     [Fact]
+    public void NonQueryBatch_SeveralBinds_RunsTheStatementForEach()
+    {
+        _db.NonQueryBatch("INSERT INTO widgets (id, name) VALUES ($id, $name)",
+            new[] { "a", "b", "c" }.Select((name, i) => (Action<System.Data.Common.DbCommand>)(cmd =>
+            {
+                cmd.AddParam("$id", i + 1);
+                cmd.AddParam("$name", name);
+            })));
+
+        var names = _db.Query("SELECT name FROM widgets ORDER BY id", r => r.Field<string>("name")).ToList();
+        Assert.Equal(["a", "b", "c"], names);
+    }
+
+    [Fact]
+    public void NonQueryBatch_OneStatementFails_RollsBackTheOthers()
+    {
+        // The third insert repeats the first one's primary key
+        var ids = new[] { 1, 2, 1 };
+
+        Assert.ThrowsAny<System.Data.Common.DbException>(() =>
+            _db.NonQueryBatch("INSERT INTO widgets (id) VALUES ($id)",
+                ids.Select(id => (Action<System.Data.Common.DbCommand>)(cmd => cmd.AddParam("$id", id)))));
+
+        Assert.Empty(_db.Query("SELECT id FROM widgets", r => r.GetInt64(0)));
+    }
+
+    [Fact]
     public void Query_ConnectionOpenedPerCall_SecondQueryAfterExternalWriteSeesNewData()
     {
         // Database opens a fresh connection per call rather than holding one open, so a
