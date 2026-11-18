@@ -114,8 +114,22 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Fails on any high/critical advisory except those in IGNORE.
+      # GHSA-fc5q-39xc-vjpf: picomatch ReDoS, no patched release yet; it reaches only
+      # build/dev tooling (vite, svelte-check, vitest) matching our own globs, never
+      # the shipped app. Drop it once picomatch publishes a fix.
       - name: Audit dependencies
-        run: npm audit --audit-level=high
+        env:
+          IGNORE: GHSA-fc5q-39xc-vjpf
+        run: |
+          npm audit --json > audit.json || true
+          jq -e --arg ignore "$IGNORE" '
+            ($ignore | split(" ")) as $skip
+            | [.vulnerabilities[].via[] | objects
+               | select(.severity == "high" or .severity == "critical")
+               | select((.url | split("/") | last) as $id | $skip | index($id) | not)]
+            | if length == 0 then true else (.[] | "\(.severity): \(.title) \(.url)" | stderr) | false end
+          ' audit.json
         timeout-minutes: 3
 
   renderer-tests:
