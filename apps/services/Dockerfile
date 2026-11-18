@@ -5,7 +5,7 @@ ARG SERVICE
 
 # The SDK runs on the build machine's own arch and cross-publishes for TARGETARCH,
 # so an arm64 image builds at native speed on an amd64 CI runner (no QEMU).
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:11.0 AS builder
 ARG SERVICE
 # Set by BuildKit (amd64/arm64). Publishing for one RID drops the other platforms'
 # native libraries (SkiaSharp alone ships ~18) from the image.
