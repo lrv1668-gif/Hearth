@@ -14,24 +14,41 @@
             content="A calm, self-hosted home dashboard for a wall-mounted color e-paper frame."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://hearth.lucas-vertrees.me/assets/img/frame-almanac.jpg" />
+        <meta property="og:url" content="https://hearth.lucas-vertrees.me/" />
+        <meta property="og:image" content="https://hearth.lucas-vertrees.me/assets/img/frame-daily.jpg" />
+        <meta property="og:image:width" content="1600" />
+        <meta property="og:image:height" content="1200" />
+        <meta property="og:image:alt" content="Hearth's Daily layout on the e-paper frame." />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="canonical" href="https://hearth.lucas-vertrees.me/" />
         <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#171411" media="(prefers-color-scheme: dark)" />
         <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
         <link rel="preload" href="assets/fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+        <script>
+            try {
+                var t = localStorage.getItem('hearth-site-theme');
+                if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+            } catch (e) {}
+        </script>
         <link rel="stylesheet" href="assets/style.css" />
+        <script src="assets/site.js" defer></script>
     </head>
     <body>
         <header class="site-header">
             <div class="wrap">
                 <a class="wordmark" href="./">Hearth</a>
                 <nav class="site-nav" aria-label="Main">
-                    <a class="nav-optional" href="#modes">The frame</a>
-                    <a class="nav-optional" href="#dashboard">Dashboard</a>
-                    <a href="build.html">Build one</a>
+                    <a href="#modes"><span class="nav-long">The </span>frame</a>
+                    <a href="#dashboard">Dashboard</a>
+                    <a href="build.html">Build<span class="nav-long"> one</span></a>
                     <a href="https://github.com/lrv1668-gif/Hearth">GitHub</a>
                 </nav>
+                <button class="theme-toggle" type="button" aria-label="Switch to dark theme" hidden>
+                    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg>
+                    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+                </button>
             </div>
         </header>
 
@@ -44,9 +61,7 @@
                         </p>
                         <h1>A living picture frame that <em>knows your home.</em></h1>
                         <p class="lede">
-                            Hearth gathers the weather, your day's tasks and plans, the moon, the season and a
-                            little art into one quiet display — made for a color e-paper frame on the wall, and
-                            just as at home in a browser.
+                            Hearth brings the weather, your day's plans, the moon, the season and a little art into one quiet display. It's made for a color e-paper frame, and works just as well in a browser.
                         </p>
                         <div class="actions">
                             <a class="button" href="build.html">Build your own</a>
@@ -59,15 +74,19 @@
                                 View the source
                             </a>
                         </div>
+                        <p class="wip">
+                            <strong>Work in progress.</strong> It runs in any browser today; nothing has printed on real e-paper yet. <a href="build.html#status">Project status</a>
+                        </p>
                     </div>
                     <figure class="hero-frame">
                         <div class="frame">
                             <div class="mat">
                                 <img
-                                    src="assets/img/frame-almanac.jpg"
+                                    src="assets/img/frame-daily.jpg"
                                     width="1600"
                                     height="1200"
-                                    alt="Hearth's Daily layout on the e-paper frame: a large date and weekday masthead, today's temperature on a sun-path arc, countdowns, today's tasks, upcoming events, the moon phase, a daily quote and a five-day forecast."
+                                    fetchpriority="high"
+                                    alt="Hearth's Daily layout on the e-paper frame: a large date and weekday masthead with today's temperature on a sun-path arc, the week ahead, a countdown to Thanksgiving and the moon phase, above air quality, UV, wind and a five-day forecast."
                                 />
                             </div>
                         </div>
@@ -82,8 +101,7 @@
                         <span class="kicker">The idea</span>
                         <h2>Most home dashboards are control panels. Hearth is designed to recede.</h2>
                         <p class="lede">
-                            Like a fireplace, it's always on and always present, but it earns its place in the room
-                            by being calm and good to look at — not by asking for your attention.
+                            Like a fireplace, it's always on. It earns its place by being calm and good to look at, not by asking for attention.
                         </p>
                     </div>
                     <div class="principles">
@@ -91,25 +109,21 @@
                             <div class="num">1</div>
                             <h3>Paper, not a screen</h3>
                             <p>
-                                E-paper reflects light instead of emitting it. No glow in a dark room, no
-                                power draw to hold an image — it looks like a print hanging on the wall.
+                                E-paper reflects light instead of emitting it: no glow in a dark room, no power to hold an image. It looks like a print.
                             </p>
                         </div>
                         <div class="principle">
                             <div class="num">2</div>
                             <h3>Snapshots, not feeds</h3>
                             <p>
-                                The frame is designed for a few deliberate refreshes, not a live feed, so it shows
-                                only things that stay true in between — no ticking clocks, live departures or
-                                now-playing (it shows the last thing you played instead).
+                                The frame redraws now and then, not live, so it shows only what stays true in between: a timetable instead of live departures, the last song played instead of now-playing, and no ticking clock.
                             </p>
                         </div>
                         <div class="principle">
                             <div class="num">3</div>
                             <h3>Yours, at home</h3>
                             <p>
-                                Everything runs on a box on your own network and stores its state there. Weather,
-                                calendar and music hookups are optional extras, not requirements.
+                                Everything runs and stores its data on a box on your own network. Weather, calendar and music are optional extras.
                             </p>
                         </div>
                     </div>
@@ -122,9 +136,7 @@
                         <span class="kicker">On the wall</span>
                         <h2>Six ways to be in the room.</h2>
                         <p class="lede">
-                            Most of the time the frame is a full-bleed picture or a structured morning edition —
-                            Ambient by default, Daily when you want the day laid out. Four quieter modes fill in
-                            around them, and a schedule you set decides which one is up.
+                            Most of the time the frame shows a full-bleed photo (Ambient, the default) or a morning edition (Daily). Four quieter modes fill in around them, on a schedule you set.
                         </p>
                     </div>
                     <div class="modes">
@@ -133,11 +145,11 @@
                                 <div class="frame">
                                     <div class="mat">
                                         <img
-                                            src="assets/img/ambient-2.jpg"
+                                            src="assets/img/ambient.jpg"
                                             width="1600"
                                             height="1200"
                                             loading="lazy"
-                                            alt="Ambient mode: a lone tree standing in a still lake below mountains at dusk, with a small card in the corner showing the date, time, temperature and photo credit."
+                                            alt="Ambient mode: stars over Half Dome at night, with a small card in the corner showing the date, temperature, weather, photo credit and when it was last updated."
                                         />
                                     </div>
                                 </div>
@@ -145,9 +157,7 @@
                             <span class="tag">Ambient · the default</span>
                             <h3>The art is the display.</h3>
                             <p>
-                                A full-frame photograph — from Unsplash by season and category, or your own uploads —
-                                with a small card in one corner: the date, the temperature, a line about the weather,
-                                and credit for the photographer. Information stays peripheral.
+                                A full-frame photo from Unsplash or your own uploads, with a small corner card: the date, temperature, a line on the weather, the photo credit and when it last updated. Information stays peripheral.
                             </p>
                         </article>
                         <article class="mode">
@@ -167,9 +177,7 @@
                             <span class="tag alt">Daily · the morning edition</span>
                             <h3>A morning edition for your household.</h3>
                             <p>
-                                A masthead with the date, season and today's sun path; widgets you arrange yourself
-                                in a layout of small, medium and large slots; a five-day forecast along the bottom. Type sized to read from across
-                                the room — in full color, or a crisp black-and-white broadsheet.
+                                A masthead with the date, season and today's sun path, widgets you arrange in slots, and a five-day forecast along the bottom. Type reads from across the room, in color or a crisp black-and-white broadsheet.
                             </p>
                         </article>
                     </div>
@@ -194,9 +202,7 @@
                         </figure>
                     </div>
                     <p class="note">
-                        Plus <strong>Photo</strong>: pin one of your own uploads, or an album of them, and it stays up
-                        until you switch it off. Daily on weekday mornings and Night after ten, say, with Ambient the rest
-                        of the time — or pick one by hand from Settings.
+                        Plus <strong>Photo</strong>: pin an upload or an album until you switch it off. Schedule Daily for weekday mornings and Night after ten, say, or pick a mode by hand in Settings.
                     </p>
                 </div>
             </section>
@@ -207,9 +213,7 @@
                         <span class="kicker">Frame themes</span>
                         <h2>Fourteen palettes, mixed from six inks.</h2>
                         <p class="lede">
-                            The Spectra 6 panel prints with black, white, red, yellow, blue and green. Every frame
-                            theme is built only from those measured inks and a few approved two-ink mixes, so what you
-                            pick on screen is what the panel can actually show.
+                            The Spectra 6 panel prints black, white, red, yellow, blue and green. Every frame theme uses only those inks and a few tested two-ink mixes, so what you pick on screen is what the panel can show.
                         </p>
                     </div>
                     <div class="themes">
@@ -234,7 +238,7 @@
                         <figure class="theme-card">
                             <a href="assets/img/frame-letterpress.jpg">
                                 <img src="assets/img/frame-letterpress-sm.jpg" width="800" height="600" loading="lazy" alt="Letterpress frame theme" />
-                                <figcaption><strong>Letterpress</strong><span>Black and red, two-colour print</span></figcaption>
+                                <figcaption><strong>Letterpress</strong><span>Black and red, two-color print</span></figcaption>
                             </a>
                         </figure>
                         <figure class="theme-card">
@@ -269,6 +273,33 @@
                 </div>
             </section>
 
+            <section id="ink">
+                <div class="wrap">
+                    <div class="feature-row flip">
+                        <div class="ink-compare">
+                            <figure>
+                                <a href="assets/img/frame-daily.jpg"><img src="assets/img/ink-screen.png" width="800" height="560" loading="lazy" alt="A corner of the Daily layout as the browser draws it: smooth indigo moon, a pale butter forecast band." /></a>
+                                <figcaption>In the browser</figcaption>
+                            </figure>
+                            <figure>
+                                <a href="assets/img/frame-daily-paper.png"><img src="assets/img/ink-paper.png" width="800" height="560" loading="lazy" alt="The same corner dithered to the six inks and shown as e-paper looks: a grayer page, a muted indigo moon and a yellow band speckled from yellow and white ink." /></a>
+                                <figcaption>Dithered to six inks, as the panel shows it</figcaption>
+                            </figure>
+                        </div>
+                        <div>
+                            <span class="kicker">On the panel</span>
+                            <h3>What the wall actually sees.</h3>
+                            <p>
+                                The frame shots on this page are browser renders. Before the panel gets one, the host dithers it to the six inks, so a pale tint becomes a fine mix of two.
+                            </p>
+                            <p>
+                                E-paper is also grayer and softer than a screen. Settings shows this Paper view, so you can judge a theme before it reaches the wall. Open either image for the whole frame.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="layout">
                 <div class="wrap">
                     <div class="feature-row">
@@ -287,16 +318,10 @@
                             <span class="kicker">Your layout</span>
                             <h3>Pick what's worth a glance.</h3>
                             <p>
-                                Pick a Daily layout — one large slot, two halves, a feature beside two small slots,
-                                a banner over two, or four quarters — and a widget for each: Today's Arc, Today,
-                                Coming Up, Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby,
-                                Last Played, Last Result &amp; Next Game, a photo of the day, Headlines, Scheduled Departures and On This Day. Or arrange free columns with the same
-                                drag-and-drop editor the web dashboard uses.
+                                Choose a Daily layout (one large slot, halves, a feature beside two small slots, a banner over two, or quarters) and a <a href="#widgets">widget</a> for each, or arrange free columns by drag and drop.
                             </p>
                             <p>
-                                Each widget is designed for the sizes it goes in. Small ones stay compact; given more
-                                room, a countdown becomes a poster, Coming Up an agenda by day, the moon a full disc —
-                                no overflowing lists, no tiny print.
+                                Widgets are designed for their slot. Given more room, a countdown becomes a poster and the moon a full disc; no overflowing lists, no tiny print.
                             </p>
                         </div>
                     </div>
@@ -316,12 +341,10 @@
                             <span class="kicker">Any wall</span>
                             <h3>Landscape or portrait, any size.</h3>
                             <p>
-                                Hang the frame whichever way suits the wall. The Daily layout reflows for a tall
-                                panel instead of just shrinking.
+                                Hang it whichever way suits the wall. The Daily layout reflows for a tall panel instead of shrinking.
                             </p>
                             <p>
-                                Using a different panel? Set its resolution in Settings → Frame, and the type and
-                                spacing scale to match.
+                                Using a different panel? Set its resolution in Settings, and the type and spacing scale to match.
                             </p>
                         </div>
                     </div>
@@ -334,14 +357,10 @@
                             <span class="kicker">Settings → Frame</span>
                             <h3>See it the way the panel will.</h3>
                             <p>
-                                The frame's settings live on the host, so every phone and browser in the house edits the
-                                same frame. The Mode card shows what's up now, takes a manual override for an hour or
-                                until you change it back, and holds the schedule.
+                                Frame settings live on the host, so every phone and browser edits the same frame. The Mode card shows what's up, holds the schedule, and takes a manual override.
                             </p>
                             <p>
-                                Beside it, the preview switches between the live page and the host's own capture,
-                                dithered down to the six inks — with a Paper view that mimics e-paper's greyer, softer
-                                colors.
+                                Beside it, a preview shows the live page or the host's dithered capture.
                             </p>
                         </div>
                     </div>
@@ -354,8 +373,7 @@
                         <span class="kicker">In the browser</span>
                         <h2>The same home, on every screen.</h2>
                         <p class="lede">
-                            The web dashboard is where you add tasks, set up integrations and arrange the frame — and
-                            it makes a fine always-on display for a spare tablet, too.
+                            The web dashboard is where you add tasks, connect integrations and arrange the frame. It makes a fine always-on display for a spare tablet, too.
                         </p>
                     </div>
 
@@ -364,9 +382,9 @@
                         <input type="radio" name="dash" id="dash-stone" />
                         <input type="radio" name="dash" id="dash-forest" />
                         <div class="tab-labels" role="presentation">
-                            <label for="dash-linen"><i style="background: #faf6ef"></i>Linen</label>
-                            <label for="dash-stone"><i style="background: #1a1410"></i>Stone</label>
-                            <label for="dash-forest"><i style="background: #111713"></i>Forest</label>
+                            <label for="dash-linen"><i class="swatch-linen"></i>Linen</label>
+                            <label for="dash-stone"><i class="swatch-stone"></i>Stone</label>
+                            <label for="dash-forest"><i class="swatch-forest"></i>Forest</label>
                         </div>
                         <div class="tab-panels">
                             <div class="window tab-panel p-linen">
@@ -387,11 +405,11 @@
                     <div class="stats">
                         <div class="stat"><strong>18</strong><span>color themes, light and dark</span></div>
                         <div class="stat"><strong>9</strong><span>typefaces, with a size slider</span></div>
-                        <div class="stat"><strong>13</strong><span>e-paper frame palettes</span></div>
+                        <div class="stat"><strong>14</strong><span>e-paper frame palettes</span></div>
                         <div class="stat"><strong>0</strong><span>cloud accounts required</span></div>
                     </div>
 
-                    <div class="feature-row" style="margin-top: clamp(3.5rem, 7vw, 6rem)">
+                    <div class="feature-row spaced">
                         <div class="window">
                             <div class="bar"><i></i><i></i><i></i></div>
                             <img src="assets/img/calendar.jpg" width="1600" height="1100" loading="lazy" alt="The month calendar view, showing Hearth tasks alongside Google Calendar events." />
@@ -400,8 +418,7 @@
                             <span class="kicker">Calendar</span>
                             <h3>Tasks and plans in one place.</h3>
                             <p>
-                                Hearth keeps its own tasks — one-offs, repeating chores, countdowns to the dates you're
-                                looking forward to — and lays them out next to your Google or Apple Calendar events.
+                                Hearth's own tasks, repeating chores and countdowns sit beside your Google or Apple Calendar events.
                             </p>
                             <p>Tick something off on your phone and every screen in the house agrees.</p>
                         </div>
@@ -414,13 +431,10 @@
                             <span class="kicker">Phone</span>
                             <h3>The frame's remote control.</h3>
                             <p>
-                                On a phone the dashboard becomes a single column under a one-line date and weather
-                                header, with a tab bar along the bottom — the quickest way to add a task, switch the
-                                frame's mode or check what's coming up.
+                                On a phone the dashboard is a single column with a tab bar along the bottom: the quickest way to add a task, switch the frame's mode or check what's next.
                             </p>
                             <p>
-                                Settings opens as a list of sections, dialogs slide up as sheets, and the frame preview
-                                waits behind a button until you want it.
+                                Settings and dialogs open as sheets made for a thumb.
                             </p>
                         </div>
                     </div>
@@ -434,12 +448,11 @@
                         <h2>Everything a household glances at.</h2>
                         <p class="lede">
                             Widgets marked <span class="badge frame-badge">Frame</span> also appear on the e-paper
-                            frame. The rest change too often to be right between refreshes, so they stay on screens.
+                            frame; <span class="badge frame-only">Frame only</span> ones are made just for it. The rest change too often for e-paper, so they stay on screens.
                         </p>
                     </div>
                     <div class="widgets">
                         <div class="widget"><h3>Agenda &amp; Today <span class="badge frame-badge">Frame</span></h3><p>Tasks due today and what's next on the calendar.</p></div>
-                        <div class="widget"><h3>Week Ahead <span class="badge frame-badge">Frame</span></h3><p>Events and tasks for the next seven days.</p></div>
                         <div class="widget"><h3>Countdowns <span class="badge frame-badge">Frame</span></h3><p>Days until the dates you're looking forward to.</p></div>
                         <div class="widget"><h3>Weather <span class="badge frame-badge">Frame</span></h3><p>Current conditions, wind, UV and air quality, and a five-day forecast.</p></div>
                         <div class="widget"><h3>Today's Arc <span class="badge frame-badge">Frame</span></h3><p>Daylight, golden hours and today's events as one ribbon.</p></div>
@@ -451,9 +464,10 @@
                         <div class="widget"><h3>Trains &amp; Buses <span class="badge frame-badge">Frame</span></h3><p>Live departures from the stops you follow, via Transitland; the frame prints the timetable for this hour and the next.</p></div>
                         <div class="widget"><h3>Sports <span class="badge frame-badge">Frame</span></h3><p>Live scores for the teams you follow, from the NWSL to the NBA; the frame shows the last result and next game.</p></div>
                         <div class="widget"><h3>Now Playing</h3><p>What's on Spotify, on a little spinning record with album art and a live progress bar.</p></div>
-                        <div class="widget"><h3>Last Played <span class="badge frame-badge">Frame</span></h3><p>Your latest Spotify track with its album art, and this month's top artist.</p></div>
-                        <div class="widget"><h3>Photo <span class="badge frame-badge">Frame</span></h3><p>A photo of the day in a Daily slot, from your Ambient photos or Unsplash.</p></div>
-                        <div class="widget"><h3>On This Day <span class="badge frame-badge">Frame</span></h3><p>A few events from history on today's date, from Wikipedia.</p></div>
+                        <div class="widget"><h3>Last Played <span class="badge frame-only">Frame only</span></h3><p>Your latest Spotify track with its album art, and this month's top artist.</p></div>
+                        <div class="widget"><h3>Photo <span class="badge frame-only">Frame only</span></h3><p>A photo of the day in a Daily slot, from your Ambient photos or Unsplash.</p></div>
+                        <div class="widget"><h3>On This Day <span class="badge frame-only">Frame only</span></h3><p>A few events from history on today's date, from Wikipedia.</p></div>
+                        <div class="widget"><h3>Week Ahead <span class="badge frame-only">Frame only</span></h3><p>Events and tasks for the next seven days.</p></div>
                     </div>
                 </div>
             </section>
@@ -464,8 +478,7 @@
                         <span class="kicker">How it fits together</span>
                         <h2>A thin frame, a capable host.</h2>
                         <p class="lede">
-                            The frame does almost nothing: fetch a finished picture, show it, listen for a button.
-                            Everything else happens on a small server somewhere on your network.
+                            The frame does almost nothing: fetch a finished picture, show it, listen for a button. Everything else happens on a small server on your network.
                         </p>
                     </div>
                     <figure class="diagram">
@@ -625,15 +638,11 @@
                         </svg>
 
                         <figcaption>
-                            Everything runs on one host behind Caddy. The highlighted path is the frame's: on a schedule,
-                            Display has the renderer screenshot the <code>/frame</code> page and dither it to the panel's six
-                            inks, and the frame simply pulls the finished picture.
+                            Everything runs on one host behind Caddy. The highlighted path is the frame's: on a schedule, the host screenshots <code>/frame</code> and dithers it, and the frame pulls the result.
                         </figcaption>
                     </figure>
                     <p class="note">
-                        <strong>Where it stands:</strong> the dashboard, all six frame modes and their schedule are built
-                        and run today in any browser; the host captures, dithers and serves the frame on a schedule, and the
-                        inkypull client is written — nothing has been printed on real e-paper yet.
+                        <strong>Where it stands:</strong> everything above is built and runs in a browser, and the frame client is written, but it hasn't printed on real e-paper yet.
                         <a href="build.html#status">Project status</a>
                     </p>
                 </div>
@@ -644,8 +653,7 @@
                     <span class="kicker">Make one</span>
                     <h2>Hang a little calm on the wall.</h2>
                     <p class="lede">
-                        The source is on GitHub. Run it in a browser this afternoon, then put it in a frame when
-                        you're ready.
+                        Run it in a browser this afternoon, then put it in a frame when you're ready.
                     </p>
                     <div class="actions">
                         <a class="button" href="build.html">Parts &amp; setup</a>
