@@ -11,24 +11,40 @@
         <meta property="og:title" content="Build a Hearth" />
         <meta property="og:description" content="Parts and setup for a calm, self-hosted e-paper home display." />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://hearth.lucas-vertrees.me/build.html" />
         <meta property="og:image" content="https://hearth.lucas-vertrees.me/assets/img/frame-night.jpg" />
+        <meta property="og:image:width" content="1600" />
+        <meta property="og:image:height" content="1200" />
+        <meta property="og:image:alt" content="The Night frame theme: white and yellow type on black." />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#171411" media="(prefers-color-scheme: dark)" />
         <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
         <link rel="preload" href="assets/fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+        <script>
+            try {
+                var t = localStorage.getItem('hearth-site-theme');
+                if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+            } catch (e) {}
+        </script>
         <link rel="stylesheet" href="assets/style.css" />
+        <script src="assets/site.js" defer></script>
     </head>
     <body>
         <header class="site-header">
             <div class="wrap">
                 <a class="wordmark" href="./">Hearth</a>
                 <nav class="site-nav" aria-label="Main">
-                    <a class="nav-optional" href="./#modes">The frame</a>
-                    <a class="nav-optional" href="./#dashboard">Dashboard</a>
-                    <a href="build.html" aria-current="page">Build one</a>
+                    <a href="./#modes"><span class="nav-long">The </span>frame</a>
+                    <a href="./#dashboard">Dashboard</a>
+                    <a href="build.html" aria-current="page">Build<span class="nav-long"> one</span></a>
                     <a href="https://github.com/lrv1668-gif/Hearth">GitHub</a>
                 </nav>
+                <button class="theme-toggle" type="button" aria-label="Switch to dark theme" hidden>
+                    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg>
+                    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+                </button>
             </div>
         </header>
 
@@ -38,26 +54,21 @@
                     <p class="edition"><span>Parts</span><span>Setup</span><span>Status</span></p>
                     <h1>Build a Hearth.</h1>
                     <p class="lede">
-                        Start with the software on any machine you have, and use it in a browser. When you want it on
-                        the wall, add a small host and a framed e-paper panel.
+                        Start with the software on any machine and use it in a browser. When you want it on the wall, add a small host and a framed e-paper panel.
                     </p>
                 </div>
             </div>
 
-            <section id="split" style="padding-top: 0; border-top: 0">
+            <section id="split" class="flush">
                 <div class="wrap two-col">
                     <div class="prose">
                         <span class="kicker">The key decision</span>
-                        <h2 style="margin-block: 1rem 1.25rem">Two devices, two power budgets.</h2>
+                        <h2>Two devices, two power budgets.</h2>
                         <p>
-                            Don't treat “the frame” as one device. The <strong>host</strong> runs the whole stack —
-                            the web app and thirteen small services — and can live in a closet or on a shelf anywhere on
-                            your network.
+                            “The frame” is really two devices. The <strong>host</strong> runs the web app and thirteen small services, and can sit in a closet anywhere on your network.
                         </p>
                         <p>
-                            The <strong>frame client</strong> is a small Raspberry Pi mounted behind the panel. It
-                            fetches a finished image, pushes it to the e-paper and listens for button presses. That's
-                            all — so the thing on your wall stays at well under a watt.
+                            The <strong>frame client</strong> is a small Raspberry Pi behind the panel. It fetches a finished image, shows it and listens for buttons, so the thing on your wall draws well under a watt.
                         </p>
                     </div>
                     <div class="frame">
@@ -98,8 +109,7 @@
                             <span class="role">Frame client</span>
                             <h3>Raspberry Pi Zero 2 W</h3>
                             <p>
-                                The “WH” version, with a pre-soldered header. Idles around 0.6 W. A Pi 4 works too
-                                (that's what it's being developed on), plus a microSD card and a 5 V USB supply.
+                                The “WH” version, with a pre-soldered header. Idles around 0.6 W. A Pi 4 also works; it's what Hearth is developed on. Add a microSD card and a 5 V USB supply.
                             </p>
                         </div>
                         <div class="part">
@@ -120,7 +130,7 @@
                         </div>
                     </div>
 
-                    <div class="prose" style="margin-top: clamp(2.5rem, 5vw, 3.5rem)">
+                    <div class="prose spaced">
                         <h3>Four buttons, no app needed</h3>
                         <p>
                             The Inky's buttons cover the quick actions; your phone handles everything else. The planned
@@ -159,8 +169,7 @@ cd Hearth</code></pre>
                                 Services that need an API key read a small <code>.env</code> file, copied from the
                                 <code>.env.example</code> beside it — the
                                 <a href="https://github.com/lrv1668-gif/Hearth#configuration">README</a> lists them.
-                                Skip any integration you don't use; tasks, quotes and news need nothing. The home
-                                location and time zone are set later, in Settings → Home.
+                                Skip any you don't use; tasks and quotes need nothing. Home location and time zone come later, in Settings.
                             </p>
                             <pre><code>cp apps/services/Weather/.env.example apps/services/Weather/.env</code></pre>
                         </li>
@@ -172,10 +181,7 @@ cd Hearth</code></pre>
                         <li>
                             <h3>Make it yours</h3>
                             <p>
-                                In Settings, set where home is — this device's location, a city, or coordinates — pick a
-                                theme and typeface, choose which widgets show and where, connect
-                                any integrations below, and design the frame with a live preview — including which
-                                mode it shows when.
+                                In Settings, set where home is, pick a theme and typeface, place your widgets, connect integrations, and design the frame and its schedule with a live preview.
                             </p>
                         </li>
                     </ol>
@@ -188,8 +194,7 @@ cd Hearth</code></pre>
                         <span class="kicker">Optional</span>
                         <h2>Connect what you use.</h2>
                         <p class="lede">
-                            Every integration is optional. Each lives in its own service, caches what it fetches, and
-                            keeps showing the last good data if the outside world goes quiet.
+                            Every integration is optional. Each caches what it fetches and keeps showing the last good data if its source goes quiet.
                         </p>
                     </div>
                     <div class="table-wrap">
@@ -222,7 +227,7 @@ cd Hearth</code></pre>
                         <span class="kicker">Where it stands</span>
                         <h2>Honest progress.</h2>
                         <p class="lede">
-                            Hearth is a work in progress. Here's what's real today and what's next.
+                            What's real today, and what's next.
                         </p>
                     </div>
                     <div class="table-wrap">
@@ -252,11 +257,9 @@ cd Hearth</code></pre>
                 <div class="wrap two-col">
                     <div class="prose">
                         <span class="kicker">Under the hood</span>
-                        <h2 style="margin-block: 1rem 1.25rem">Small services, one quiet page.</h2>
+                        <h2>Small services, one quiet page.</h2>
                         <p>
-                            Each concern — tasks, weather, photos, the calendar — is its own small ASP.NET Core service
-                            with its own SQLite file, so one flaky upstream can't take the rest down. CI publishes
-                            amd64 and arm64 images, and a host can update itself on a timer.
+                            Tasks, weather, photos, the calendar: each is its own small ASP.NET Core service with its own SQLite file, so one failing service can't take the rest down. CI publishes amd64 and arm64 images, and a host can update itself on a timer.
                         </p>
                         <p>
                             Read the

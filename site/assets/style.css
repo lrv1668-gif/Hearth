@@ -556,7 +556,7 @@ section + section {
     width: 0.8em;
     height: 0.8em;
     border-radius: 50%;
-    border: 1px solid rgb(0 0 0 / 0.15);
+    box-shadow: 0 0 0 1px var(--text-3);
 }
 .tab-panel {
     display: none;
@@ -966,4 +966,197 @@ td:first-child {
 .legal p + h2,
 .legal ul + h2 {
     margin-top: 2.5rem;
+}
+
+/* ---------- Additions: header toggle, mobile nav, badges, lightbox ---------- */
+.wip {
+    margin-top: 1.5rem;
+    font-size: 0.88rem;
+    color: var(--text-3);
+    max-width: 46ch;
+}
+.wip strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-right: 0.25em;
+    color: var(--text-2);
+    font-weight: 600;
+}
+.wip strong::before {
+    content: '';
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 3px rgb(248 183 113 / 0.25);
+}
+
+.site-header nav {
+    margin-left: auto;
+}
+.theme-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: none;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+}
+.theme-toggle[hidden] {
+    display: none;
+}
+.theme-toggle:hover {
+    color: var(--text-1);
+    border-color: var(--text-3);
+}
+.theme-toggle svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+.theme-toggle .icon-moon {
+    fill: currentColor;
+    stroke: none;
+}
+.theme-toggle .icon-sun,
+.dark-ui .theme-toggle .icon-moon {
+    display: none;
+}
+.dark-ui .theme-toggle .icon-sun {
+    display: block;
+}
+
+@media (max-width: 560px) {
+    .site-header .wrap {
+        flex-wrap: wrap;
+        row-gap: 0;
+        padding-block: 0.75rem;
+    }
+    .site-header nav {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        justify-content: space-between;
+        padding-top: 0.6rem;
+    }
+    .site-nav .nav-long {
+        display: none;
+    }
+}
+
+/* Frame-only widgets: outlined rather than filled */
+.badge.frame-only {
+    background: transparent;
+    color: var(--indigo);
+    box-shadow: inset 0 0 0 1px var(--indigo);
+}
+
+/* Dashboard theme swatches (ringed above so dark ones show on a dark page) */
+.swatch-linen {
+    background: #faf6ef;
+}
+.swatch-stone {
+    background: #1a1410;
+}
+.swatch-forest {
+    background: #111713;
+}
+
+/* Spacing utilities that replaced inline styles */
+.prose.spaced {
+    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+}
+.feature-row.spaced {
+    margin-top: clamp(3.5rem, 7vw, 6rem);
+}
+section.flush {
+    padding-top: 0;
+    border-top: 0;
+}
+.prose .kicker + h2 {
+    margin-block: 1rem 1.25rem;
+}
+
+/* Lightbox for the theme and mode thumbnails */
+.lightbox {
+    max-width: min(92vw, 1400px);
+    max-height: 92vh;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+}
+.lightbox::backdrop {
+    background: rgb(10 8 6 / 0.82);
+}
+.lightbox img {
+    max-height: 82vh;
+    max-width: min(92vw, 1400px);
+    width: auto;
+    margin-inline: auto;
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+}
+.lightbox p {
+    margin-top: 0.85rem;
+    text-align: center;
+    color: #f3ede3;
+    font-size: 0.9rem;
+}
+.lightbox p strong {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    margin-right: 0.5em;
+}
+.lightbox button {
+    position: absolute;
+    top: -2.75rem;
+    right: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    border-radius: 50%;
+    background: transparent;
+    color: #fff;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* ---------- 404 ---------- */
+.not-found {
+    min-height: 60vh;
+    display: grid;
+    align-content: center;
+}
+.not-found .lede {
+    margin-bottom: 2rem;
+}
+
+/* Browser render vs. six-ink dither, at the panel's own pixels */
+.ink-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.75rem, 2vw, 1.25rem);
+}
+.ink-compare figure {
+    margin: 0;
+}
+.ink-compare img {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+}
+.ink-compare figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.8rem;
+    color: var(--text-3);
 }
