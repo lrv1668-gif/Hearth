@@ -1,18 +1,31 @@
-using System.Globalization;
-using Microsoft.Extensions.Caching.Memory;
 using Photos.Records;
+using ServiceDefaults;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Photos;
 
 public sealed class UnsplashPhotoSource(
-    IMemoryCache cache,
+    IFusionCache cache,
     PhotoFetcher fetcher,
+    HomeLocationClient home,
     IConfiguration config,
     ILogger<UnsplashPhotoSource> logger) : IPhotoSource
 {
     public string Key => "unsplash";
 
-    public async Task<PhotoResponse?> GetRandomAsync(PhotoSourceContext ctx)
+    // A day per batch; fail-safe keeps the last batch for a week while Unsplash is down,
+    // retrying at most every 5 minutes (the free tier allows 50 requests an hour)
+    private static readonly FusionCacheEntryOptions CacheOptions = new()
+    {
+        Duration = TimeSpan.FromHours(24),
+        IsFailSafeEnabled = true,
+        FailSafeMaxDuration = TimeSpan.FromDays(7),
+        FailSafeThrottleDuration = TimeSpan.FromMinutes(5),
+        FactorySoftTimeout = HearthCache.SoftTimeout,
+        EagerRefreshThreshold = HearthCache.EagerRefresh,
+    };
+
+    public async Task<PhotoResponse?> GetRandomAsync(PhotoSourceContext ctx, CancellationToken ct = default)
     {
         var key = config["UNSPLASH_ACCESS_KEY"];
         if (string.IsNullOrEmpty(key))
@@ -21,23 +34,24 @@ public sealed class UnsplashPhotoSource(
             return null;
         }
 
-        // Southern hemisphere flips the season mapping; LATITUDE is optional and defaults to northern.
-        var isNorthern = !double.TryParse(config["LATITUDE"], NumberStyles.Float, CultureInfo.InvariantCulture, out var lat) || lat >= 0;
+        // Southern hemisphere flips the season mapping; without a home location, northern
+        var isNorthern = (await home.GetAsync(ct)).Latitude is not < 0;
         var query = SeasonalQuery.Expand(ctx.Query ?? "nature", DateOnly.FromDateTime(DateTime.UtcNow), isNorthern);
         var orientation = ctx.Orientation;
-        var cacheKey = $"unsplash:{query}:{orientation}";
-
-        if (cache.TryGetValue(cacheKey, out List<PhotoResponse>? photos) && photos!.Count > 0)
-            return Pick(photos, ctx.Exclude ?? [], Random.Shared);
 
         try
         {
-            photos = await fetcher.FetchAsync(query, orientation, key);
-            if (photos.Count == 0) return null;
-            cache.Set(cacheKey, photos, TimeSpan.FromHours(24));
+            var photos = await cache.GetOrSetAsync<List<PhotoResponse>>(
+                $"unsplash:{query}:{orientation}",
+                async (_, token) => await fetcher.FetchAsync(query, orientation, key, token) is { Count: > 0 } batch
+                    ? batch
+                    // Thrown rather than cached, so an empty answer never sits there for a day
+                    : throw new InvalidOperationException($"Unsplash returned no photos for \"{query}\""),
+                CacheOptions,
+                ct);
             return Pick(photos, ctx.Exclude ?? [], Random.Shared);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "Failed to fetch photos from Unsplash");
             return null;

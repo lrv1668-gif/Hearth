@@ -6,16 +6,16 @@ namespace Photos;
 public sealed class PhotoFetcher(HttpClient http)
 {
     // count=20 — Display's FramePhotos.UnsplashPool and photos.ts UNSPLASH_POOL weigh uploads against it
-    public async Task<List<PhotoResponse>> FetchAsync(string query, string orientation, string apiKey)
+    public async Task<List<PhotoResponse>> FetchAsync(string query, string orientation, string apiKey, CancellationToken ct = default)
     {
         var url = $"https://api.unsplash.com/photos/random?query={Uri.EscapeDataString(query)}&orientation={orientation}&count=20";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("Authorization", $"Client-ID {apiKey}");
 
-        using var response = await http.SendAsync(request);
+        using var response = await http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
         var results = new List<PhotoResponse>();
         foreach (var photo in doc.RootElement.EnumerateArray())
