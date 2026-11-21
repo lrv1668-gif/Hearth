@@ -19,10 +19,10 @@ export function getFrameScale(): () => number {
    Frame widgets size their lists in "lines": one line of frame body text (48px).
    FrameDaily measures the real column height and body line height at render
    time (so font presets are accounted for); COLUMN_LINES is only the fallback —
-   ~15 lines landscape, ~20 portrait at the default font, below the masthead. Every widget pays for its kicker, gaps sit between widgets, and
+   ~15 lines landscape, ~24 portrait at the default font, below the masthead. Every widget pays for its kicker, gaps sit between widgets, and
    fixed-height widgets (the arc, the moon, the countdown stamps) take what they
    need — the rest is split evenly between the widgets whose lists can grow.   */
-export const COLUMN_LINES = { landscape: 15, portrait: 20 } as const;
+export const COLUMN_LINES = { landscape: 15, portrait: 24 } as const;
 const HEADING_LINES = 1.05;
 const GAP_LINES = 0.85;
 // Last Played is a 5-line album square plus its 3px border, whatever the column has.
