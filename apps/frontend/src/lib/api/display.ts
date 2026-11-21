@@ -1,5 +1,5 @@
 import { del, get, getSaved, put, sendJson, tryFetch } from './http.ts';
-import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '#lib/frame.ts';
+import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '#lib/frame/settings.ts';
 import type { FrameModeId, ModeDay, PhotoCard } from '#lib/constants/frameModes.ts';
 import type { FramePalette } from '#lib/constants/frameThemes.ts';
 import type { Photo } from './photos.ts';

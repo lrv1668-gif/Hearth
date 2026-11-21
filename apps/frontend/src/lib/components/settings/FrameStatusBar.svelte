@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { checkIn, clockLabel } from '#lib/frame.ts';
+    import { checkIn, clockLabel } from '#lib/frame/status.ts';
     import { frameStatusStore, loadFrameStatus } from '#lib/stores/FrameStatusStore.svelte.ts';
     import { poll } from '#lib/utils.ts';
     import InlineMessage from '../ui/InlineMessage.svelte';

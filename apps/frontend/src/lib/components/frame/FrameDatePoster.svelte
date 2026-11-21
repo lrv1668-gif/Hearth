@@ -1,6 +1,6 @@
 <script lang="ts">
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
-    import { weatherSentence } from '#lib/frame.ts';
+    import { weatherSentence } from '#lib/frame/sky.ts';
     import { localDateKey } from '#lib/utils.ts';
     import FrameDateBlock from './FrameDateBlock.svelte';
 

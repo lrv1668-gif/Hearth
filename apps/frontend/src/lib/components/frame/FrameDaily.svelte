@@ -1,7 +1,7 @@
 <script lang="ts">
     import { frameWidgets, type FrameLayout, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
     import { frameTemplate, type FrameSize, type FrameTemplateId } from '#lib/constants/frameTemplates.ts';
-    import { allocateLines, COLUMN_LINES, slotLines } from '#lib/frame.ts';
+    import { allocateLines, COLUMN_LINES, slotLines } from '#lib/frame/layout.ts';
     import FrameEditionLine from './FrameEditionLine.svelte';
     import FrameDateBlock from './FrameDateBlock.svelte';
     import FrameSunPath from './FrameSunPath.svelte';

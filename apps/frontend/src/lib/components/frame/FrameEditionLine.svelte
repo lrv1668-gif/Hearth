@@ -2,7 +2,7 @@
     import { tick } from 'svelte';
     import { almanacStore } from '#lib/stores/AlmanacStore.svelte.ts';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
-    import { dayOfYear, editionLabel } from '#lib/frame.ts';
+    import { dayOfYear, editionLabel } from '#lib/frame/sky.ts';
     import { localDateKey } from '#lib/utils.ts';
 
     /** `wrap`: allow a second line (portrait, where it shares the row with the sun path). */

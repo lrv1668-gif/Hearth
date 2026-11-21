@@ -1,6 +1,6 @@
 <script lang="ts">
     import { headlinesStore } from '#lib/stores/HeadlinesStore.svelte.ts';
-    import { itemsThatFit } from '#lib/frame.ts';
+    import { itemsThatFit } from '#lib/frame/layout.ts';
     import type { FrameSize } from '#lib/constants/frameTemplates.ts';
     import FitText from '../FitText.svelte';
     import FrameEmpty from '../FrameEmpty.svelte';

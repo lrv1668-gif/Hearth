@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { BirdSighting } from '#lib/api.ts';
     import { dayLabel, distanceLabel, rareFirst, shortLocation } from '#lib/birds.ts';
-    import { itemsThatFit } from '#lib/frame.ts';
+    import { itemsThatFit } from '#lib/frame/layout.ts';
 
     /** `lines`: the frame's line budget — shows only what fits (at most 5). Omit to
      *  show every sighting (the dashboard scrolls them). */
