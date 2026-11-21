@@ -95,7 +95,7 @@ poster (FrameDatePoster) instead of the plate.
         src={photo.url}
         alt={photo.description ?? ''}
         crossorigin="anonymous"
-        class="absolute inset-0 h-full w-full object-cover"
+        class="frame-photo absolute inset-0 h-full w-full object-cover"
     />
 {:else}
     <!-- No photo to hang: a date poster rather than an error message, which would stay up for hours -->

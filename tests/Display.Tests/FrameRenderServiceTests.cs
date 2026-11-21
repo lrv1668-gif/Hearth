@@ -179,6 +179,20 @@ public sealed class FrameRenderServiceTests
     }
 
     [Fact]
+    public void FramePath_PhotoAdjustments_AddsTheChangedOnes()
+    {
+        Assert.Equal("/frame?mode=ambient&brightness=130&saturation=80",
+            FrameRenderService.FramePath(new(FrameModes.Ambient, "default", null),
+                adjust: Saved with { PhotoBrightness = 130, PhotoSaturation = 80 }));
+    }
+
+    [Fact]
+    public void FramePath_PhotoAdjustmentsAtDefault_LeavesThemOut()
+    {
+        Assert.Equal("/frame?mode=ambient", FrameRenderService.FramePath(new(FrameModes.Ambient, "default", null), adjust: Saved));
+    }
+
+    [Fact]
     public void FramePath_Color_LeavesThePaletteOut()
     {
         Assert.Equal("/frame?mode=daily",

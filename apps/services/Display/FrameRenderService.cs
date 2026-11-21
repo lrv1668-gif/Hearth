@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Display.Records;
@@ -130,13 +131,27 @@ public sealed class FrameRenderService(
     /// <summary>
     /// The /frame URL to capture: the resolved mode spelled out, so the dither always matches
     /// it, the held photo (a pinned upload included), so the panel shows the one the preview does,
-    /// and B&amp;W when it's on.
+    /// B&amp;W when it's on, and <paramref name="adjust"/>'s photo adjustments (pass the saved
+    /// settings only when Hearth dithers — the frame client gets the photo as it is).
     /// </summary>
-    public static string FramePath(ResolvedMode mode, FramePhoto? photo = null, FramePalette? palette = null)
+    public static string FramePath(
+        ResolvedMode mode, FramePhoto? photo = null, FramePalette? palette = null, FrameSettings? adjust = null)
     {
         var query = new QueryBuilder { { "mode", mode.Mode } };
         if (palette?.IsBlackAndWhite == true) query.Add("palette", palette.Palette);
         if (photo is not null) query.Add("photo", JsonSerializer.Serialize(photo, HearthJson.SnakeCaseLower));
+        if (adjust is not null)
+        {
+            foreach (var (name, value) in new[]
+            {
+                ("brightness", adjust.PhotoBrightness),
+                ("contrast",   adjust.PhotoContrast),
+                ("saturation", adjust.PhotoSaturation),
+            })
+            {
+                if (value != FrameSettings.DefaultPhotoAdjust) query.Add(name, value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
         return "/frame" + query.ToQueryString();
     }
 
@@ -268,8 +283,9 @@ public sealed class FrameRenderService(
                     ? await photos.GetDailyAsync(
                         saved, FramePhotos.Today(HomeZones.Resolve(home.Get(), config), clock.GetUtcNow()), refresh, stop)
                     : null;
+            var dither = DitherFor(mode, saved, palette);
             var png = await services.GetRequiredService<RendererClient>().RenderAsync(
-                FramePath(mode, photo, palette), width, height, DitherFor(mode, saved, palette), kernel: null,
+                FramePath(mode, photo, palette, dither == "none" ? null : saved), width, height, dither, kernel: null,
                 look: "screen", home.Get()?.TimeZone, rotate, palette.Palette, stop);
             var info = cache.Store(png, mode.Mode, mode.PhotoId, clock.GetUtcNow());
             logger.LogInformation("Rendered the {Mode} frame ({ETag})", mode.Mode, info.ETag);

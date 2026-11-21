@@ -30,6 +30,24 @@ public sealed class FrameSettingsTests
     }
 
     [Theory]
+    [InlineData(49)]
+    [InlineData(151)]
+    public void Validate_PhotoAdjustOutOfRange_ReturnsError(int percent)
+    {
+        Assert.NotNull((Valid with { PhotoBrightness = percent }).Validate());
+        Assert.NotNull((Valid with { PhotoContrast = percent }).Validate());
+        Assert.NotNull((Valid with { PhotoSaturation = percent }).Validate());
+    }
+
+    [Theory]
+    [InlineData(50)]
+    [InlineData(150)]
+    public void Validate_PhotoAdjustAtBounds_IsValid(int percent)
+    {
+        Assert.Null((Valid with { PhotoBrightness = percent, PhotoContrast = percent, PhotoSaturation = percent }).Validate());
+    }
+
+    [Theory]
     [InlineData(90)]
     [InlineData(151)]
     public void Validate_TextSizeOutOfRange_ReturnsError(int percent)
@@ -179,6 +197,7 @@ public sealed class FrameSettingsTests
         Assert.Equal((1600, 1200), (settings.Width, settings.Height));
         Assert.Equal(FrameSettings.DefaultTextSize, settings.TextSize);
         Assert.Equal(FrameSettings.DefaultTemplate, settings.Template);
+        Assert.Equal(FrameSettings.DefaultPhotoAdjust, settings.PhotoBrightness);
         Assert.Null(settings.Validate());
     }
 

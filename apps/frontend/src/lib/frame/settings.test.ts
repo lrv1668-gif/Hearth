@@ -10,6 +10,10 @@ import {
     toQuietHours,
     DEFAULT_FRAME_SIZE,
     isAmbientPosition,
+    isPhotoAdjust,
+    parsePhotoAdjust,
+    photoAdjustApplies,
+    photoFilter,
 } from './settings.ts';
 
 describe('isAmbientPosition', () => {
@@ -45,6 +49,27 @@ describe('frameUrl', () => {
         ).toBe(
             '/frame?mode=daily&palette=bw&theme=night&font=lora&text=120&orientation=portrait&width=800&height=480&left=today%2Cmoon&right=&split=55&template=feature&slots=week%2C%2Cquote&position=top-middle'
         );
+    });
+
+    it('adds only the photo adjustments that differ from 100', () => {
+        const url = frameUrl({
+            mode: 'ambient',
+            palette: 'color',
+            theme: 'almanac',
+            font: 'inter',
+            textSize: 100,
+            orientation: 'landscape',
+            width: 1600,
+            height: 1200,
+            layout: { left: [], right: [] },
+            split: 50,
+            template: 'columns',
+            slots: [],
+            position: 'bottom-left',
+            adjust: { brightness: 125, contrast: 100, saturation: 90 },
+        });
+        expect(url).toContain('&brightness=125&saturation=90');
+        expect(url).not.toContain('contrast=');
     });
 });
 
@@ -121,5 +146,33 @@ describe('toQuietHours', () => {
         expect(toQuietHours('23:00', null)).toBeNull();
         expect(toQuietHours('25:00', '06:00')).toBeNull();
         expect(toQuietHours('06:00', '06:00')).toBeNull();
+    });
+});
+
+describe('photo adjustments', () => {
+    it("accepts whole percents within Display's 50–150 range", () => {
+        expect(isPhotoAdjust(50)).toBe(true);
+        expect(isPhotoAdjust(150)).toBe(true);
+        expect(isPhotoAdjust(49)).toBe(false);
+        expect(isPhotoAdjust(151)).toBe(false);
+        expect(isPhotoAdjust(102.5)).toBe(false);
+        expect(isPhotoAdjust('120')).toBe(false);
+    });
+
+    it('reads them from the URL, leaving missing or bad ones at 100', () => {
+        const params = new URLSearchParams('brightness=130&contrast=abc&saturation=200');
+        expect(parsePhotoAdjust(params)).toEqual({ brightness: 130, contrast: 100, saturation: 100 });
+        expect(parsePhotoAdjust(new URLSearchParams(''))).toEqual({ brightness: 100, contrast: 100, saturation: 100 });
+    });
+
+    it('builds a CSS filter from the changed ones only', () => {
+        expect(photoFilter({ brightness: 100, contrast: 100, saturation: 100 })).toBe('');
+        expect(photoFilter({ brightness: 130, contrast: 100, saturation: 80 })).toBe('brightness(1.3) saturate(0.8)');
+    });
+
+    it('applies where Hearth dithers: its own dithering, or black and white', () => {
+        expect(photoAdjustApplies('hearth', 'color')).toBe(true);
+        expect(photoAdjustApplies('frame', 'bw')).toBe(true);
+        expect(photoAdjustApplies('frame', 'color')).toBe(false);
     });
 });

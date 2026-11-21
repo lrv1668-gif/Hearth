@@ -44,7 +44,12 @@ stays true between the frame's scheduled refreshes.
             >
                 {#if track.album_art_url}
                     <!-- Error-diffused by the renderer, like a photo, inside Daily's ordered dithering -->
-                    <img src={track.album_art_url} alt="" data-dither="diffuse" class="h-full w-full object-cover" />
+                    <img
+                        src={track.album_art_url}
+                        alt=""
+                        data-dither="diffuse"
+                        class="frame-photo h-full w-full object-cover"
+                    />
                 {:else}
                     <Disc3 class="icon-lg" />
                 {/if}

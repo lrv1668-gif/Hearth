@@ -40,3 +40,9 @@ export const MAX_GUEST_NOTE_LINES = 6;
 
 /** Modes one schedule rule holds — its first mode plus ModeRule.MaxRotate more. */
 export const MAX_RULE_MODES = 6;
+
+/** Photo brightness, contrast and saturation (percent) for frames Hearth dithers.
+ *  FrameSettings.*PhotoAdjust. */
+export const DEFAULT_PHOTO_ADJUST = 100;
+export const MIN_PHOTO_ADJUST = 50;
+export const MAX_PHOTO_ADJUST = 150;

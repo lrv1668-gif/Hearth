@@ -19,7 +19,8 @@ public sealed class FrameSettingsStoreTests : IDisposable
         PortraitRotation: 270, TextSize: 125, Dithering: "frame", QuietStart: "23:00", QuietEnd: "06:30",
         Template: "feature", Slots: ["week", "", "quote"],
         GuestTitle: "Welcome, friends", GuestNetwork: "Hearth Guest", GuestPassword: " pass;word ",
-        GuestSecurity: "WEP", GuestNotes: "Towels in the hall closet");
+        GuestSecurity: "WEP", GuestNotes: "Towels in the hall closet",
+        PhotoBrightness: 130, PhotoContrast: 90, PhotoSaturation: 115);
 
     private readonly TempDatabase _db = new();
 
@@ -86,6 +87,9 @@ public sealed class FrameSettingsStoreTests : IDisposable
         Assert.Empty(saved.Slots!);
         Assert.Equal(FrameSettings.DefaultGuestSecurity, saved.GuestSecurity);
         Assert.Null(saved.GuestNetwork);
+        Assert.Equal(FrameSettings.DefaultPhotoAdjust, saved.PhotoBrightness);
+        Assert.Equal(FrameSettings.DefaultPhotoAdjust, saved.PhotoContrast);
+        Assert.Equal(FrameSettings.DefaultPhotoAdjust, saved.PhotoSaturation);
     }
 
     [Fact]
