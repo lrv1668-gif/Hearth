@@ -136,7 +136,7 @@
 {/snippet}
 
 {#snippet masthead()}
-    <FrameEditionLine {now} wrap={orientation === 'portrait'} />
+    <FrameEditionLine {now} />
     <!-- Line height 1 plus a little bottom padding keeps the italic descenders (the y
          in "day") inside the box at every font preset. -->
     <p
@@ -149,7 +149,7 @@
 <!--
 @component
 Daily Mode for the e-paper frame, laid out as today's edition of an almanac: a compact
-masthead (date block; edition line and weekday; sun path with the temperature),
+masthead (date block; the edition's hour over the weekday; sun path with the temperature),
 the configurable widgets — free columns from `layout` (constants/frameWidgets.ts) or a
 template's sized slots (constants/frameTemplates.ts) — and
 the forecast band. Zones are separated by 3px rules and space rather than tinted
@@ -211,5 +211,5 @@ panels, which would dither into speckle; large shapes use the pure --block ink.
         </div>
     {/if}
 
-    <FrameForecast {now} compact={orientation === 'portrait'} />
+    <FrameForecast {now} />
 </div>

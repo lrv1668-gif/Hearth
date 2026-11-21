@@ -5,13 +5,6 @@ import type { CurrentWeather, ForecastDay } from '#lib/api.ts';
 /* ── Almanac edition ──────────────────────────────────────────────────────────
    Small derivations for the Daily masthead, sun path, stamps and forecast strip. */
 
-/** Day of the year, 1-based — the edition number in the edition bar. */
-export function dayOfYear(now: Date): number {
-    const start = new Date(now.getFullYear(), 0, 1);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return Math.round((today.getTime() - start.getTime()) / 86_400_000) + 1;
-}
-
 /** How far `now` is through the daylight between sunrise and sunset (0–1), or null
  *  while the sun is down. */
 /**

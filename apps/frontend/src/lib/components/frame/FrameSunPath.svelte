@@ -1,23 +1,23 @@
 <script lang="ts">
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
-    import { almanacStore } from '#lib/stores/AlmanacStore.svelte.ts';
     import { getFrameScale } from '#lib/frame/layout.ts';
     import { durationLabel, nearestHour, sunProgress } from '#lib/frame/sky.ts';
     import { localDateKey } from '#lib/utils.ts';
 
     /** `compact`: a smaller dome that fits beside the weekday in portrait — the times
-     *  move into one row under the horizon and the daylight trend is dropped. */
+     *  move into one row under the horizon, with the daylight length between them. */
     let { now, compact = false }: { now: Date; compact?: boolean } = $props();
 
     // Dome geometry in SVG units: an 18-unit ring over a horizon at CY. Full size keeps
-    // 72 units either side of its base for the sunrise and sunset times; compact keeps
-    // just enough for the times row beneath to span the base.
+    // 72 units either side of its base for the sunrise and sunset times and ends at the
+    // hatched ground, so it's no taller than the date block; compact keeps just enough
+    // for the times row beneath to span the base.
     const R = $derived(compact ? 118 : 150);
     const r = $derived(R - 18);
     const CX = $derived(R + (compact ? 24 : 72));
     const W = $derived(2 * CX);
     const CY = $derived(R + 12);
-    const H = $derived(CY + 52);
+    const H = $derived(CY + (compact ? 52 : 24));
     // The dome is drawn at the 1600px reference and scaled with the frame; its labels
     // sit outside that group, at scaled positions, since their type tokens already scale.
     const frameScale = getFrameScale();
@@ -33,13 +33,6 @@
     // After sunset the whole day is lit; before sunrise none of it.
     const lit = $derived(progress ?? (sunset && sunAt > sunset ? 1 : 0));
     const temperature = $derived(weatherStore.current ? Math.round(weatherStore.current.temperature) : null);
-
-    const trend = $derived.by(() => {
-        const perDay = almanacStore.almanac?.daylight?.trend_minutes_per_day;
-        if (perDay == null) return '';
-        const m = Math.round(perDay);
-        return m === 0 ? ' · holding steady' : ` · ${m > 0 ? '+' : '−'}${Math.abs(m)} m a day`;
-    });
 
     function point(radius: number, f: number): [number, number] {
         const a = Math.PI * (1 - f);
@@ -61,10 +54,9 @@
 @component
 The masthead's sun path: today's daylight as a dome from sunrise to sunset. The
 elapsed part fills with --block, the sun is an --accent disc on the ring, and the
-current temperature sits under the dome. Below the horizon, a hatched ground strip,
-sunrise and sunset beside the dome's base, and the daylight length (with the
-almanac's trend) beneath. Without sun
-times it falls back to the temperature alone.
+current temperature sits under the dome. Below the horizon, a hatched ground strip, with
+sunrise and sunset beside the dome's base (compact: in a row beneath, around the
+daylight length). Without sun times it falls back to the temperature alone.
 -->
 {#if sunrise && sunset}
     {@const sun = progress === null ? null : point((R + r) / 2, progress)}
@@ -113,7 +105,6 @@ times it falls back to the temperature alone.
             {:else}
                 <text x={(CX - R - 12) * k} y={(CY - 10) * k} text-anchor="end">{clock(sunrise)}</text>
                 <text x={(CX + R + 12) * k} y={(CY - 10) * k}>{clock(sunset)}</text>
-                <text x={CX * k} y={(CY + 50) * k} text-anchor="middle">{durationLabel(sunrise, sunset)}{trend}</text>
             {/if}
         </g>
     </svg>

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import type { CurrentWeather, ForecastDay } from '#lib/api.ts';
 import {
     rainChance,
-    dayOfYear,
     durationLabel,
     editionLabel,
     forecastBars,
@@ -44,13 +43,6 @@ const current: CurrentWeather = {
     temperature_unit: 'F',
     wind_unit: 'mph',
 };
-
-describe('dayOfYear', () => {
-    it('counts from January 1st as day 1', () => {
-        expect(dayOfYear(new Date('2026-01-01T08:00'))).toBe(1);
-        expect(dayOfYear(new Date('2026-10-20T23:00'))).toBe(293);
-    });
-});
 
 describe('sunProgress', () => {
     const rise = new Date('2026-10-19T07:00');

@@ -254,8 +254,8 @@
         --font-label: calc(var(--frame-text, 1) * 26px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-caption: calc(var(--frame-text, 1) * 22px * var(--font-scale, 1) * var(--frame-scale, 1));
         /* Frame-only display sizes (.type-weekday/-date/-hero/-stamp/-poster), set in --display-family */
-        --font-weekday: calc(var(--frame-display-text) * 112px * var(--font-scale, 1) * var(--frame-scale, 1));
-        --font-date: calc(var(--frame-display-text) * 128px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-weekday: calc(var(--frame-display-text) * 96px * var(--font-scale, 1) * var(--frame-scale, 1));
+        --font-date: calc(var(--frame-display-text) * 112px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-hero: calc(var(--frame-display-text) * 100px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-stamp: calc(var(--frame-display-text) * 80px * var(--font-scale, 1) * var(--frame-scale, 1));
         --font-poster: calc(var(--frame-display-text) * 400px * var(--font-scale, 1) * var(--frame-scale, 1));
