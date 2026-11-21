@@ -29,7 +29,8 @@ public sealed class HistoryFetcherTests
         var events = await MakeFetcher(handler).FetchAsync(new DateOnly(2026, 11, 4));
 
         Assert.EndsWith("/onthisday/selected/11/04", handler.LastRequestUri?.AbsolutePath);
-        Assert.Equal([1605, 1922, 2025], events!.Select(e => e.Year));
+        Assert.NotNull(events);
+        Assert.Equal([1605, 1922, 2025], events.Select(e => e.Year));
         Assert.Equal("The Gunpowder Plot was foiled.", events[0].Text);
         Assert.Equal("Gunpowder Plot", events[0].PageTitle);
         Assert.Null(events[1].PageTitle);

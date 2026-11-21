@@ -75,7 +75,7 @@ Add keys only for the integrations you want. Each file is read by one service:
 
 ## Development
 
-`docker compose watch` (from `infra/`) runs the stack with hot reload. To run pieces natively instead (needs the [.NET 10 SDK](https://dotnet.microsoft.com/download) and [Node.js 20+](https://nodejs.org/)), start any service with `dotnet run --project apps/services/<Service>` and the frontend with `cd apps/frontend && npm run dev`. The ports Vite proxies to are in [`apps/frontend/vite.config.ts`](apps/frontend/vite.config.ts).
+`docker compose watch` (from `infra/`) runs the stack with hot reload. To run pieces natively instead (needs the [.NET 11 SDK](https://dotnet.microsoft.com/download) and [Node.js 20+](https://nodejs.org/)), start any service with `dotnet run --project apps/services/<Service>` and the frontend with `cd apps/frontend && npm run dev`. The ports Vite proxies to are in [`apps/frontend/vite.config.ts`](apps/frontend/vite.config.ts).
 
 Before a PR, run `dotnet build Hearth.slnx && dotnet test Hearth.slnx`, and `npm run check && npm run test` in `apps/frontend/`. More in [Development workflow](docs/SOFTWARE-DESIGN.md#development-workflow).
 

@@ -1,4 +1,4 @@
-# Backend conventions (.NET 10 / ASP.NET Core Minimal APIs)
+# Backend conventions (.NET 11 / ASP.NET Core Minimal APIs)
 
 Loaded when working under `apps/services/`. Project-wide guidance is in the root [`CLAUDE.md`](../../CLAUDE.md); new services go through the `hearth-service` skill, which has the full wiring checklist (Compose, Caddy, Vite proxy, CI image, health checks, docs).
 
