@@ -17,7 +17,7 @@ Creates new widgets for the Hearth SvelteKit home dashboard.
 | `apps/frontend/src/lib/api/<service>.ts` (+ `api.ts`) | Response type + `api.<service>.<method>()` (data-fetching widgets) |
 | `apps/frontend/src/lib/stores/YourStore.svelte.ts` | One store per data type (data-fetching widgets) |
 | `apps/frontend/src/lib/components/widgets/views/YourView.svelte` | Shared markup, if the widget also goes on the e-paper frame (Step 5) |
-| `apps/frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `routes/frame/+page.svelte` | Frame registration, slot and data loader (Step 5) |
+| `apps/frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `lib/frameLoaders.ts` | Frame registration, slot and data loader (Step 5) |
 | `README.md` ("What it shows": **Dashboard widgets**, or the Daily list under **Frame modes** for frame widgets), `docs/SOFTWARE-DESIGN.md` | Add the widget to the feature list / frontend integration notes |
 | `site/index.html` | The widget grid on the project site (`Frame` badge for frame widgets) |
 
@@ -220,7 +220,7 @@ Only widgets that stay correct between scheduled refreshes (an hour or more) bel
 2. `constants/frameTemplates.ts` — add the slot sizes it's designed for to `frameWidgetSizes` (`['s', 'm', 'l']` for a list that just fits more items; drop a size it can't fill well). Type-checking fails until it's there
 3. `components/frame/FrameDaily.svelte` — add a branch to the `widget` snippet: `<YourView items={yourStore.items} lines={n} />`. The snippet gets the slot's `size` (undefined in the free columns); route M/L to a frame-only slot design in `components/frame/widgets/` when the widget should change shape rather than just list more. In a slot the body is a size container — size with `cqw`/`cqh` and `@container (aspect-ratio …)`, `FitText` for type that fills the slot, `FrameEmpty` for the empty state
 4. `lib/frame.ts` — if the widget has a fixed height (not a list that trims), add it to `FIXED_LINES`; otherwise `allocateLines` gives it a share of the column
-5. `routes/frame/+page.svelte` — add its loader to `widgetLoaders` (weather, tasks, calendar and almanac already always load)
+5. `lib/frameLoaders.ts` — add its loader to `frameWidgetLoaders`, or `null` when it only uses the always-loaded data (weather, tasks, calendar and almanac); type-check fails until every widget has an entry
 6. `README.md` `/frame` row and the `Frame` badge in `site/index.html`
 
 Check it at `/frame?mode=daily&left=your-id` and in each size it takes — e.g. `/frame?mode=daily&template=quad&slots=your-id`, `template=halves&slots=your-id`, `template=full&slots=your-id`, in portrait too — with the `verify` skill.
@@ -242,6 +242,6 @@ Check it at `/frame?mode=daily&left=your-id` and in each size it takes — e.g. 
 - [ ] Added to `renderWidget` snippet in `+page.svelte`
 - [ ] Wrapped in `<WidgetContainer>` with correct `title` and optional `associatedWidgetId`
 - [ ] Intervals cleaned up via `return () => clearInterval(id)` inside `$effect`
-- [ ] Frame widget (if any): shared view in `widgets/views/`, registered in `frameWidgets.ts`, sizes in `frameWidgetSizes`, slot in `FrameDaily.svelte`, loader in `widgetLoaders`
+- [ ] Frame widget (if any): shared view in `widgets/views/`, registered in `frameWidgets.ts`, sizes in `frameWidgetSizes`, slot in `FrameDaily.svelte`, loader in `frameWidgetLoaders`
 - [ ] Widget added to `README.md` ("What it shows" list), `docs/SOFTWARE-DESIGN.md` and the `site/index.html` widget grid
 - [ ] `npm run check` and `npm run test` pass, and the widget was checked in the real UI with the `verify` skill
