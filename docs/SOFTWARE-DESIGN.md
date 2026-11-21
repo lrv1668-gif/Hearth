@@ -268,7 +268,7 @@ Each domain is a small, self-contained **ASP.NET Core 10 Minimal API** service b
 | `trains`   | 8091 | Implemented | Transitland departures for subscribed stops, cached for 45 seconds; the frame's hourly timetable |
 | `sports`   | 8094 | Implemented | Followed teams' live games, results and fixtures from ESPN, cached for 30 seconds while live |
 
-**Why .NET 10:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
+**Why .NET 11:** Required constraint. ASP.NET Core Minimal APIs provide a clean, low-ceremony HTTP layer that maps well to small single-domain services.
 
 **Why SQLite:** Zero external dependencies, single-file persistence, more than sufficient at this scale. One database file per service at `$DB_PATH` (defaults to `<service>.db`). The SQLite dependency (`Microsoft.Data.Sqlite`) is isolated to the `Data` shared library — individual service projects depend only on the `Data.Abstractions` interface, keeping them portable and testable.
 
@@ -1017,7 +1017,7 @@ The Caddy config is the same in development and production — the only differen
 
 ### Images
 
-- **Backend:** one shared `apps/services/Dockerfile` builds every service, selected by the `SERVICE` build arg set in each service's `build.args` in `infra/docker-compose.yml`. The SDK stage runs on the build machine's own arch (`--platform=$BUILDPLATFORM`) and cross-publishes for the target architecture only (`-a $TARGETARCH`), so arm64 images build at native speed on amd64 CI onto `mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra`: no shell or package manager, and `-extra` adds the ICU + tzdata that `TimeZoneInfo` needs. The apphost is renamed to `/app/service` so a single exec-form `ENTRYPOINT` works without a shell.
+- **Backend:** one shared `apps/services/Dockerfile` builds every service, selected by the `SERVICE` build arg set in each service's `build.args` in `infra/docker-compose.yml`. The SDK stage runs on the build machine's own arch (`--platform=$BUILDPLATFORM`) and cross-publishes for the target architecture only (`-a $TARGETARCH`), so arm64 images build at native speed on amd64 CI onto `mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra`: no shell or package manager, and `-extra` adds the ICU + tzdata that `TimeZoneInfo` needs. The apphost is renamed to `/app/service` so a single exec-form `ENTRYPOINT` works without a shell.
 - **Frontend:** `apps/frontend/Dockerfile` (adapter-node build on `$BUILDPLATFORM` — its output is plain JS — then `npm ci --omit=dev` from the lockfile as the target arch) and `apps/frontend/Dockerfile.dev` (Vite dev server).
 - **Non-root:** backend containers run as the image's `app` user (UID 1654), the frontend as `node`. Each backend image creates `/data` owned by UID 1654, so new named volumes inherit that ownership. Volumes created before the switch to non-root (October 2026) are root-owned and need a one-time fix, or SQLite fails with "unable to open database file". Run this per volume with the stack stopped:
 

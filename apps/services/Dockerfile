@@ -5,7 +5,7 @@ ARG SERVICE
 
 # The SDK runs on the build machine's own arch and cross-publishes for TARGETARCH,
 # so an arm64 image builds at native speed on an amd64 CI runner (no QEMU).
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:11.0 AS builder
 ARG SERVICE
 # Set by BuildKit (amd64/arm64). Publishing for one RID drops the other platforms'
 # native libraries (SkiaSharp alone ships ~18) from the image.
@@ -39,7 +39,7 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
 
 # chiseled: no shell/package manager, non-root by default; -extra adds ICU + tzdata
 # (TimeZoneInfo is used for local-time math in Almanac, Birds, Photos)
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra
 WORKDIR /app
 COPY --from=builder /out .
 COPY --from=builder --chown=$APP_UID:$APP_UID /data /data
