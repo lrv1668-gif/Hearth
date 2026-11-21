@@ -24,6 +24,8 @@ export interface ForecastDay {
     /** The day's peak UV — what a scheduled frame shows, since the current UV is 0 at dawn. */
     uv_index_max: number | null;
     uv_max_category: string | null;
+    /** The day's highest hourly chance of rain or snow, 0–100; null when Open-Meteo has none. */
+    precipitation_chance: number | null;
 }
 
 export const weather = {

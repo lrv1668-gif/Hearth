@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { Leaf, SunMedium, Wind } from '@lucide/svelte';
+    import { Droplet, Leaf, SunMedium, Wind } from '@lucide/svelte';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import { weatherIcon } from '#lib/constants/weather.ts';
-    import { forecastBars } from '#lib/frame/sky.ts';
+    import { forecastBars, rainChance } from '#lib/frame/sky.ts';
     import { localDateKey } from '#lib/utils.ts';
 
     // compact: portrait's narrower columns — the conditions drop their words and show
@@ -16,6 +16,10 @@
     // and a dawn render would otherwise show UV 0 all morning.
     const today = $derived(weatherStore.forecast.find((f) => f.date === todayKey) ?? null);
     const current = $derived(weatherStore.current);
+    // A row of rain chances under the bars, kept for every day once any day has one so
+    // the columns stay level.
+    const chances = $derived(days.map(rainChance));
+    const hasChances = $derived(chances.some((c) => c !== null));
     const hasConditions = $derived(current !== null || today?.uv_index_max != null);
 </script>
 
@@ -27,7 +31,8 @@ columns, starting over the first, third and fifth days — wind, the shortest, t
 single last column. In portrait (`compact`) the words drop and only the readings show.
 Each day is a weekday and icon over a solid low–high bar on a hatched
 track; every bar shares one temperature scale, so a day's spread reads against the week.
-Today is marked with an --accent dot.
+Today is marked with an --accent dot. A day likely to see rain or snow adds its chance
+under the bar.
 -->
 {#if days.length > 0 || hasConditions}
     <div class="-mx-16 border-t-3 border-(--border) bg-(--surface) px-16 pt-7 pb-9">
@@ -88,6 +93,16 @@ Today is marked with an --accent dot.
                             </span>
                             <span>{Math.round(day.temp_max_f)}°</span>
                         </div>
+                        {#if hasChances}
+                            <span class="type-label flex items-center gap-2 leading-none text-(--text-2)">
+                                {#if chances[i] !== null}
+                                    <Droplet class="icon-xs" />
+                                    <span class="font-semibold text-(--text-1)">{chances[i]}%</span>
+                                {:else}
+                                    &nbsp;
+                                {/if}
+                            </span>
+                        {/if}
                     </div>
                 {/each}
             </div>

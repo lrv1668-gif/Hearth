@@ -85,3 +85,12 @@ export function forecastBars(days: ForecastDay[]): { left: number; width: number
         width: ((d.temp_max_f - d.temp_min_f) / span) * 100,
     }));
 }
+
+/** Below this chance a day's rain isn't worth a line on the forecast. */
+export const RAIN_CHANCE_SHOWN = 30;
+
+/** A forecast day's chance of rain or snow in percent when it's worth showing, else null. */
+export function rainChance(day: ForecastDay): number | null {
+    const chance = day.precipitation_chance;
+    return chance != null && chance >= RAIN_CHANCE_SHOWN ? chance : null;
+}

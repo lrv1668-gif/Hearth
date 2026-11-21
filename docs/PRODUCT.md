@@ -68,7 +68,7 @@ The display shifts to a structured layout with distinct zones:
 - **Middle (configurable):** a layout template with sized slots — the same model as TRMNL's mashups and iOS widget families — or free columns. Widgets are chosen from Today's Arc, Today (tasks), Coming Up (next events), Week Ahead, Countdowns, Almanac, Moon Phase, Daily Quote, Birds Nearby, Last Played, Last Result & Next Game, Photo — a photo of the day from Ambient's photo choice, held all day so the 15-minute re-renders don't flash the panel, and moved on early with Button A — Headlines (the newest stories from the household's feeds, picked once an hour), Scheduled Departures (a posted timetable for the household's stops, this hour and the next, also picked hourly) and On This Day (events from history on today's date, from Wikipedia, spread across the centuries).
   - **Templates:** Full (one large slot), Halves (two medium), Feature (one medium beside two small), Banner (one medium over two small) and Quarters (four small). Each widget is designed for certain sizes — small, medium or large — and only goes in slots of those sizes, so every combination looks designed rather than squeezed. In a bigger slot a widget changes shape, not just scale: Countdowns becomes a poster of the soonest date, Coming Up an agenda by day, Moon Phase a large disc (plus the month's phases in large), Daily Quote fills the slot.
   - **Columns:** the original free layout — two columns of up to three widgets each, at an adjustable split. Default: Countdowns and Today on the left, Coming Up on the right (the masthead's sun path covers what Today's Arc showed)
-- **Bottom (fixed):** 5-day weather forecast — an icon and a low–high range bar per day, on one shared scale
+- **Bottom (fixed):** 5-day weather forecast — an icon and a low–high range bar per day, on one shared scale, with the chance of rain or snow under any day where it's likely
 
 Only widgets that stay correct between scheduled refreshes belong on the frame — no live departures (Scheduled Departures prints timetabled times instead, like a posted timetable), no now-playing (it changes every song and would usually be wrong), no live scores (Last Result & Next Game shows a game in progress as "Playing now").
 
@@ -153,7 +153,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 ### Phase 1 — The Frame
 
 - Art display: Unsplash integration, your own photos, or a local image folder — dithered and optimized for e-paper rendering
-- Weather: current conditions + today's forecast + 5-day (Open-Meteo or similar free API, no key required); includes sunrise and sunset times for the current day
+- Weather: current conditions + today's forecast + 5-day (Open-Meteo or similar free API, no key required); includes sunrise and sunset times for the current day, and each day's chance of rain or snow when it's likely
 - Date in every mode; a live clock in the browser, an "Updated" time on the e-paper frame (which only redraws when its picture changes)
 - Countdown events: one-off events tracked by days remaining; five nearest upcoming events shown in a dedicated widget
 - Moon phase: front-end computed lunar phase with phase name, illumination %, SVG visualization, and countdown to the next major phase

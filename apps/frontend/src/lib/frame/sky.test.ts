@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CurrentWeather, ForecastDay } from '#lib/api.ts';
 import {
+    rainChance,
     dayOfYear,
     durationLabel,
     editionLabel,
@@ -24,6 +25,7 @@ function forecast(overrides: Partial<ForecastDay>): ForecastDay {
         sunset: '2026-10-19T18:24',
         uv_index_max: null,
         uv_max_category: null,
+        precipitation_chance: null,
         ...overrides,
     };
 }
@@ -137,5 +139,17 @@ describe('nearestHour', () => {
 
     it('keeps two renders within the same hour identical', () => {
         expect(nearestHour(new Date(2026, 9, 23, 14, 5))).toEqual(nearestHour(new Date(2026, 9, 23, 14, 20)));
+    });
+});
+
+describe('rainChance', () => {
+    it('shows a likely chance of rain', () => {
+        expect(rainChance(forecast({ precipitation_chance: 64 }))).toBe(64);
+        expect(rainChance(forecast({ precipitation_chance: 30 }))).toBe(30);
+    });
+
+    it('leaves out an unlikely or missing chance', () => {
+        expect(rainChance(forecast({ precipitation_chance: 29 }))).toBeNull();
+        expect(rainChance(forecast({ precipitation_chance: null }))).toBeNull();
     });
 });

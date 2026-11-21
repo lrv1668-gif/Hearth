@@ -8,7 +8,8 @@ public record ForecastDayResponse(
     double TempMinF,
     string Sunrise,
     string Sunset,
-    double? UvIndexMax = null
+    double? UvIndexMax = null,
+    int? PrecipitationChance = null
 )
 {
     public string? UvMaxCategory => WeatherCategories.Uv(UvIndexMax);

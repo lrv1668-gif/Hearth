@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { Leaf, SunMedium, Sunrise, Sunset, Wind } from '@lucide/svelte';
+    import { Droplet, Leaf, SunMedium, Sunrise, Sunset, Wind } from '@lucide/svelte';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import { weatherIcon } from '#lib/constants/weather.ts';
     import { localDateKey } from '#lib/utils.ts';
+    import { rainChance } from '#lib/frame/sky.ts';
     import Skeleton from '#lib/components/Skeleton.svelte';
 
     function formatSunTime(iso: string): string {
@@ -65,6 +66,11 @@
                             <span class="text-(--text-1)">{Math.round(day.temp_max_f)}°</span>
                             <span class="text-(--text-2)">{Math.round(day.temp_min_f)}°</span>
                         </div>
+                        {#if rainChance(day) !== null}
+                            <span class="type-caption flex items-center gap-0.5 text-(--text-2)">
+                                <Droplet class="icon-xs text-(--text-3)" />{rainChance(day)}%
+                            </span>
+                        {/if}
                     </div>
                 {/each}
             </div>

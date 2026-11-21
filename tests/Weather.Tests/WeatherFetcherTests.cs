@@ -17,7 +17,8 @@ public sealed class WeatherFetcherTests
         "weather_code": [0, 999],
         "sunrise": ["2026-06-28T05:30", "2026-06-29T05:31"],
         "sunset": ["2026-06-28T20:30", "2026-06-29T20:29"],
-        "uv_index_max": [7.6, null]
+        "uv_index_max": [7.6, null],
+        "precipitation_probability_max": [64.4, null]
       }
     }
     """;
@@ -120,6 +121,28 @@ public sealed class WeatherFetcherTests
         var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
 
         Assert.All(forecast, day => Assert.Null(day.UvIndexMax));
+    }
+
+    [Fact]
+    public async Task FetchAsync_DailyPrecipitationChance_RoundsPercentAndKeepsGaps()
+    {
+        var fetcher = MakeFetcher(ValidJson);
+
+        var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.Equal(64, forecast[0].PrecipitationChance);
+        Assert.Null(forecast[1].PrecipitationChance);
+    }
+
+    [Fact]
+    public async Task FetchAsync_DailyPrecipitationChanceMissing_ReturnsNull()
+    {
+        var noRainJson = ValidJson.Replace("\"precipitation_probability_max\"", "\"unused_rain\"");
+        var fetcher = MakeFetcher(noRainJson);
+
+        var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.All(forecast, day => Assert.Null(day.PrecipitationChance));
     }
 
     [Fact]

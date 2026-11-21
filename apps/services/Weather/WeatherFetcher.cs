@@ -32,7 +32,7 @@ public sealed class WeatherFetcher(HttpClient http)
         var url = string.Create(CultureInfo.InvariantCulture, $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
                   $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index" +
-                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max" +
+                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max" +
                   $"&temperature_unit=fahrenheit&wind_speed_unit=mph" +
                   $"&timezone=auto&forecast_days=7");
 
@@ -63,6 +63,8 @@ public sealed class WeatherFetcher(HttpClient http)
         var sunsets     = daily.GetProperty("sunset");
         // The day's peak UV, for screens that don't refresh live; Open-Meteo leaves gaps as null.
         var uvMaxes     = daily.TryGetProperty("uv_index_max", out var uvMaxEl) ? uvMaxEl : (JsonElement?)null;
+        // The day's highest hourly chance of precipitation, in percent; null gaps like UV.
+        var rainChances = daily.TryGetProperty("precipitation_probability_max", out var rainEl) ? rainEl : (JsonElement?)null;
 
         var forecast = new List<ForecastDayResponse>();
         for (int i = 0; i < dates.GetArrayLength(); i++)
@@ -76,12 +78,18 @@ public sealed class WeatherFetcher(HttpClient http)
                 minTemps[i].GetDouble(),
                 sunrises[i].GetString()!,
                 sunsets[i].GetString()!,
-                uvMaxes is { } uv && i < uv.GetArrayLength() && uv[i].ValueKind == JsonValueKind.Number
-                    ? uv[i].GetDouble() : null));
+                NumberAt(uvMaxes, i),
+                NumberAt(rainChances, i) is { } chance ? (int)Math.Round(chance) : null));
         }
 
         return new WeatherSnapshot(currentResponse, forecast);
     }
+
+    /// <summary>The i-th number of an optional daily array, or null for a gap or a missing array.</summary>
+    private static double? NumberAt(JsonElement? values, int i) =>
+        values is { } array && i < array.GetArrayLength() && array[i].ValueKind == JsonValueKind.Number
+            ? array[i].GetDouble()
+            : null;
 
     // Air quality lives on a separate Open-Meteo host that can fail independently of the
     // forecast API — a missing AQI must never fail the whole weather fetch.
