@@ -9,6 +9,7 @@ export const frameModes = [
     { id: 'countdown', label: 'Countdown', description: 'One countdown, as big as the frame allows' },
     { id: 'night', label: 'Night', description: 'Tonight’s moon and the next sunrise' },
     { id: 'note', label: 'Note', description: 'Your own words — house rules, a welcome, a reminder' },
+    { id: 'guest', label: 'Guest', description: 'Your guest Wi-Fi as a QR code to join, with a welcome' },
 ] as const;
 
 export type FrameModeId = (typeof frameModes)[number]['id'];
@@ -31,6 +32,19 @@ export const photoCards = [
 ] as const;
 
 export type PhotoCard = (typeof photoCards)[number]['value'];
+
+/** Guest mode's Wi-Fi security, as the WIFI: QR code spells it — Display's FrameSettings.GuestSecurities. */
+export const guestSecurities = [
+    { value: 'WPA', label: 'WPA / WPA2 / WPA3' },
+    { value: 'WEP', label: 'WEP' },
+    { value: 'nopass', label: 'No password' },
+] as const;
+
+export type GuestSecurity = (typeof guestSecurities)[number]['value'];
+
+export function isGuestSecurity(value: unknown): value is GuestSecurity {
+    return guestSecurities.some((s) => s.value === value);
+}
 
 export function isPhotoCard(value: unknown): value is PhotoCard {
     return photoCards.some((c) => c.value === value);

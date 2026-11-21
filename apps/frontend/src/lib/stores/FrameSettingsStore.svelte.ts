@@ -17,7 +17,13 @@ import {
 } from '#lib/frame/settings.ts';
 import { categoryOptions } from '#lib/constants/ambient.ts';
 import type { PhotoCategory, PhotoSource } from '#lib/constants/photos.ts';
-import { isPhotoCard, isPhotoInterval, type PhotoCard } from '#lib/constants/frameModes.ts';
+import {
+    isGuestSecurity,
+    isPhotoCard,
+    isPhotoInterval,
+    type GuestSecurity,
+    type PhotoCard,
+} from '#lib/constants/frameModes.ts';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '#lib/constants/frameThemes.ts';
 import {
     DEFAULT_FRAME_SLOTS,
@@ -79,6 +85,12 @@ class FrameSettingsStore {
     /** Note mode: a heading and a body, kept as typed (line breaks included). */
     noteTitle = $state('');
     noteBody = $state('');
+    /** Guest mode: a heading, the guest Wi-Fi (kept exactly as typed) and a few notes. */
+    guestTitle = $state('');
+    guestNetwork = $state('');
+    guestPassword = $state('');
+    guestSecurity = $state<GuestSecurity>('WPA');
+    guestNotes = $state('');
     /** The panel render: minutes Ambient and Photo keep a photo, and which way portrait turns. */
     photoIntervalMinutes = $state(DEFAULT_PHOTO_INTERVAL_MINUTES);
     portraitRotation = $state<PortraitRotation>(DEFAULT_PORTRAIT_ROTATION);
@@ -132,6 +144,11 @@ class FrameSettingsStore {
             countdown_id: this.countdownId,
             note_title: this.noteTitle || null,
             note_body: this.noteBody || null,
+            guest_title: this.guestTitle.trim() || null,
+            guest_network: this.guestNetwork || null,
+            guest_password: this.guestPassword || null,
+            guest_security: this.guestSecurity,
+            guest_notes: this.guestNotes.trim() ? this.guestNotes : null,
             photo_interval_minutes: this.photoIntervalMinutes,
             portrait_rotation: this.portraitRotation,
             dithering: this.dithering,
@@ -147,6 +164,11 @@ class FrameSettingsStore {
         if (saved.countdown_id !== undefined) this.countdownId = saved.countdown_id;
         if (saved.note_title !== undefined) this.noteTitle = saved.note_title ?? '';
         if (saved.note_body !== undefined) this.noteBody = saved.note_body ?? '';
+        if (saved.guest_title !== undefined) this.guestTitle = saved.guest_title ?? '';
+        if (saved.guest_network !== undefined) this.guestNetwork = saved.guest_network ?? '';
+        if (saved.guest_password !== undefined) this.guestPassword = saved.guest_password ?? '';
+        if (isGuestSecurity(saved.guest_security)) this.guestSecurity = saved.guest_security;
+        if (saved.guest_notes !== undefined) this.guestNotes = saved.guest_notes ?? '';
         if (isPhotoInterval(saved.photo_interval_minutes)) this.photoIntervalMinutes = saved.photo_interval_minutes;
         if (isPortraitRotation(saved.portrait_rotation)) this.portraitRotation = saved.portrait_rotation;
         if (isFrameDithering(saved.dithering)) this.dithering = saved.dithering;

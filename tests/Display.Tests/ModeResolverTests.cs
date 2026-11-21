@@ -211,7 +211,8 @@ public sealed class ModeResolverTests
     [Theory]
     [InlineData("ambient", "daily")]
     [InlineData("night", "note")]
-    [InlineData("note", "ambient")]
+    [InlineData("note", "guest")]
+    [InlineData("guest", "ambient")]
     public void Next_StepsThroughModesAndWraps(string from, string to)
     {
         Assert.Equal(to, FrameModes.Next(from));

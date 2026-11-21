@@ -18,6 +18,7 @@
     import FrameCountdownHero from '#lib/components/frame/modes/FrameCountdownHero.svelte';
     import FrameNight from '#lib/components/frame/modes/FrameNight.svelte';
     import FrameNote from '#lib/components/frame/modes/FrameNote.svelte';
+    import FrameGuest from '#lib/components/frame/modes/FrameGuest.svelte';
     import { DEFAULT_FRAME_MODE, isFrameMode, type FrameModeId } from '#lib/constants/frameModes.ts';
     import { frameDataTheme, isValidFrameThemeId, type FramePalette } from '#lib/constants/frameThemes.ts';
     import { isValidFontThemeId } from '#lib/constants/fontThemes.ts';
@@ -28,7 +29,7 @@
     // headless renderer starts with empty localStorage. A param the URL leaves out
     // falls back to the shared Settings → Frame choices held by the Display service
     // (theme, font, text size, orientation, panel size, layout), then to the defaults:
-    //   ?mode=ambient|daily|photo|countdown|night|note
+    //   ?mode=ambient|daily|photo|countdown|night|note|guest
     //                                (default: what the Display service resolves now —
     //                                 an override, the schedule, or its default mode —
     //                                 else ambient; see constants/frameModes.ts)
@@ -157,7 +158,7 @@
         if (mode === 'ambient' || mode === 'photo') return [loadWeather(), loadPhoto()];
         if (mode === 'countdown') return [loadTasks()];
         if (mode === 'night') return [loadWeather()];
-        if (mode === 'note') return [];
+        if (mode === 'note' || mode === 'guest') return [];
         return dailyLoads(activeWidgets, photoParam);
     }
 
@@ -207,6 +208,16 @@
             <FrameNight {now} />
         {:else if mode === 'note'}
             <FrameNote title={frameSettings.noteTitle} body={frameSettings.noteBody} />
+        {:else if mode === 'guest'}
+            <!-- The Wi-Fi comes from the shared settings, never the URL the renderer loads -->
+            <FrameGuest
+                title={frameSettings.guestTitle}
+                network={frameSettings.guestNetwork}
+                password={frameSettings.guestPassword}
+                security={frameSettings.guestSecurity}
+                notes={frameSettings.guestNotes}
+                portrait={orientation === 'portrait'}
+            />
         {:else}
             <FrameAmbient
                 {now}

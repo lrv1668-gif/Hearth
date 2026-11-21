@@ -15,8 +15,9 @@ public static class FrameModes
     public const string Countdown = "countdown";
     public const string Night = "night";
     public const string Note = "note";
+    public const string Guest = "guest";
 
-    public static readonly string[] All = [Ambient, Daily, Photo, Countdown, Night, Note];
+    public static readonly string[] All = [Ambient, Daily, Photo, Countdown, Night, Note, Guest];
 
     public static bool IsValid(string? mode) => mode is not null && All.Contains(mode);
 

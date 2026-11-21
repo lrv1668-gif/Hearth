@@ -17,7 +17,9 @@ public sealed class FrameSettingsStoreTests : IDisposable
         Width: 800, Height: 480, PhotoIds: ["a1", "b2"], PhotoCard: "none", CountdownId: 7,
         NoteTitle: "House rules", NoteBody: "Shoes off\n\nHave fun!", PhotoIntervalMinutes: 180,
         PortraitRotation: 270, TextSize: 125, Dithering: "frame", QuietStart: "23:00", QuietEnd: "06:30",
-        Template: "feature", Slots: ["week", "", "quote"]);
+        Template: "feature", Slots: ["week", "", "quote"],
+        GuestTitle: "Welcome, friends", GuestNetwork: "Hearth Guest", GuestPassword: " pass;word ",
+        GuestSecurity: "WEP", GuestNotes: "Towels in the hall closet");
 
     private readonly TempDatabase _db = new();
 
@@ -82,6 +84,8 @@ public sealed class FrameSettingsStoreTests : IDisposable
         Assert.Equal(FrameSettings.DefaultDithering, saved.Dithering);
         Assert.Equal(FrameSettings.DefaultTemplate, saved.Template);
         Assert.Empty(saved.Slots!);
+        Assert.Equal(FrameSettings.DefaultGuestSecurity, saved.GuestSecurity);
+        Assert.Null(saved.GuestNetwork);
     }
 
     [Fact]
@@ -96,6 +100,21 @@ public sealed class FrameSettingsStoreTests : IDisposable
         Assert.Null(saved.NoteTitle);
         Assert.Null(saved.NoteBody);
         Assert.Null(saved.QuietStart);
+    }
+
+    [Fact]
+    public void Save_GuestNetwork_KeepsSpacesAndClearsBlanks()
+    {
+        var store = Migrated();
+
+        store.Save(Everything with { GuestTitle = " ", GuestNotes = "", GuestPassword = "" });
+
+        var saved = store.Get()!;
+        Assert.Equal(" pass;word ", Everything.GuestPassword); // as typed: spaces count in a password
+        Assert.Null(saved.GuestTitle);
+        Assert.Null(saved.GuestNotes);
+        Assert.Null(saved.GuestPassword);
+        Assert.Equal("Hearth Guest", saved.GuestNetwork);
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 import { del, get, getSaved, put, sendJson, tryFetch } from './http.ts';
 import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotation } from '#lib/frame/settings.ts';
-import type { FrameModeId, ModeDay, PhotoCard } from '#lib/constants/frameModes.ts';
+import type { FrameModeId, GuestSecurity, ModeDay, PhotoCard } from '#lib/constants/frameModes.ts';
 import type { FramePalette } from '#lib/constants/frameThemes.ts';
 import type { Photo } from './photos.ts';
 
@@ -78,6 +78,13 @@ export interface FrameSettings {
     /** GET /display/frame: a nightly "HH:mm" window (home time) with no interval redraws; both or neither. */
     quiet_start: string | null;
     quiet_end: string | null;
+    /** Guest mode: a heading (null shows "Welcome"), the guest Wi-Fi for its QR code, and a few notes.
+     *  Read from here by /frame — never put in its URL. Optional so older payloads still read. */
+    guest_title?: string | null;
+    guest_network?: string | null;
+    guest_password?: string | null;
+    guest_security?: GuestSecurity;
+    guest_notes?: string | null;
 }
 
 /** The frame client's last GET /display/frame (Display keeps it in memory only). */

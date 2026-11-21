@@ -45,6 +45,11 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             "ALTER TABLE frame_settings ADD COLUMN quiet_end TEXT",
             "ALTER TABLE frame_settings ADD COLUMN template TEXT NOT NULL DEFAULT 'columns'",
             "ALTER TABLE frame_settings ADD COLUMN slots TEXT NOT NULL DEFAULT '[]'",
+            "ALTER TABLE frame_settings ADD COLUMN guest_title TEXT",
+            "ALTER TABLE frame_settings ADD COLUMN guest_network TEXT",
+            "ALTER TABLE frame_settings ADD COLUMN guest_password TEXT",
+            "ALTER TABLE frame_settings ADD COLUMN guest_security TEXT NOT NULL DEFAULT 'WPA'",
+            "ALTER TABLE frame_settings ADD COLUMN guest_notes TEXT",
         })
         {
             try { db.NonQuery(col); }
@@ -61,7 +66,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             SELECT theme, font, orientation, left_ids, right_ids, split, ambient_position, photo_source, photo_categories,
                    width, height, photo_ids, photo_card, countdown_id, note_title, note_body,
                    photo_interval_minutes, portrait_rotation, text_size, dithering, quiet_start, quiet_end,
-                   template, slots
+                   template, slots, guest_title, guest_network, guest_password, guest_security, guest_notes
             FROM frame_settings WHERE id = 1
             """, r => new FrameSettings(
                 r.GetString(0),
@@ -87,7 +92,12 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.IsDBNull(20) ? null : r.GetString(20),
                 r.IsDBNull(21) ? null : r.GetString(21),
                 r.GetString(22),
-                JsonSerializer.Deserialize<string[]>(r.GetString(23)) ?? []));
+                JsonSerializer.Deserialize<string[]>(r.GetString(23)) ?? [],
+                r.IsDBNull(24) ? null : r.GetString(24),
+                r.IsDBNull(25) ? null : r.GetString(25),
+                r.IsDBNull(26) ? null : r.GetString(26),
+                r.GetString(27),
+                r.IsDBNull(28) ? null : r.GetString(28)));
 
     public FrameSettings Save(FrameSettings settings)
     {
@@ -96,12 +106,14 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                                         photo_source, photo_categories, width, height, photo_ids, photo_card,
                                         countdown_id, note_title, note_body, photo_interval_minutes,
                                         portrait_rotation, text_size, dithering, quiet_start, quiet_end,
-                                        template, slots, updated_at)
+                                        template, slots, guest_title, guest_network, guest_password,
+                                        guest_security, guest_notes, updated_at)
             VALUES (1, $theme, $font, $orientation, $left, $right, $split, $ambient_position,
                     $photo_source, $photo_categories, $width, $height, $photo_ids, $photo_card,
                     $countdown_id, $note_title, $note_body, $photo_interval_minutes,
                     $portrait_rotation, $text_size, $dithering, $quiet_start, $quiet_end,
-                    $template, $slots, CURRENT_TIMESTAMP)
+                    $template, $slots, $guest_title, $guest_network, $guest_password,
+                    $guest_security, $guest_notes, CURRENT_TIMESTAMP)
             ON CONFLICT (id) DO UPDATE SET
                 theme = excluded.theme, font = excluded.font, orientation = excluded.orientation,
                 left_ids = excluded.left_ids, right_ids = excluded.right_ids, split = excluded.split,
@@ -113,7 +125,9 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 portrait_rotation = excluded.portrait_rotation, text_size = excluded.text_size,
                 dithering = excluded.dithering, quiet_start = excluded.quiet_start,
                 quiet_end = excluded.quiet_end, template = excluded.template, slots = excluded.slots,
-                updated_at = excluded.updated_at
+                guest_title = excluded.guest_title, guest_network = excluded.guest_network,
+                guest_password = excluded.guest_password, guest_security = excluded.guest_security,
+                guest_notes = excluded.guest_notes, updated_at = excluded.updated_at
             """, cmd =>
         {
             cmd.AddParam("$theme", settings.Theme);
@@ -140,6 +154,12 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             cmd.AddParam("$quiet_end", settings.QuietEnd);
             cmd.AddParam("$template", settings.Template);
             cmd.AddParam("$slots", JsonSerializer.Serialize(settings.Slots ?? []));
+            cmd.AddParam("$guest_title", string.IsNullOrWhiteSpace(settings.GuestTitle) ? null : settings.GuestTitle);
+            // The network name and password are kept exactly as typed: spaces can be part of either
+            cmd.AddParam("$guest_network", string.IsNullOrEmpty(settings.GuestNetwork) ? null : settings.GuestNetwork);
+            cmd.AddParam("$guest_password", string.IsNullOrEmpty(settings.GuestPassword) ? null : settings.GuestPassword);
+            cmd.AddParam("$guest_security", settings.GuestSecurity);
+            cmd.AddParam("$guest_notes", string.IsNullOrWhiteSpace(settings.GuestNotes) ? null : settings.GuestNotes);
         });
         return Get()!;
     }
