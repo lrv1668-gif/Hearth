@@ -33,7 +33,7 @@ public sealed class WeatherFetcher(HttpClient http)
         var url = string.Create(CultureInfo.InvariantCulture, $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
                   $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index" +
-                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max" +
+                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,wind_speed_10m_max" +
                   $"{WeatherUnits.Query(metric)}" +
                   $"&timezone=auto&forecast_days=7");
 
@@ -68,6 +68,8 @@ public sealed class WeatherFetcher(HttpClient http)
         var uvMaxes     = daily.TryGetProperty("uv_index_max", out var uvMaxEl) ? uvMaxEl : (JsonElement?)null;
         // The day's highest hourly chance of precipitation, in percent; null gaps like UV.
         var rainChances = daily.TryGetProperty("precipitation_probability_max", out var rainEl) ? rainEl : (JsonElement?)null;
+        // The day's strongest sustained wind, so a wind alert holds between the frame's redraws.
+        var windMaxes   = daily.TryGetProperty("wind_speed_10m_max", out var windEl) ? windEl : (JsonElement?)null;
 
         var forecast = new List<ForecastDayResponse>();
         for (int i = 0; i < dates.GetArrayLength(); i++)
@@ -82,7 +84,8 @@ public sealed class WeatherFetcher(HttpClient http)
                 sunrises[i].GetString()!,
                 sunsets[i].GetString()!,
                 NumberAt(uvMaxes, i),
-                NumberAt(rainChances, i) is { } chance ? (int)Math.Round(chance) : null));
+                NumberAt(rainChances, i) is { } chance ? (int)Math.Round(chance) : null,
+                NumberAt(windMaxes, i)));
         }
 
         return new WeatherSnapshot(currentResponse, forecast);

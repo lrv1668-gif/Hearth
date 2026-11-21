@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Droplet, Leaf, SunMedium, Wind } from '@lucide/svelte';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
+    import FrameAlert from './FrameAlert.svelte';
     import { weatherIcon } from '#lib/constants/weather.ts';
     import { forecastBars, rainChance } from '#lib/frame/sky.ts';
     import { localDateKey } from '#lib/utils.ts';
@@ -25,7 +26,8 @@
 
 <!--
 @component
-The Daily forecast band — the frame's only --surface fill. A conditions line (the air quality,
+The Daily forecast band — the frame's only --surface fill. The Weather service's most
+pressing alert (FrameAlert), if there is one, leads it. A conditions line (the air quality,
 today's peak UV and wind now, each in words) sits over the days on the same five
 columns, starting over the first, third and fifth days — wind, the shortest, takes the
 single last column. In portrait (`compact`) the words drop and only the readings show.
@@ -34,8 +36,9 @@ track; every bar shares one temperature scale, so a day's spread reads against t
 Today is marked with an --accent dot. A day likely to see rain or snow adds its chance
 under the bar.
 -->
-{#if days.length > 0 || hasConditions}
+{#if days.length > 0 || hasConditions || weatherStore.alerts.length > 0}
     <div class="-mx-16 border-t-3 border-(--border) bg-(--surface) px-16 pt-7 pb-9">
+        <FrameAlert class="type-body mb-6 leading-none" />
         {#if hasConditions}
             <div class="type-label mb-6 grid grid-cols-5 items-center gap-x-10 leading-none text-(--text-2)">
                 {#if current?.us_aqi != null}

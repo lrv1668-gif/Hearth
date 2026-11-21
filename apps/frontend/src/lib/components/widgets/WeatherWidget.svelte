@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Droplet, Leaf, SunMedium, Sunrise, Sunset, Wind } from '@lucide/svelte';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
-    import { weatherIcon } from '#lib/constants/weather.ts';
+    import { alertIcon, weatherIcon } from '#lib/constants/weather.ts';
     import { localDateKey } from '#lib/utils.ts';
     import { rainChance } from '#lib/frame/sky.ts';
     import Skeleton from '#lib/components/Skeleton.svelte';
@@ -41,6 +41,17 @@
                 <span class="type-body ml-2 text-(--text-2)">{weatherStore.current.description}</span>
             </div>
         </div>
+
+        {#if weatherStore.alerts.length > 0}
+            <ul class="flex flex-col gap-1">
+                {#each weatherStore.alerts as alert (alert.kind)}
+                    {@const AlertIcon = alertIcon(alert.kind)}
+                    <li class="type-label flex items-center gap-2 font-medium text-(--text-1)">
+                        <AlertIcon class="icon-sm shrink-0 text-(--text-2)" />{alert.text}
+                    </li>
+                {/each}
+            </ul>
+        {/if}
 
         {#if weatherStore.forecast.length > 0}
             <div class="flex gap-1 overflow-x-auto">

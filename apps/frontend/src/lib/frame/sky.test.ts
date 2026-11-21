@@ -26,6 +26,7 @@ function forecast(overrides: Partial<ForecastDay>): ForecastDay {
         uv_index_max: null,
         uv_max_category: null,
         precipitation_chance: null,
+        wind_speed_max: null,
         ...overrides,
     };
 }

@@ -18,7 +18,8 @@ public sealed class WeatherFetcherTests
         "sunrise": ["2026-06-28T05:30", "2026-06-29T05:31"],
         "sunset": ["2026-06-28T20:30", "2026-06-29T20:29"],
         "uv_index_max": [7.6, null],
-        "precipitation_probability_max": [64.4, null]
+        "precipitation_probability_max": [64.4, null],
+        "wind_speed_10m_max": [18.2, null]
       }
     }
     """;
@@ -131,6 +132,8 @@ public sealed class WeatherFetcherTests
         var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
 
         Assert.Equal(64, forecast[0].PrecipitationChance);
+        Assert.Equal(18.2, forecast[0].WindSpeedMax);
+        Assert.Null(forecast[1].WindSpeedMax);
         Assert.Null(forecast[1].PrecipitationChance);
     }
 

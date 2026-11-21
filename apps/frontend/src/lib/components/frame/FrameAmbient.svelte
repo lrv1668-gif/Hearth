@@ -1,4 +1,5 @@
 <script lang="ts">
+    import FrameAlert from './FrameAlert.svelte';
     import type { Photo } from '#lib/api.ts';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import { onBlockInk, pickBlockInk, plateRect, type Pixels } from '#lib/frame/ink.ts';
@@ -129,6 +130,7 @@ poster (FrameDatePoster) instead of the plate.
                     {weatherSentence(weatherStore.current, today)}
                 </p>
             {/if}
+            <FrameAlert class="type-label mt-3" />
             <!-- Unsplash's API guidelines require crediting the photographer wherever the photo is shown -->
             {#if photo?.source === 'unsplash' && photo.photographer_name}
                 <p class="type-caption mt-1 text-(--text-2)">Photo: {photo.photographer_name} / Unsplash</p>
