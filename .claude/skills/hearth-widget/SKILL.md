@@ -14,10 +14,10 @@ Creates new widgets for the Hearth SvelteKit home dashboard.
 | `apps/frontend/src/lib/constants/widgets.ts` | Register the widget ID |
 | `apps/frontend/src/lib/components/widgets/YourWidget.svelte` | Create the component |
 | `apps/frontend/src/routes/+page.svelte` | Import + wire into the dashboard |
-| `apps/frontend/src/lib/api.ts` | Response type + `api.<service>.<method>()` (data-fetching widgets) |
+| `apps/frontend/src/lib/api/<service>.ts` (+ `api.ts`) | Response type + `api.<service>.<method>()` (data-fetching widgets) |
 | `apps/frontend/src/lib/stores/YourStore.svelte.ts` | One store per data type (data-fetching widgets) |
 | `apps/frontend/src/lib/components/widgets/views/YourView.svelte` | Shared markup, if the widget also goes on the e-paper frame (Step 5) |
-| `apps/frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `routes/frame/+page.svelte` | Frame registration, slot and data loader (Step 5) |
+| `apps/frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `lib/frameLoaders.ts` | Frame registration, slot and data loader (Step 5) |
 | `README.md` ("What it shows": **Dashboard widgets**, or the Daily list under **Frame modes** for frame widgets), `docs/SOFTWARE-DESIGN.md` | Add the widget to the feature list / frontend integration notes |
 | `site/index.html` | The widget grid on the project site (`Frame` badge for frame widgets) |
 
@@ -89,16 +89,17 @@ When in doubt, ask the user which column they prefer.
 
 Every fetching widget uses the same three layers. Never call `fetch()` from a component. See `BirdsWidget.svelte` / `BirdsStore.svelte.ts` for a complete example.
 
-**1. `api.ts`** — add the response interface (snake_case fields, matching the service's JSON) and a method on `ApiClient`. Paths are relative; the private `get<T>` helper returns `null` on failure:
+**1. `api/<service>.ts`** — add the response interface (snake_case fields, matching the service's JSON) and a method on the service's namespace. Paths are relative; `get<T>` from `api/http.ts` returns `null` on failure. A new service's module also needs its namespace added to `api` and an `export type *` line in `api.ts`:
 ```typescript
+import { get } from './http.ts';
+
 export interface YourItem {
     field: string;
     observed_at: string;
 }
 
-// inside class ApiClient
-readonly yours = {
-    list: (): Promise<YourItem[] | null> => this.get<YourItem[]>('/yours/list'),
+export const yours = {
+    list: (): Promise<YourItem[] | null> => get<YourItem[]>('/yours/list'),
 };
 ```
 
@@ -219,7 +220,7 @@ Only widgets that stay correct between scheduled refreshes (an hour or more) bel
 2. `constants/frameTemplates.ts` — add the slot sizes it's designed for to `frameWidgetSizes` (`['s', 'm', 'l']` for a list that just fits more items; drop a size it can't fill well). Type-checking fails until it's there
 3. `components/frame/FrameDaily.svelte` — add a branch to the `widget` snippet: `<YourView items={yourStore.items} lines={n} />`. The snippet gets the slot's `size` (undefined in the free columns); route M/L to a frame-only slot design in `components/frame/widgets/` when the widget should change shape rather than just list more. In a slot the body is a size container — size with `cqw`/`cqh` and `@container (aspect-ratio …)`, `FitText` for type that fills the slot, `FrameEmpty` for the empty state
 4. `lib/frame.ts` — if the widget has a fixed height (not a list that trims), add it to `FIXED_LINES`; otherwise `allocateLines` gives it a share of the column
-5. `routes/frame/+page.svelte` — add its loader to `widgetLoaders` (weather, tasks, calendar and almanac already always load)
+5. `lib/frameLoaders.ts` — add its loader to `frameWidgetLoaders`, or `null` when it only uses the always-loaded data (weather, tasks, calendar and almanac); type-check fails until every widget has an entry
 6. `README.md` `/frame` row and the `Frame` badge in `site/index.html`
 
 Check it at `/frame?mode=daily&left=your-id` and in each size it takes — e.g. `/frame?mode=daily&template=quad&slots=your-id`, `template=halves&slots=your-id`, `template=full&slots=your-id`, in portrait too — with the `verify` skill.
@@ -234,13 +235,13 @@ Check it at `/frame?mode=daily&left=your-id` and in each size it takes — e.g. 
 - [ ] Added to `toggleableWidgets` if user-toggleable (with `description`)
 - [ ] Added to `DEFAULT_WIDGET_COLUMNS` in the appropriate column
 - [ ] Created `YourWidget.svelte` using the appropriate data pattern
-- [ ] Pattern B: response interface + `ApiClient` method in `api.ts`, own `YourStore.svelte.ts` with an `error` flag, no `fetch()` in the component
+- [ ] Pattern B: response interface + namespace method in `api/<service>.ts`, own `YourStore.svelte.ts` with an `error` flag, no `fetch()` in the component
 - [ ] Polls with `poll(load, ms)` returned from `onMount`
 - [ ] Styled with type utilities + `text-(--token)` CSS variables only; `--text-3`/`--text-4` never on readable text
 - [ ] Imported in `+page.svelte`
 - [ ] Added to `renderWidget` snippet in `+page.svelte`
 - [ ] Wrapped in `<WidgetContainer>` with correct `title` and optional `associatedWidgetId`
 - [ ] Intervals cleaned up via `return () => clearInterval(id)` inside `$effect`
-- [ ] Frame widget (if any): shared view in `widgets/views/`, registered in `frameWidgets.ts`, sizes in `frameWidgetSizes`, slot in `FrameDaily.svelte`, loader in `widgetLoaders`
+- [ ] Frame widget (if any): shared view in `widgets/views/`, registered in `frameWidgets.ts`, sizes in `frameWidgetSizes`, slot in `FrameDaily.svelte`, loader in `frameWidgetLoaders`
 - [ ] Widget added to `README.md` ("What it shows" list), `docs/SOFTWARE-DESIGN.md` and the `site/index.html` widget grid
 - [ ] `npm run check` and `npm run test` pass, and the widget was checked in the real UI with the `verify` skill

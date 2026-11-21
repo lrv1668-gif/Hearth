@@ -36,7 +36,7 @@ Every service is an independently deployable **ASP.NET Core 10 Minimal API** pro
 - Svelte 5 runes syntax (`$state`, `$effect`, `$props`, `$derived`) for fine-grained reactivity
 - Tailwind v4 for utility-first styling with a muted, theme-switchable palette
 - [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte) for icons (`@lucide/svelte`)
-- API calls are centralised in `apps/frontend/src/lib/api.ts`; all paths are relative (e.g. `/tasks`)
+- API calls are centralised in `apps/frontend/src/lib/api/` — one module per service, gathered into `api` by `lib/api.ts`; all paths are relative (e.g. `/tasks`)
 - In development, Vite proxies each API path (`/tasks`, `/weather`, `/spotify`, `/photos`, `/rss`, `/quote`, `/history`, `/calendar`, `/birds`, `/almanac`, `/trains`, `/sports`) to its service's `$<NAME>_URL` env var; in production, Caddy handles the same routing
 
 ### Shared UI components
@@ -160,7 +160,7 @@ Polled stores keep their last good data when a background refresh fails — the 
 
 ### Mixed task/event lists
 
-`api.ts` exports an `Item` discriminated union shared by `Calendar.svelte`, `DayItemList.svelte` (used by `DayOverflowModal.svelte`), and `UpcomingTasksWidget.svelte`:
+`api.ts` exports (from `api/calendar.ts`) an `Item` discriminated union shared by `Calendar.svelte`, `DayItemList.svelte` (used by `DayOverflowModal.svelte`), and `UpcomingTasksWidget.svelte`:
 
 ```typescript
 export type Item =

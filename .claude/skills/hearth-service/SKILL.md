@@ -155,7 +155,7 @@ There are no per-service Dockerfiles — `apps/services/Dockerfile` builds every
 
 ## Step 4: Frontend access
 
-Add the response interfaces and an `api.<prefix>` namespace on `ApiClient` in `apps/frontend/src/lib/api.ts` (relative paths, the private `get<T>`/`post<T>` helpers). The widget, store and polling are the `hearth-widget` skill's job.
+Add `apps/frontend/src/lib/api/<prefix>.ts` with the response interfaces and an exported `<prefix>` namespace (relative paths, the `get<T>`/`post<T>` helpers from `api/http.ts`), then add it to `api` and an `export type *` line in `apps/frontend/src/lib/api.ts`. The widget, store and polling are the `hearth-widget` skill's job.
 
 ## Step 5: Tests
 
@@ -177,7 +177,7 @@ Use the `write-unit-tests` skill: `tests/<Service>.Tests/`, added to `Hearth.sln
 - [ ] Stores use `[FromKeyedServices]` `IDatabase`; upstream calls cached with fail-safe FusionCache
 - [ ] Missing env vars → `RequireOrFail` (logs `LogError`, returns 503); `.env.example` + README Configuration
 - [ ] `Hearth.slnx`, `infra/docker-compose.yml` (+ volume, + `frontend` and `caddy` `depends_on`, `env_file` with `required: false`), override (port + frontend env), `infra/Caddyfile`, `vite.config.ts`, `services.ts`, CI `publish-images` matrix
-- [ ] `api.<prefix>` namespace in `api.ts`
+- [ ] `api/<prefix>.ts` namespace, wired into `api.ts`
 - [ ] Test project added; `dotnet build Hearth.slnx && dotnet test Hearth.slnx` pass
 - [ ] `docs/SOFTWARE-DESIGN.md`, `README.md`, `site/` updated
 - [ ] `cd infra && docker compose up --build` → `curl localhost:<port>/<prefix>/health` is healthy and Settings → Diagnostics lists it
