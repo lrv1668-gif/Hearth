@@ -1,7 +1,10 @@
 /* E-paper frame themes. src/themes.css is the source of truth for each theme's
    tokens (`[data-theme='epaper-<id>']`); entries here are picker metadata only.
-   Colours are limited to the panel's six inks plus a few two-ink mixes — see
-   the "Frame palettes" comment in themes.css before adding one. */
+   Colours are limited to the panel's six inks plus two-ink mixes (lib/frame/inks.ts) — see
+   the "Frame palettes" comment in themes.css before adding one. The Custom theme
+   ('custom') is built in Settings → Frame from lib/frame/customTheme.ts instead. */
+import type { CustomFrameTheme } from '#lib/frame/customTheme.ts';
+
 /** The panel's six measured Spectra 6 inks (white-balanced): black, white, yellow,
  *  red, blue, green. Text, lines and solid blocks use these exactly. */
 export const FRAME_INKS = ['#000000', '#ffffff', '#ffff6e', '#f16f74', '#5e5b91', '#5a8d6c'] as const;
@@ -107,18 +110,23 @@ export const frameThemes = [
     },
 ] as const;
 
-export type FrameThemeId = (typeof frameThemes)[number]['id'];
+/** The theme the builder makes; its colours are saved alongside the settings. */
+export const CUSTOM_FRAME_THEME = 'custom';
+
+export type FrameThemeId = (typeof frameThemes)[number]['id'] | typeof CUSTOM_FRAME_THEME;
 export const DEFAULT_FRAME_THEME: FrameThemeId = 'almanac';
 
 export type FramePalette = 'color' | 'bw';
 
 /** The `[data-theme]` id for a frame theme in Color or B&W mode. B&W follows the
- *  theme's lightness: pure black-on-white, or white-on-black for dark themes. */
-export function frameDataTheme(id: FrameThemeId, palette: FramePalette): string {
+ *  theme's lightness: pure black-on-white, or white-on-black for dark themes (for
+ *  Custom, black paper). */
+export function frameDataTheme(id: FrameThemeId, palette: FramePalette, custom?: CustomFrameTheme | null): string {
     if (palette === 'color') return `epaper-${id}`;
-    return frameThemes.find((t) => t.id === id)?.dark ? 'epaper-bw-night' : 'epaper-bw';
+    const dark = id === CUSTOM_FRAME_THEME ? custom?.paper === '#000000' : frameThemes.find((t) => t.id === id)?.dark;
+    return dark ? 'epaper-bw-night' : 'epaper-bw';
 }
 
 export function isValidFrameThemeId(value: string | null): value is FrameThemeId {
-    return frameThemes.some((t) => t.id === value);
+    return value === CUSTOM_FRAME_THEME || frameThemes.some((t) => t.id === value);
 }

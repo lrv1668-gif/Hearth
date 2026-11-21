@@ -100,6 +100,27 @@ public sealed class FrameSettingsTests
         Assert.NotNull((Valid with { GuestNotes = string.Join('\n', Enumerable.Repeat("x", FrameSettings.MaxGuestNoteLines + 1)) }).Validate());
     }
 
+    private static readonly CustomFrameTheme Custom = new(
+        "#ffffff", "#000000", "#5e5b91", "#5e5b91", "#f16f74", "#5e5b91", "#ffffdb", "#ffffb7", "#f8b771");
+
+    [Fact]
+    public void Validate_CustomTheme_ReturnsNull()
+    {
+        Assert.Null((Valid with { Theme = "custom", CustomTheme = Custom }).Validate());
+        Assert.Null((Valid with { CustomTheme = Custom with { Paper = "#000000" } }).Validate());
+    }
+
+    [Fact]
+    public void Validate_CustomThemeOffPaperOrNotHex_ReturnsError()
+    {
+        // Its colours become inline CSS on /frame, so nothing but #rrggbb gets through
+        Assert.NotNull((Valid with { CustomTheme = Custom with { Paper = "#ffff6e" } }).Validate());
+        Assert.NotNull((Valid with { CustomTheme = Custom with { Text = "red" } }).Validate());
+        Assert.NotNull((Valid with { CustomTheme = Custom with { Accent = "#fff; }" } }).Validate());
+        Assert.NotNull((Valid with { CustomTheme = Custom with { Band = "#FFFFB7" } }).Validate());
+        Assert.NotNull((Valid with { CustomTheme = Custom with { Golden = null! } }).Validate());
+    }
+
     [Fact]
     public void Validate_NoteTooLong_ReturnsError()
     {

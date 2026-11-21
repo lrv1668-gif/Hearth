@@ -55,7 +55,9 @@ E-paper frame themes (`/frame?theme=`) are separate from the dashboard themes. D
 1. `src/themes.css` — an `[data-theme='epaper-<id>']` block under "Frame palettes" (plus the B&W blocks `epaper-bw` and `epaper-bw-night`)
 2. `src/lib/constants/frameThemes.ts` — entry in the `frameThemes` array (picker metadata; `almanac` is the default; `dark: true` makes B&W mode use `epaper-bw-night`)
 
-Colours are limited to the six measured Spectra 6 inks plus the approved two-ink mixes listed in `themes.css`, and text/icon/line tokens must be pure inks, with text legible on both `--bg` and `--surface` — `themes.test.ts` enforces all of it. Never add a frame theme to `constants/themes.ts`. Frame blocks set the same tokens minus `color-scheme`, plus `--block`/`--on-block` (a pure ink for large solid shapes and the ink set on it, ≥4.5:1) and optional `--arc-night/day/golden/outline` for the Day Arc.
+What the panel prints cleanly (inks, the two-ink mixes, contrast and grain) lives in `src/lib/frame/inks.ts`; the user-built Custom theme (`'custom'`, not in `frameThemes`) and its ratings in `src/lib/frame/customTheme.ts`. Change a rule there, not in the tests or the builder.
+
+Colours are limited to the six measured Spectra 6 inks plus two-ink mixes that don't speckle (`FRAME_FILLS` in `lib/frame/inks.ts`), and text/icon/line tokens must be pure inks, with text legible on both `--bg` and `--surface` — `themes.test.ts` enforces all of it. Never add a frame theme to `constants/themes.ts`. Frame blocks set the same tokens minus `color-scheme`, plus `--block`/`--on-block` (a pure ink for large solid shapes and the ink set on it, ≥4.5:1) and optional `--arc-night/day/golden/outline` for the Day Arc.
 
 ## Font themes
 

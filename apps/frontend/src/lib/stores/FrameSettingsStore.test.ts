@@ -35,6 +35,18 @@ describe('loadFrameSettings', () => {
         expect(frameSettings.error).toBe(false);
     });
 
+    it('applies a saved Custom theme and drops colours the builder would not offer', async () => {
+        const custom = { ...frameSettings.customTheme, paper: '#000000', text: '#ffffff' };
+        respond(200, { ...frameSettings.snapshot(), theme: 'custom', custom_theme: custom });
+        await loadFrameSettings();
+        expect(frameSettings.theme).toBe('custom');
+        expect(frameSettings.snapshot().custom_theme).toEqual(custom);
+
+        respond(200, { ...frameSettings.snapshot(), custom_theme: { ...custom, text: '#123456' } });
+        await loadFrameSettings();
+        expect(frameSettings.customTheme.text).toBe('#ffffff');
+    });
+
     it('uploads legacy browser settings once when none are saved', async () => {
         storage.set(LEGACY_FRAME_SETTINGS_KEY, JSON.stringify({}));
         respond(204);

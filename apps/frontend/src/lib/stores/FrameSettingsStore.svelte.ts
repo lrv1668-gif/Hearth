@@ -25,6 +25,7 @@ import {
     type PhotoCard,
 } from '#lib/constants/frameModes.ts';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '#lib/constants/frameThemes.ts';
+import { DEFAULT_CUSTOM_THEME, isCustomFrameTheme, type CustomFrameTheme } from '#lib/frame/customTheme.ts';
 import {
     DEFAULT_FRAME_SLOTS,
     DEFAULT_FRAME_TEMPLATE,
@@ -61,6 +62,8 @@ const SAVE_DELAY_MS = 400;
  */
 class FrameSettingsStore {
     theme = $state<FrameThemeId>(DEFAULT_FRAME_THEME);
+    /** The Custom theme's colours — kept when another theme is picked, to come back to. */
+    customTheme = $state<CustomFrameTheme>({ ...DEFAULT_CUSTOM_THEME });
     font = $state<FontThemeId>(DEFAULT_FONT_THEME);
     /** Percent on the reading type and icons; always valid (see isFrameTextSize). */
     textSize = $state(DEFAULT_FRAME_TEXT_SIZE);
@@ -154,6 +157,7 @@ class FrameSettingsStore {
             dithering: this.dithering,
             quiet_start: this.quietHours?.start ?? null,
             quiet_end: this.quietHours?.end ?? null,
+            custom_theme: { ...this.customTheme },
         };
     }
 
@@ -173,6 +177,7 @@ class FrameSettingsStore {
         if (isPortraitRotation(saved.portrait_rotation)) this.portraitRotation = saved.portrait_rotation;
         if (isFrameDithering(saved.dithering)) this.dithering = saved.dithering;
         if (saved.quiet_start !== undefined) this.quietHours = toQuietHours(saved.quiet_start, saved.quiet_end);
+        if (isCustomFrameTheme(saved.custom_theme)) this.customTheme = saved.custom_theme;
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;
         if (isValidFontThemeId(saved.font ?? null)) this.font = saved.font as FontThemeId;
         if (isFrameTextSize(saved.text_size)) this.textSize = saved.text_size;

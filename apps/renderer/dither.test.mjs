@@ -88,6 +88,20 @@ test('ordered: two-ink mixes dither in exact proportion', async () => {
     assert.deepEqual(counts(await dithered('#2f2e49', 'ordered')), { '#000000': 128, '#5e5b91': 128 });
 });
 
+// Every fill the frame theme builder offers (apps/frontend/src/lib/frame/inks.ts): each
+// pair of inks mixed 25/50/75% in plain sRGB lands on exactly those two inks, in proportion
+test('ordered: every quarter-step two-ink mix dithers into its two inks', async () => {
+    const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    const hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+    for (const [i, a] of INKS.entries())
+        for (const b of INKS.slice(i + 1))
+            for (const t of [0.25, 0.5, 0.75]) {
+                const mix = hex(rgb(a).map((v, k) => v + (rgb(b)[k] - v) * t));
+                const expected = { [a]: 256 * (1 - t), [b]: 256 * t };
+                assert.deepEqual(counts(await dithered(mix, 'ordered')), expected, `${a} + ${t} ${b} = ${mix}`);
+            }
+});
+
 // Antialiased text: a half-covered pixel of black type on the yellow forecast band is
 // nearest green and blue, but sits on the black–yellow line
 test('ordered: antialiased edges keep to the inks either side', async () => {
