@@ -5,16 +5,7 @@
     import { api, type Photo } from '#lib/api.ts';
     import { loadWeather } from '#lib/stores/WeatherStore.svelte.ts';
     import { loadTasks } from '#lib/stores/TaskStore.svelte.ts';
-    import { loadCalendarItems } from '#lib/stores/CalendarStore.svelte.ts';
-    import { loadAlmanac } from '#lib/stores/AlmanacStore.svelte.ts';
-    import { loadDailyQuote } from '#lib/stores/DailyQuoteStore.svelte.ts';
-    import { loadBirds } from '#lib/stores/BirdsStore.svelte.ts';
-    import { loadLastPlayed } from '#lib/stores/LastPlayedStore.svelte.ts';
-    import { loadSports } from '#lib/stores/SportsStore.svelte.ts';
-    import { loadFramePhoto } from '#lib/stores/FramePhotoStore.svelte.ts';
-    import { loadHeadlines } from '#lib/stores/HeadlinesStore.svelte.ts';
-    import { loadTimetable } from '#lib/stores/TimetableStore.svelte.ts';
-    import { loadOnThisDay } from '#lib/stores/OnThisDayStore.svelte.ts';
+    import { dailyLoads } from '#lib/frameLoaders.ts';
     import { parseFrameLayout, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
     import { parseFrameTemplate } from '#lib/constants/frameTemplates.ts';
     import { SECOND } from '#lib/utils.ts';
@@ -110,7 +101,7 @@
     const photoParam = parsePhotoParam(params.get('photo'));
     const layout = $derived(parseFrameLayout(params, { ...frameSettings.layout, split: frameSettings.split }));
     const placed = $derived(parseFrameTemplate(params, frameSettings));
-    // The widgets Daily shows — the columns' or the template's — for their data loaders.
+    // The widgets Daily shows — the columns' or the template's — for their data loaders (frameLoaders.ts).
     const activeWidgets = $derived(
         placed.template === 'columns'
             ? [...layout.left, ...layout.right]
@@ -122,19 +113,6 @@
     // One 3px line weight across the frame: icons keep the stroke of the rules and
     // check boxes at every size, instead of scaling it with the icon.
     setLucideProps({ strokeWidth: 3, absoluteStrokeWidth: true });
-
-    // Extra data each slot widget needs. Weather, tasks, calendar and the almanac
-    // always load in Daily mode — the edition bar, masthead and sun path use them.
-    const widgetLoaders: Partial<Record<FrameWidgetId, () => Promise<void>>> = {
-        quote: loadDailyQuote,
-        birds: loadBirds,
-        'last-played': loadLastPlayed,
-        sports: loadSports,
-        photo: () => loadFramePhoto(photoParam),
-        headlines: loadHeadlines,
-        timetable: loadTimetable,
-        'on-this-day': loadOnThisDay,
-    };
 
     const now = new Date();
     let photo = $state<Photo | null>(null);
@@ -185,8 +163,7 @@
         if (mode === 'countdown') return [loadTasks()];
         if (mode === 'night') return [loadWeather()];
         if (mode === 'note') return [];
-        const extras = activeWidgets.flatMap((id) => widgetLoaders[id] ?? []);
-        return [loadWeather(), loadTasks(), loadCalendarItems(), loadAlmanac(), ...extras.map((load) => load())];
+        return dailyLoads(activeWidgets, photoParam);
     }
 
     onMount(async () => {
