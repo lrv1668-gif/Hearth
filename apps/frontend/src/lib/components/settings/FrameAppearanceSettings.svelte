@@ -16,7 +16,7 @@
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import SettingsGroup from '../ui/SettingsGroup.svelte';
     import SizeSlider from '../ui/SizeSlider.svelte';
-    import { FRAME_SIZE_PRESETS, normalizeFrameSize } from '#lib/frame.ts';
+    import { FRAME_SIZE_PRESETS, normalizeFrameSize } from '#lib/frame/settings.ts';
 
     const currentTheme = $derived(frameThemes.find((t) => t.id === frameSettings.theme) ?? frameThemes[0]);
 

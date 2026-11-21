@@ -19,7 +19,7 @@
               ? photo.description
               : null
     );
-    // A fixed 6-line band in the columns (its budget in lib/frame.ts, with the credit).
+    // A fixed 6-line band in the columns (its budget in lib/frame/layout.ts, with the credit).
     const PHOTO_LINES = 6;
 </script>
 

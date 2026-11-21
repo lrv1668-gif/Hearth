@@ -1,7 +1,8 @@
 <script lang="ts">
     import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
     import { eventDateKey, localDateKey } from '#lib/utils.ts';
-    import { getFrameScale, itemsThatFit, nextEvents, railDayLabel } from '#lib/frame.ts';
+    import { nextEvents, railDayLabel } from '#lib/frame/agenda.ts';
+    import { getFrameScale, itemsThatFit } from '#lib/frame/layout.ts';
     import FrameEmpty from '../FrameEmpty.svelte';
 
     let { now, lines }: { now: Date; lines: number } = $props();

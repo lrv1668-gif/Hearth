@@ -14,7 +14,7 @@ import {
     type FrameDithering,
     type QuietHours,
     type PortraitRotation,
-} from '#lib/frame.ts';
+} from '#lib/frame/settings.ts';
 import { categoryOptions } from '#lib/constants/ambient.ts';
 import type { PhotoCategory, PhotoSource } from '#lib/constants/photos.ts';
 import { isPhotoCard, isPhotoInterval, type PhotoCard } from '#lib/constants/frameModes.ts';

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { MAX_FRAME_TEXT_SIZE } from '#lib/constants/frameLimits.ts';
-    import { fitFontSize, getFrameScale } from '#lib/frame.ts';
+    import { fitFontSize, getFrameScale } from '#lib/frame/layout.ts';
 
     let { title = '', body = '' }: { title?: string; body?: string } = $props();
 

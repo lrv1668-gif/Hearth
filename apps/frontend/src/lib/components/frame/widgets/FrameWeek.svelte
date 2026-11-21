@@ -1,7 +1,7 @@
 <script lang="ts">
     import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
     import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
-    import { weekAhead, type WeekDay } from '#lib/frame.ts';
+    import { weekAhead, type WeekDay } from '#lib/frame/agenda.ts';
     import type { FrameSize } from '#lib/constants/frameTemplates.ts';
     import FrameEmpty from '../FrameEmpty.svelte';
 

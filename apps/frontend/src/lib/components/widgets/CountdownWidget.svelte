@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Task } from '#lib/api.ts';
-    import { upcomingCountdowns } from '#lib/frame.ts';
+    import { upcomingCountdowns } from '#lib/frame/agenda.ts';
     import Skeleton from '#lib/components/Skeleton.svelte';
 
     interface Props {

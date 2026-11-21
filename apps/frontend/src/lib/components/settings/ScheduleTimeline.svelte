@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { ModeTimeline } from '#lib/api.ts';
     import { frameModeLabel } from '#lib/constants/frameModes.ts';
-    import type { QuietHours } from '#lib/frame.ts';
+    import type { QuietHours } from '#lib/frame/settings.ts';
 
     let { day, quiet }: { day: ModeTimeline; quiet: QuietHours | null } = $props();
 

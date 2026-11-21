@@ -1,7 +1,7 @@
 <script lang="ts">
     import { sportsStore } from '#lib/stores/SportsStore.svelte.ts';
     import { broadcastLabel, opponentLabel, resultLabel, resultWhen, upcomingLabel } from '#lib/sports.ts';
-    import { itemsThatFit } from '#lib/frame.ts';
+    import { itemsThatFit } from '#lib/frame/layout.ts';
     import type { FrameSize } from '#lib/constants/frameTemplates.ts';
     import FrameEmpty from '../FrameEmpty.svelte';
 

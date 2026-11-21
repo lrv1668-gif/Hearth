@@ -1,7 +1,7 @@
 <script lang="ts">
     import { MAX_NOTE_BODY, MAX_NOTE_LINES, MAX_NOTE_TITLE } from '#lib/constants/frameLimits.ts';
     import { onMount } from 'svelte';
-    import { upcomingCountdowns } from '#lib/frame.ts';
+    import { upcomingCountdowns } from '#lib/frame/agenda.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import { loadTasks, taskStore } from '#lib/stores/TaskStore.svelte.ts';
     import { modeStore, setOverride } from '#lib/stores/ModeStore.svelte.ts';

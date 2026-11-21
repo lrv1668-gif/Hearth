@@ -23,7 +23,7 @@
     import { normalizeFrameLayout } from '#lib/constants/frameWidgets.ts';
     import { normalizeSlots } from '#lib/constants/frameTemplates.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
-    import { frameCanvas, frameUrl, type FrameOptions } from '#lib/frame.ts';
+    import { frameCanvas, frameUrl, type FrameOptions } from '#lib/frame/settings.ts';
     import { frameModeLabel, frameModes } from '#lib/constants/frameModes.ts';
     import { modeStore } from '#lib/stores/ModeStore.svelte.ts';
     import { api } from '#lib/api.ts';

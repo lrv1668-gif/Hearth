@@ -2,7 +2,7 @@
     import { Leaf, SunMedium, Wind } from '@lucide/svelte';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import { weatherIcon } from '#lib/constants/weather.ts';
-    import { forecastBars } from '#lib/frame.ts';
+    import { forecastBars } from '#lib/frame/sky.ts';
     import { localDateKey } from '#lib/utils.ts';
 
     // compact: portrait's narrower columns — the conditions drop their words and show
