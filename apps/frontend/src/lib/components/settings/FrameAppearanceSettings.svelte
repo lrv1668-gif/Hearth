@@ -5,7 +5,9 @@
         MIN_FRAME_SIZE,
         MIN_FRAME_TEXT_SIZE,
     } from '#lib/constants/frameLimits.ts';
-    import { frameThemes } from '#lib/constants/frameThemes.ts';
+    import { CUSTOM_FRAME_THEME, frameThemes } from '#lib/constants/frameThemes.ts';
+    import { customThemeSwatches } from '#lib/frame/customTheme.ts';
+    import FrameThemeBuilder from './FrameThemeBuilder.svelte';
     import { fontThemes } from '#lib/constants/fontThemes.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import { modeStore, setPalette } from '#lib/stores/ModeStore.svelte.ts';
@@ -18,7 +20,16 @@
     import SizeSlider from '../ui/SizeSlider.svelte';
     import { FRAME_SIZE_PRESETS, normalizeFrameSize } from '#lib/frame/settings.ts';
 
-    const currentTheme = $derived(frameThemes.find((t) => t.id === frameSettings.theme) ?? frameThemes[0]);
+    const customTheme = $derived({
+        label: 'Custom',
+        description: 'Your own colours, checked against the panel',
+        swatches: customThemeSwatches(frameSettings.customTheme),
+    });
+    const currentTheme = $derived(
+        frameSettings.theme === CUSTOM_FRAME_THEME
+            ? customTheme
+            : (frameThemes.find((t) => t.id === frameSettings.theme) ?? frameThemes[0])
+    );
 
     let widthInput = $state<HTMLInputElement>();
     let heightInput = $state<HTMLInputElement>();
@@ -88,8 +99,34 @@
                         </div>
                     </PickerCard>
                 {/each}
+                <PickerCard
+                    pressed={frameSettings.theme === CUSTOM_FRAME_THEME}
+                    onclick={() => (frameSettings.theme = CUSTOM_FRAME_THEME)}
+                >
+                    <div class="flex gap-1 p-3" style="background: {customTheme.swatches[0]}">
+                        {#each customTheme.swatches.slice(1) as color}
+                            <span class="h-6 flex-1 rounded-sm" style="background: {color}"></span>
+                        {/each}
+                    </div>
+                    <div class="border-t border-(--border) px-3 py-2">
+                        <p class="type-label font-medium text-(--text-1)">{customTheme.label}</p>
+                        <p class="type-caption text-(--text-2)">{customTheme.description}</p>
+                    </div>
+                </PickerCard>
             </div>
         </Disclosure>
+
+        {#if frameSettings.theme === CUSTOM_FRAME_THEME}
+            {#if modeStore.palette === 'color'}
+                <div class="mt-4">
+                    <FrameThemeBuilder />
+                </div>
+            {:else}
+                <p class="type-caption mt-2 text-(--text-2)">
+                    Switch to Colour to build your Custom theme — black &amp; white keeps to its paper.
+                </p>
+            {/if}
+        {/if}
     </SettingsGroup>
 
     <SettingsGroup title="Type">

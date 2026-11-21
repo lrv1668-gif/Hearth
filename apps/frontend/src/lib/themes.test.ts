@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { FRAME_INKS, frameDataTheme, frameThemes } from './constants/frameThemes';
+import { nearestFill } from './frame/inks';
+import { customThemeFromTokens, customThemeTokens, DEFAULT_CUSTOM_THEME, rateTheme } from './frame/customTheme';
 
 // WCAG 2.x contrast. --text-2 carries readable secondary text (AA body, 4.5:1);
 // --text-3 is limited to icons and non-text marks (AA graphics, 3:1).
@@ -29,10 +31,9 @@ const allThemes = [...css.matchAll(/\[data-theme='([\w-]+)'\]\s*\{([\s\S]*?)\n\}
 const themes = allThemes.filter((t) => !t.id.startsWith('epaper-'));
 const frameCss = allThemes.filter((t) => t.id.startsWith('epaper-'));
 
-// The Spectra 6 inks (measured, white-balanced) and the two-ink mixes that dither
-// evenly — see the "Frame palettes" comment in themes.css.
+// The Spectra 6 inks (measured, white-balanced); fills may also be any two-ink mix
+// from lib/frame/inks.ts that doesn't speckle — see "Frame palettes" in themes.css.
 const INKS: readonly string[] = FRAME_INKS;
-const MIXES = ['#fffedb', '#fffeb6', '#f8b771', '#2f2e49'];
 // Tokens drawn as text, icons or thin lines — these must be a pure ink, since a
 // dithered mix breaks thin strokes apart.
 const LINE_TOKENS = [
@@ -85,11 +86,16 @@ describe('frame palettes', () => {
     it('has a block for every frame theme plus both B&W variants', () => {
         const ids = frameCss.map((t) => t.id);
         for (const t of frameThemes) expect(ids).toContain(`epaper-${t.id}`);
-        expect(ids).toEqual(expect.arrayContaining(['epaper-bw', 'epaper-bw-night']));
+        expect(ids).toEqual(expect.arrayContaining(['epaper-bw', 'epaper-bw-night', 'epaper-custom']));
     });
 
-    it.each(frameCss)('$id: uses only inks and approved two-ink mixes', ({ tokens }) => {
-        for (const value of Object.values(tokens)) expect([...INKS, ...MIXES]).toContain(value);
+    // Within 2 per channel: the original cream and butter were hand-rounded (#fffedb, not #ffffdb)
+    it.each(frameCss)('$id: uses only inks and two-ink mixes that dither cleanly', ({ tokens }) => {
+        for (const value of Object.values(tokens)) {
+            const { fill, distance } = nearestFill(value);
+            expect(distance, value).toBeLessThanOrEqual(2);
+            expect(fill.grain, value).not.toBe('speckled');
+        }
     });
 
     it.each(frameCss)('$id: text, icons and lines are pure inks', ({ tokens }) => {
@@ -121,5 +127,29 @@ describe('frameDataTheme', () => {
     it('maps B&W mode by theme lightness', () => {
         expect(frameDataTheme('almanac', 'bw')).toBe('epaper-bw');
         expect(frameDataTheme('night', 'bw')).toBe('epaper-bw-night');
+    });
+
+    it('maps Custom by its paper', () => {
+        expect(frameDataTheme('custom', 'color')).toBe('epaper-custom');
+        expect(frameDataTheme('custom', 'bw', { ...DEFAULT_CUSTOM_THEME, paper: '#000000' })).toBe('epaper-bw-night');
+        expect(frameDataTheme('custom', 'bw', DEFAULT_CUSTOM_THEME)).toBe('epaper-bw');
+    });
+});
+
+describe('custom frame themes', () => {
+    // Every frame token the built-in themes set must come out of customThemeTokens too
+    it('sets every token a built-in frame theme does', () => {
+        const almanac = frameCss.find((t) => t.id === 'epaper-almanac')!;
+        expect(Object.keys(customThemeTokens(DEFAULT_CUSTOM_THEME))).toEqual(
+            expect.arrayContaining(Object.keys(almanac.tokens))
+        );
+    });
+
+    it('rates every built-in light theme, read back as roles, without an avoid', () => {
+        for (const t of frameCss.filter((t) => !t.id.startsWith('epaper-bw'))) {
+            const roles = customThemeFromTokens(t.tokens);
+            const avoided = rateTheme(roles).filter((r) => r.rating.level === 'avoid');
+            expect(avoided, t.id).toEqual([]);
+        }
     });
 });

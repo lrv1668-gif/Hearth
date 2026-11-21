@@ -19,7 +19,9 @@ public sealed class FrameSettingsStoreTests : IDisposable
         PortraitRotation: 270, TextSize: 125, Dithering: "frame", QuietStart: "23:00", QuietEnd: "06:30",
         Template: "feature", Slots: ["week", "", "quote"],
         GuestTitle: "Welcome, friends", GuestNetwork: "Hearth Guest", GuestPassword: " pass;word ",
-        GuestSecurity: "WEP", GuestNotes: "Towels in the hall closet");
+        GuestSecurity: "WEP", GuestNotes: "Towels in the hall closet",
+        CustomTheme: new CustomFrameTheme("#000000", "#ffffff", "#ffff6e", "#5e5b91", "#f16f74", "#5e5b91",
+            "#2f2e49", "#000000", "#f8b771"));
 
     private readonly TempDatabase _db = new();
 

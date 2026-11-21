@@ -444,7 +444,8 @@
 }
 
 /* Colour themes — `?theme=` on /frame, picked in Settings → Frame. Allowed
-   values are the six inks plus these two-ink mixes (themes.test.ts checks):
+   values are the six inks plus any two-ink mix at 25/50/75% that doesn't
+   speckle (lib/frame/inks.ts; themes.test.ts checks). The ones in use:
      cream  #fffedb  white + 25% yellow     butter #fffeb6  white + 50% yellow
      amber  #f8b771  yellow + 50% red       navy   #2f2e49  black + 50% blue */
 [data-theme='epaper-almanac'] {
@@ -794,4 +795,27 @@
     --arc-day: #000000;
     --arc-golden: #000000;
     --arc-outline: #ffffff;
+}
+
+[data-theme='epaper-custom'] {
+    /* Custom — built in Settings → Frame (lib/frame/customTheme.ts). /frame sets the
+       chosen colours inline; these are Almanac's, for a frame that has none yet. */
+    --bg: #ffffff;
+    --surface: #ffffdb;
+    --surface-hi: #ffffb7;
+    --border: #5e5b91;
+    --text-1: #000000;
+    --text-2: #5e5b91;
+    --text-3: #5e5b91;
+    --text-4: #5e5b91;
+    --done: #5e5b91;
+    --done-bg: #5e5b91;
+    --accent: #f16f74;
+    --accent-hi: #f16f74;
+    --accent-fg: #000000;
+    --block: #5e5b91;
+    --on-block: #ffffff;
+    --arc-night: #5e5b91;
+    --arc-day: #ffffb7;
+    --arc-golden: #f8b771;
 }
