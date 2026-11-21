@@ -11,6 +11,12 @@ on:
   # every stack, so required checks report as passed instead of staying pending
   pull_request:
 
+# A new push to a PR cancels its older run. On main, runs never cancel mid-publish;
+# a queued run is replaced by a newer one, so a burst of merges publishes only the last
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # PRs only run the stacks they touch; pushes to main always run everything,
   # so every published image comes from a fully tested commit
@@ -62,6 +68,13 @@ jobs:
         with:
           dotnet-version: 11.0.x
 
+      - name: Cache NuGet packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       - name: Restore
         run: dotnet restore Hearth.slnx
 
@@ -70,6 +83,31 @@ jobs:
 
       - name: Test
         run: dotnet test Hearth.slnx --no-build -c Release --verbosity normal
+
+  # Its own job so the advisory lookup runs beside the tests rather than after them
+  backend-audit:
+    name: Backend dependency audit
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore Hearth.slnx
 
       - name: Check for vulnerable NuGet packages
         run: |
@@ -171,7 +209,7 @@ jobs:
     name: Publish ${{ matrix.service }} image
     # Only main, and only once the tests pass — a deployed host pulls :latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [backend-tests, frontend-checks, renderer-tests]
+    needs: [backend-tests, backend-audit, frontend-checks, renderer-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -204,6 +242,7 @@ jobs:
       # The .NET images cross-publish natively; QEMU is only for the arm64 `npm ci`
       # steps of the frontend and renderer images (the renderer's installs node-canvas)
       - name: Set up QEMU
+        if: ${{ !matrix.project }}
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - name: Set up Buildx
