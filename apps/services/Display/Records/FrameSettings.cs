@@ -67,7 +67,13 @@ public sealed record FrameSettings(
     // The Custom theme's colours (Theme "custom"), built in Settings → Frame. Which colours
     // print well is the frontend's call (lib/frame/customTheme.ts); this only holds them to
     // hex colours, since /frame sets them as inline CSS.
-    CustomFrameTheme? CustomTheme = null
+    CustomFrameTheme? CustomTheme = null,
+    // Photo adjustments for frames Hearth dithers, in percent (100 leaves the photo as it is):
+    // a CSS filter on the frame's photos and album art before the capture, so a photo can be
+    // lifted toward how inky's dithering shows it. Never sent when the frame client dithers.
+    int PhotoBrightness = FrameSettings.DefaultPhotoAdjust,
+    int PhotoContrast = FrameSettings.DefaultPhotoAdjust,
+    int PhotoSaturation = FrameSettings.DefaultPhotoAdjust
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -103,6 +109,10 @@ public sealed record FrameSettings(
     public const int DefaultTextSize = 100;
     public const int MinTextSize = 100;
     public const int MaxTextSize = 150;
+
+    public const int DefaultPhotoAdjust = 100;
+    public const int MinPhotoAdjust = 50;
+    public const int MaxPhotoAdjust = 150;
 
     public const string DefaultDithering = "hearth";
     public static readonly string[] Ditherings = ["hearth", "frame"];
@@ -170,6 +180,8 @@ public sealed record FrameSettings(
         if (PortraitRotation is not (90 or 270)) return "portrait_rotation must be 90 or 270";
         if (TextSize is < MinTextSize or > MaxTextSize) return $"text_size must be {MinTextSize}–{MaxTextSize}";
         if (!Ditherings.Contains(Dithering)) return $"dithering must be one of {string.Join(", ", Ditherings)}";
+        if (new[] { PhotoBrightness, PhotoContrast, PhotoSaturation }.Any(p => p is < MinPhotoAdjust or > MaxPhotoAdjust))
+            return $"photo_brightness, photo_contrast and photo_saturation must be {MinPhotoAdjust}–{MaxPhotoAdjust}";
         if ((QuietStart is null) != (QuietEnd is null)) return "quiet_start and quiet_end go together";
         if (QuietStart is not null && (QuietStartTime is null || QuietEndTime is null))
             return "quiet_start and quiet_end must be HH:mm";

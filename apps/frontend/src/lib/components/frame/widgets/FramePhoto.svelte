@@ -41,7 +41,7 @@ error-diffuse the photo inside Daily's ordered-dithered page.
             src={photo.url}
             alt={photo.description ?? ''}
             data-dither="diffuse"
-            class="w-full border-3 border-(--border) object-cover {size ? 'min-h-0 flex-1' : ''}"
+            class="frame-photo w-full border-3 border-(--border) object-cover {size ? 'min-h-0 flex-1' : ''}"
             style={size ? undefined : `height: ${PHOTO_LINES}lh`}
         />
         {#if credit}

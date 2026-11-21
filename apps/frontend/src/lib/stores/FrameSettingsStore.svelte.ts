@@ -4,14 +4,17 @@ import {
     DEFAULT_AMBIENT_POSITION,
     DEFAULT_FRAME_DITHERING,
     DEFAULT_FRAME_SIZE,
+    DEFAULT_PHOTO_ADJUST_SET,
     DEFAULT_PORTRAIT_ROTATION,
     isAmbientPosition,
     isFrameDithering,
     isFrameSize,
     isFrameTextSize,
+    isPhotoAdjust,
     isPortraitRotation,
     toQuietHours,
     type FrameDithering,
+    type PhotoAdjust,
     type QuietHours,
     type PortraitRotation,
 } from '#lib/frame/settings.ts';
@@ -99,6 +102,8 @@ class FrameSettingsStore {
     portraitRotation = $state<PortraitRotation>(DEFAULT_PORTRAIT_ROTATION);
     /** Who dithers the panel's frame: Hearth, or the frame client (inky). */
     dithering = $state<FrameDithering>(DEFAULT_FRAME_DITHERING);
+    /** Brightness, contrast and saturation (percent) on the photos of frames Hearth dithers. */
+    photoAdjust = $state<PhotoAdjust>({ ...DEFAULT_PHOTO_ADJUST_SET });
     /** Quiet hours ("HH:mm", home time): no interval redraws in between. Null when off. */
     quietHours = $state<QuietHours | null>(null);
     /** True once the Display service has answered (or failed to). */
@@ -155,6 +160,9 @@ class FrameSettingsStore {
             photo_interval_minutes: this.photoIntervalMinutes,
             portrait_rotation: this.portraitRotation,
             dithering: this.dithering,
+            photo_brightness: this.photoAdjust.brightness,
+            photo_contrast: this.photoAdjust.contrast,
+            photo_saturation: this.photoAdjust.saturation,
             quiet_start: this.quietHours?.start ?? null,
             quiet_end: this.quietHours?.end ?? null,
             custom_theme: { ...this.customTheme },
@@ -176,6 +184,11 @@ class FrameSettingsStore {
         if (isPhotoInterval(saved.photo_interval_minutes)) this.photoIntervalMinutes = saved.photo_interval_minutes;
         if (isPortraitRotation(saved.portrait_rotation)) this.portraitRotation = saved.portrait_rotation;
         if (isFrameDithering(saved.dithering)) this.dithering = saved.dithering;
+        this.photoAdjust = {
+            brightness: isPhotoAdjust(saved.photo_brightness) ? saved.photo_brightness : this.photoAdjust.brightness,
+            contrast: isPhotoAdjust(saved.photo_contrast) ? saved.photo_contrast : this.photoAdjust.contrast,
+            saturation: isPhotoAdjust(saved.photo_saturation) ? saved.photo_saturation : this.photoAdjust.saturation,
+        };
         if (saved.quiet_start !== undefined) this.quietHours = toQuietHours(saved.quiet_start, saved.quiet_end);
         if (isCustomFrameTheme(saved.custom_theme)) this.customTheme = saved.custom_theme;
         if (isValidFrameThemeId(saved.theme ?? null)) this.theme = saved.theme as FrameThemeId;

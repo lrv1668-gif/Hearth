@@ -2,8 +2,10 @@
     import {
         MAX_FRAME_SIZE,
         MAX_FRAME_TEXT_SIZE,
+        MAX_PHOTO_ADJUST,
         MIN_FRAME_SIZE,
         MIN_FRAME_TEXT_SIZE,
+        MIN_PHOTO_ADJUST,
     } from '#lib/constants/frameLimits.ts';
     import { CUSTOM_FRAME_THEME, frameThemes } from '#lib/constants/frameThemes.ts';
     import { customThemeSwatches } from '#lib/frame/customTheme.ts';
@@ -11,6 +13,7 @@
     import { fontThemes } from '#lib/constants/fontThemes.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import { modeStore, setPalette } from '#lib/stores/ModeStore.svelte.ts';
+    import Button from '../ui/Button.svelte';
     import Chip from '../ui/Chip.svelte';
     import Disclosure from '../ui/Disclosure.svelte';
     import { fieldClass } from '../ui/field';
@@ -18,7 +21,23 @@
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import SettingsGroup from '../ui/SettingsGroup.svelte';
     import SizeSlider from '../ui/SizeSlider.svelte';
-    import { FRAME_SIZE_PRESETS, normalizeFrameSize } from '#lib/frame/settings.ts';
+    import {
+        DEFAULT_PHOTO_ADJUST_SET,
+        FRAME_SIZE_PRESETS,
+        normalizeFrameSize,
+        photoAdjustApplies,
+        PHOTO_ADJUST_KEYS,
+        type PhotoAdjust,
+    } from '#lib/frame/settings.ts';
+
+    const PHOTO_ADJUST_LABELS: Record<keyof PhotoAdjust, string> = {
+        brightness: 'Brightness',
+        contrast: 'Contrast',
+        saturation: 'Saturation',
+    };
+    const photoAdjusted = $derived(
+        PHOTO_ADJUST_KEYS.some((k) => frameSettings.photoAdjust[k] !== DEFAULT_PHOTO_ADJUST_SET[k])
+    );
 
     const customTheme = $derived({
         label: 'Custom',
@@ -257,6 +276,53 @@
                             : 'The frame gets the undithered picture and dithers it itself (inky’s Floyd–Steinberg). The preview still shows Hearth’s, and Hearth still dithers black & white.'}
                     </p>
                 </div>
+
+                <!-- Photo adjustments: a filter on the photos and album art of frames Hearth dithers -->
+                {#if photoAdjustApplies(frameSettings.dithering, modeStore.palette)}
+                    <div>
+                        <div class="mb-2 flex items-center justify-between gap-2">
+                            <p class="type-label text-(--text-2)">Photos</p>
+                            {#if photoAdjusted}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onclick={() => (frameSettings.photoAdjust = { ...DEFAULT_PHOTO_ADJUST_SET })}
+                                >
+                                    Reset
+                                </Button>
+                            {/if}
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            {#each PHOTO_ADJUST_KEYS as key (key)}
+                                <label class="flex items-center gap-4">
+                                    <span class="type-label w-24 shrink-0 text-(--text-2)">
+                                        {PHOTO_ADJUST_LABELS[key]}
+                                    </span>
+                                    <input
+                                        type="range"
+                                        min={MIN_PHOTO_ADJUST}
+                                        max={MAX_PHOTO_ADJUST}
+                                        step="5"
+                                        value={frameSettings.photoAdjust[key]}
+                                        oninput={(e) =>
+                                            (frameSettings.photoAdjust = {
+                                                ...frameSettings.photoAdjust,
+                                                [key]: Number(e.currentTarget.value),
+                                            })}
+                                        class="h-1 flex-1 cursor-pointer accent-(--accent)"
+                                    />
+                                    <span class="type-label w-12 text-right text-(--text-2) tabular-nums">
+                                        {frameSettings.photoAdjust[key]}%
+                                    </span>
+                                </label>
+                            {/each}
+                        </div>
+                        <p class="type-caption mt-2 text-(--text-2)">
+                            Tunes the photos and album art before Hearth dithers them — raise brightness if they come
+                            out darker than inky’s. Text and the rest of the page stay as they are.
+                        </p>
+                    </div>
+                {/if}
             </div>
         </Disclosure>
     </SettingsGroup>

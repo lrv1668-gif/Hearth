@@ -24,7 +24,7 @@
     import { normalizeFrameLayout } from '#lib/constants/frameWidgets.ts';
     import { normalizeSlots } from '#lib/constants/frameTemplates.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
-    import { frameCanvas, frameUrl, type FrameOptions } from '#lib/frame/settings.ts';
+    import { frameCanvas, frameUrl, photoAdjustApplies, photoFilter, type FrameOptions } from '#lib/frame/settings.ts';
     import { frameModeLabel, frameModes } from '#lib/constants/frameModes.ts';
     import { modeStore } from '#lib/stores/ModeStore.svelte.ts';
     import { api } from '#lib/api.ts';
@@ -110,6 +110,8 @@
         position: frameSettings.ambientPosition,
         photo,
         customTheme: frameSettings.customTheme,
+        // Only where Hearth dithers the panel's frame, as the Display service does
+        adjust: photoAdjustApplies(frameSettings.dithering, previewPalette) ? frameSettings.photoAdjust : null,
     });
 
     // The full URL, shown below the preview — without the pinned photo, as the frame loads it.
@@ -174,6 +176,7 @@
         const font = frameSettings.font;
         const textSize = frameSettings.textSize;
         const position = frameSettings.ambientPosition;
+        const filter = options.adjust ? photoFilter(options.adjust) : '';
         const root = iframe?.contentDocument?.querySelector<HTMLElement>('.frame');
         if (!root) return;
         root.dataset.theme = theme;
@@ -185,6 +188,8 @@
             if (custom[token]) root.style.setProperty(`--${token}`, custom[token]);
             else root.style.removeProperty(`--${token}`);
         }
+        if (filter) root.style.setProperty('--photo-filter', filter);
+        else root.style.removeProperty('--photo-filter');
     }
 
     $effect(applyLook);

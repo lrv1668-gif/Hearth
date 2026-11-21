@@ -11,7 +11,14 @@
     import { SECOND } from '#lib/utils.ts';
     import type { Pixels } from '#lib/frame/ink.ts';
     import { setFrameScale } from '#lib/frame/layout.ts';
-    import { frameCanvas, isAmbientPosition, isFrameSize, isFrameTextSize } from '#lib/frame/settings.ts';
+    import {
+        frameCanvas,
+        isAmbientPosition,
+        isFrameSize,
+        isFrameTextSize,
+        parsePhotoAdjust,
+        photoFilter,
+    } from '#lib/frame/settings.ts';
     import { parsePhotoParam } from '#lib/photos.ts';
     import FrameAmbient from '#lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '#lib/components/frame/FrameDaily.svelte';
@@ -61,6 +68,9 @@
     //   ?template=feature&slots=a,,b  (Daily's layout template and its widget per slot, '' for
     //                                 an empty one — see constants/frameTemplates.ts; 'columns'
     //                                 uses left/right/split)
+    //   ?brightness=130&contrast=90&saturation=110  (percent, 50–150: a CSS filter on the
+    //                                 photos and album art — the Display service adds these
+    //                                 only for frames Hearth dithers; default 100 each)
     //   ?position=top-left|top-middle|top-right|bottom-left|bottom-middle|bottom-right
     //                                (Ambient info card)
     //   ?photo={...}          (Ambient/Photo's photo, or Daily's Photo widget's, as JSON —
@@ -109,6 +119,8 @@
     const positionParam = params.get('position');
     const position = $derived(isAmbientPosition(positionParam) ? positionParam : frameSettings.ambientPosition);
     const photoParam = parsePhotoParam(params.get('photo'));
+    // URL-only: a browser /frame shows the photos as they are
+    const filter = photoFilter(parsePhotoAdjust(params));
     const layout = $derived(parseFrameLayout(params, { ...frameSettings.layout, split: frameSettings.split }));
     const placed = $derived(parseFrameTemplate(params, frameSettings));
     // The widgets Daily shows — the columns' or the template's — for their data loaders (frameLoaders.ts).
@@ -205,6 +217,7 @@
     data-ready={ready}
     style="width: {canvas.w}px; height: {canvas.h}px; --frame-scale: {canvas.scale}; --frame-text: {textSize /
         100}{customStyle}"
+    style:--photo-filter={filter || undefined}
 >
     <!-- Wait for the shared settings so the layout is measured once, in its final shape. -->
     {#if frameSettings.loaded && mode}
@@ -294,6 +307,15 @@
        the Settings preview can switch palettes in place without reloading. */
     .frame:is([data-theme='epaper-bw'], [data-theme='epaper-bw-night']) :global(img) {
         filter: grayscale(1);
+    }
+
+    /* Photo adjustments (?brightness= etc.) on the photos and album art alone, after B&W's
+       greyscale — --photo-filter is unset, and the fallback empty, when there are none. */
+    .frame :global(.frame-photo) {
+        filter: var(--photo-filter, none);
+    }
+    .frame:is([data-theme='epaper-bw'], [data-theme='epaper-bw-night']) :global(img.frame-photo) {
+        filter: grayscale(1) var(--photo-filter,);
     }
 
     /* Shared widget drawings at the frame's line weight; the meter becomes an outlined

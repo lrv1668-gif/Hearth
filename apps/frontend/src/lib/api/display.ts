@@ -88,6 +88,11 @@ export interface FrameSettings {
     guest_password?: string | null;
     guest_security?: GuestSecurity;
     guest_notes?: string | null;
+    /** Photo brightness, contrast and saturation (percent, 50–150) for frames Hearth dithers.
+     *  Optional so older payloads still read. */
+    photo_brightness?: number;
+    photo_contrast?: number;
+    photo_saturation?: number;
 }
 
 /** The frame client's last GET /display/frame (Display keeps it in memory only). */

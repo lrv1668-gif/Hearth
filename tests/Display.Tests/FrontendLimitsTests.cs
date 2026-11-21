@@ -31,6 +31,9 @@ public sealed partial class FrontendLimitsTests
         { "MAX_GUEST_PASSWORD",             FrameSettings.MaxGuestPassword },
         { "MAX_GUEST_NOTES",                FrameSettings.MaxGuestNotes },
         { "MAX_GUEST_NOTE_LINES",           FrameSettings.MaxGuestNoteLines },
+        { "DEFAULT_PHOTO_ADJUST",           FrameSettings.DefaultPhotoAdjust },
+        { "MIN_PHOTO_ADJUST",               FrameSettings.MinPhotoAdjust },
+        { "MAX_PHOTO_ADJUST",               FrameSettings.MaxPhotoAdjust },
     };
 
     private static readonly Dictionary<string, int> Frontend = ConstLine()
