@@ -307,11 +307,11 @@ Services that proxy a third-party API with a simple "fetch, cache, serve" shape 
 - **SQLite L2** when the service registered one via `AddSqliteDistributedCache(key)` (a `distributed_cache` table in the service's own `DB_PATH` file), so cached values survive container restarts. Without one (Quote), the cache is memory-only. Expired rows are purged on a write at most every 10 minutes. `Database` opens every file in WAL mode, so reads don't wait on a write.
 - `HearthJson.SnakeCaseLower` serialization for the L2 payloads.
 
-Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint, plus `FactorySoftTimeout = HearthCache.SoftTimeout` (1 s) and `EagerRefreshThreshold = HearthCache.EagerRefresh` (0.9). These go on every entry because FusionCache's default entry options don't apply to a call that passes its own. Together they mean an expired entry never holds a request up: a hit in the last 10% of the duration refreshes in the background, and a refresh slower than a second serves the stale value while it finishes in the background. Calendar keeps its own relational SQLite cache for Google's items (its subscribed calendars go through FusionCache); Photos keeps its in-memory `IMemoryCache` batch.
+Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window) next to its endpoint, plus `FactorySoftTimeout = HearthCache.SoftTimeout` (1 s) and `EagerRefreshThreshold = HearthCache.EagerRefresh` (0.9). These go on every entry because FusionCache's default entry options don't apply to a call that passes its own. Together they mean an expired entry never holds a request up: a hit in the last 10% of the duration refreshes in the background, and a refresh slower than a second serves the stale value while it finishes in the background. Calendar keeps its own relational SQLite cache for Google's items (its subscribed calendars go through FusionCache).
 
 ### Home location and time zone
 
-The household's location (`latitude`, `longitude`, optional `name`), IANA `time_zone` and weather `units` (`imperial` or `metric`) are set in Settings → Home and stored once, by the Display service (`GET`/`PUT /display/home`). `ServiceDefaults` holds the shared `HomeSettings` record and `HomeLocationClient`, which Weather, Birds and Almanac register with `AddHearthHomeLocation()` (it needs `AddHearthCache()`):
+The household's location (`latitude`, `longitude`, optional `name`), IANA `time_zone` and weather `units` (`imperial` or `metric`) are set in Settings → Home and stored once, by the Display service (`GET`/`PUT /display/home`). `ServiceDefaults` holds the shared `HomeSettings` record and `HomeLocationClient`, which Weather, Birds, Almanac and Photos register with `AddHearthHomeLocation()` (it needs `AddHearthCache()`):
 
 - `GetAsync()` reads `DISPLAY_URL/display/home` (3 s timeout), cached through FusionCache for 1 minute with fail-safe, so a saved change reaches every service within a minute and a restarting Display keeps the last answer.
 - It merges in the env-var fallbacks: saved coordinates, else `LATITUDE`/`LONGITUDE`; saved zone, else `TZ`. A Display that's unset (`204`), unreachable with nothing cached, or not configured (no `DISPLAY_URL`) leaves just the env vars — so installs configured through `.env` keep working.
@@ -490,7 +490,7 @@ The frame's Last Played card (`FrameLastPlayed.svelte`, frame-only) reads `/spot
 
 ## Photos Service
 
-The `photos` service fetches portrait or landscape photos from the [Unsplash API](https://unsplash.com/developers) and caches a batch of 20 in SQLite for 24 hours. The frontend `/ambient` route rotates through these photos at a user-configured cadence.
+The `photos` service fetches portrait or landscape photos from the [Unsplash API](https://unsplash.com/developers) and caches a batch of 20 in memory (FusionCache) for 24 hours. The frontend `/ambient` route rotates through these photos at a user-configured cadence.
 
 ### Endpoints
 
@@ -528,8 +528,9 @@ Query param `query` (default: `nature`) is forwarded to the Unsplash random phot
 | ----------- | ------------------------------------------------------------------|
 | Batch size | 20 photos per fetch                                               |
 | TTL        | 24 hours                                                          |
-| Cache bust | Query string changes (i.e. user changes photo categories)         |
-| Fallback   | Returns 502 if Unsplash is unreachable and no valid cache exists  |
+| Cache key  | Seasonal query and orientation (`unsplash:<query>:<orientation>`) — changing categories or the season fetches a new batch |
+| Season     | The query is expanded for the season; the hemisphere comes from the shared home location's latitude (northern when unset) |
+| Fallback   | Fail-safe serves the last batch for up to 7 days while Unsplash is down (retrying at most every 5 minutes); `404` when nothing was ever cached |
 
 ### Environment variables
 
@@ -538,7 +539,9 @@ Stored in `apps/services/Photos/.env`:
 | Variable                | Required | Description                                       |
 | ------------------------ | -------- | ---------------------------------------------------|
 | `UNSPLASH_ACCESS_KEY`   | Yes      | Unsplash API access key (free tier: 50 req/hr)    |
-| `DB_PATH`               | No       | Path to SQLite cache file (default: `photos.db`)  |
+| `LATITUDE`              | No       | Fallback decimal latitude, for the hemisphere, when none is saved in Settings → Home |
+| `DISPLAY_URL`           | No       | The Display service, for the saved home location (`http://display:8090` in Compose) |
+| `DATA_PATH`             | No       | Where uploads, `captions.json` and `groups.json` live (default: `/data`) |
 | `ASPNETCORE_HTTP_PORTS` | —        | Set to `8084` in Docker                            |
 
 ### Frontend integration

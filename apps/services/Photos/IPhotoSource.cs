@@ -5,7 +5,7 @@ namespace Photos;
 public interface IPhotoSource
 {
     string Key { get; }
-    Task<PhotoResponse?> GetRandomAsync(PhotoSourceContext ctx);
+    Task<PhotoResponse?> GetRandomAsync(PhotoSourceContext ctx, CancellationToken ct = default);
 }
 
 /// <param name="Exclude">Photo ids to skip, most recently shown last (the frame's pass through Unsplash's photos).</param>

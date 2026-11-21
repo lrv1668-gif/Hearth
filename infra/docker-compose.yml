@@ -98,6 +98,8 @@ services:
         environment:
             - DATA_PATH=/data
             - ASPNETCORE_HTTP_PORTS=8084
+            # Home location saved in Settings (its hemisphere picks the seasonal photos); .env values are the fallback
+            - DISPLAY_URL=http://display:8090
         volumes:
             - photos-data:/data
 

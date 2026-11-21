@@ -28,7 +28,8 @@ public static class WebApplicationExtensions
             string? orientation,
             string? query,
             string? exclude,
-            IServiceProvider sp) =>
+            IServiceProvider sp,
+            CancellationToken ct) =>
         {
             var key = source ?? "unsplash";
             var provider = sp.GetKeyedService<IPhotoSource>(key);
@@ -37,7 +38,7 @@ public static class WebApplicationExtensions
 
             var skip = exclude?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
             var ctx = new PhotoSourceContext(orientation ?? "portrait", query ?? "nature", skip);
-            var photo = await provider.GetRandomAsync(ctx);
+            var photo = await provider.GetRandomAsync(ctx, ct);
             return photo is null ? Results.NotFound() : Results.Ok(photo);
         });
 

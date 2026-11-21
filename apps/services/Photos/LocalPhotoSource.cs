@@ -6,7 +6,7 @@ public sealed class LocalPhotoSource(UploadStore uploads) : IPhotoSource
 {
     public string Key => "local";
 
-    public Task<PhotoResponse?> GetRandomAsync(PhotoSourceContext ctx)
+    public Task<PhotoResponse?> GetRandomAsync(PhotoSourceContext ctx, CancellationToken ct = default)
     {
         if (!uploads.TryGetRandom(out var photo))
             return Task.FromResult<PhotoResponse?>(null);

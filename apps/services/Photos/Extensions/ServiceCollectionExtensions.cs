@@ -7,7 +7,8 @@ public static class ServiceCollectionExtensions
 {
     public static void AddServicesForPhotos(this IServiceCollection services)
     {
-        services.AddMemoryCache();
+        services.AddHearthCache();
+        services.AddHearthHomeLocation();
         services.AddSingleton<UploadStore>();
         services.AddSingleton<PhotoGroupStore>();
         services.AddHttpClient<PhotoFetcher>();
