@@ -3,6 +3,7 @@ import { frameParams, type FrameDithering, type FrameOptions, type PortraitRotat
 import type { FrameModeId, GuestSecurity, ModeDay, PhotoCard } from '#lib/constants/frameModes.ts';
 import type { FramePalette } from '#lib/constants/frameThemes.ts';
 import type { Photo } from './photos.ts';
+import type { CustomFrameTheme } from '#lib/frame/customTheme.ts';
 
 /** The RSS feeds and transit stops every device shares, as Display stores them (snake_case). */
 export interface HouseholdSettings {
@@ -78,6 +79,8 @@ export interface FrameSettings {
     /** GET /display/frame: a nightly "HH:mm" window (home time) with no interval redraws; both or neither. */
     quiet_start: string | null;
     quiet_end: string | null;
+    /** The Custom theme's colour roles (theme "custom"); see lib/frame/customTheme.ts. */
+    custom_theme: CustomFrameTheme | null;
     /** Guest mode: a heading (null shows "Welcome"), the guest Wi-Fi for its QR code, and a few notes.
      *  Read from here by /frame — never put in its URL. Optional so older payloads still read. */
     guest_title?: string | null;

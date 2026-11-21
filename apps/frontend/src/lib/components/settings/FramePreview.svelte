@@ -19,7 +19,8 @@
 
 <script lang="ts">
     import { onMount, untrack } from 'svelte';
-    import { frameDataTheme } from '#lib/constants/frameThemes.ts';
+    import { CUSTOM_FRAME_THEME, frameDataTheme } from '#lib/constants/frameThemes.ts';
+    import { CUSTOM_TOKENS, customThemeTokens } from '#lib/frame/customTheme.ts';
     import { normalizeFrameLayout } from '#lib/constants/frameWidgets.ts';
     import { normalizeSlots } from '#lib/constants/frameTemplates.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
@@ -108,6 +109,7 @@
         slots,
         position: frameSettings.ambientPosition,
         photo,
+        customTheme: frameSettings.customTheme,
         // Only where Hearth dithers the panel's frame, as the Display service does
         adjust: photoAdjustApplies(frameSettings.dithering, previewPalette) ? frameSettings.photoAdjust : null,
     });
@@ -134,7 +136,7 @@
     });
 
     // The iframe only reloads for structural changes (mode, orientation, size, layout,
-    // split, template, the picked photo). Theme, font, text size and palette are applied to the loaded frame
+    // split, template, the picked photo). Theme (Custom's colours too), font, text size and palette are applied to the loaded frame
     // in place below — a reload would refetch everything.
     const previewSrc = $derived.by(() => {
         const structure = {
@@ -156,6 +158,7 @@
                 font: frameSettings.font,
                 textSize: frameSettings.textSize,
                 position: frameSettings.ambientPosition,
+                customTheme: frameSettings.customTheme,
             })
         );
     });
@@ -165,7 +168,11 @@
     function applyLook() {
         // Read the settings before touching the iframe: if the frame hasn't loaded yet
         // the early return must not stop the $effect from tracking them.
-        const theme = frameDataTheme(frameSettings.theme, previewPalette);
+        const theme = frameDataTheme(frameSettings.theme, previewPalette, frameSettings.customTheme);
+        const custom =
+            frameSettings.theme === CUSTOM_FRAME_THEME && previewPalette === 'color'
+                ? customThemeTokens(frameSettings.customTheme)
+                : {};
         const font = frameSettings.font;
         const textSize = frameSettings.textSize;
         const position = frameSettings.ambientPosition;
@@ -176,6 +183,11 @@
         root.dataset.font = font;
         root.dataset.position = position;
         root.style.setProperty('--frame-text', String(textSize / 100));
+        // Custom's colours inline, as /frame sets them; cleared for any other theme
+        for (const token of CUSTOM_TOKENS) {
+            if (custom[token]) root.style.setProperty(`--${token}`, custom[token]);
+            else root.style.removeProperty(`--${token}`);
+        }
         if (filter) root.style.setProperty('--photo-filter', filter);
         else root.style.removeProperty('--photo-filter');
     }

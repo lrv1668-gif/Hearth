@@ -27,7 +27,13 @@
     import FrameNote from '#lib/components/frame/modes/FrameNote.svelte';
     import FrameGuest from '#lib/components/frame/modes/FrameGuest.svelte';
     import { DEFAULT_FRAME_MODE, isFrameMode, type FrameModeId } from '#lib/constants/frameModes.ts';
-    import { frameDataTheme, isValidFrameThemeId, type FramePalette } from '#lib/constants/frameThemes.ts';
+    import {
+        CUSTOM_FRAME_THEME,
+        frameDataTheme,
+        isValidFrameThemeId,
+        type FramePalette,
+    } from '#lib/constants/frameThemes.ts';
+    import { customThemeStyle, decodeCustomTheme } from '#lib/frame/customTheme.ts';
     import { isValidFontThemeId } from '#lib/constants/fontThemes.ts';
     import { frameSettings, loadFrameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
 
@@ -42,8 +48,10 @@
     //                                 else ambient; see constants/frameModes.ts)
     //   ?palette=color|bw            (the Color ↔ B&W mode; default: Display's saved
     //                                 one, else color)
-    //   ?theme=almanac|garden|…      (colour theme, see constants/frameThemes.ts;
+    //   ?theme=almanac|garden|…|custom (colour theme, see constants/frameThemes.ts;
     //                                 B&W follows its lightness)
+    //   ?colors=ffffff,000000,…       (Custom's colour roles, see lib/frame/customTheme.ts;
+    //                                 only colours the builder allows, else the saved ones)
     //   ?font=inter|lora|…           (any font preset from constants/fontThemes.ts)
     //   ?text=100–150                (percent on the reading type and icons — Settings →
     //                                 Frame's text size; see isFrameTextSize)
@@ -81,6 +89,12 @@
     let palette = $state<FramePalette | null>(paletteParam === 'bw' || paletteParam === 'color' ? paletteParam : null);
     const themeParam = params.get('theme');
     const theme = $derived(isValidFrameThemeId(themeParam) ? themeParam : frameSettings.theme);
+    const colorsParam = decodeCustomTheme(params.get('colors'));
+    const customTheme = $derived(colorsParam ?? frameSettings.customTheme);
+    // Custom's colours go inline over the epaper-custom block (colour mode only — B&W keeps to its own)
+    const customStyle = $derived(
+        theme === CUSTOM_FRAME_THEME && (palette ?? 'color') === 'color' ? `; ${customThemeStyle(customTheme)}` : ''
+    );
     const fontParam = params.get('font');
     const font = $derived(isValidFontThemeId(fontParam) ? fontParam : frameSettings.font);
     const textParam = Number(params.get('text'));
@@ -195,13 +209,14 @@
 
 <div
     class="frame {orientation} bg-(--bg) text-(--text-1)"
-    data-theme={frameDataTheme(theme, palette ?? 'color')}
+    data-theme={frameDataTheme(theme, palette ?? 'color', customTheme)}
     data-font={font}
     data-mode={mode}
     data-orientation={orientation}
     data-position={position}
     data-ready={ready}
-    style="width: {canvas.w}px; height: {canvas.h}px; --frame-scale: {canvas.scale}; --frame-text: {textSize / 100}"
+    style="width: {canvas.w}px; height: {canvas.h}px; --frame-scale: {canvas.scale}; --frame-text: {textSize /
+        100}{customStyle}"
     style:--photo-filter={filter || undefined}
 >
     <!-- Wait for the shared settings so the layout is measured once, in its final shape. -->

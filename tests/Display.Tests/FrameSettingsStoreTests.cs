@@ -20,6 +20,8 @@ public sealed class FrameSettingsStoreTests : IDisposable
         Template: "feature", Slots: ["week", "", "quote"],
         GuestTitle: "Welcome, friends", GuestNetwork: "Hearth Guest", GuestPassword: " pass;word ",
         GuestSecurity: "WEP", GuestNotes: "Towels in the hall closet",
+        CustomTheme: new CustomFrameTheme("#000000", "#ffffff", "#ffff6e", "#5e5b91", "#f16f74", "#5e5b91",
+            "#2f2e49", "#000000", "#f8b771"),
         PhotoBrightness: 130, PhotoContrast: 90, PhotoSaturation: 115);
 
     private readonly TempDatabase _db = new();

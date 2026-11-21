@@ -4,6 +4,8 @@ import type { AmbientPosition, Photo } from '#lib/api.ts';
 import type { FrameLayout } from '#lib/constants/frameWidgets.ts';
 import type { FrameTemplateId } from '#lib/constants/frameTemplates.ts';
 import type { FrameModeId } from '#lib/constants/frameModes.ts';
+import { CUSTOM_FRAME_THEME } from '#lib/constants/frameThemes.ts';
+import { encodeCustomTheme, type CustomFrameTheme } from './customTheme.ts';
 import {
     DEFAULT_PHOTO_ADJUST,
     MAX_FRAME_SIZE,
@@ -188,6 +190,8 @@ export interface FrameOptions {
     position: AmbientPosition;
     /** Ambient/Photo's photo, fixed instead of a random pick (Settings' preview). */
     photo?: Photo | null;
+    /** Custom's colours, sent as ?colors= when the theme is 'custom'. */
+    customTheme?: CustomFrameTheme | null;
     /** Photo adjustments for a frame Hearth dithers; only the changed ones go in the URL. */
     adjust?: PhotoAdjust | null;
 }
@@ -216,6 +220,7 @@ export function frameParams(o: FrameOptions): URLSearchParams {
         slots: o.slots.join(','),
         position: o.position,
     });
+    if (o.theme === CUSTOM_FRAME_THEME && o.customTheme) params.set('colors', encodeCustomTheme(o.customTheme));
     if (o.photo) params.set('photo', JSON.stringify(o.photo));
     for (const key of PHOTO_ADJUST_KEYS) {
         const value = o.adjust?.[key];

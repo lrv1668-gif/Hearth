@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Text.Json;
 using Data.Abstractions;
 using Display.Records;
+using ServiceDefaults;
 
 namespace Display;
 
@@ -50,6 +51,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             "ALTER TABLE frame_settings ADD COLUMN guest_password TEXT",
             "ALTER TABLE frame_settings ADD COLUMN guest_security TEXT NOT NULL DEFAULT 'WPA'",
             "ALTER TABLE frame_settings ADD COLUMN guest_notes TEXT",
+            "ALTER TABLE frame_settings ADD COLUMN custom_theme TEXT",
             "ALTER TABLE frame_settings ADD COLUMN photo_brightness INTEGER NOT NULL DEFAULT 100",
             "ALTER TABLE frame_settings ADD COLUMN photo_contrast INTEGER NOT NULL DEFAULT 100",
             "ALTER TABLE frame_settings ADD COLUMN photo_saturation INTEGER NOT NULL DEFAULT 100",
@@ -70,7 +72,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                    width, height, photo_ids, photo_card, countdown_id, note_title, note_body,
                    photo_interval_minutes, portrait_rotation, text_size, dithering, quiet_start, quiet_end,
                    template, slots, guest_title, guest_network, guest_password, guest_security, guest_notes,
-                   photo_brightness, photo_contrast, photo_saturation
+                   custom_theme, photo_brightness, photo_contrast, photo_saturation
             FROM frame_settings WHERE id = 1
             """, r => new FrameSettings(
                 r.GetString(0),
@@ -102,9 +104,10 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.IsDBNull(26) ? null : r.GetString(26),
                 r.GetString(27),
                 r.IsDBNull(28) ? null : r.GetString(28),
-                r.GetInt32(29),
+                r.IsDBNull(29) ? null : JsonSerializer.Deserialize<CustomFrameTheme>(r.GetString(29), HearthJson.SnakeCaseLower)),
                 r.GetInt32(30),
-                r.GetInt32(31)));
+                r.GetInt32(31),
+                r.GetInt32(32)));
 
     public FrameSettings Save(FrameSettings settings)
     {
@@ -114,15 +117,15 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                                         countdown_id, note_title, note_body, photo_interval_minutes,
                                         portrait_rotation, text_size, dithering, quiet_start, quiet_end,
                                         template, slots, guest_title, guest_network, guest_password,
-                                        guest_security, guest_notes, photo_brightness, photo_contrast,
-                                        photo_saturation, updated_at)
+                                        guest_security, guest_notes, custom_theme, photo_brightness,
+                                        photo_contrast, photo_saturation, updated_at)
             VALUES (1, $theme, $font, $orientation, $left, $right, $split, $ambient_position,
                     $photo_source, $photo_categories, $width, $height, $photo_ids, $photo_card,
                     $countdown_id, $note_title, $note_body, $photo_interval_minutes,
                     $portrait_rotation, $text_size, $dithering, $quiet_start, $quiet_end,
                     $template, $slots, $guest_title, $guest_network, $guest_password,
-                    $guest_security, $guest_notes, $photo_brightness, $photo_contrast,
-                    $photo_saturation, CURRENT_TIMESTAMP)
+                    $guest_security, $guest_notes, $custom_theme, $photo_brightness,
+                    $photo_contrast, $photo_saturation, CURRENT_TIMESTAMP)
             ON CONFLICT (id) DO UPDATE SET
                 theme = excluded.theme, font = excluded.font, orientation = excluded.orientation,
                 left_ids = excluded.left_ids, right_ids = excluded.right_ids, split = excluded.split,
@@ -136,8 +139,9 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 quiet_end = excluded.quiet_end, template = excluded.template, slots = excluded.slots,
                 guest_title = excluded.guest_title, guest_network = excluded.guest_network,
                 guest_password = excluded.guest_password, guest_security = excluded.guest_security,
-                guest_notes = excluded.guest_notes, photo_brightness = excluded.photo_brightness,
-                photo_contrast = excluded.photo_contrast, photo_saturation = excluded.photo_saturation,
+                guest_notes = excluded.guest_notes, custom_theme = excluded.custom_theme,
+                photo_brightness = excluded.photo_brightness, photo_contrast = excluded.photo_contrast,
+                photo_saturation = excluded.photo_saturation,
                 updated_at = excluded.updated_at
             """, cmd =>
         {
@@ -171,6 +175,9 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
             cmd.AddParam("$guest_password", string.IsNullOrEmpty(settings.GuestPassword) ? null : settings.GuestPassword);
             cmd.AddParam("$guest_security", settings.GuestSecurity);
             cmd.AddParam("$guest_notes", string.IsNullOrWhiteSpace(settings.GuestNotes) ? null : settings.GuestNotes);
+            cmd.AddParam("$custom_theme", settings.CustomTheme is { } custom
+                ? JsonSerializer.Serialize(custom, HearthJson.SnakeCaseLower)
+                : null);
             cmd.AddParam("$photo_brightness", settings.PhotoBrightness);
             cmd.AddParam("$photo_contrast", settings.PhotoContrast);
             cmd.AddParam("$photo_saturation", settings.PhotoSaturation);

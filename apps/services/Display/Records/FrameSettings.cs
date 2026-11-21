@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Display.Records;
 
@@ -63,6 +64,10 @@ public sealed record FrameSettings(
     string? GuestPassword = null,
     string GuestSecurity = FrameSettings.DefaultGuestSecurity,
     string? GuestNotes = null,
+    // The Custom theme's colours (Theme "custom"), built in Settings → Frame. Which colours
+    // print well is the frontend's call (lib/frame/customTheme.ts); this only holds them to
+    // hex colours, since /frame sets them as inline CSS.
+    CustomFrameTheme? CustomTheme = null,
     // Photo adjustments for frames Hearth dithers, in percent (100 leaves the photo as it is):
     // a CSS filter on the frame's photos and album art before the capture, so a photo can be
     // lifted toward how inky's dithering shows it. Never sent when the frame client dithers.
@@ -188,6 +193,39 @@ public sealed record FrameSettings(
         if (GuestNotes is { Length: > MaxGuestNotes }) return $"guest_notes must be at most {MaxGuestNotes} characters";
         if (GuestNotes is not null && GuestNotes.Split('\n').Length > MaxGuestNoteLines)
             return $"guest_notes must be at most {MaxGuestNoteLines} lines";
+        if (CustomTheme?.Validate() is { } custom) return custom;
         return null;
+    }
+}
+
+/// <summary>
+/// The frame's Custom theme as colour roles — paper, type, lines, marks and fills — that the
+/// frontend expands into the full set of frame tokens.
+/// </summary>
+public sealed partial record CustomFrameTheme(
+    string Paper,
+    string Text,
+    string Secondary,
+    string Rule,
+    string Accent,
+    string Block,
+    string Surface,
+    string Band,
+    string Golden
+)
+{
+    public static readonly string[] Papers = ["#ffffff", "#000000"];
+
+    [GeneratedRegex("^#[0-9a-f]{6}$")]
+    private static partial Regex HexColour();
+
+    /// <summary>Why the theme can't be saved, or null when it's valid.</summary>
+    public string? Validate()
+    {
+        if (!Papers.Contains(Paper)) return "custom_theme.paper must be #ffffff or #000000";
+        string?[] colours = [Text, Secondary, Rule, Accent, Block, Surface, Band, Golden];
+        return colours.All(c => c is not null && HexColour().IsMatch(c))
+            ? null
+            : "custom_theme colours must be lowercase #rrggbb";
     }
 }
