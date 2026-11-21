@@ -32,7 +32,7 @@
     const progress = $derived(sunrise && sunset ? sunProgress(sunrise, sunset, sunAt) : null);
     // After sunset the whole day is lit; before sunrise none of it.
     const lit = $derived(progress ?? (sunset && sunAt > sunset ? 1 : 0));
-    const temperature = $derived(weatherStore.current ? Math.round(weatherStore.current.temperature_f) : null);
+    const temperature = $derived(weatherStore.current ? Math.round(weatherStore.current.temperature) : null);
 
     const trend = $derived.by(() => {
         const perDay = almanacStore.almanac?.daylight?.trend_minutes_per_day;

@@ -1,29 +1,38 @@
 import { get } from './http.ts';
 
+/** °F and mph, or °C and km/h — the household's choice in Settings → Home. */
+export type TemperatureUnit = 'F' | 'C';
+
 export interface CurrentWeather {
-    temperature_f: number;
+    /** In `temperature_unit`; the forecast days' temperatures use the same unit. */
+    temperature: number;
     weather_code: number;
     description: string;
-    wind_mph: number;
+    /** In `wind_unit`. */
+    wind_speed: number;
     fetched_at: string;
     uv_index: number | null;
     us_aqi: number | null;
     /** Plain-language bands from the Weather service (WHO UV, EPA AQI). */
     uv_category: string | null;
     aqi_category: string | null;
+    temperature_unit: TemperatureUnit;
+    wind_unit: 'mph' | 'km/h';
 }
 
 export interface ForecastDay {
     date: string;
     weather_code: number;
     description: string;
-    temp_max_f: number;
-    temp_min_f: number;
+    temp_max: number;
+    temp_min: number;
     sunrise: string;
     sunset: string;
     /** The day's peak UV — what a scheduled frame shows, since the current UV is 0 at dawn. */
     uv_index_max: number | null;
     uv_max_category: string | null;
+    /** The day's highest hourly chance of rain or snow, 0–100; null when Open-Meteo has none. */
+    precipitation_chance: number | null;
 }
 
 export const weather = {

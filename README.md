@@ -55,7 +55,7 @@ You need [Docker](https://docs.docker.com/get-docker/) Engine 25+ and Compose v2
 cd infra && docker compose up --build
 ```
 
-Open [http://localhost](http://localhost) and set the home location and time zone in **Settings → Home**. Tasks, quotes and news work with no keys.
+Open [http://localhost](http://localhost) and set the home location, time zone and weather units (°F or °C) in **Settings → Home**. Tasks, quotes and news work with no keys.
 
 ## Configuration
 

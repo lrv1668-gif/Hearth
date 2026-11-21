@@ -19,7 +19,12 @@ export interface HomeSettings {
     name: string | null;
     /** IANA zone id, e.g. "America/Denver". */
     time_zone: string | null;
+    /** The weather's units; null (nothing chosen yet) is imperial. */
+    units?: WeatherUnits | null;
 }
+
+/** °F and mph, or °C and km/h. */
+export type WeatherUnits = 'imperial' | 'metric';
 
 /** Display refused the home settings; the message is its reason, e.g. "latitude must be -90–90". */
 export class HomeSettingsRejected extends Error {}

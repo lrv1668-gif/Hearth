@@ -36,7 +36,7 @@
             <div class="flex items-end gap-2">
                 <WeatherIcon class="icon-lg flex-shrink-0 self-center text-(--text-2)" />
                 <span class="type-display leading-none font-semibold text-(--text-1)">
-                    {Math.round(weatherStore.current.temperature_f)}°
+                    {Math.round(weatherStore.current.temperature)}°
                 </span>
                 <span class="type-body text-(--text-2)">
                     {weatherStore.current.description}
