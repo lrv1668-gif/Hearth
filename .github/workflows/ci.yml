@@ -39,6 +39,8 @@ jobs:
               - tests/**
               - Hearth.slnx
               - global.json
+              # Display.Tests checks it against Display's limits
+              - apps/frontend/src/lib/constants/frameLimits.ts
             frontend:
               - *workflow
               - apps/frontend/**

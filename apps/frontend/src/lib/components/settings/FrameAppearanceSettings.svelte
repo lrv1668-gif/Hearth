@@ -1,4 +1,10 @@
 <script lang="ts">
+    import {
+        MAX_FRAME_SIZE,
+        MAX_FRAME_TEXT_SIZE,
+        MIN_FRAME_SIZE,
+        MIN_FRAME_TEXT_SIZE,
+    } from '#lib/constants/frameLimits.ts';
     import { frameThemes } from '#lib/constants/frameThemes.ts';
     import { fontThemes } from '#lib/constants/fontThemes.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
@@ -10,14 +16,7 @@
     import SegmentedControl from '../ui/SegmentedControl.svelte';
     import SettingsGroup from '../ui/SettingsGroup.svelte';
     import SizeSlider from '../ui/SizeSlider.svelte';
-    import {
-        FRAME_SIZE_PRESETS,
-        MAX_FRAME_SIZE,
-        MAX_FRAME_TEXT_SIZE,
-        MIN_FRAME_SIZE,
-        MIN_FRAME_TEXT_SIZE,
-        normalizeFrameSize,
-    } from '#lib/frame.ts';
+    import { FRAME_SIZE_PRESETS, normalizeFrameSize } from '#lib/frame.ts';
 
     const currentTheme = $derived(frameThemes.find((t) => t.id === frameSettings.theme) ?? frameThemes[0]);
 

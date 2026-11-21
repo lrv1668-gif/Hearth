@@ -4,7 +4,6 @@ import {
     DEFAULT_AMBIENT_POSITION,
     DEFAULT_FRAME_DITHERING,
     DEFAULT_FRAME_SIZE,
-    DEFAULT_FRAME_TEXT_SIZE,
     DEFAULT_PORTRAIT_ROTATION,
     isAmbientPosition,
     isFrameDithering,
@@ -18,12 +17,7 @@ import {
 } from '#lib/frame.ts';
 import { categoryOptions } from '#lib/constants/ambient.ts';
 import type { PhotoCategory, PhotoSource } from '#lib/constants/photos.ts';
-import {
-    DEFAULT_PHOTO_INTERVAL_MINUTES,
-    isPhotoCard,
-    isPhotoInterval,
-    type PhotoCard,
-} from '#lib/constants/frameModes.ts';
+import { isPhotoCard, isPhotoInterval, type PhotoCard } from '#lib/constants/frameModes.ts';
 import { DEFAULT_FRAME_THEME, isValidFrameThemeId, type FrameThemeId } from '#lib/constants/frameThemes.ts';
 import {
     DEFAULT_FRAME_SLOTS,
@@ -37,11 +31,15 @@ import {
     clampSplit,
     DEFAULT_FRAME_LAYOUT,
     DEFAULT_FRAME_SPLIT,
-    MAX_COLUMN_WIDGETS,
     normalizeFrameLayout,
     type FrameLayout,
     type FrameWidgetId,
 } from '#lib/constants/frameWidgets.ts';
+import {
+    DEFAULT_FRAME_TEXT_SIZE,
+    DEFAULT_PHOTO_INTERVAL_MINUTES,
+    MAX_COLUMN_WIDGETS,
+} from '#lib/constants/frameLimits.ts';
 
 /** Where SettingsStore parks frame settings it finds in an old localStorage snapshot,
  *  so they can be moved to the Display service once (see loadFrameSettings). */

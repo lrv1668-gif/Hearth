@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { MAX_COLUMN_WIDGETS } from '#lib/constants/frameLimits.ts';
     import { onMount, tick } from 'svelte';
     import { browser } from '$app/env';
     import { goto } from '$app/navigation';
@@ -41,7 +42,6 @@
         fixedFrameFooter,
         fixedFrameHeader,
         frameWidgets,
-        MAX_COLUMN_WIDGETS,
         normalizeFrameLayout,
         type FrameWidgetId,
     } from '#lib/constants/frameWidgets.ts';

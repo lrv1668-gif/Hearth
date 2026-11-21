@@ -1,11 +1,11 @@
 <script lang="ts">
+    import { MAX_RULE_MODES } from '#lib/constants/frameLimits.ts';
     import { ArrowDown, ArrowUp, Plus, X } from '@lucide/svelte';
     import type { ModeRule } from '#lib/api.ts';
     import {
         DEFAULT_ROTATE_MINUTES,
         frameModeLabel,
         frameModes,
-        MAX_RULE_MODES,
         modeDays,
         rotateIntervals,
         type FrameModeId,

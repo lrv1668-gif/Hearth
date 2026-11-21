@@ -1,3 +1,4 @@
+import { MAX_PHOTO_INTERVAL_MINUTES, MIN_PHOTO_INTERVAL_MINUTES } from '#lib/constants/frameLimits.ts';
 // The e-paper frame's modes — the ids /frame?mode= takes. Kept in sync with the Display
 // service's FrameModes (apps/services/Display/Records/FrameModes.cs); the order is the cycle the
 // frame's Button B (POST /display/mode/next) steps through.
@@ -44,11 +45,13 @@ export const photoIntervals = [
     { minutes: 360, label: '6 hours' },
 ] as const;
 
-export const DEFAULT_PHOTO_INTERVAL_MINUTES = 60;
-
 /** Display's FrameSettings range (15 min – a day). */
 export function isPhotoInterval(value: unknown): value is number {
-    return Number.isInteger(value) && (value as number) >= 15 && (value as number) <= 1440;
+    return (
+        Number.isInteger(value) &&
+        (value as number) >= MIN_PHOTO_INTERVAL_MINUTES &&
+        (value as number) <= MAX_PHOTO_INTERVAL_MINUTES
+    );
 }
 
 /** How often a rotating schedule rule steps to its next mode. Display's ModeRule.RotateMinutes (5 min – a day). */
@@ -61,9 +64,6 @@ export const rotateIntervals = [
 ] as const;
 
 export const DEFAULT_ROTATE_MINUTES = 30;
-
-/** A rule holds at most this many modes — Display's ModeRule.MaxRotate + 1. */
-export const MAX_RULE_MODES = 6;
 
 /** Schedule rule days, Sunday first — Display's ModeRule.DayIds. */
 export const modeDays = [

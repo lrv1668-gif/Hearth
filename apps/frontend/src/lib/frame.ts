@@ -4,6 +4,12 @@ import type { FrameLayout, FrameWidgetId } from '#lib/constants/frameWidgets.ts'
 import type { FrameTemplateId } from '#lib/constants/frameTemplates.ts';
 import type { FrameModeId } from '#lib/constants/frameModes.ts';
 import { getContext, setContext } from 'svelte';
+import {
+    MAX_FRAME_SIZE,
+    MAX_FRAME_TEXT_SIZE,
+    MIN_FRAME_SIZE,
+    MIN_FRAME_TEXT_SIZE,
+} from '#lib/constants/frameLimits.ts';
 
 /**
  * Pending, non-countdown tasks due today — what the e-paper frame's Daily "Today"
@@ -190,10 +196,6 @@ export function isAmbientPosition(value: string | null | undefined): value is Am
    A percent on the frame's reading type (titles down to captions) and icons, for a
    panel read from closer or further than the tuned 3–4 m. Never below 100: the
    tuned sizes are the e-paper legibility floor. Larger fits fewer list items. */
-export const DEFAULT_FRAME_TEXT_SIZE = 100;
-export const MIN_FRAME_TEXT_SIZE = 100;
-export const MAX_FRAME_TEXT_SIZE = 150;
-
 export function isFrameTextSize(value: unknown): value is number {
     return (
         Number.isInteger(value) && (value as number) >= MIN_FRAME_TEXT_SIZE && (value as number) <= MAX_FRAME_TEXT_SIZE
@@ -208,8 +210,6 @@ export function isFrameTextSize(value: unknown): value is number {
    room. Line weights stay 3px so they land on whole pixels. */
 export const FRAME_REFERENCE_SIZE = { width: 1600, height: 1200 } as const;
 export const DEFAULT_FRAME_SIZE = { width: 1600, height: 1200 } as const;
-export const MIN_FRAME_SIZE = 200;
-export const MAX_FRAME_SIZE = 4000;
 
 /** Which way a portrait frame is turned onto the panel's native landscape for
  *  GET /display/frame, in clockwise degrees — depends on which side the frame hangs. */
