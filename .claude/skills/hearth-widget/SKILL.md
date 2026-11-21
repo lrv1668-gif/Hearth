@@ -14,7 +14,7 @@ Creates new widgets for the Hearth SvelteKit home dashboard.
 | `apps/frontend/src/lib/constants/widgets.ts` | Register the widget ID |
 | `apps/frontend/src/lib/components/widgets/YourWidget.svelte` | Create the component |
 | `apps/frontend/src/routes/+page.svelte` | Import + wire into the dashboard |
-| `apps/frontend/src/lib/api.ts` | Response type + `api.<service>.<method>()` (data-fetching widgets) |
+| `apps/frontend/src/lib/api/<service>.ts` (+ `api.ts`) | Response type + `api.<service>.<method>()` (data-fetching widgets) |
 | `apps/frontend/src/lib/stores/YourStore.svelte.ts` | One store per data type (data-fetching widgets) |
 | `apps/frontend/src/lib/components/widgets/views/YourView.svelte` | Shared markup, if the widget also goes on the e-paper frame (Step 5) |
 | `apps/frontend/src/lib/constants/frameWidgets.ts`, `components/frame/FrameDaily.svelte`, `routes/frame/+page.svelte` | Frame registration, slot and data loader (Step 5) |
@@ -89,16 +89,17 @@ When in doubt, ask the user which column they prefer.
 
 Every fetching widget uses the same three layers. Never call `fetch()` from a component. See `BirdsWidget.svelte` / `BirdsStore.svelte.ts` for a complete example.
 
-**1. `api.ts`** — add the response interface (snake_case fields, matching the service's JSON) and a method on `ApiClient`. Paths are relative; the private `get<T>` helper returns `null` on failure:
+**1. `api/<service>.ts`** — add the response interface (snake_case fields, matching the service's JSON) and a method on the service's namespace. Paths are relative; `get<T>` from `api/http.ts` returns `null` on failure. A new service's module also needs its namespace added to `api` and an `export type *` line in `api.ts`:
 ```typescript
+import { get } from './http.ts';
+
 export interface YourItem {
     field: string;
     observed_at: string;
 }
 
-// inside class ApiClient
-readonly yours = {
-    list: (): Promise<YourItem[] | null> => this.get<YourItem[]>('/yours/list'),
+export const yours = {
+    list: (): Promise<YourItem[] | null> => get<YourItem[]>('/yours/list'),
 };
 ```
 
@@ -234,7 +235,7 @@ Check it at `/frame?mode=daily&left=your-id` and in each size it takes — e.g. 
 - [ ] Added to `toggleableWidgets` if user-toggleable (with `description`)
 - [ ] Added to `DEFAULT_WIDGET_COLUMNS` in the appropriate column
 - [ ] Created `YourWidget.svelte` using the appropriate data pattern
-- [ ] Pattern B: response interface + `ApiClient` method in `api.ts`, own `YourStore.svelte.ts` with an `error` flag, no `fetch()` in the component
+- [ ] Pattern B: response interface + namespace method in `api/<service>.ts`, own `YourStore.svelte.ts` with an `error` flag, no `fetch()` in the component
 - [ ] Polls with `poll(load, ms)` returned from `onMount`
 - [ ] Styled with type utilities + `text-(--token)` CSS variables only; `--text-3`/`--text-4` never on readable text
 - [ ] Imported in `+page.svelte`
