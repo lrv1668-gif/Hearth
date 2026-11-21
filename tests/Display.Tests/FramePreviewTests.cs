@@ -48,6 +48,7 @@ public sealed class FramePreviewTests
     [InlineData("countdown", "ordered")]
     [InlineData("night", "ordered")]
     [InlineData("note", "ordered")]
+    [InlineData("guest", "ordered")]
     [InlineData("ambient", "errorDiffusion")]
     [InlineData("photo", "errorDiffusion")]
     [InlineData(null, "errorDiffusion")]

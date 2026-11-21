@@ -129,7 +129,7 @@
                 </SettingsCard>
             </div>
             <div class="order-3">
-                <SettingsCard title="Countdown & Note" description="What Countdown and Note modes show.">
+                <SettingsCard title="Countdown, Note & Guest" description="What Countdown, Note and Guest modes show.">
                     <FrameModeOptions />
                 </SettingsCard>
             </div>

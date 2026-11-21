@@ -40,6 +40,7 @@ public sealed class FrameRenderServiceTests
     [InlineData(FrameModes.Countdown)]
     [InlineData(FrameModes.Night)]
     [InlineData(FrameModes.Note)]
+    [InlineData(FrameModes.Guest)]
     public void Due_FlatMode_FlatIntervalAfterTheLastRender(string mode)
     {
         var due = FrameRenderService.Due(Frame(mode), new(mode, "default", null), Saved, null, Noon, Utc);

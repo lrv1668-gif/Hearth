@@ -78,6 +78,29 @@ public sealed class FrameSettingsTests
     }
 
     [Fact]
+    public void Validate_GuestWithinLimits_ReturnsNull()
+    {
+        var notes = string.Join('\n', Enumerable.Repeat("Towels in the hall", FrameSettings.MaxGuestNoteLines));
+        Assert.Null((Valid with
+        {
+            GuestNetwork = new string('n', FrameSettings.MaxGuestNetwork),
+            GuestPassword = new string('p', FrameSettings.MaxGuestPassword),
+            GuestSecurity = "nopass",
+            GuestNotes = notes,
+        }).Validate());
+    }
+
+    [Fact]
+    public void Validate_GuestOutOfBounds_ReturnsError()
+    {
+        Assert.NotNull((Valid with { GuestNetwork = new string('n', FrameSettings.MaxGuestNetwork + 1) }).Validate());
+        Assert.NotNull((Valid with { GuestPassword = new string('p', FrameSettings.MaxGuestPassword + 1) }).Validate());
+        Assert.NotNull((Valid with { GuestSecurity = "WPA3" }).Validate());
+        Assert.NotNull((Valid with { GuestTitle = new string('t', FrameSettings.MaxGuestTitle + 1) }).Validate());
+        Assert.NotNull((Valid with { GuestNotes = string.Join('\n', Enumerable.Repeat("x", FrameSettings.MaxGuestNoteLines + 1)) }).Validate());
+    }
+
+    [Fact]
     public void Validate_NoteTooLong_ReturnsError()
     {
         Assert.NotNull((Valid with { NoteTitle = new string('a', FrameSettings.MaxNoteTitle + 1) }).Validate());

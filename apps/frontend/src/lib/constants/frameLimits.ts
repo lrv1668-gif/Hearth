@@ -30,5 +30,13 @@ export const MAX_NOTE_TITLE = 80;
 export const MAX_NOTE_BODY = 600;
 export const MAX_NOTE_LINES = 12;
 
+/** Guest mode's text and Wi-Fi. FrameSettings.MaxGuest*; an SSID is at most 32 bytes and a
+ *  WPA passphrase 63 characters. */
+export const MAX_GUEST_TITLE = 80;
+export const MAX_GUEST_NETWORK = 32;
+export const MAX_GUEST_PASSWORD = 63;
+export const MAX_GUEST_NOTES = 300;
+export const MAX_GUEST_NOTE_LINES = 6;
+
 /** Modes one schedule rule holds — its first mode plus ModeRule.MaxRotate more. */
 export const MAX_RULE_MODES = 6;

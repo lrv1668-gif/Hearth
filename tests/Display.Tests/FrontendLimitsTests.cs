@@ -26,6 +26,11 @@ public sealed partial class FrontendLimitsTests
         { "MAX_NOTE_BODY",                  FrameSettings.MaxNoteBody },
         { "MAX_NOTE_LINES",                 FrameSettings.MaxNoteLines },
         { "MAX_RULE_MODES",                 ModeRule.MaxRotate + 1 },
+        { "MAX_GUEST_TITLE",                FrameSettings.MaxGuestTitle },
+        { "MAX_GUEST_NETWORK",              FrameSettings.MaxGuestNetwork },
+        { "MAX_GUEST_PASSWORD",             FrameSettings.MaxGuestPassword },
+        { "MAX_GUEST_NOTES",                FrameSettings.MaxGuestNotes },
+        { "MAX_GUEST_NOTE_LINES",           FrameSettings.MaxGuestNoteLines },
     };
 
     private static readonly Dictionary<string, int> Frontend = ConstLine()

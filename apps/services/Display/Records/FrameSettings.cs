@@ -54,7 +54,15 @@ public sealed record FrameSettings(
     // Daily's layout template (the frontend's constants/frameTemplates.ts) and its widget
     // per slot, "" for an empty slot. "columns" lays out Left/Right/Split instead.
     string Template = FrameSettings.DefaultTemplate,
-    IReadOnlyList<string>? Slots = null
+    IReadOnlyList<string>? Slots = null,
+    // Guest mode: a heading (null shows "Welcome"), the guest Wi-Fi as a QR code to join
+    // it — its name, password and security ("WPA", "WEP" or "nopass") — and a few notes.
+    // Read only through GET /display/settings, never put in the /frame URL.
+    string? GuestTitle = null,
+    string? GuestNetwork = null,
+    string? GuestPassword = null,
+    string GuestSecurity = FrameSettings.DefaultGuestSecurity,
+    string? GuestNotes = null
 )
 {
     public const string DefaultPhotoSource = "unsplash";
@@ -71,6 +79,15 @@ public sealed record FrameSettings(
     public const int MaxNoteTitle = 80;
     public const int MaxNoteBody = 600;
     public const int MaxNoteLines = 12;
+
+    public const int MaxGuestTitle = 80;
+    // An SSID is at most 32 bytes and a WPA passphrase 63 characters
+    public const int MaxGuestNetwork = 32;
+    public const int MaxGuestPassword = 63;
+    public const int MaxGuestNotes = 300;
+    public const int MaxGuestNoteLines = 6;
+    public const string DefaultGuestSecurity = "WPA";
+    public static readonly string[] GuestSecurities = ["WPA", "WEP", "nopass"];
 
     public const int DefaultPhotoIntervalMinutes = 60;
     public const int MinPhotoIntervalMinutes = 15;
@@ -152,6 +169,13 @@ public sealed record FrameSettings(
         if (QuietStart is not null && (QuietStartTime is null || QuietEndTime is null))
             return "quiet_start and quiet_end must be HH:mm";
         if (QuietStart is not null && QuietStartTime == QuietEndTime) return "quiet hours must not start and end at the same time";
+        if (GuestTitle is { Length: > MaxGuestTitle }) return $"guest_title must be at most {MaxGuestTitle} characters";
+        if (GuestNetwork is { Length: > MaxGuestNetwork }) return $"guest_network must be at most {MaxGuestNetwork} characters";
+        if (GuestPassword is { Length: > MaxGuestPassword }) return $"guest_password must be at most {MaxGuestPassword} characters";
+        if (!GuestSecurities.Contains(GuestSecurity)) return $"guest_security must be one of {string.Join(", ", GuestSecurities)}";
+        if (GuestNotes is { Length: > MaxGuestNotes }) return $"guest_notes must be at most {MaxGuestNotes} characters";
+        if (GuestNotes is not null && GuestNotes.Split('\n').Length > MaxGuestNoteLines)
+            return $"guest_notes must be at most {MaxGuestNoteLines} lines";
         return null;
     }
 }

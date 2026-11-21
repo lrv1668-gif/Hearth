@@ -81,6 +81,7 @@ Typography is large enough to read from across the room (3–4 meters). No small
 - **Countdown** — one countdown as a poster: the number of days, huge, then the title and date. You pick the countdown, or it shows the next one coming up.
 - **Night** — a quiet page for overnight: tonight's moon, the next sunrise and the temperature.
 - **Note** — your own words: house rules for a party, a welcome, a reminder. A heading and up to 12 lines, kept as typed (a blank line adds space). The text sizes itself to the frame: a few words fill it, a long list shrinks to fit, and each line stays on one line unless that would make the text much smaller. **Show this note** in Settings → Frame puts it up until you change it.
+- **Guest** — a welcome for visitors: a heading, a few notes, and your guest Wi-Fi — its name and password in type and as a QR code a phone's camera joins from. **Show the guest page** in Settings → Frame puts it up until you change it. Anyone who can see the frame can read the password, so it's for a guest network.
 
 ### Choosing the mode
 
@@ -94,7 +95,7 @@ What the frame shows is decided in one place, shared by every device:
 
 A status bar at the top of Settings → Frame says whether the frame is still checking in, and when it next redraws: "The frame checked in 3 min ago and has the latest picture", or a warning once it has been silent for an hour.
 
-Ideas for later modes: **Guest** (a Wi-Fi QR code and house notes), a full **Week/Month** calendar, **Gallery** art (public-domain paintings with a museum placard), and **Occasion** cards on birthdays and holidays.
+Ideas for later modes: a full **Week/Month** calendar, **Gallery** art (public-domain paintings with a museum placard), and **Occasion** cards on birthdays and holidays.
 
 ---
 

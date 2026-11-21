@@ -52,7 +52,7 @@ The Inky Impression ships with four buttons, so physical input costs nothing bey
 | Button | Action |
 | --- | --- |
 | A | Refresh now |
-| B | Next mode — `POST /display/mode/next` (Ambient → Daily → Photo → Countdown → Night → Note, held until the schedule's next change) |
+| B | Next mode — `POST /display/mode/next` (Ambient → Daily → Photo → Countdown → Night → Note → Guest, held until the schedule's next change) |
 | C | Toggle Color ↔ B&W |
 | D | Reserved — e.g. show host URL / status |
 
