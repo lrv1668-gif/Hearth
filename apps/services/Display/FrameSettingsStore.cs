@@ -104,7 +104,7 @@ public sealed class FrameSettingsStore([FromKeyedServices("display")] IDatabase 
                 r.IsDBNull(26) ? null : r.GetString(26),
                 r.GetString(27),
                 r.IsDBNull(28) ? null : r.GetString(28),
-                r.IsDBNull(29) ? null : JsonSerializer.Deserialize<CustomFrameTheme>(r.GetString(29), HearthJson.SnakeCaseLower)),
+                r.IsDBNull(29) ? null : JsonSerializer.Deserialize<CustomFrameTheme>(r.GetString(29), HearthJson.SnakeCaseLower),
                 r.GetInt32(30),
                 r.GetInt32(31),
                 r.GetInt32(32)));
