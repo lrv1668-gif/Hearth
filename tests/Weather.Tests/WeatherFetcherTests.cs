@@ -54,10 +54,10 @@ public sealed class WeatherFetcherTests
 
         var (current, _) = await fetcher.FetchAsync(40.0, -75.0);
 
-        Assert.Equal(72.5, current.TemperatureF);
+        Assert.Equal(72.5, current.Temperature);
         Assert.Equal(0, current.WeatherCode);
         Assert.Equal("Clear sky", current.Description);
-        Assert.Equal(5.0, current.WindMph);
+        Assert.Equal(5.0, current.WindSpeed);
     }
 
     [Fact]
@@ -69,8 +69,8 @@ public sealed class WeatherFetcherTests
 
         Assert.Equal(2, forecast.Count);
         Assert.Equal("2026-06-28", forecast[0].Date);
-        Assert.Equal(80.1, forecast[0].TempMaxF);
-        Assert.Equal(60.0, forecast[0].TempMinF);
+        Assert.Equal(80.1, forecast[0].TempMax);
+        Assert.Equal(60.0, forecast[0].TempMin);
         Assert.Equal("2026-06-28T05:30", forecast[0].Sunrise);
         Assert.Equal("2026-06-28T20:30", forecast[0].Sunset);
     }
@@ -165,6 +165,30 @@ public sealed class WeatherFetcherTests
     }
 
     [Fact]
+    public async Task FetchAsync_Imperial_AsksForFahrenheitAndMph()
+    {
+        var fetcher = MakeFetcher(out var handler, ValidJson, airQualityJson: ValidAqiJson);
+
+        var (current, _) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.Contains(handler.RequestUris, uri => uri.Query.Contains("temperature_unit=fahrenheit&wind_speed_unit=mph"));
+        Assert.Equal("F", current.TemperatureUnit);
+        Assert.Equal("mph", current.WindUnit);
+    }
+
+    [Fact]
+    public async Task FetchAsync_Metric_AsksForCelsiusAndKmh()
+    {
+        var fetcher = MakeFetcher(out var handler, ValidJson, airQualityJson: ValidAqiJson);
+
+        var (current, _) = await fetcher.FetchAsync(40.0, -75.0, metric: true);
+
+        Assert.Contains(handler.RequestUris, uri => uri.Query.Contains("temperature_unit=celsius&wind_speed_unit=kmh"));
+        Assert.Equal("C", current.TemperatureUnit);
+        Assert.Equal("km/h", current.WindUnit);
+    }
+
+    [Fact]
     public async Task FetchAsync_AirQualityUnavailable_ReturnsNullAqi()
     {
         var fetcher = MakeFetcher(ValidJson,
@@ -172,7 +196,7 @@ public sealed class WeatherFetcherTests
 
         var (current, _) = await fetcher.FetchAsync(40.0, -75.0);
 
-        Assert.Equal(72.5, current.TemperatureF);
+        Assert.Equal(72.5, current.Temperature);
         Assert.Null(current.UsAqi);
     }
 

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { LocateFixed, Search } from '@lucide/svelte';
-    import { api, HomeSettingsRejected, type Place } from '#lib/api.ts';
+    import { api, HomeSettingsRejected, type Place, type WeatherUnits } from '#lib/api.ts';
     import {
         browserTimeZone,
         canonicalTimeZone,
@@ -16,12 +16,14 @@
     import InlineMessage from '../ui/InlineMessage.svelte';
     import Spinner from '../ui/Spinner.svelte';
     import TextInput from '../ui/TextInput.svelte';
+    import SegmentedControl from '../ui/SegmentedControl.svelte';
 
     // The form edits a draft; Save sends it whole.
     let latitude = $state('');
     let longitude = $state('');
     let name = $state('');
     let timeZone = $state('');
+    let units = $state<WeatherUnits>('imperial');
     let status = $state<{ kind: 'saved' | 'error' | 'info'; text: string } | null>(null);
     let saving = $state(false);
 
@@ -35,6 +37,7 @@
         // Until a zone is saved, offer this browser's — but don't save it unasked: the
         // first device to open Settings may not be where the frame hangs.
         timeZone = homeLocation.timeZone ?? thisBrowser;
+        units = homeLocation.units;
     }
 
     onMount(() => {
@@ -125,6 +128,7 @@
                 longitude: lon ?? null,
                 name: name.trim() || null,
                 time_zone: timeZone.trim() ? canonicalTimeZone(timeZone.trim()) : null,
+                units,
             });
             resetDraft();
             status = { kind: 'saved', text: 'Saved. Weather, birds and the almanac update within a minute.' };
@@ -265,6 +269,18 @@
                 </div>
             {/if}
         </div>
+    </SettingsGroup>
+
+    <SettingsGroup title="Units" description="For the weather on the dashboard and the frame.">
+        <SegmentedControl
+            label="Weather units"
+            options={[
+                { value: 'imperial', label: '°F · mph' },
+                { value: 'metric', label: '°C · km/h' },
+            ]}
+            value={units}
+            onchange={(u) => (units = u)}
+        />
     </SettingsGroup>
 
     <div class="flex flex-col gap-2 border-t border-(--border) pt-4 sm:flex-row sm:items-center sm:justify-between">

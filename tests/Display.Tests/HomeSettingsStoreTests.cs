@@ -27,7 +27,7 @@ public sealed class HomeSettingsStoreTests : IDisposable
     public void Save_ThenGet_RoundTripsEveryField()
     {
         var store = Migrated();
-        var home = new HomeSettings(39.7392, -104.9903, "Denver, Colorado", "America/Denver");
+        var home = new HomeSettings(39.7392, -104.9903, "Denver, Colorado", "America/Denver", HomeSettings.Metric);
 
         store.Save(home);
 

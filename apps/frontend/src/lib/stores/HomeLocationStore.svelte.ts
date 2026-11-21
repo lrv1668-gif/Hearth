@@ -1,4 +1,4 @@
-import { api, type HomeSettings } from '#lib/api.ts';
+import { api, type HomeSettings, type WeatherUnits } from '#lib/api.ts';
 
 /** This browser's IANA zone — the default for the household's until one is saved. */
 export function browserTimeZone(): string {
@@ -36,6 +36,8 @@ class HomeLocationStore {
     longitude = $state<number | null>(null);
     name = $state<string | null>(null);
     timeZone = $state<string | null>(null);
+    /** °F/mph or °C/km/h for the weather everywhere; imperial until chosen. */
+    units = $state<WeatherUnits>('imperial');
     /** True once something has been saved — otherwise the services use their env vars. */
     saved = $state(false);
     /** True once the Display service has answered (or failed to). */
@@ -48,6 +50,7 @@ class HomeLocationStore {
         this.longitude = home.longitude;
         this.name = home.name;
         this.timeZone = home.time_zone;
+        this.units = home.units ?? 'imperial';
         this.saved = true;
     }
 }

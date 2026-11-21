@@ -19,8 +19,8 @@ function forecast(overrides: Partial<ForecastDay>): ForecastDay {
         date: '2026-10-19',
         weather_code: 2,
         description: 'Partly cloudy',
-        temp_max_f: 63,
-        temp_min_f: 47,
+        temp_max: 63,
+        temp_min: 47,
         sunrise: '2026-10-19T07:21',
         sunset: '2026-10-19T18:24',
         uv_index_max: null,
@@ -31,15 +31,17 @@ function forecast(overrides: Partial<ForecastDay>): ForecastDay {
 }
 
 const current: CurrentWeather = {
-    temperature_f: 58.4,
+    temperature: 58.4,
     weather_code: 2,
     description: 'Partly cloudy',
-    wind_mph: 4,
+    wind_speed: 4,
     fetched_at: '2026-10-19T12:00:00Z',
     uv_index: null,
     us_aqi: null,
     uv_category: null,
     aqi_category: null,
+    temperature_unit: 'F',
+    wind_unit: 'mph',
 };
 
 describe('dayOfYear', () => {
@@ -75,7 +77,7 @@ describe('weatherSentence', () => {
     });
 
     it('looks ahead to the low once the high is reached', () => {
-        expect(weatherSentence({ ...current, temperature_f: 63 }, forecast({}))).toBe(
+        expect(weatherSentence({ ...current, temperature: 63 }, forecast({}))).toBe(
             'Partly cloudy, 63° now, falling to 47° tonight.'
         );
     });
@@ -99,10 +101,7 @@ describe('nextSunrise', () => {
 
 describe('forecastBars', () => {
     it("places every day on the week's shared scale", () => {
-        const bars = forecastBars([
-            forecast({ temp_min_f: 40, temp_max_f: 60 }),
-            forecast({ temp_min_f: 50, temp_max_f: 80 }),
-        ]);
+        const bars = forecastBars([forecast({ temp_min: 40, temp_max: 60 }), forecast({ temp_min: 50, temp_max: 80 })]);
         expect(bars[0]).toEqual({ left: 0, width: 50 });
         expect(bars[1]).toEqual({ left: 25, width: 75 });
     });

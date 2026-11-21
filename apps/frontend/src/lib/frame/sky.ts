@@ -62,11 +62,11 @@ export function updatedTime(now: Date): string {
 /** The masthead's one sentence of weather: "Partly cloudy, 58° now and rising to 63°."
  *  Once the day's high is (about) reached it looks ahead to the low instead. */
 export function weatherSentence(current: CurrentWeather, today: ForecastDay | null): string {
-    const now = Math.round(current.temperature_f);
+    const now = Math.round(current.temperature);
     const lead = `${current.description}, ${now}° now`;
     if (!today) return `${lead}.`;
-    const high = Math.round(today.temp_max_f);
-    const low = Math.round(today.temp_min_f);
+    const high = Math.round(today.temp_max);
+    const low = Math.round(today.temp_min);
     return high > now ? `${lead} and rising to ${high}°.` : `${lead}, falling to ${low}° tonight.`;
 }
 
@@ -78,11 +78,11 @@ export function nextSunrise(forecast: ForecastDay[], now: Date): Date | null {
 /** The shared temperature scale for the forecast strip's range bars: each day's
  *  bar as left offset and width, in percent of the week's lowest low to highest high. */
 export function forecastBars(days: ForecastDay[]): { left: number; width: number }[] {
-    const lo = Math.min(...days.map((d) => d.temp_min_f));
-    const span = Math.max(...days.map((d) => d.temp_max_f)) - lo || 1;
+    const lo = Math.min(...days.map((d) => d.temp_min));
+    const span = Math.max(...days.map((d) => d.temp_max)) - lo || 1;
     return days.map((d) => ({
-        left: ((d.temp_min_f - lo) / span) * 100,
-        width: ((d.temp_max_f - d.temp_min_f) / span) * 100,
+        left: ((d.temp_min - lo) / span) * 100,
+        width: ((d.temp_max - d.temp_min) / span) * 100,
     }));
 }
 

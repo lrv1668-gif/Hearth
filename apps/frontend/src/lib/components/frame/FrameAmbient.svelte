@@ -123,7 +123,7 @@ poster (FrameDatePoster) instead of the plate.
         <div class="px-8 pt-5 pb-4">
             {#if weatherStore.current}
                 <p class="type-title leading-none font-semibold">
-                    {Math.round(weatherStore.current.temperature_f)}°
+                    {Math.round(weatherStore.current.temperature)}°
                 </p>
                 <p class="type-label mt-3 font-(family-name:--display-family) text-(--text-2) italic">
                     {weatherSentence(weatherStore.current, today)}

@@ -10,10 +10,14 @@ namespace ServiceDefaults;
 
 /// <summary>
 /// Where the household is: the location and zone saved in Settings, else the service's
-/// LATITUDE / LONGITUDE / TZ env vars. Either part can be missing.
+/// LATITUDE / LONGITUDE / TZ env vars. Either part can be missing. <paramref name="Units"/>
+/// is <see cref="HomeSettings.Imperial"/> or <see cref="HomeSettings.Metric"/>, imperial until one is saved.
 /// </summary>
-public sealed record HomeLocation(double? Latitude, double? Longitude, string? TimeZone)
+public sealed record HomeLocation(
+    double? Latitude, double? Longitude, string? TimeZone, string Units = HomeSettings.Imperial)
 {
+    public bool Metric => Units == HomeSettings.Metric;
+
     public (double Latitude, double Longitude)? Coordinates =>
         Latitude is { } lat && Longitude is { } lon ? (lat, lon) : null;
 }
@@ -51,7 +55,8 @@ public sealed class HomeLocationClient(
         return new HomeLocation(
             coordinates?.Item1,
             coordinates?.Item2,
-            stored?.TimeZone ?? (string.IsNullOrWhiteSpace(config["TZ"]) ? null : config["TZ"]));
+            stored?.TimeZone ?? (string.IsNullOrWhiteSpace(config["TZ"]) ? null : config["TZ"]),
+            stored?.Units ?? HomeSettings.Imperial);
     }
 
     private (double, double)? EnvCoordinates() =>

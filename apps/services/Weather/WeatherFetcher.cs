@@ -26,14 +26,15 @@ public sealed class WeatherFetcher(HttpClient http)
     private static string Describe(int code) =>
         WmoDescriptions.TryGetValue(code, out var desc) ? desc : "Unknown";
 
+    /// <param name="metric">°C and km/h rather than °F and mph.</param>
     public async Task<WeatherSnapshot> FetchAsync(
-        double latitude, double longitude, CancellationToken ct = default)
+        double latitude, double longitude, bool metric = false, CancellationToken ct = default)
     {
         var url = string.Create(CultureInfo.InvariantCulture, $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
                   $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index" +
                   $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max" +
-                  $"&temperature_unit=fahrenheit&wind_speed_unit=mph" +
+                  $"{WeatherUnits.Query(metric)}" +
                   $"&timezone=auto&forecast_days=7");
 
         var aqiTask = FetchUsAqiAsync(latitude, longitude, ct);
@@ -44,15 +45,17 @@ public sealed class WeatherFetcher(HttpClient http)
         var root = doc.RootElement;
 
         var current = root.GetProperty("current");
-        var tempF   = current.GetProperty("temperature_2m").GetDouble();
+        var temp    = current.GetProperty("temperature_2m").GetDouble();
         var wCode   = current.GetProperty("weather_code").GetInt32();
-        var windMph = current.GetProperty("wind_speed_10m").GetDouble();
+        var wind    = current.GetProperty("wind_speed_10m").GetDouble();
         double? uvIndex = current.TryGetProperty("uv_index", out var uvEl)
             && uvEl.ValueKind == JsonValueKind.Number ? uvEl.GetDouble() : null;
         var fetchedAt = DateTime.UtcNow.ToString("o");
 
         var currentResponse = new CurrentWeatherResponse(
-            tempF, wCode, Describe(wCode), windMph, fetchedAt, uvIndex, await aqiTask);
+            temp, wCode, Describe(wCode), wind, fetchedAt, uvIndex, await aqiTask,
+            metric ? WeatherUnits.Celsius : WeatherUnits.Fahrenheit,
+            metric ? WeatherUnits.Kmh : WeatherUnits.Mph);
 
         var daily       = root.GetProperty("daily");
         var dates       = daily.GetProperty("time");

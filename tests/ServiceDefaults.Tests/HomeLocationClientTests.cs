@@ -41,6 +41,26 @@ public sealed class HomeLocationClientTests
     }
 
     [Fact]
+    public async Task GetAsync_StoredUnits_Carried()
+    {
+        var handler = new FakeHttpMessageHandler(
+            """{"latitude":51.5,"longitude":-0.12,"time_zone":"Europe/London","units":"metric"}""");
+
+        var home = await Client(handler, Env).GetAsync();
+
+        Assert.True(home.Metric);
+    }
+
+    [Fact]
+    public async Task GetAsync_NoUnitsSaved_Imperial()
+    {
+        var home = await Client(new FakeHttpMessageHandler("", HttpStatusCode.NoContent), Env).GetAsync();
+
+        Assert.Equal(HomeSettings.Imperial, home.Units);
+        Assert.False(home.Metric);
+    }
+
+    [Fact]
     public async Task GetAsync_NothingStored_UsesEnv()
     {
         var home = await Client(new FakeHttpMessageHandler("", HttpStatusCode.NoContent), Env).GetAsync();

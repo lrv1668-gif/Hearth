@@ -8,9 +8,14 @@ namespace ServiceDefaults;
 /// </summary>
 /// <param name="Name">A display label for the place, e.g. "Denver, Colorado".</param>
 /// <param name="TimeZone">An IANA zone id, e.g. "America/Denver".</param>
-public sealed record HomeSettings(double? Latitude, double? Longitude, string? Name, string? TimeZone)
+/// <param name="Units">"imperial" (°F, mph) or "metric" (°C, km/h) for the weather; null is imperial.</param>
+public sealed record HomeSettings(
+    double? Latitude, double? Longitude, string? Name, string? TimeZone, string? Units = null)
 {
     public const int MaxNameLength = 100;
+
+    public const string Imperial = "imperial";
+    public const string Metric = "metric";
 
     /// <summary>Why the settings can't be saved, or null when they're valid.</summary>
     public string? Validate()
@@ -20,6 +25,7 @@ public sealed record HomeSettings(double? Latitude, double? Longitude, string? N
         if (Longitude is < -180 or > 180 || Longitude is double.NaN) return "longitude must be -180–180";
         if (Name?.Length > MaxNameLength) return $"name must be at most {MaxNameLength} characters";
         if (!string.IsNullOrWhiteSpace(TimeZone) && !IsTimeZone(TimeZone)) return "time_zone must be an IANA time zone, e.g. America/Chicago";
+        if (Units is not (null or Imperial or Metric)) return $"units must be {Imperial} or {Metric}";
         return null;
     }
 
