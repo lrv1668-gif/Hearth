@@ -8,7 +8,7 @@
     const moon = $derived(calcMoonPhase(now));
     const sunrise = $derived(nextSunrise(weatherStore.forecast, now));
     const sunriseTime = $derived(sunrise?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
-    const temperature = $derived(weatherStore.current ? Math.round(weatherStore.current.temperature_f) : null);
+    const temperature = $derived(weatherStore.current ? Math.round(weatherStore.current.temperature) : null);
 </script>
 
 <!--

@@ -35,6 +35,17 @@ public sealed class HomeSettingsTests
     public void Validate_UnknownZone_Fails(string zone) =>
         Assert.NotNull(new HomeSettings(null, null, null, zone).Validate());
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData(HomeSettings.Imperial)]
+    [InlineData(HomeSettings.Metric)]
+    public void Validate_KnownUnits_ReturnsNull(string? units) =>
+        Assert.Null(new HomeSettings(null, null, null, null, units).Validate());
+
+    [Fact]
+    public void Validate_UnknownUnits_Fails() =>
+        Assert.NotNull(new HomeSettings(null, null, null, null, "kelvin").Validate());
+
     [Fact]
     public void Validate_BlankZone_TreatedAsUnset() =>
         Assert.Null(new HomeSettings(null, null, null, "").Validate());

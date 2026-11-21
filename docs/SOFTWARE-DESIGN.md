@@ -310,7 +310,7 @@ Each service sets its own `FusionCacheEntryOptions` (duration + fail-safe window
 
 ### Home location and time zone
 
-The household's location (`latitude`, `longitude`, optional `name`) and IANA `time_zone` are set in Settings → Home and stored once, by the Display service (`GET`/`PUT /display/home`). `ServiceDefaults` holds the shared `HomeSettings` record and `HomeLocationClient`, which Weather, Birds and Almanac register with `AddHearthHomeLocation()` (it needs `AddHearthCache()`):
+The household's location (`latitude`, `longitude`, optional `name`), IANA `time_zone` and weather `units` (`imperial` or `metric`) are set in Settings → Home and stored once, by the Display service (`GET`/`PUT /display/home`). `ServiceDefaults` holds the shared `HomeSettings` record and `HomeLocationClient`, which Weather, Birds and Almanac register with `AddHearthHomeLocation()` (it needs `AddHearthCache()`):
 
 - `GetAsync()` reads `DISPLAY_URL/display/home` (3 s timeout), cached through FusionCache for 1 minute with fail-safe, so a saved change reaches every service within a minute and a restarting Display keeps the last answer.
 - It merges in the env-var fallbacks: saved coordinates, else `LATITUDE`/`LONGITUDE`; saved zone, else `TZ`. A Display that's unset (`204`), unreachable with nothing cached, or not configured (no `DISPLAY_URL`) leaves just the env vars — so installs configured through `.env` keep working.
@@ -428,7 +428,9 @@ The `weather` service fetches current conditions and a 7-day forecast from [Open
 | `GET`  | `/weather/current`  | Returns current conditions; uses cache if fresh |
 | `GET`  | `/weather/forecast` | Returns 7-day forecast; uses cache if fresh     |
 
-Both endpoints return `503` with `{ "error": "location not configured" }` when there's no home location — none saved in Settings → Home and no `LATITUDE`/`LONGITUDE` — and log a `LogError`. The snapshot is cached per location (`weather:<lat>,<lon>`).
+Both endpoints return `503` with `{ "error": "location not configured" }` when there's no home location — none saved in Settings → Home and no `LATITUDE`/`LONGITUDE` — and log a `LogError`. The snapshot is cached per location and units (`weather:v2:<imperial|metric>:<lat>,<lon>`; `v2` set apart snapshots from before the unit-neutral field names).
+
+Temperatures and wind come in the household's units (`units` in Settings → Home, read through `HomeLocationClient`; imperial until one is chosen): `/weather/current` has `temperature` in `temperature_unit` (`F` or `C`) and `wind_speed` in `wind_unit` (`mph` or `km/h`), and each forecast day's `temp_max` / `temp_min` use the same temperature unit. Open-Meteo converts (`WeatherUnits.Query`), so nothing in Hearth does.
 
 The forecast endpoint returns a `ForecastDay[]` where each day includes `sunrise` and `sunset` as ISO strings. `WeatherWidget.svelte` displays today's sunrise/sunset from `forecast[0]`.
 
@@ -835,8 +837,8 @@ Stored in `apps/services/Almanac/.env`.
 | ------------------------ | ----------- |
 | `GET /display/settings`  | The saved `FrameSettings` (`theme`, `font`, `orientation`, `left`, `right`, `split`, `template`, `slots`, `ambient_position`, `photo_source`, `photo_categories`, `width`, `height`, `photo_ids`, `photo_card`, `countdown_id`, `note_title`, `note_body`, `photo_interval_minutes`, `portrait_rotation`, `text_size`, `dithering`, `quiet_start`, `quiet_end`), or `204` if nothing has been saved — clients then use their defaults |
 | `PUT /display/settings`  | Replaces them. `400` unless orientation is `landscape`/`portrait`, each column has at most 3 widgets with none repeated, `split` is 30–70, `template` is set (≤ 40 characters; omitted → `columns`) with at most 6 `slots` and no widget id repeated among them (`""` marks an empty slot), `ambient_position` is one of the six positions (omitted → `bottom-left`), and `width`/`height` (the panel's native size; omitted → 1600×1200) are 200–4000 with width ≥ height; also at most 500 `photo_ids`, `photo_card` one of `full`/`caption`/`none`, `note_title` ≤ 80 characters and `note_body` ≤ 600 characters over at most 12 lines, `photo_interval_minutes` 15–1440 (omitted → 60), `portrait_rotation` 90 or 270 (omitted → 90) `text_size` 100–150 (omitted → 100), `dithering` `hearth` or `frame` (omitted → `hearth`), and `quiet_start`/`quiet_end` both `HH:mm` and different, or both omitted. Saving re-renders the panel frame |
-| `GET /display/home`      | The saved `HomeSettings` (`latitude`, `longitude`, `name`, `time_zone`), or `204` if nothing has been saved — services then use their env vars |
-| `PUT /display/home`      | Replaces them. `400` unless latitude is −90–90 and longitude −180–180 (both or neither), `name` is ≤ 100 characters, and `time_zone` (optional) is an IANA zone the host knows |
+| `GET /display/home`      | The saved `HomeSettings` (`latitude`, `longitude`, `name`, `time_zone`, `units`), or `204` if nothing has been saved — services then use their env vars |
+| `PUT /display/home`      | Replaces them. `400` unless latitude is −90–90 and longitude −180–180 (both or neither), `name` is ≤ 100 characters, `time_zone` (optional) is an IANA zone the host knows, and `units` (optional; null means imperial) is `imperial` or `metric` |
 | `GET /display/household` | The shared `HouseholdSettings` (`rss_feeds`: `{ title, url }[]`; `train_stops`: `{ label, stop_key, line_filter }[]` — `line_filter` null shows every line, `[]` none), or `204` if nothing has been saved |
 | `PUT /display/household` | Replaces them. `400` unless there are at most 50 feeds, each with a title and an absolute `http(s)` URL (`FeedUrlValidator` does the full check when Rss reads a feed), and at most 20 stops, each with a label and `stop_key` and at most 200 `line_filter` keys. Saving re-renders the panel frame |
 | `GET /display/places?q=` | City search for Settings → Home via Open-Meteo's keyless geocoding API → `Place[]` (`name`, `label`, `latitude`, `longitude`, `time_zone`), cached 7 days (FusionCache, memory-only). `400` unless `q` is 2–100 characters, `502` when the geocoder fails |

@@ -103,7 +103,7 @@ Ideas for later modes: **Guest** (a Wi-Fi QR code and house notes), a full **Wee
 
 1. User powers on the host and the frame. Hearth starts automatically.
 2. The frame shows a welcome screen (drawn locally by the frame client, since nothing is rendered yet) with the local network URL (e.g. `hearth.local`).
-3. On their phone or laptop, the user visits the URL and is walked through a short setup: give the household a name, pick an art source (Unsplash / local folder), set their home location and time zone (Settings → Home: this device's location, a city search, or typed coordinates — used for weather, birds, daylight and the frame's clock).
+3. On their phone or laptop, the user visits the URL and is walked through a short setup: give the household a name, pick an art source (Unsplash / local folder), set their home location and time zone (Settings → Home: this device's location, a city search, or typed coordinates — used for weather, birds, daylight and the frame's clock), and °F/mph or °C/km/h for the weather.
 4. The display refreshes with a real layout. Setup is done.
 
 Optional integrations (Spotify, Google Calendar, Apple Calendar by its public link, etc.) are surfaced in a separate "Connections" screen — not during first run. The frame should look good before any accounts are connected.

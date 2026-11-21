@@ -36,7 +36,7 @@
             <WeatherIcon class="icon-lg flex-shrink-0 text-(--accent)" />
             <div>
                 <span class="type-display font-semibold text-(--text-1)">
-                    {Math.round(weatherStore.current.temperature_f)}°F
+                    {Math.round(weatherStore.current.temperature)}°{weatherStore.current.temperature_unit}
                 </span>
                 <span class="type-body ml-2 text-(--text-2)">{weatherStore.current.description}</span>
             </div>
@@ -63,8 +63,8 @@
                         </span>
                         <ForecastIcon class="icon-md text-(--text-2)" />
                         <div class="type-label flex items-center gap-1">
-                            <span class="text-(--text-1)">{Math.round(day.temp_max_f)}°</span>
-                            <span class="text-(--text-2)">{Math.round(day.temp_min_f)}°</span>
+                            <span class="text-(--text-1)">{Math.round(day.temp_max)}°</span>
+                            <span class="text-(--text-2)">{Math.round(day.temp_min)}°</span>
                         </div>
                         {#if rainChance(day) !== null}
                             <span class="type-caption flex items-center gap-0.5 text-(--text-2)">
@@ -101,7 +101,8 @@
                     </span>
                 {/if}
                 <span class="flex items-center gap-1">
-                    <Wind class="icon-sm text-(--text-3)" />{Math.round(weatherStore.current.wind_mph)} mph
+                    <Wind class="icon-sm text-(--text-3)" />{Math.round(weatherStore.current.wind_speed)}
+                    {weatherStore.current.wind_unit}
                 </span>
             </div>
         {/if}

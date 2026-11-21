@@ -63,7 +63,9 @@ under the bar.
                 {#if current}
                     <span class="col-start-5 flex min-w-0 items-center gap-3 whitespace-nowrap">
                         <Wind class="icon-xs" />{#if !compact}Wind{/if}
-                        <span class="truncate font-semibold text-(--text-1)">{Math.round(current.wind_mph)} mph</span>
+                        <span class="truncate font-semibold text-(--text-1)"
+                            >{Math.round(current.wind_speed)} {current.wind_unit}</span
+                        >
                     </span>
                 {/if}
             </div>
@@ -84,14 +86,14 @@ under the bar.
                             <Icon class="icon-md text-(--text-2)" />
                         </div>
                         <div class="type-label grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
-                            <span class="text-(--text-2)">{Math.round(day.temp_min_f)}°</span>
+                            <span class="text-(--text-2)">{Math.round(day.temp_min)}°</span>
                             <span class="hatch relative h-4.5">
                                 <span
                                     class="absolute inset-y-0 bg-(--text-1)"
                                     style="left: {bars[i].left}%; width: {bars[i].width}%"
                                 ></span>
                             </span>
-                            <span>{Math.round(day.temp_max_f)}°</span>
+                            <span>{Math.round(day.temp_max)}°</span>
                         </div>
                         {#if hasChances}
                             <span class="type-label flex items-center gap-2 leading-none text-(--text-2)">

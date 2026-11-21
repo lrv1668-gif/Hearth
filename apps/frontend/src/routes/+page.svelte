@@ -148,7 +148,7 @@
                     <p class="type-body flex min-w-0 items-center gap-1.5 text-(--text-2)">
                         <WeatherIcon class="icon-sm shrink-0 self-center" aria-hidden="true" />
                         <span class="font-semibold text-(--text-1)">
-                            {Math.round(weatherStore.current.temperature_f)}°
+                            {Math.round(weatherStore.current.temperature)}°
                         </span>
                         <span class="truncate">{weatherStore.current.description}</span>
                     </p>
