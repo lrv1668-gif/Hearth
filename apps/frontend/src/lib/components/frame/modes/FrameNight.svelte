@@ -2,6 +2,7 @@
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import { calcMoonPhase, moonPath } from '#lib/constants/moonphase.ts';
     import { nextSunrise } from '#lib/frame/sky.ts';
+    import FrameAlert from '../FrameAlert.svelte';
 
     let { now }: { now: Date } = $props();
 
@@ -15,7 +16,7 @@
 @component
 Night mode for the e-paper frame: a quiet page for overnight schedule rules — a large
 moon in tonight's phase, its name, and one line for the next sunrise and the
-temperature. Drawn like the dashboard's MoonPhaseView (outline in --border, lit side in
+temperature — and the weather alert, when there is one (frost tonight). Drawn like the dashboard's MoonPhaseView (outline in --border, lit side in
 --text-2, unlit side the ground) but as a poster rather than a widget row. The theme is
 whatever the frame uses; a dark one such as Night suits it best.
 -->
@@ -43,6 +44,7 @@ whatever the frame uses; a dark one such as Night suits it best.
                 .join(' · ')}
         </p>
     {/if}
+    <FrameAlert class="type-body -mt-4" />
 </div>
 
 <style>

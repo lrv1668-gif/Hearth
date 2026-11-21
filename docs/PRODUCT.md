@@ -55,6 +55,7 @@ Switching modes is a first-class feature, not a setting buried in config. The ri
 The display shows a full-frame image — a curated photo, your own image, or a generated piece — with a minimal overlay anchored to one corner:
 
 - Current temperature + weather icon
+- One line for the weather alert that matters today, if any (frost tonight, thunderstorms, heat)
 - Date, and when the frame was last drawn (small, unobtrusive — on e-paper it's an "Updated" time rather than a clock, since the panel only redraws when the picture changes)
 - A subtle plant indicator if anything is overdue for watering (a single wilting icon, not a list)
 
@@ -180,7 +181,7 @@ There are no animations or partial-refresh transitions between Ambient and Daily
 - On this day: a few events from history on today's date, from Wikipedia's editors' picks, on the frame
 - Sports: follow teams (NWSL, MLS, Premier League, NFL, NBA, WNBA, MLB, NHL) through ESPN — live scores, the clock and where to watch on the dashboard; on the frame, each team's last result ("Won 3–2 at Denver · last night") and next game, with a game in progress shown as "Playing now" rather than a score that would be stale before the next refresh
 - Presence-aware refresh: an optional sensor in the frame lets Hearth refresh when nobody's watching (see Open Questions)
-- Gentle notifications: surface urgent items (weather alert, plant critically overdue) as a temporary overlay before reverting to Ambient
+- Gentle notifications: surface urgent items (weather alert, plant critically overdue) as a temporary overlay before reverting to Ambient. Weather alerts are built as one quiet line instead: the most pressing of thunderstorms, snow or freezing rain, frost tonight, heat, wind, poor air or very high UV — in Ambient's card, Daily's forecast band and Night, and all of them in the dashboard's weather widget
 
 ### Phase 4 — The Soul
 

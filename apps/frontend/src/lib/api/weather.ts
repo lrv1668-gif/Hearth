@@ -33,10 +33,21 @@ export interface ForecastDay {
     uv_max_category: string | null;
     /** The day's highest hourly chance of rain or snow, 0–100; null when Open-Meteo has none. */
     precipitation_chance: number | null;
+    /** The day's strongest sustained wind, in the current conditions' `wind_unit`. */
+    wind_speed_max: number | null;
+}
+
+/** A line worth showing on an otherwise quiet screen, picked by the Weather service from the
+ *  snapshot — most pressing first. */
+export interface WeatherAlert {
+    kind: 'storm' | 'snow' | 'frost' | 'heat' | 'wind' | 'air' | 'uv';
+    text: string;
 }
 
 export const weather = {
     current: (): Promise<CurrentWeather | null> => get<CurrentWeather>('/weather/current'),
 
     forecast: (): Promise<ForecastDay[] | null> => get<ForecastDay[]>('/weather/forecast'),
+
+    alerts: (): Promise<WeatherAlert[] | null> => get<WeatherAlert[]>('/weather/alerts'),
 };

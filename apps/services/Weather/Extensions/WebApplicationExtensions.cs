@@ -44,6 +44,13 @@ public static class WebApplicationExtensions
             var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, home, ct);
             return error ?? Results.Ok(snapshot!.Forecast);
         });
+
+        // Alerts are picked from the cached snapshot, so they cost no extra Open-Meteo call.
+        app.MapGet("/weather/alerts", async (IFusionCache cache, WeatherFetcher fetcher, HomeLocationClient home, CancellationToken ct) =>
+        {
+            var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, home, ct);
+            return error ?? Results.Ok(WeatherAlerts.For(snapshot!));
+        });
     }
 
     private static async Task<(WeatherSnapshot? Snapshot, IResult? Error)> GetWeatherAsync(
