@@ -1,6 +1,7 @@
 <script lang="ts">
     import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
-    import { itemsThatFit, todayTasks } from '#lib/frame.ts';
+    import { todayTasks } from '#lib/frame/agenda.ts';
+    import { itemsThatFit } from '#lib/frame/layout.ts';
     import { formatTime } from '#lib/utils.ts';
     import type { FrameSize } from '#lib/constants/frameTemplates.ts';
     import FrameEmpty from '../FrameEmpty.svelte';

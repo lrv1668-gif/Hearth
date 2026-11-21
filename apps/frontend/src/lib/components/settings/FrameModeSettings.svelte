@@ -1,11 +1,11 @@
 <script lang="ts">
+    import { MAX_RULE_MODES } from '#lib/constants/frameLimits.ts';
     import { ArrowDown, ArrowUp, Plus, X } from '@lucide/svelte';
     import type { ModeRule } from '#lib/api.ts';
     import {
         DEFAULT_ROTATE_MINUTES,
         frameModeLabel,
         frameModes,
-        MAX_RULE_MODES,
         modeDays,
         rotateIntervals,
         type FrameModeId,
@@ -13,7 +13,8 @@
     } from '#lib/constants/frameModes.ts';
     import { clearOverride, modeStore, saveSchedule, setOverride } from '#lib/stores/ModeStore.svelte.ts';
     import { settingsHref } from '#lib/constants/settingsSections.ts';
-    import { clockLabel, DEFAULT_QUIET_HOURS } from '#lib/frame.ts';
+    import { DEFAULT_QUIET_HOURS } from '#lib/frame/settings.ts';
+    import { clockLabel } from '#lib/frame/status.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import Button from '../ui/Button.svelte';
     import ChoiceChips from '../ui/ChoiceChips.svelte';

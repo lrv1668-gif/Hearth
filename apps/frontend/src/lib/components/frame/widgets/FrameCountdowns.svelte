@@ -1,6 +1,7 @@
 <script lang="ts">
     import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
-    import { getFrameScale, upcomingCountdowns } from '#lib/frame.ts';
+    import { upcomingCountdowns } from '#lib/frame/agenda.ts';
+    import { getFrameScale } from '#lib/frame/layout.ts';
     import type { FrameSize } from '#lib/constants/frameTemplates.ts';
     import FitText from '../FitText.svelte';
     import FrameEmpty from '../FrameEmpty.svelte';

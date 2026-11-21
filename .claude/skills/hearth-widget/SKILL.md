@@ -214,12 +214,12 @@ import YourWidget from '#lib/components/widgets/YourWidget.svelte';
 
 Only widgets that stay correct between scheduled refreshes (an hour or more) belong on the frame — no live clocks, departures or now-playing.
 
-**Same content as the dashboard → a shared view, not a copy.** Move the markup into `components/widgets/views/YourView.svelte` (see `BirdSightingsView.svelte`): data in via props, an optional `lines` budget that trims the list (`itemsThatFit` from `lib/frame.ts`), sizes from `type-*`/`icon-*`/em units and `--stroke` so the frame's overrides scale it. The dashboard widget becomes a thin wrapper that loads, polls and renders `<YourView items={yourStore.items} />`. Only frame-specific designs go in `components/frame/widgets/`.
+**Same content as the dashboard → a shared view, not a copy.** Move the markup into `components/widgets/views/YourView.svelte` (see `BirdSightingsView.svelte`): data in via props, an optional `lines` budget that trims the list (`itemsThatFit` from `lib/frame/layout.ts`), sizes from `type-*`/`icon-*`/em units and `--stroke` so the frame's overrides scale it. The dashboard widget becomes a thin wrapper that loads, polls and renders `<YourView items={yourStore.items} />`. Only frame-specific designs go in `components/frame/widgets/`.
 
 1. `constants/frameWidgets.ts` — add `{ id, label, description }` to `frameWidgets`
 2. `constants/frameTemplates.ts` — add the slot sizes it's designed for to `frameWidgetSizes` (`['s', 'm', 'l']` for a list that just fits more items; drop a size it can't fill well). Type-checking fails until it's there
 3. `components/frame/FrameDaily.svelte` — add a branch to the `widget` snippet: `<YourView items={yourStore.items} lines={n} />`. The snippet gets the slot's `size` (undefined in the free columns); route M/L to a frame-only slot design in `components/frame/widgets/` when the widget should change shape rather than just list more. In a slot the body is a size container — size with `cqw`/`cqh` and `@container (aspect-ratio …)`, `FitText` for type that fills the slot, `FrameEmpty` for the empty state
-4. `lib/frame.ts` — if the widget has a fixed height (not a list that trims), add it to `FIXED_LINES`; otherwise `allocateLines` gives it a share of the column
+4. `lib/frame/layout.ts` — if the widget has a fixed height (not a list that trims), add it to `FIXED_LINES`; otherwise `allocateLines` gives it a share of the column
 5. `lib/frameLoaders.ts` — add its loader to `frameWidgetLoaders`, or `null` when it only uses the always-loaded data (weather, tasks, calendar and almanac); type-check fails until every widget has an entry
 6. `README.md` `/frame` row and the `Frame` badge in `site/index.html`
 

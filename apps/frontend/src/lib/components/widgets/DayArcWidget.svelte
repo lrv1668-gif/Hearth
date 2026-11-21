@@ -4,7 +4,7 @@
     import { taskStore } from '#lib/stores/TaskStore.svelte.ts';
     import { calendarStore } from '#lib/stores/CalendarStore.svelte.ts';
     import { eventDateKey, localDateKey } from '#lib/utils.ts';
-    import { nearestHour } from '#lib/frame.ts';
+    import { nearestHour } from '#lib/frame/sky.ts';
     import Skeleton from '#lib/components/Skeleton.svelte';
 
     /** `hourly`: the e-paper frame's copy — the "now" dot (and which marks have passed)

@@ -1,6 +1,7 @@
 <script lang="ts">
+    import { MAX_NOTE_BODY, MAX_NOTE_LINES, MAX_NOTE_TITLE } from '#lib/constants/frameLimits.ts';
     import { onMount } from 'svelte';
-    import { upcomingCountdowns } from '#lib/frame.ts';
+    import { upcomingCountdowns } from '#lib/frame/agenda.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import { loadTasks, taskStore } from '#lib/stores/TaskStore.svelte.ts';
     import { modeStore, setOverride } from '#lib/stores/ModeStore.svelte.ts';
@@ -17,10 +18,6 @@
         loaded = true;
     });
 
-    // Display's FrameSettings limits
-    const NOTE_TITLE_MAX = 80;
-    const NOTE_BODY_MAX = 600;
-    const NOTE_LINES_MAX = 12;
     const noteLines = $derived(frameSettings.noteBody ? frameSettings.noteBody.split('\n').length : 0);
 
     const countdowns = $derived(upcomingCountdowns(taskStore.tasks, new Date(), Infinity));
@@ -74,7 +71,7 @@ Saved with the rest of the frame settings.
             size="sm"
             type="text"
             bind:value={frameSettings.noteTitle}
-            maxlength={NOTE_TITLE_MAX}
+            maxlength={MAX_NOTE_TITLE}
             placeholder="Heading, e.g. House rules"
             aria-label="Note heading"
             class="mb-2 w-full"
@@ -86,18 +83,18 @@ Saved with the rest of the frame settings.
             oninput={(e) => {
                 // Keep within Display's limit so the save isn't refused mid-typing
                 const el = e.target as HTMLTextAreaElement;
-                const kept = el.value.split('\n').slice(0, NOTE_LINES_MAX).join('\n');
+                const kept = el.value.split('\n').slice(0, MAX_NOTE_LINES).join('\n');
                 if (kept !== el.value) el.value = kept;
                 frameSettings.noteBody = kept;
             }}
-            maxlength={NOTE_BODY_MAX}
+            maxlength={MAX_NOTE_BODY}
             rows="7"
             placeholder={'Shoes off at the door\nDrinks in the kitchen\nPlease keep the music down after 11'}
             aria-label="Note text"
             class="{fieldClass('sm')} w-full resize-y"></textarea>
         <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
             <p class="type-caption text-(--text-2)">
-                {noteLines} / {NOTE_LINES_MAX} lines · {frameSettings.noteBody.length} / {NOTE_BODY_MAX} characters
+                {noteLines} / {MAX_NOTE_LINES} lines · {frameSettings.noteBody.length} / {MAX_NOTE_BODY} characters
             </p>
             {#if modeStore.current?.mode === 'note' && modeStore.current.reason === 'override'}
                 <p class="type-label font-medium text-(--text-1)">Showing on the frame</p>

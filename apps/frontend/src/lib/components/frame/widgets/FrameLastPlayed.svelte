@@ -14,7 +14,7 @@
 
     const track = $derived(lastPlayedStore.lastPlayed?.track ?? null);
     const topArtist = $derived(lastPlayedStore.lastPlayed?.top_artist ?? null);
-    // A fixed 5-line square (its budget in lib/frame.ts): big enough to read as a record
+    // A fixed 5-line square (its budget in lib/frame/layout.ts): big enough to read as a record
     // sleeve once dithered, and as tall as the four lines of text beside it.
     const ART_LINES = 5;
     const art = $derived(size ? 'width: min(100cqh, 50cqw)' : `width: ${ART_LINES}lh`);

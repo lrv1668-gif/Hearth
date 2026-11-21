@@ -7,4 +7,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\apps\services\Display\Display.csproj" />
   </ItemGroup>
+
+  <!-- The frontend's copy of the settings limits, checked by FrontendLimitsTests -->
+  <ItemGroup>
+    <None Include="..\..\apps\frontend\src\lib\constants\frameLimits.ts" Link="frameLimits.ts" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

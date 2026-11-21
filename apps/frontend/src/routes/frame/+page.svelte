@@ -9,14 +9,9 @@
     import { parseFrameLayout, type FrameWidgetId } from '#lib/constants/frameWidgets.ts';
     import { parseFrameTemplate } from '#lib/constants/frameTemplates.ts';
     import { SECOND } from '#lib/utils.ts';
-    import {
-        frameCanvas,
-        isAmbientPosition,
-        isFrameSize,
-        isFrameTextSize,
-        setFrameScale,
-        type Pixels,
-    } from '#lib/frame.ts';
+    import type { Pixels } from '#lib/frame/ink.ts';
+    import { setFrameScale } from '#lib/frame/layout.ts';
+    import { frameCanvas, isAmbientPosition, isFrameSize, isFrameTextSize } from '#lib/frame/settings.ts';
     import { parsePhotoParam } from '#lib/photos.ts';
     import FrameAmbient from '#lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '#lib/components/frame/FrameDaily.svelte';

@@ -1,7 +1,8 @@
 <script lang="ts">
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
     import { almanacStore } from '#lib/stores/AlmanacStore.svelte.ts';
-    import { durationLabel, getFrameScale, nearestHour, sunProgress } from '#lib/frame.ts';
+    import { getFrameScale } from '#lib/frame/layout.ts';
+    import { durationLabel, nearestHour, sunProgress } from '#lib/frame/sky.ts';
     import { localDateKey } from '#lib/utils.ts';
 
     /** `compact`: a smaller dome that fits beside the weekday in portrait — the times

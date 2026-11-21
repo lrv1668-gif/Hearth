@@ -1,3 +1,5 @@
+import { MAX_COLUMN_WIDGETS, MAX_SPLIT, MIN_SPLIT } from '#lib/constants/frameLimits.ts';
+
 /* Widgets that can fill the e-paper frame's Daily-mode columns. The frame redraws
    on a schedule, not live, so only widgets that stay correct for an hour or more
    belong here — no live trains (Scheduled Departures prints the timetable for this hour
@@ -39,20 +41,14 @@ export interface FrameLayout {
 export const fixedFrameHeader = [{ label: 'Edition, Date & Sun Path' }] as const;
 export const fixedFrameFooter = [{ label: 'Conditions & 5-Day Forecast' }] as const;
 
-/** Widgets per column. Each widget's item count shrinks to fit what shares its
- *  column (see allocateLines in lib/frame.ts); three is the most that stays legible. */
-export const MAX_COLUMN_WIDGETS = 3;
+/** Left column's share of the width, in percent, until one is saved. */
+export const DEFAULT_FRAME_SPLIT = 50;
 
 // The masthead's sun path already shows the day's light, so the Day Arc is off by default.
 export const DEFAULT_FRAME_LAYOUT: FrameLayout = {
     left: ['countdowns', 'today'],
     right: ['coming-up'],
 };
-
-/** Left column's share of the width, in percent — same 30–70 range as the dashboard. */
-export const DEFAULT_FRAME_SPLIT = 50;
-export const MIN_SPLIT = 30;
-export const MAX_SPLIT = 70;
 
 export function isValidFrameWidgetId(value: string): value is FrameWidgetId {
     return frameWidgets.some((w) => w.id === value);

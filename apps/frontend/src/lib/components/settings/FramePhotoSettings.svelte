@@ -4,7 +4,7 @@
     import { api, type UploadedPhoto } from '#lib/api.ts';
     import { photoCards, photoIntervals } from '#lib/constants/frameModes.ts';
     import { settingsCardId } from '#lib/constants/settingsSections.ts';
-    import { AMBIENT_POSITIONS } from '#lib/frame.ts';
+    import { AMBIENT_POSITIONS } from '#lib/frame/settings.ts';
     import { frameSettings } from '#lib/stores/FrameSettingsStore.svelte.ts';
     import Button from '../ui/Button.svelte';
     import PhotoModePicker from './PhotoModePicker.svelte';

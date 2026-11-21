@@ -1,16 +1,10 @@
 <script lang="ts">
     import type { Photo } from '#lib/api.ts';
     import { weatherStore } from '#lib/stores/WeatherStore.svelte.ts';
-    import {
-        getFrameScale,
-        isAmbientPosition,
-        onBlockInk,
-        pickBlockInk,
-        plateRect,
-        updatedTime,
-        weatherSentence,
-        type Pixels,
-    } from '#lib/frame.ts';
+    import { onBlockInk, pickBlockInk, plateRect, type Pixels } from '#lib/frame/ink.ts';
+    import { getFrameScale } from '#lib/frame/layout.ts';
+    import { isAmbientPosition } from '#lib/frame/settings.ts';
+    import { updatedTime, weatherSentence } from '#lib/frame/sky.ts';
     import { FRAME_INKS } from '#lib/constants/frameThemes.ts';
     import type { PhotoCard } from '#lib/constants/frameModes.ts';
     import { localDateKey } from '#lib/utils.ts';
@@ -89,7 +83,7 @@ when the frame was drawn. Both halves are pure inks, not a gradient scrim or a t
 error-diffusion dithered for the photo, and tints streak under that (see HARDWARE.md).
 The date block takes the theme's --block ink unless the photo around the plate is
 close to that colour; then it switches to whichever of the theme's other pure inks
-stands out most there (pickBlockInk in lib/frame.ts).
+stands out most there (pickBlockInk in lib/frame/ink.ts).
 In B&W mode the frame route's CSS greyscales the photo (PRODUCT.md: B&W is pure B&W).
 Photo mode reuses this view with `card`: "caption" keeps just an upload's caption on
 the flat --bg panel, "none" leaves the photo bare. With no photo at all it shows a date
