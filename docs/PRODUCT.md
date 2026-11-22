@@ -79,7 +79,7 @@ Typography is large enough to read from across the room (3–4 meters). No small
 
 - **Photo** — one photo you choose, or an album of your uploads (one per refresh), picked one at a time, several at once (select all/none, shift-click for a run), or from named groups you save — a season, a theme, a trip — and pick again in one tap; full-bleed with the full Ambient card, just the caption, or nothing at all. Any upload can be pinned straight from the photo collection with **Show on frame**: it stays up until you switch it off (no expiry, and the schedule never replaces it); pinning another photo moves the pin, and deleting the pinned photo clears it.
 - **Countdown** — one countdown as a poster: the number of days, huge, then the title and date. You pick the countdown, or it shows the next one coming up.
-- **Night** — a quiet page for overnight: tonight's moon, the next sunrise and the temperature.
+- **Night** — a quiet page for overnight: tonight's moon between last night's and tomorrow's, the next sunrise and the temperature.
 - **Note** — your own words: house rules for a party, a welcome, a reminder. A heading and up to 12 lines, kept as typed (a blank line adds space). The text sizes itself to the frame: a few words fill it, a long list shrinks to fit, and each line stays on one line unless that would make the text much smaller. **Show this note** in Settings → Frame puts it up until you change it.
 - **Guest** — a welcome for visitors: a heading, a few notes, and your guest Wi-Fi — its name and password in type and as a QR code a phone's camera joins from. **Show the guest page** in Settings → Frame puts it up until you change it. Anyone who can see the frame can read the password, so it's for a guest network.
 
