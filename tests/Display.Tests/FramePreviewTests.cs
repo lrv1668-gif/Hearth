@@ -45,6 +45,7 @@ public sealed class FramePreviewTests
 
     [Theory]
     [InlineData("daily", "ordered")]
+    [InlineData("weather", "ordered")]
     [InlineData("countdown", "ordered")]
     [InlineData("night", "ordered")]
     [InlineData("note", "ordered")]

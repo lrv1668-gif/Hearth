@@ -210,6 +210,8 @@ public sealed class ModeResolverTests
 
     [Theory]
     [InlineData("ambient", "daily")]
+    [InlineData("daily", "weather")]
+    [InlineData("weather", "photo")]
     [InlineData("night", "note")]
     [InlineData("note", "guest")]
     [InlineData("guest", "ambient")]

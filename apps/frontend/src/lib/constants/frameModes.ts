@@ -5,6 +5,7 @@ import { MAX_PHOTO_INTERVAL_MINUTES, MIN_PHOTO_INTERVAL_MINUTES } from '#lib/con
 export const frameModes = [
     { id: 'ambient', label: 'Ambient', description: 'A full-frame photo with a small date and weather card' },
     { id: 'daily', label: 'Daily', description: 'Today, the week ahead and your chosen widgets' },
+    { id: 'weather', label: 'Weather', description: 'Today’s weather in full, the next hours and the week' },
     { id: 'photo', label: 'Photo', description: 'Your chosen photo, or an album of them' },
     { id: 'countdown', label: 'Countdown', description: 'One countdown, as big as the frame allows' },
     { id: 'night', label: 'Night', description: 'Tonight’s moon and the next sunrise' },

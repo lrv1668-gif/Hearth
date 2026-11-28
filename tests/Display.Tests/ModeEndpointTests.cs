@@ -164,7 +164,7 @@ public sealed class ModeEndpointTests : IDisposable
         var response = await _client.PostAsync("/display/mode/next", null);
         var next = await response.Content.ReadFromJsonAsync<ResolvedMode>(HearthJson.SnakeCaseLower);
 
-        Assert.Equal(new ResolvedMode(FrameModes.Photo, "override", Noon.AddHours(1)), next);
+        Assert.Equal(new ResolvedMode(FrameModes.Weather, "override", Noon.AddHours(1)), next);
     }
 
     [Fact]

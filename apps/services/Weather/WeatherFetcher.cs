@@ -32,7 +32,8 @@ public sealed class WeatherFetcher(HttpClient http)
     {
         var url = string.Create(CultureInfo.InvariantCulture, $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
-                  $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index" +
+                  $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index,apparent_temperature,relative_humidity_2m,wind_direction_10m" +
+                  $"&hourly=temperature_2m,precipitation_probability,weather_code" +
                   $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,wind_speed_10m_max" +
                   $"{WeatherUnits.Query(metric)}" +
                   $"&timezone=auto&forecast_days=7");
@@ -51,11 +52,16 @@ public sealed class WeatherFetcher(HttpClient http)
         double? uvIndex = current.TryGetProperty("uv_index", out var uvEl)
             && uvEl.ValueKind == JsonValueKind.Number ? uvEl.GetDouble() : null;
         var fetchedAt = DateTime.UtcNow.ToString("o");
+        double? NumberOf(string name) =>
+            current.TryGetProperty(name, out var el) && el.ValueKind == JsonValueKind.Number ? el.GetDouble() : null;
 
         var currentResponse = new CurrentWeatherResponse(
             temp, wCode, Describe(wCode), wind, fetchedAt, uvIndex, await aqiTask,
             metric ? WeatherUnits.Celsius : WeatherUnits.Fahrenheit,
-            metric ? WeatherUnits.Kmh : WeatherUnits.Mph);
+            metric ? WeatherUnits.Kmh : WeatherUnits.Mph,
+            NumberOf("apparent_temperature"),
+            NumberOf("relative_humidity_2m") is { } humidity ? (int)Math.Round(humidity) : null,
+            NumberOf("wind_direction_10m"));
 
         var daily       = root.GetProperty("daily");
         var dates       = daily.GetProperty("time");
@@ -88,7 +94,36 @@ public sealed class WeatherFetcher(HttpClient http)
                 NumberAt(windMaxes, i)));
         }
 
-        return new WeatherSnapshot(currentResponse, forecast);
+        var nowHour = current.TryGetProperty("time", out var timeEl) && timeEl.GetString() is { Length: >= 13 } time
+            ? time[..13] + ":00"
+            : null;
+        return new WeatherSnapshot(currentResponse, forecast) { Hourly = Hourly(root, nowHour) };
+    }
+
+    private const int HourlyCount = 24;
+
+    /// <summary>The 24 hours from the current one (Open-Meteo sends the whole week), skipping
+    /// any hour without a temperature; empty when the response has no hourly block.</summary>
+    private static List<HourlyResponse> Hourly(JsonElement root, string? nowHour)
+    {
+        var hours = new List<HourlyResponse>();
+        if (!root.TryGetProperty("hourly", out var hourly)
+            || !hourly.TryGetProperty("time", out var times)
+            || !hourly.TryGetProperty("temperature_2m", out var temps)
+            || !hourly.TryGetProperty("weather_code", out var codes))
+            return hours;
+        var chances = hourly.TryGetProperty("precipitation_probability", out var chanceEl) ? chanceEl : (JsonElement?)null;
+
+        for (int i = 0; i < times.GetArrayLength() && hours.Count < HourlyCount; i++)
+        {
+            var time = times[i].GetString()!;
+            // ISO local times compare as strings.
+            if (nowHour is not null && string.CompareOrdinal(time, nowHour) < 0) continue;
+            if (NumberAt(temps, i) is not { } temp || NumberAt(codes, i) is not { } code) continue;
+            hours.Add(new HourlyResponse(time, temp, (int)code,
+                NumberAt(chances, i) is { } chance ? (int)Math.Round(chance) : null));
+        }
+        return hours;
     }
 
     /// <summary>The i-th number of an optional daily array, or null for a gap or a missing array.</summary>

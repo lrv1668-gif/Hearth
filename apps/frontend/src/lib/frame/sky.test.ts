@@ -42,6 +42,10 @@ const current: CurrentWeather = {
     aqi_category: null,
     temperature_unit: 'F',
     wind_unit: 'mph',
+    apparent_temperature: null,
+    humidity: null,
+    wind_direction: null,
+    wind_compass: null,
 };
 
 describe('sunProgress', () => {

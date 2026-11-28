@@ -75,7 +75,9 @@ Only widgets that stay correct between scheduled refreshes belong on the frame �
 
 Typography is large enough to read from across the room (3–4 meters). No small print. A text size slider in Settings → Frame makes it larger still (up to 150%) to fill a big panel or read from further away; lists show fewer items to make room. The layout is configured in Settings → Frame: pick a template from thumbnails and a widget for each slot (each slot offers only the widgets that fit its size), or pick Columns for the same drag-and-drop editor as the dashboard. Each widget trims its list to fit the space it has.
 
-### Photo, Countdown and Night Modes
+### Weather, Photo, Countdown and Night Modes
+
+- **Weather** — Daily's weather in full: the temperature with the day's high and low, feels-like and humidity; today's UV peak, air quality, wind and daylight, each with a plain word for what it means; the next 12 hours as a line with any rain; the week ahead; and any alerts. Less useful readings (pressure, visibility) stay off, and at a large text size it shows less rather than crowding.
 
 - **Photo** — one photo you choose, or an album of your uploads (one per refresh), picked one at a time, several at once (select all/none, shift-click for a run), or from named groups you save — a season, a theme, a trip — and pick again in one tap; full-bleed with the full Ambient card, just the caption, or nothing at all. Any upload can be pinned straight from the photo collection with **Show on frame**: it stays up until you switch it off (no expiry, and the schedule never replaces it); pinning another photo moves the pin, and deleting the pinned photo clears it.
 - **Countdown** — one countdown as a poster: the number of days, huge, then the title and date. You pick the countdown, or it shows the next one coming up.

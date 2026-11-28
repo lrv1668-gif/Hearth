@@ -10,9 +10,9 @@ namespace Weather.Extensions;
 public static class WebApplicationExtensions
 {
     /// <summary>Per place and units, so moving the home location or switching °F/°C doesn't
-    /// serve the old snapshot. v2: snapshots from before the unit-neutral field names.</summary>
+    /// serve the old snapshot. v3: snapshots from before the hourly series and feels-like.</summary>
     internal static string CacheKey(double lat, double lon, bool metric) =>
-        string.Create(CultureInfo.InvariantCulture, $"weather:v2:{(metric ? "metric" : "imperial")}:{lat:F3},{lon:F3}");
+        string.Create(CultureInfo.InvariantCulture, $"weather:v3:{(metric ? "metric" : "imperial")}:{lat:F3},{lon:F3}");
 
     private static readonly FusionCacheEntryOptions CacheOptions = new()
     {
@@ -43,6 +43,12 @@ public static class WebApplicationExtensions
         {
             var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, home, ct);
             return error ?? Results.Ok(snapshot!.Forecast);
+        });
+
+        app.MapGet("/weather/hourly", async (IFusionCache cache, WeatherFetcher fetcher, HomeLocationClient home, CancellationToken ct) =>
+        {
+            var (snapshot, error) = await GetWeatherAsync(app, cache, fetcher, home, ct);
+            return error ?? Results.Ok(snapshot!.Hourly);
         });
 
         // Alerts are picked from the cached snapshot, so they cost no extra Open-Meteo call.

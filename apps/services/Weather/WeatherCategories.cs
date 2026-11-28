@@ -24,4 +24,11 @@ public static class WeatherCategories
         <= 300 => "Very unhealthy",
         _      => "Hazardous",
     };
+
+    private static readonly string[] CompassPoints = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+
+    /// <summary>The eight-point compass name for a wind direction in degrees (where it blows from).</summary>
+    public static string? Compass(double? degrees) => degrees is not { } value || !double.IsFinite(value)
+        ? null
+        : CompassPoints[(int)Math.Round(((value % 360) + 360) % 360 / 45, MidpointRounding.AwayFromZero) % 8];
 }

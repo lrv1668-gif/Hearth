@@ -20,6 +20,7 @@ beforeEach(() => {
     weatherStore.current = null;
     weatherStore.forecast = [];
     weatherStore.alerts = [];
+    weatherStore.hourly = [];
     weatherStore.loaded = false;
 });
 
@@ -50,5 +51,22 @@ describe('loadWeather', () => {
         await loadWeather();
 
         expect(weatherStore.alerts).toEqual([]);
+    });
+
+    it('loads the next hours with the conditions, and keeps them when a refresh fails', async () => {
+        const hour = { time: '2026-06-28T14:00', temperature: 72, weather_code: 1, precipitation_chance: 20 };
+        weather({
+            '/weather/current': null,
+            '/weather/forecast': [],
+            '/weather/alerts': [],
+            '/weather/hourly': [hour],
+        });
+
+        await loadWeather();
+        expect(weatherStore.hourly).toEqual([hour]);
+
+        weather({});
+        await loadWeather();
+        expect(weatherStore.hourly).toEqual([hour]);
     });
 });
