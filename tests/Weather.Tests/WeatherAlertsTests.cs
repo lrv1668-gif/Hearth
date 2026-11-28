@@ -8,8 +8,9 @@ public sealed class WeatherAlertsTests
         new(60, 1, "Mostly clear", 5, "2026-11-21T12:00:00Z", UvIndex: 2, UsAqi: 30);
 
     private static ForecastDayResponse Day(
-        double max = 60, double min = 45, int code = 1, int? chance = null, double? uv = 3, double? wind = 10) =>
-        new("2026-11-21", code, "Mostly clear", max, min, "2026-11-21T06:50", "2026-11-21T16:40", uv, chance, wind);
+        double max = 60, double min = 45, int code = 1, int? chance = null, double? uv = 3, double? wind = 10,
+        double? rain = null, double? snow = null) =>
+        new("2026-11-21", code, "Mostly clear", max, min, "2026-11-21T06:50", "2026-11-21T16:40", uv, chance, wind, rain, snow);
 
     private static List<WeatherAlert> For(CurrentWeatherResponse current, params ForecastDayResponse[] days) =>
         WeatherAlerts.For(new WeatherSnapshot(current, [.. days]));
@@ -27,6 +28,33 @@ public sealed class WeatherAlertsTests
     [InlineData(70)]
     public void For_SnowLikelyOrUnknownChance_AlertsSnow(int? chance) =>
         Assert.Equal("Snow likely today", Assert.Single(For(Calm, Day(code: 73, chance: chance), Day())).Text);
+
+    [Fact]
+    public void For_SnowWithDepth_SaysHowMuch() =>
+        Assert.Equal("Snow likely today · 3 in expected", Assert.Single(For(Calm, Day(code: 73, chance: 80, snow: 2.6), Day())).Text);
+
+    [Fact]
+    public void For_SnowWithATrace_LeavesTheDepthOut() =>
+        Assert.Equal("Snow likely today", Assert.Single(For(Calm, Day(code: 73, chance: 80, snow: 0.05), Day())).Text);
+
+    [Fact]
+    public void For_InchOfRainImperial_AlertsHeavyRain()
+    {
+        var alert = Assert.Single(For(Calm, Day(code: 63, rain: 1.24), Day()));
+        Assert.Equal("rain", alert.Kind);
+        Assert.Equal("Heavy rain today · 1.2 in expected", alert.Text);
+    }
+
+    [Fact]
+    public void For_UnderAnInchOfRain_ReturnsNone() =>
+        Assert.Empty(For(Calm, Day(code: 63, rain: 0.9), Day()));
+
+    [Fact]
+    public void For_HeavyRainMetric_UsesMillimetres()
+    {
+        var metric = Calm with { TemperatureUnit = WeatherUnits.Celsius };
+        Assert.Equal("Heavy rain today · 31 mm expected", Assert.Single(For(metric, Day(max: 15, min: 8, code: 65, rain: 30.6), Day(max: 15, min: 8))).Text);
+    }
 
     [Fact]
     public void For_SnowUnlikely_ReturnsNone() =>

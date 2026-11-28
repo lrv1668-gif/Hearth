@@ -82,6 +82,9 @@
                                 <Droplet class="icon-xs text-(--text-3)" />{rainChance(day)}%
                             </span>
                         {/if}
+                        {#if day.expected}
+                            <span class="type-caption text-center text-(--text-2)">{day.expected}</span>
+                        {/if}
                     </div>
                 {/each}
             </div>

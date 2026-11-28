@@ -28,6 +28,7 @@ export function weatherIcon(code: number) {
 const alertIcons = {
     storm: CloudLightning,
     snow: Snowflake,
+    rain: CloudRain,
     frost: ThermometerSnowflake,
     heat: ThermometerSun,
     wind: Wind,

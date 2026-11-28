@@ -5,6 +5,8 @@ namespace Weather.Records;
 /// <param name="ApparentTemperature">Feels-like, in <paramref name="TemperatureUnit"/>.</param>
 /// <param name="Humidity">Relative humidity, in percent.</param>
 /// <param name="WindDirection">Where the wind blows from, in degrees.</param>
+/// <param name="PrecipitationUnit">The forecast's rain amounts: "in" or "mm".</param>
+/// <param name="SnowfallUnit">The forecast's snow depths: "in" or "cm".</param>
 public record CurrentWeatherResponse(
     double Temperature,
     int WeatherCode,
@@ -17,7 +19,9 @@ public record CurrentWeatherResponse(
     string WindUnit = WeatherUnits.Mph,
     double? ApparentTemperature = null,
     int? Humidity = null,
-    double? WindDirection = null
+    double? WindDirection = null,
+    string PrecipitationUnit = WeatherUnits.Inches,
+    string SnowfallUnit = WeatherUnits.Inches
 )
 {
     // Derived, not stored: a cached snapshot's category always matches its value.

@@ -15,7 +15,9 @@ public sealed class WeatherFetcherTests
         "time": ["2026-06-28T13:00", "2026-06-28T14:00", "2026-06-28T15:00", "2026-06-28T16:00"],
         "temperature_2m": [71.0, 72.0, null, 74.0],
         "weather_code": [0, 1, 2, 3],
-        "precipitation_probability": [10, 20.6, 30, null]
+        "precipitation_probability": [10, 20.6, 30, null],
+        "precipitation": [0, 0.02, 0.1, null],
+        "snowfall": [0, 0, 0.4, null]
       },
       "daily": {
         "time": ["2026-06-28", "2026-06-29"],
@@ -26,7 +28,9 @@ public sealed class WeatherFetcherTests
         "sunset": ["2026-06-28T20:30", "2026-06-29T20:29"],
         "uv_index_max": [7.6, null],
         "precipitation_probability_max": [64.4, null],
-        "wind_speed_10m_max": [18.2, null]
+        "wind_speed_10m_max": [18.2, null],
+        "precipitation_sum": [0.34, null],
+        "snowfall_sum": [0.0, 2.6]
       }
     }
     """;
@@ -181,9 +185,11 @@ public sealed class WeatherFetcherTests
 
         var (current, _) = await fetcher.FetchAsync(40.0, -75.0);
 
-        Assert.Contains(handler.RequestUris, uri => uri.Query.Contains("temperature_unit=fahrenheit&wind_speed_unit=mph"));
+        Assert.Contains(handler.RequestUris, uri => uri.Query.Contains("temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch"));
         Assert.Equal("F", current.TemperatureUnit);
         Assert.Equal("mph", current.WindUnit);
+        Assert.Equal("in", current.PrecipitationUnit);
+        Assert.Equal("in", current.SnowfallUnit);
     }
 
     [Fact]
@@ -194,8 +200,11 @@ public sealed class WeatherFetcherTests
         var (current, _) = await fetcher.FetchAsync(40.0, -75.0, metric: true);
 
         Assert.Contains(handler.RequestUris, uri => uri.Query.Contains("temperature_unit=celsius&wind_speed_unit=kmh"));
+        Assert.DoesNotContain(handler.RequestUris, uri => uri.Query.Contains("precipitation_unit"));
         Assert.Equal("C", current.TemperatureUnit);
         Assert.Equal("km/h", current.WindUnit);
+        Assert.Equal("mm", current.PrecipitationUnit);
+        Assert.Equal("cm", current.SnowfallUnit);
     }
 
     [Fact]
@@ -271,6 +280,43 @@ public sealed class WeatherFetcherTests
         Assert.Equal(1, hourly[0].WeatherCode);
         Assert.Equal(21, hourly[0].PrecipitationChance);
         Assert.Null(hourly[1].PrecipitationChance);
+    }
+
+    [Fact]
+    public async Task FetchAsync_DailyAmounts_MapsSumsAndWords()
+    {
+        var fetcher = MakeFetcher(ValidJson);
+
+        var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.Equal(0.34, forecast[0].PrecipitationSum);
+        Assert.Equal("0.3 in", forecast[0].Expected);
+        Assert.Null(forecast[1].PrecipitationSum);
+        Assert.Equal(2.6, forecast[1].SnowfallSum);
+        Assert.Equal("3 in snow", forecast[1].Expected);
+    }
+
+    [Fact]
+    public async Task FetchAsync_DailyAmountsMissing_ReturnsNulls()
+    {
+        var bare = ValidJson.Replace("\"precipitation_sum\"", "\"x\"").Replace("\"snowfall_sum\"", "\"y\"");
+        var fetcher = MakeFetcher(bare);
+
+        var (_, forecast) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.All(forecast, day => Assert.Null(day.Expected));
+    }
+
+    [Fact]
+    public async Task FetchAsync_HourlyAmounts_MapsPrecipitationAndSnowfall()
+    {
+        var fetcher = MakeFetcher(ValidJson);
+
+        var hourly = (await fetcher.FetchAsync(40.0, -75.0)).Hourly;
+
+        Assert.Equal(0.02, hourly[0].Precipitation);
+        Assert.Equal(0, hourly[0].Snowfall);
+        Assert.Null(hourly[1].Precipitation);
     }
 
     [Fact]

@@ -33,8 +33,8 @@ public sealed class WeatherFetcher(HttpClient http)
         var url = string.Create(CultureInfo.InvariantCulture, $"https://api.open-meteo.com/v1/forecast" +
                   $"?latitude={latitude}&longitude={longitude}" +
                   $"&current=temperature_2m,weather_code,wind_speed_10m,uv_index,apparent_temperature,relative_humidity_2m,wind_direction_10m" +
-                  $"&hourly=temperature_2m,precipitation_probability,weather_code" +
-                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,wind_speed_10m_max" +
+                  $"&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,snowfall" +
+                  $"&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,wind_speed_10m_max,precipitation_sum,snowfall_sum" +
                   $"{WeatherUnits.Query(metric)}" +
                   $"&timezone=auto&forecast_days=7");
 
@@ -61,7 +61,9 @@ public sealed class WeatherFetcher(HttpClient http)
             metric ? WeatherUnits.Kmh : WeatherUnits.Mph,
             NumberOf("apparent_temperature"),
             NumberOf("relative_humidity_2m") is { } humidity ? (int)Math.Round(humidity) : null,
-            NumberOf("wind_direction_10m"));
+            NumberOf("wind_direction_10m"),
+            metric ? WeatherUnits.Millimetres : WeatherUnits.Inches,
+            metric ? WeatherUnits.Centimetres : WeatherUnits.Inches);
 
         var daily       = root.GetProperty("daily");
         var dates       = daily.GetProperty("time");
@@ -76,6 +78,9 @@ public sealed class WeatherFetcher(HttpClient http)
         var rainChances = daily.TryGetProperty("precipitation_probability_max", out var rainEl) ? rainEl : (JsonElement?)null;
         // The day's strongest sustained wind, so a wind alert holds between the frame's redraws.
         var windMaxes   = daily.TryGetProperty("wind_speed_10m_max", out var windEl) ? windEl : (JsonElement?)null;
+        // The day's expected precipitation (liquid, snow melted) and snow depth; null gaps like UV.
+        var rainSums    = daily.TryGetProperty("precipitation_sum", out var rainSumEl) ? rainSumEl : (JsonElement?)null;
+        var snowSums    = daily.TryGetProperty("snowfall_sum", out var snowSumEl) ? snowSumEl : (JsonElement?)null;
 
         var forecast = new List<ForecastDayResponse>();
         for (int i = 0; i < dates.GetArrayLength(); i++)
@@ -91,7 +96,10 @@ public sealed class WeatherFetcher(HttpClient http)
                 sunsets[i].GetString()!,
                 NumberAt(uvMaxes, i),
                 NumberAt(rainChances, i) is { } chance ? (int)Math.Round(chance) : null,
-                NumberAt(windMaxes, i)));
+                NumberAt(windMaxes, i),
+                NumberAt(rainSums, i),
+                NumberAt(snowSums, i),
+                WeatherAmounts.Expected(NumberAt(rainSums, i), NumberAt(snowSums, i), metric)));
         }
 
         var nowHour = current.TryGetProperty("time", out var timeEl) && timeEl.GetString() is { Length: >= 13 } time
@@ -113,6 +121,8 @@ public sealed class WeatherFetcher(HttpClient http)
             || !hourly.TryGetProperty("weather_code", out var codes))
             return hours;
         var chances = hourly.TryGetProperty("precipitation_probability", out var chanceEl) ? chanceEl : (JsonElement?)null;
+        var amounts = hourly.TryGetProperty("precipitation", out var amountEl) ? amountEl : (JsonElement?)null;
+        var snows   = hourly.TryGetProperty("snowfall", out var snowEl) ? snowEl : (JsonElement?)null;
 
         for (int i = 0; i < times.GetArrayLength() && hours.Count < HourlyCount; i++)
         {
@@ -121,7 +131,9 @@ public sealed class WeatherFetcher(HttpClient http)
             if (nowHour is not null && string.CompareOrdinal(time, nowHour) < 0) continue;
             if (NumberAt(temps, i) is not { } temp || NumberAt(codes, i) is not { } code) continue;
             hours.Add(new HourlyResponse(time, temp, (int)code,
-                NumberAt(chances, i) is { } chance ? (int)Math.Round(chance) : null));
+                NumberAt(chances, i) is { } chance ? (int)Math.Round(chance) : null,
+                NumberAt(amounts, i),
+                NumberAt(snows, i)));
         }
         return hours;
     }

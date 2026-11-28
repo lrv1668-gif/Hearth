@@ -54,7 +54,14 @@ describe('loadWeather', () => {
     });
 
     it('loads the next hours with the conditions, and keeps them when a refresh fails', async () => {
-        const hour = { time: '2026-06-28T14:00', temperature: 72, weather_code: 1, precipitation_chance: 20 };
+        const hour = {
+            time: '2026-06-28T14:00',
+            temperature: 72,
+            weather_code: 1,
+            precipitation_chance: 20,
+            precipitation: 0.02,
+            snowfall: 0,
+        };
         weather({
             '/weather/current': null,
             '/weather/forecast': [],
