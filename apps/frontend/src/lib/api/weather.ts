@@ -18,6 +18,24 @@ export interface CurrentWeather {
     aqi_category: string | null;
     temperature_unit: TemperatureUnit;
     wind_unit: 'mph' | 'km/h';
+    /** Feels-like, in `temperature_unit`. */
+    apparent_temperature: number | null;
+    /** Relative humidity, 0–100. */
+    humidity: number | null;
+    /** Where the wind blows from, in degrees, and as an eight-point name ("NW"). */
+    wind_direction: number | null;
+    wind_compass: string | null;
+}
+
+/** One hour of the next 24, from the current hour. */
+export interface HourlyWeather {
+    /** Open-Meteo's local ISO hour, "2026-06-28T14:00". */
+    time: string;
+    /** In the current conditions' `temperature_unit`. */
+    temperature: number;
+    weather_code: number;
+    /** 0–100; null when Open-Meteo has none. */
+    precipitation_chance: number | null;
 }
 
 export interface ForecastDay {
@@ -50,4 +68,6 @@ export const weather = {
     forecast: (): Promise<ForecastDay[] | null> => get<ForecastDay[]>('/weather/forecast'),
 
     alerts: (): Promise<WeatherAlert[] | null> => get<WeatherAlert[]>('/weather/alerts'),
+
+    hourly: (): Promise<HourlyWeather[] | null> => get<HourlyWeather[]>('/weather/hourly'),
 };

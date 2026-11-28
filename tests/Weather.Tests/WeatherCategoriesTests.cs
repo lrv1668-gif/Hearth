@@ -38,6 +38,27 @@ public sealed class WeatherCategoriesTests
         Assert.Equal(expected, WeatherCategories.Aqi(aqi));
     }
 
+    [Theory]
+    [InlineData(0.0,   "N")]
+    [InlineData(22.4,  "N")]
+    [InlineData(22.5,  "NE")]
+    [InlineData(90.0,  "E")]
+    [InlineData(200.0, "S")]
+    [InlineData(310.0, "NW")]
+    [InlineData(350.0, "N")]
+    [InlineData(360.0, "N")]
+    [InlineData(-90.0, "W")]
+    public void Compass_Degrees_ReturnsEightPointName(double degrees, string expected)
+    {
+        Assert.Equal(expected, WeatherCategories.Compass(degrees));
+    }
+
+    [Fact]
+    public void Compass_Null_ReturnsNull()
+    {
+        Assert.Null(WeatherCategories.Compass(null));
+    }
+
     [Fact]
     public void Categories_NullReadings_ReturnNull()
     {
@@ -49,8 +70,11 @@ public sealed class WeatherCategoriesTests
     public void Snapshot_SerializedForCache_WritesCategoriesAndRoundTrips()
     {
         var snapshot = new WeatherSnapshot(
-            new CurrentWeatherResponse(70, 0, "Clear sky", 5, "2026-10-24T12:00:00Z", 6.4, 42),
-            [new ForecastDayResponse("2026-10-24", 0, "Clear sky", 75, 55, "07:00", "18:00", 4.1)]);
+            new CurrentWeatherResponse(70, 0, "Clear sky", 5, "2026-10-24T12:00:00Z", 6.4, 42, WindDirection: 90),
+            [new ForecastDayResponse("2026-10-24", 0, "Clear sky", 75, 55, "07:00", "18:00", 4.1)])
+        {
+            Hourly = [new HourlyResponse("2026-10-24T12:00", 70, 0, 10)],
+        };
 
         var json = JsonSerializer.Serialize(snapshot, HearthCache.SerializerOptions);
         var back = JsonSerializer.Deserialize<WeatherSnapshot>(json, HearthCache.SerializerOptions)!;
@@ -60,5 +84,7 @@ public sealed class WeatherCategoriesTests
         Assert.Equal("High", back.Current.UvCategory);
         Assert.Equal(4.1, back.Forecast[0].UvIndexMax);
         Assert.Equal("Moderate", back.Forecast[0].UvMaxCategory);
+        Assert.Contains("\"wind_compass\":\"E\"", json);
+        Assert.Equal(10, Assert.Single(back.Hourly).PrecipitationChance);
     }
 }

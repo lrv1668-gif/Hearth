@@ -9,7 +9,14 @@ public sealed class WeatherFetcherTests
 {
     private const string ValidJson = """
     {
-      "current": { "temperature_2m": 72.5, "weather_code": 0, "wind_speed_10m": 5.0, "uv_index": 6.4 },
+      "current": { "time": "2026-06-28T14:15", "temperature_2m": 72.5, "weather_code": 0, "wind_speed_10m": 5.0, "uv_index": 6.4,
+                   "apparent_temperature": 75.2, "relative_humidity_2m": 41.6, "wind_direction_10m": 310 },
+      "hourly": {
+        "time": ["2026-06-28T13:00", "2026-06-28T14:00", "2026-06-28T15:00", "2026-06-28T16:00"],
+        "temperature_2m": [71.0, 72.0, null, 74.0],
+        "weather_code": [0, 1, 2, 3],
+        "precipitation_probability": [10, 20.6, 30, null]
+      },
       "daily": {
         "time": ["2026-06-28", "2026-06-29"],
         "temperature_2m_max": [80.1, 78.0],
@@ -223,6 +230,56 @@ public sealed class WeatherFetcherTests
 
         Assert.Null(current.UvIndex);
         Assert.Equal(42, current.UsAqi);
+    }
+
+    [Fact]
+    public async Task FetchAsync_CurrentExtras_MapsFeelsLikeHumidityAndWind()
+    {
+        var fetcher = MakeFetcher(ValidJson);
+
+        var (current, _) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.Equal(75.2, current.ApparentTemperature);
+        Assert.Equal(42, current.Humidity);
+        Assert.Equal(310, current.WindDirection);
+        Assert.Equal("NW", current.WindCompass);
+    }
+
+    [Fact]
+    public async Task FetchAsync_CurrentExtrasMissing_ReturnsNulls()
+    {
+        var bare = ValidJson.Replace("\"apparent_temperature\"", "\"a\"")
+            .Replace("\"relative_humidity_2m\"", "\"b\"").Replace("\"wind_direction_10m\"", "\"c\"");
+        var fetcher = MakeFetcher(bare);
+
+        var (current, _) = await fetcher.FetchAsync(40.0, -75.0);
+
+        Assert.Null(current.ApparentTemperature);
+        Assert.Null(current.Humidity);
+        Assert.Null(current.WindCompass);
+    }
+
+    [Fact]
+    public async Task FetchAsync_Hourly_StartsAtTheCurrentHourAndSkipsGaps()
+    {
+        var fetcher = MakeFetcher(ValidJson);
+
+        var hourly = (await fetcher.FetchAsync(40.0, -75.0)).Hourly;
+
+        Assert.Equal(["2026-06-28T14:00", "2026-06-28T16:00"], hourly.Select(h => h.Time));
+        Assert.Equal(72.0, hourly[0].Temperature);
+        Assert.Equal(1, hourly[0].WeatherCode);
+        Assert.Equal(21, hourly[0].PrecipitationChance);
+        Assert.Null(hourly[1].PrecipitationChance);
+    }
+
+    [Fact]
+    public async Task FetchAsync_HourlyMissing_ReturnsNoHours()
+    {
+        var noHourly = ValidJson.Replace("\"hourly\"", "\"unused_hourly\"");
+        var fetcher = MakeFetcher(noHourly);
+
+        Assert.Empty((await fetcher.FetchAsync(40.0, -75.0)).Hourly);
     }
 
     [Fact]

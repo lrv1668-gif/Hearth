@@ -22,6 +22,7 @@
     import { parsePhotoParam } from '#lib/photos.ts';
     import FrameAmbient from '#lib/components/frame/FrameAmbient.svelte';
     import FrameDaily from '#lib/components/frame/FrameDaily.svelte';
+    import FrameWeather from '#lib/components/frame/modes/FrameWeather.svelte';
     import FrameCountdownHero from '#lib/components/frame/modes/FrameCountdownHero.svelte';
     import FrameNight from '#lib/components/frame/modes/FrameNight.svelte';
     import FrameNote from '#lib/components/frame/modes/FrameNote.svelte';
@@ -183,7 +184,7 @@
     function dataLoads(): Promise<unknown>[] {
         if (mode === 'ambient' || mode === 'photo') return [loadWeather(), loadPhoto()];
         if (mode === 'countdown') return [loadTasks()];
-        if (mode === 'night') return [loadWeather()];
+        if (mode === 'night' || mode === 'weather') return [loadWeather()];
         if (mode === 'note' || mode === 'guest') return [];
         return dailyLoads(activeWidgets, photoParam);
     }
@@ -230,6 +231,8 @@
                 template={placed.template}
                 slots={placed.slots}
             />
+        {:else if mode === 'weather'}
+            <FrameWeather {now} {textSize} portrait={orientation === 'portrait'} />
         {:else if mode === 'countdown'}
             <FrameCountdownHero {now} countdownId={frameSettings.countdownId} />
         {:else if mode === 'night'}

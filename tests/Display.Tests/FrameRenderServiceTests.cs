@@ -37,6 +37,7 @@ public sealed class FrameRenderServiceTests
 
     [Theory]
     [InlineData(FrameModes.Daily)]
+    [InlineData(FrameModes.Weather)]
     [InlineData(FrameModes.Countdown)]
     [InlineData(FrameModes.Night)]
     [InlineData(FrameModes.Note)]
