@@ -38,10 +38,15 @@ under it where the column is too narrow.
     </span>
 {/snippet}
 
-{#snippet chance(value: number)}
-    <span class="type-label flex items-center gap-1 leading-none text-(--text-2)">
-        <Droplet class="icon-xs" />
-        <span class="font-semibold text-(--text-1)">{value}%</span>
+<!-- The chance, and what's expected when there's enough to say ("0.3 in", "2 in snow");
+     the amount wraps under the chance where the column is narrow. -->
+{#snippet chance(value: number | null, expected: string | null)}
+    <span class="type-label flex flex-wrap items-center gap-x-2 gap-y-1 leading-none text-(--text-2)">
+        <span class="flex items-center gap-1">
+            <Droplet class="icon-xs" />
+            {#if value !== null}<span class="font-semibold text-(--text-1)">{value}%</span>{/if}
+        </span>
+        {#if expected}<span class="whitespace-nowrap">{expected}</span>{/if}
     </span>
 {/snippet}
 
@@ -66,7 +71,7 @@ under it where the column is too narrow.
                     {@render weekday(day)}
                     <Icon class="icon-md shrink-0 text-(--text-2)" />
                     <span
-                        >{#if chances[i] !== null}{@render chance(chances[i])}{/if}</span
+                        >{#if chances[i] !== null || day.expected}{@render chance(chances[i], day.expected)}{/if}</span
                     >
                     {@render range(day, bars[i])}
                 {/each}
@@ -82,8 +87,8 @@ under it where the column is too narrow.
                         <div class="flex flex-wrap content-start items-center gap-x-4 gap-y-3">
                             {@render weekday(day)}
                             <Icon class="icon-md shrink-0 text-(--text-2)" />
-                            {#if chances[i] !== null}
-                                <span class="ml-auto">{@render chance(chances[i])}</span>
+                            {#if chances[i] !== null || day.expected}
+                                <span class="ml-auto">{@render chance(chances[i], day.expected)}</span>
                             {/if}
                         </div>
                         <div class="type-label grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">

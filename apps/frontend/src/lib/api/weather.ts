@@ -25,6 +25,9 @@ export interface CurrentWeather {
     /** Where the wind blows from, in degrees, and as an eight-point name ("NW"). */
     wind_direction: number | null;
     wind_compass: string | null;
+    /** The forecast's rain amounts ("in" or "mm") and snow depths ("in" or "cm"). */
+    precipitation_unit: 'in' | 'mm';
+    snowfall_unit: 'in' | 'cm';
 }
 
 /** One hour of the next 24, from the current hour. */
@@ -36,6 +39,9 @@ export interface HourlyWeather {
     weather_code: number;
     /** 0–100; null when Open-Meteo has none. */
     precipitation_chance: number | null;
+    /** The hour's expected rain and melted snow, and snow depth, in the current conditions' units. */
+    precipitation: number | null;
+    snowfall: number | null;
 }
 
 export interface ForecastDay {
@@ -53,12 +59,17 @@ export interface ForecastDay {
     precipitation_chance: number | null;
     /** The day's strongest sustained wind, in the current conditions' `wind_unit`. */
     wind_speed_max: number | null;
+    /** The day's expected rain and melted snow, in `precipitation_unit`, and snow depth, in `snowfall_unit`. */
+    precipitation_sum: number | null;
+    snowfall_sum: number | null;
+    /** Those in words from the Weather service — "0.3 in" or "2 in snow" — or null when there's too little to say. */
+    expected: string | null;
 }
 
 /** A line worth showing on an otherwise quiet screen, picked by the Weather service from the
  *  snapshot — most pressing first. */
 export interface WeatherAlert {
-    kind: 'storm' | 'snow' | 'frost' | 'heat' | 'wind' | 'air' | 'uv';
+    kind: 'storm' | 'snow' | 'rain' | 'frost' | 'heat' | 'wind' | 'air' | 'uv';
     text: string;
 }
 

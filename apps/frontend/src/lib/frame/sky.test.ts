@@ -26,6 +26,9 @@ function forecast(overrides: Partial<ForecastDay>): ForecastDay {
         uv_max_category: null,
         precipitation_chance: null,
         wind_speed_max: null,
+        precipitation_sum: null,
+        snowfall_sum: null,
+        expected: null,
         ...overrides,
     };
 }
@@ -46,6 +49,8 @@ const current: CurrentWeather = {
     humidity: null,
     wind_direction: null,
     wind_compass: null,
+    precipitation_unit: 'in',
+    snowfall_unit: 'in',
 };
 
 describe('sunProgress', () => {

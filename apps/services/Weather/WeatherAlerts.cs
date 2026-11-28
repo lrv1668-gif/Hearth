@@ -37,7 +37,12 @@ public static class WeatherAlerts
         if (today is not null && FreezingRain.Contains(today.WeatherCode))
             alerts.Add(new("snow", "Freezing rain today"));
         else if (today is not null && Snow.Contains(today.WeatherCode) && today.PrecipitationChance is not < SnowChance)
-            alerts.Add(new("snow", "Snow likely today"));
+            alerts.Add(new("snow", WeatherAmounts.Snow(today.SnowfallSum, metric) is { } depth
+                ? $"Snow likely today · {depth} expected"
+                : "Snow likely today"));
+        // An inch or 25 mm in a day floods gutters and roads; a snow day already has its line.
+        else if (today?.PrecipitationSum is { } rain && rain >= WeatherAmounts.HeavyRain(metric))
+            alerts.Add(new("rain", $"Heavy rain today · {WeatherAmounts.Rain(rain, metric)} expected"));
 
         var freezing = metric ? 0 : 32;
         if (tonight is not null && tonight.TempMin <= freezing)

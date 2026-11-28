@@ -26,6 +26,8 @@ const current: CurrentWeather = {
     humidity: 62,
     wind_direction: 310,
     wind_compass: 'NW',
+    precipitation_unit: 'in',
+    snowfall_unit: 'in',
 };
 
 const today: ForecastDay = {
@@ -40,6 +42,9 @@ const today: ForecastDay = {
     uv_max_category: 'High',
     precipitation_chance: null,
     wind_speed_max: null,
+    precipitation_sum: null,
+    snowfall_sum: null,
+    expected: null,
 };
 
 /** `count` hours from 2026-10-19 at `from` o'clock, warming a degree an hour. */
@@ -49,6 +54,8 @@ function hours(count: number, from = 12, chance: (i: number) => number | null = 
         temperature: 50 + i,
         weather_code: 2,
         precipitation_chance: chance(i),
+        precipitation: null,
+        snowfall: null,
     }));
 }
 

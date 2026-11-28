@@ -10,9 +10,9 @@ namespace Weather.Extensions;
 public static class WebApplicationExtensions
 {
     /// <summary>Per place and units, so moving the home location or switching °F/°C doesn't
-    /// serve the old snapshot. v3: snapshots from before the hourly series and feels-like.</summary>
+    /// serve the old snapshot. v4: snapshots from before rain and snow amounts.</summary>
     internal static string CacheKey(double lat, double lon, bool metric) =>
-        string.Create(CultureInfo.InvariantCulture, $"weather:v3:{(metric ? "metric" : "imperial")}:{lat:F3},{lon:F3}");
+        string.Create(CultureInfo.InvariantCulture, $"weather:v4:{(metric ? "metric" : "imperial")}:{lat:F3},{lon:F3}");
 
     private static readonly FusionCacheEntryOptions CacheOptions = new()
     {
